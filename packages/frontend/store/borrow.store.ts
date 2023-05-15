@@ -14,7 +14,6 @@ import {
   LendingProviderWithFinancials,
   RouterActionParams,
   Sdk,
-  Token,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
@@ -36,8 +35,8 @@ import {
   AssetChange,
   AssetType,
   defaultAssetForType,
-  defaultCurrency,
   FetchStatus,
+  foundCurrency,
   LiquidationMeta,
   LtvMeta,
   Mode,
@@ -312,7 +311,10 @@ export const useBorrow = create<BorrowStore>()(
               const t = type === AssetType.Debt ? state.debt : state.collateral;
               t.chainId = chainId;
               t.selectableCurrencies = currencies;
-              t.currency = defaultCurrency(currencies, currency);
+              const found = foundCurrency(t.selectableCurrencies, t.currency);
+              if (found) t.currency = found;
+              else if (state.formType === FormType.Create)
+                t.currency = currencies[0];
             })
           );
           get().updateCurrencyPrice(type);
@@ -544,9 +546,6 @@ export const useBorrow = create<BorrowStore>()(
           }
           get().changeAllowance(type, AllowanceStatus.Loading);
           try {
-            if (!(currency instanceof Token)) {
-              return;
-            }
             const res = await sdk.getAllowanceFor(
               currency,
               Address.from(address)
@@ -585,6 +584,14 @@ export const useBorrow = create<BorrowStore>()(
           if (!result.success) {
             console.error(result.error.message);
             set({ availableVaultsStatus: FetchStatus.Error });
+            return;
+          }
+          // check if currencies already changed before the previous async call completed
+          if (
+            !collateral.equals(get().collateral.currency) ||
+            !debt.equals(get().debt.currency)
+          ) {
+            await get().updateVault();
             return;
           }
 
@@ -761,7 +768,7 @@ export const useBorrow = create<BorrowStore>()(
 
         /**
          * Allow fuji contract to spend on behalf of the user an amount
-         * Token are deduced from collateral or debt
+         * Currency are deduced from collateral or debt
          * @param type
          */
         async allow(type) {

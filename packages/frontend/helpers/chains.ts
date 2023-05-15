@@ -51,7 +51,7 @@ export function isChain(id: number): boolean {
 }
 
 export function isSupported(id: ChainId | undefined): boolean {
-  return chains.some((chain) => chain.chainId === id);
+  return chains.some((chain) => chain.chainId === id && chain.isDeployed);
 }
 
 export function chainIdToHex(id: ChainId): string {

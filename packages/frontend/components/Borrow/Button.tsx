@@ -147,11 +147,6 @@ function BorrowButton({
     debt.allowance.status === AllowanceStatus.Approving
   ) {
     return loadingButton(false, true);
-  } else if (firstStep && firstStep.chainId !== walletChainId) {
-    return regularButton(
-      `Switch to ${chainName(firstStep.chainId)} Network`,
-      () => onChainChangeClick(firstStep?.chainId)
-    );
   } else if (availableVaultStatus === FetchStatus.Error) {
     return disabledButton('Unsupported pair');
   } else if (bridgeStep?.token && !isBridgeable(bridgeStep.token)) {
@@ -167,6 +162,11 @@ function BorrowButton({
     return regularButton('Manage position', () => {
       onRedirectClick(false);
     });
+  } else if (firstStep && firstStep?.chainId !== walletChainId) {
+    return regularButton(
+      `Switch to ${chainName(firstStep?.chainId)} Network`,
+      () => onChainChangeClick(firstStep?.chainId)
+    );
   } else if (isEditing && !hasBalanceInVault) {
     return regularButton('Borrow', () =>
       clickWithConfirmation(() => {
