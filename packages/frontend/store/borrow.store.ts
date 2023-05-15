@@ -441,10 +441,10 @@ export const useBorrow = create<BorrowStore>()(
             produce((s: BorrowState) => {
               if (type === 'debt') {
                 s.debt.allowance.status = status;
-                if (amount) s.debt.allowance.value = amount;
+                if (amount !== undefined) s.debt.allowance.value = amount;
               } else {
                 s.collateral.allowance.status = status;
-                if (amount) s.collateral.allowance.value = amount;
+                if (amount !== undefined) s.collateral.allowance.value = amount;
               }
             })
           );
@@ -486,6 +486,7 @@ export const useBorrow = create<BorrowStore>()(
         async updateAllowance(type) {
           const currency = get().assetForType(type).currency;
           const address = useAuth.getState().address;
+          console.log(address, currency);
 
           if (!address) {
             return;
@@ -497,12 +498,14 @@ export const useBorrow = create<BorrowStore>()(
           get().changeAllowance(type, 'fetching');
           try {
             if (!(currency instanceof Token)) {
+              console.log('llll');
               return;
             }
             const res = await sdk.getAllowanceFor(
               currency,
               Address.from(address)
             );
+            console.log(res);
 
             const currentCurrency = get().assetForType(type).currency;
             if (
@@ -512,6 +515,7 @@ export const useBorrow = create<BorrowStore>()(
               return;
 
             const value = parseFloat(formatUnits(res, currency.decimals));
+            console.log(value);
             get().changeAllowance(type, 'ready', value);
           } catch (e) {
             // TODO: how to handle the case where we can't fetch allowance ?
@@ -865,6 +869,8 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
           const txRequest = result.data;
+
+          console.log(txRequest.data);
 
           try {
             const signer = provider.getSigner();
