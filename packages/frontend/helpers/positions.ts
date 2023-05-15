@@ -129,7 +129,6 @@ export type PositionRow = {
   ltv: number | 0;
   ltvMax: number | 0;
   safetyRating: number | 0;
-  activeProviders?: LendingProviderDetails[];
   activeProvidersNames: string[];
 };
 
@@ -159,7 +158,6 @@ export function getRows(positions: Position[]): PositionRow[] {
       percentPriceDiff: pos.liquidationDiff,
       ltv: pos.ltv * 100,
       ltvMax: pos.ltvMax * 100,
-      activeProviders: pos.providers?.filter((provider) => provider.active),
       activeProvidersNames: pos.activeProvidersNames,
     }));
   }
