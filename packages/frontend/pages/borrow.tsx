@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 import BorrowWrapper from '../components/Borrow/Wrapper';
 import { useAuth } from '../store/auth.store';
-import { useBorrow } from '../store/borrow.store';
+import { FormType, useBorrow } from '../store/borrow.store';
 
 const BorrowPage: NextPage = () => {
   const changeFormType = useBorrow((state) => state.changeFormType);
@@ -18,7 +18,7 @@ const BorrowPage: NextPage = () => {
   const [hasChain, setHasChain] = useState(false);
 
   useEffect(() => {
-    changeFormType('create');
+    changeFormType(FormType.Create);
   }, [changeFormType]);
 
   useEffect(() => {

@@ -56,8 +56,8 @@ export const checkBalances = async () => {
   const collateral = useBorrow.getState().collateral;
   const debt = useBorrow.getState().debt;
 
-  await checkBalance(address, 'collateral', collateral);
-  await checkBalance(address, 'debt', debt);
+  await checkBalance(address, AssetType.Collateral, collateral);
+  await checkBalance(address, AssetType.Debt, debt);
 };
 
 const checkBalance = async (
@@ -80,7 +80,7 @@ const checkBalance = async (
 
   // Grab again in case it changed while we were fetching
   const current =
-    type === 'collateral'
+    type === AssetType.Collateral
       ? useBorrow.getState().collateral
       : useBorrow.getState().debt;
 

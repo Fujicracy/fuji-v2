@@ -85,9 +85,9 @@ export const getPositionsWithBalance = async (
 export const getAccrual = (
   usdBalance: number,
   baseAPR: number | undefined,
-  param: 'collateral' | 'debt'
+  type: AssetType
 ): number => {
-  const factor = param === 'debt' ? -1 : 1;
+  const factor = type === AssetType.Debt ? -1 : 1;
   // `baseAPR` returned bu SDK is formatted in %, therefore to get decimal we divide by 100.
   const aprDecimal = baseAPR ? baseAPR / 100 : 0;
   // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
