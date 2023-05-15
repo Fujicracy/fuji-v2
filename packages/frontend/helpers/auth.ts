@@ -1,8 +1,8 @@
 import coinbaseModule from '@web3-onboard/coinbase';
+import Onboard from '@web3-onboard/core';
 import injectedModule from '@web3-onboard/injected-wallets';
 import ledgerModule from '@web3-onboard/ledger';
 import mewWallet from '@web3-onboard/mew-wallet';
-import { init } from '@web3-onboard/react';
 import trezorModule from '@web3-onboard/trezor';
 import walletConnectModule, {
   WalletConnectOptions,
@@ -11,6 +11,12 @@ import xdefiWalletModule from '@web3-onboard/xdefi';
 
 import { FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
+
+type OnboardStatus = {
+  hasAcceptedTerms: boolean;
+  date?: Date | string;
+  isExploreInfoSkipped?: boolean;
+};
 
 const wcV1InitOptions: WalletConnectOptions = {
   version: 1,
@@ -41,7 +47,7 @@ const trezor = trezorModule({
 });
 const xdefiWallet = xdefiWalletModule();
 
-export const web3onboard = init({
+export const web3onboard = Onboard({
   chains: onboardChains,
   wallets: [
     injectedModule(),
@@ -66,3 +72,44 @@ export const web3onboard = init({
   },
   theme: 'dark',
 });
+
+export function acceptTermsOfUse() {
+  const onboardStatus: OnboardStatus = {
+    hasAcceptedTerms: true,
+    date: new Date().toJSON(),
+  };
+  const json = JSON.stringify(onboardStatus);
+  localStorage.setItem('termsAccepted', json);
+}
+
+export function getOnboardStatus(): OnboardStatus {
+  const onboardStatusJson = localStorage.getItem('termsAccepted');
+  if (!onboardStatusJson) return { hasAcceptedTerms: false };
+
+  const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
+
+  return {
+    hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
+    date: onboardStatus.date && new Date(onboardStatus.date),
+    isExploreInfoSkipped: onboardStatus.isExploreInfoSkipped,
+  };
+}
+
+export function setExploreInfoSkipped(isExploreInfoSkipped: boolean) {
+  const onboardStatusJson = localStorage.getItem('termsAccepted');
+  if (!onboardStatusJson) return;
+
+  const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
+
+  const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped });
+  localStorage.setItem('termsAccepted', json);
+}
+
+export function dismissBanner(key: string): void {
+  localStorage.setItem(`${key}BannerDismissed`, 'true');
+}
+
+export function getBannerVisibility(key: string): boolean {
+  const statusJson = localStorage.getItem(`${key}BannerDismissed`);
+  return !statusJson || statusJson !== 'true';
+}

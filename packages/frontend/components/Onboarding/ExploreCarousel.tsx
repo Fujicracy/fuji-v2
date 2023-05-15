@@ -10,7 +10,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 
-import { useAuth } from '../../store/auth.store';
+import { setExploreInfoSkipped } from '../../helpers/auth';
 
 function ExploreCarousel({
   open,
@@ -21,7 +21,6 @@ function ExploreCarousel({
 }) {
   const { palette } = useTheme();
   const [currentSlide, setCurrentSlide] = useState(1);
-  const setExploreInfoSkipped = useAuth((state) => state.setExploreInfoSkipped);
 
   const slides = [
     {
