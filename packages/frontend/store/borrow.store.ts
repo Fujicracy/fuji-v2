@@ -526,7 +526,7 @@ export const useBorrow = create<BorrowStore>()(
             get().changeAllowance(type, AllowanceStatus.Unneeded);
             return;
           }
-          get().changeAllowance(type, AllowanceStatus.Fetching);
+          get().changeAllowance(type, AllowanceStatus.Loading);
           try {
             if (!(currency instanceof Token)) {
               return;
@@ -553,7 +553,7 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async updateVault() {
-          set({ availableVaultsStatus: FetchStatus.Fetching });
+          set({ availableVaultsStatus: FetchStatus.Loading });
 
           const collateral = get().collateral.currency;
           const debt = get().debt.currency;
@@ -614,7 +614,7 @@ export const useBorrow = create<BorrowStore>()(
 
           set(
             produce((state: BorrowState) => {
-              state.transactionMeta.status = FetchStatus.Fetching;
+              state.transactionMeta.status = FetchStatus.Loading;
               state.signature = undefined;
               state.actions = undefined;
             })

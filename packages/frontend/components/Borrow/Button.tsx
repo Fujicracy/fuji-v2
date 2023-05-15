@@ -218,7 +218,7 @@ function BorrowButton({
           collateralAmount > 0) ||
         ((mode === Mode.BORROW || mode === Mode.PAYBACK) && debtAmount > 0)
       ),
-      isSigning || isExecuting || availableVaultStatus === FetchStatus.Fetching
+      isSigning || isExecuting || availableVaultStatus === FetchStatus.Loading
     );
   }
 }

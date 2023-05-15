@@ -23,14 +23,14 @@ export enum AssetType {
 
 export enum FetchStatus {
   Initial,
-  Fetching,
+  Loading,
   Ready,
   Error,
 }
 
 export enum AllowanceStatus {
   Initial,
-  Fetching,
+  Loading,
   Ready,
   Error,
   Approving,

@@ -66,7 +66,7 @@ function Fees() {
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
         )}
-        {transactionMeta.status === FetchStatus.Fetching && (
+        {transactionMeta.status === FetchStatus.Loading && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <CircularProgress size="0.875rem" />
           </Stack>
