@@ -188,6 +188,7 @@ function CurrencyCard({
 
   return (
     <Card
+      data-cy="borrow-input"
       variant="outlined"
       sx={{
         borderColor:
