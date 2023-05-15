@@ -62,6 +62,7 @@ function ChainSelectContent({
   const menuId = `${type}-chain-menu`;
   return (
     <Select
+      data-cy="borrow-chain-select"
       labelId={labelId}
       id={selectId}
       value={value}
