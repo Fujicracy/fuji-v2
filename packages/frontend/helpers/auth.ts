@@ -11,6 +11,13 @@ import xdefiWalletModule from '@web3-onboard/xdefi';
 
 import { FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
+
+type OnboardStatus = {
+  hasAcceptedTerms: boolean;
+  date?: Date | string;
+  isExploreInfoSkipped?: boolean;
+};
+
 const wcV1InitOptions: WalletConnectOptions = {
   version: 1,
   qrcodeModalOptions: {
@@ -23,12 +30,6 @@ const wcV1InitOptions: WalletConnectOptions = {
       'pillar',
     ],
   },
-};
-
-type OnboardStatus = {
-  hasAcceptedTerms: boolean;
-  date?: Date | string;
-  isExploreInfoSkipped?: boolean;
 };
 
 // const wcV2InitOptions: WalletConnectOptions = {
@@ -45,6 +46,32 @@ const trezor = trezorModule({
   appUrl: FUJI_INFO.APP_URL,
 });
 const xdefiWallet = xdefiWalletModule();
+
+export const web3onboard = Onboard({
+  chains: onboardChains,
+  wallets: [
+    injectedModule(),
+    coinbase,
+    ledger,
+    mewWalletModule,
+    trezor,
+    walletConnect,
+    xdefiWallet,
+  ],
+  appMetadata: {
+    name: FUJI_INFO.NAME,
+    icon: fujiLogo, // svg string icon
+    description: FUJI_INFO.DESCRIPTION,
+    recommendedInjectedWallets: [
+      { name: 'MetaMask', url: 'https://metamask.io' },
+    ],
+  },
+  accountCenter: {
+    desktop: { enabled: false },
+    mobile: { enabled: false },
+  },
+  theme: 'dark',
+});
 
 export function acceptTermsOfUse() {
   const onboardStatus: OnboardStatus = {
@@ -86,29 +113,3 @@ export function getBannerVisibility(key: string): boolean {
   const statusJson = localStorage.getItem(`${key}BannerDismissed`);
   return !statusJson || statusJson !== 'true';
 }
-
-export const web3onboard = Onboard({
-  chains: onboardChains,
-  wallets: [
-    injectedModule(),
-    coinbase,
-    ledger,
-    mewWalletModule,
-    trezor,
-    walletConnect,
-    xdefiWallet,
-  ],
-  appMetadata: {
-    name: FUJI_INFO.NAME,
-    icon: fujiLogo, // svg string icon
-    description: FUJI_INFO.DESCRIPTION,
-    recommendedInjectedWallets: [
-      { name: 'MetaMask', url: 'https://metamask.io' },
-    ],
-  },
-  accountCenter: {
-    desktop: { enabled: false },
-    mobile: { enabled: false },
-  },
-  theme: 'dark',
-});
