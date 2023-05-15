@@ -226,16 +226,25 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc IVault
   function maxPayback(address borrower) public view override returns (uint256) {
+    if (paused(VaultActions.Payback)) {
+      return 0;
+    }
     return previewBurnDebt(maxBurnDebt(borrower));
   }
 
   /// @inheritdoc IVault
   function maxMintDebt(address borrower) public view override returns (uint256) {
+    if (paused(VaultActions.Borrow)) {
+      return 0;
+    }
     return convertDebtToShares(maxBorrow(borrower));
   }
 
   /// @inheritdoc IVault
   function maxBurnDebt(address borrower) public view override returns (uint256) {
+    if (paused(VaultActions.Payback)) {
+      return 0;
+    }
     return _debtShares[borrower];
   }
 
