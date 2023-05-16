@@ -26,6 +26,14 @@ describe('Borrow', () => {
       .should('contain.text', 'Insufficient');
   });
   // Requires funds on Optimism to run
+  it('should show balance', () => {
+    // checking balance
+    cy.get('[data-cy="balance-amount"]')
+      .first()
+      .should('exist')
+      .should('not.have.text', '0');
+  });
+  // Requires funds on Optimism to run
   it('should input max amount', () => {
     // clearing collateral input
     cy.get('[data-cy="borrow-input"]').first().find('input').clear();
