@@ -69,4 +69,22 @@ describe('Borrow', () => {
         .should('not.have.text', '$0.00');
     });
   });
+  // Requires funds on Optimism to run
+  it('should show correct ltv progress line', () => {
+    let value, maxLTV;
+    cy.get('[data-cy="max-ltv-percent"]')
+      .invoke('text')
+      .then((max) => {
+        maxLTV = parseInt(max);
+        cy.get('[data-cy="recommended-ltv-percent"]')
+          .invoke('text')
+          .then((text) => {
+            value = parseInt(text);
+            const expectedAriaValue = Math.round((value * 100) / maxLTV);
+            cy.get('[data-cy="ltv-progress-line"]')
+              .invoke('attr', 'aria-valuenow')
+              .should('contain', `${expectedAriaValue}`);
+          });
+      });
+  });
 });
