@@ -16,6 +16,7 @@ import {
 } from '../constants';
 import { chainName } from '../helpers/chains';
 import {
+  chainCompleted,
   HistoryEntry,
   HistoryEntryStatus,
   HistoryTransaction,
@@ -192,11 +193,18 @@ export const useHistory = create<HistoryStore>()(
                       : error instanceof Error
                       ? error.message
                       : String(error);
-                  if (currentStep === 0) {
+
+                  if (!chainCompleted(entry.sourceChain)) {
                     entry.sourceChain.status = HistoryEntryStatus.FAILURE;
-                  } else if (entry.secondChain && currentStep === 1) {
+                  } else if (
+                    entry.secondChain &&
+                    !chainCompleted(entry.secondChain)
+                  ) {
                     entry.secondChain.status = HistoryEntryStatus.FAILURE;
-                  } else if (entry.thirdChain && currentStep === 2) {
+                  } else if (
+                    entry.thirdChain &&
+                    !chainCompleted(entry.thirdChain)
+                  ) {
                     entry.thirdChain.status = HistoryEntryStatus.FAILURE;
                   }
                 }

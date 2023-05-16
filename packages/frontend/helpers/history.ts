@@ -131,7 +131,6 @@ export const chainCompleted = (chain: HistoryEntryChain) => {
   );
 };
 
-// TODO: test this
 export const stepForFinishing = (entry: HistoryEntry) => {
   if (entry.chainCount === 3 && entry.secondChain) {
     return chainCompleted(entry.secondChain)
@@ -141,9 +140,8 @@ export const stepForFinishing = (entry: HistoryEntry) => {
       : 0;
   } else if (entry.chainCount === 2) {
     return chainCompleted(entry.sourceChain) ? 1 : 0;
-  } else {
-    return 0;
   }
+  return 0;
 };
 
 const connextLinkify = (id: string) => `https://amarok.connextscan.io/tx/${id}`;
