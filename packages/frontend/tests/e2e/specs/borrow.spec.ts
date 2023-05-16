@@ -37,4 +37,17 @@ describe('Borrow', () => {
       .find('input')
       .should('not.have.value', '0');
   });
+  // Requires funds on Optimism to run
+  it('should input max amount', () => {
+    cy.get('[data-cy="recommended-value"]')
+      .first()
+      .should('not.have.text', '0');
+    // clicking Recommended
+    cy.get('[data-cy="recommended-btn"]').click();
+    // debt input value should be changed
+    cy.get('[data-cy="borrow-input"]')
+      .last()
+      .find('input')
+      .should('not.have.value', '0');
+  });
 });
