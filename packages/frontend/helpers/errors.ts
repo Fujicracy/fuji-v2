@@ -21,6 +21,9 @@ export const initErrorReporting = () => {
   });
 };
 
+export const stringifyError = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
 export const handleTransactionError = (
   error: unknown,
   cancelledMessage: string,
@@ -41,8 +44,7 @@ export const handleTransactionError = (
       ? cancelledMessage
       : ErrorCode.INSUFFICIENT_FUNDS
       ? NOTIFICATION_MESSAGES.TX_INSUFFICIENT_FUNDS
-      : failureMessage ||
-        (error instanceof Error ? error.message : String(error));
+      : failureMessage || stringifyError(error);
 
   const link: NotificationLink | undefined =
     code === ErrorCode.OTHER

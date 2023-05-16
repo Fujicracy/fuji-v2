@@ -20,6 +20,7 @@ import {
 } from './history';
 import { BridgeFee } from './routing';
 import { camelize, toNotSoFixed } from './values';
+import { stringifyError } from './errors';
 
 export type TransactionMeta = {
   status: FetchStatus;
@@ -53,7 +54,9 @@ export const watchTransaction = async (
       return new FujiResultError('Transaction failed', FujiErrorCode.ONCHAIN);
     }
   } catch (error) {
-    return new FujiResultError('Transaction failed', FujiErrorCode.ONCHAIN);
+    return new FujiResultError('Transaction failed', FujiErrorCode.ONCHAIN, {
+      message: stringifyError(error),
+    });
   }
 };
 

@@ -1,4 +1,9 @@
-import { ChainId, ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
+import {
+  ChainId,
+  ConnextTxStatus,
+  FujiError,
+  RoutingStepDetails,
+} from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -162,7 +167,8 @@ export const useHistory = create<HistoryStore>()(
             return;
           }
 
-          const finish = (success: boolean) => {
+          const finish = (error?: unknown) => {
+            const success = error === undefined;
             const address = useAuth.getState().address;
             if (address === entry.address) {
               triggerUpdatesFromSteps(entry.steps);
@@ -178,6 +184,14 @@ export const useHistory = create<HistoryStore>()(
                 const entry = s.entries[hash];
                 entry.status = status;
                 if (!success) {
+                  entry.error =
+                    error instanceof FujiError
+                      ? error.info
+                        ? String(error.info.message)
+                        : error.message
+                      : error instanceof Error
+                      ? error.message
+                      : String(error);
                   if (currentStep === 0) {
                     entry.sourceChain.status = HistoryEntryStatus.FAILURE;
                   } else if (entry.secondChain && currentStep === 1) {
@@ -344,7 +358,7 @@ export const useHistory = create<HistoryStore>()(
               })
             );
             if (entry.chainCount === 1 || !entry.secondChain) {
-              finish(true);
+              finish();
               return;
             }
 
@@ -364,7 +378,7 @@ export const useHistory = create<HistoryStore>()(
               );
             }
             if (!entry.thirdChain) {
-              finish(true);
+              finish();
               return;
             }
 
@@ -381,10 +395,10 @@ export const useHistory = create<HistoryStore>()(
             );
 
             await crossChainWatch(secondChain.chainId, secondChain.hash, false);
-            finish(true);
+            finish();
           } catch (e) {
             console.error(e);
-            finish(false);
+            finish(e);
           } finally {
             remove();
           }
