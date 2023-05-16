@@ -72,8 +72,7 @@ export const useMarkets = create<MarketsStore>()(
         }
 
         const vaultsWithFinancials = result.data;
-        const financials = result.data;
-        const rowsFin = financials.map((fin, i) =>
+        const rowsFin = vaultsWithFinancials.map((fin, i) =>
           setFinancials(rowsBase[i], MarketRowStatus.Ready, fin)
         );
         set({ rows: setBest(rowsFin) });
