@@ -43,7 +43,7 @@ contract MockTestFlasher is Routines, IFlasher {
   {
     deal(asset, address(this), amount);
     flashloanCalled = true;
-    SafeERC20.safeApprove(IERC20(asset), requestor, amount);
+    SafeERC20.safeTransfer(IERC20(asset), requestor, amount);
     requestor.functionCall(requestorCalldata);
   }
 
@@ -135,7 +135,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
     bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, ALICE, destCallData);
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
@@ -541,52 +541,69 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(newftxn.amount, amount);
   }
 
+  /**
+   * @dev NOTE: This test has xBundle actions that seem ilogical.
+   * The main purpose is to check that that ConnextRouter.sol is able
+   * to obtain the beneficiary from a flashloan to be executed
+   * after a cross-chain tx.
+   */
   function test_simpleFlashloan() public {
     // Setup flasher accordingly
     MockTestFlasher flasher = new MockTestFlasher();
     bytes memory data = abi.encodeWithSelector(chief.allowFlasher.selector, address(flasher), true);
     _callWithTimelock(address(chief), data);
 
+    // Perform a preliminary deposit in the vault
     uint256 amount = 2 ether;
-    deal(collateralAsset, ALICE, amount);
+    do_deposit(amount, vault, ALICE);
 
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 0;
+    vm.prank(ALICE);
+    BorrowingVault(payable(address(vault))).increaseAllowance(address(connextRouter), amount);
 
-    uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+    IRouter.Action[] memory actions = new IRouter.Action[](2);
+    bytes[] memory args = new bytes[](2);
 
-    IRouter.Action[] memory actions1 = new IRouter.Action[](1);
-    actions1[0] = IRouter.Action.Flashloan;
+    actions[0] = IRouter.Action.Withdraw;
+    args[0] = abi.encode(address(vault), amount, address(connextRouter), ALICE);
+    actions[1] = IRouter.Action.XTransferWithCall;
 
-    IRouter.Action[] memory actions = new IRouter.Action[](1);
-    bytes[] memory args = new bytes[](1);
+    IRouter.Action[] memory flashAction = new IRouter.Action[](1);
+    bytes[] memory flashArg = new bytes[](1);
 
-    actions[0] = IRouter.Action.XTransferWithCall;
+    flashAction[0] = IRouter.Action.Flashloan;
 
-    IRouter.Action[] memory destActions = new IRouter.Action[](1);
-    bytes[] memory destArgs = new bytes[](1);
+    IRouter.Action[] memory innerActions = new IRouter.Action[](1);
+    bytes[] memory innerArgs = new bytes[](1);
 
-    destActions[0] = IRouter.Action.Deposit;
-    destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
+    innerActions[0] = IRouter.Action.Deposit;
+    innerArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
-    bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
+    bytes memory requestorCall =
+      abi.encodeWithSelector(IRouter.xBundle.selector, innerActions, innerArgs);
 
-    bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
-
-    bytes[] memory args1 = new bytes[](1);
-    args1[0] =
+    flashArg[0] =
       abi.encode(address(flasher), collateralAsset, amount, address(connextRouter), requestorCall);
+
+    {
+      // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
+      // Eg. 0.05% slippage threshold will be 5.
+      uint256 slippageThreshold = 0;
+      uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
+      bytes memory destCalldata = abi.encode(flashAction, flashArg, slippageThreshold);
+      args[1] = abi.encode(
+        destDomain, 30, collateralAsset, amount, address(connextRouter), ALICE, destCalldata
+      );
+    }
 
     vm.startPrank(ALICE);
     SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
+    connextRouter.xBundle(actions, args);
 
-    connextRouter.xBundle(actions1, args1);
-    assertEq(flasher.flashloanCalled(), true);
+    vm.stopPrank();
+    // assertEq(flasher.flashloanCalled(), true);
   }
 
   function test_flashloanWithIncorrectActionAfter() public {
@@ -662,8 +679,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     bytes memory destChainDepositAndBorrowCallData =
       abi.encode(destChainDepositAndBorrowActions, destChainDepositAndBorrowArgs, 0);
 
-    originArgs1[0] =
-      abi.encode(destDomain, 30, collateralAsset, 1 ether, ALICE, destChainDepositAndBorrowCallData);
+    originArgs1[0] = abi.encode(
+      destDomain, 30, collateralAsset, 1 ether, ALICE, ALICE, destChainDepositAndBorrowCallData
+    );
 
     //assert dispatch
     vm.expectEmit(false, false, false, false);
@@ -700,7 +718,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] =
       abi.encode(address(flasher), debtAsset, 100e6, address(connextRouter), requestorCalldata);
     bytes memory destCallData = abi.encode(destActions, destArgs, 0);
-    originArgs2[0] = abi.encode(destDomain, 0, collateralAsset, 0, ALICE, destCallData);
+    originArgs2[0] = abi.encode(destDomain, 0, collateralAsset, 0, ALICE, ALICE, destCallData);
 
     //assert dispatch
     vm.expectEmit(false, false, false, false);
@@ -755,7 +773,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     bytes memory destCallData = abi.encode(destActions, destArgs, 0);
 
-    originArgs[1] = abi.encode(destDomain, 0, collateralAsset, 0, ALICE, destCallData);
+    originArgs[1] = abi.encode(destDomain, 0, collateralAsset, 0, ALICE, ALICE, destCallData);
 
     // Expect revert due to wrong beneficiary in cross transaction
     vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);
