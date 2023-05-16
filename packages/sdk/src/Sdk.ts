@@ -322,35 +322,52 @@ export class Sdk {
    *
    * @param collateral - collateral instance of {@link Currency}
    * @param debt - debt instance of {@link Currency}
+   * @param account - debt instance of {@link Currency}
    */
   async getBorrowingVaultsFor(
     collateral: Currency,
-    debt: Currency
-  ): FujiResultPromise<BorrowingVault[]> {
+    debt: Currency,
+    account?: Address
+  ): FujiResultPromise<VaultWithFinancials[]> {
     const _collateral = collateral.isToken ? collateral : collateral.wrapped;
     const _debt = debt.isToken ? debt : debt.wrapped;
 
-    // TODO: sort by safety rating too
     // find all vaults with this pair
     try {
-      const vaults = this._findVaultsByTokens(_collateral, _debt).map(
+      const _vaults = this._findVaultsByTokens(_collateral, _debt).map(
         (v: BorrowingVault) => v.setConnection(this._configParams)
       );
-
-      const rates = await Promise.all(vaults.map((v) => v.getBorrowRate()));
-
-      // and sort them by borrow rate
-      const sorted = vaults
-        .map((vault, i) => ({ vault, rate: rates[i] }))
-        .sort((a, b) => (a.rate.lte(b.rate) ? -1 : 0))
-        .map(({ vault }) => vault);
-
+      const vaults = [];
       if (collateral.chainId === debt.chainId) {
-        // sort again to privilege vaults on the same chain
-        sorted.sort((a) =>
-          a.collateral.chainId === collateral.chainId ? -1 : 0
-        );
+        const r = await batchLoad(_vaults, account, collateral.chain);
+        if (r.success) vaults.push(...r.data);
+        else return r;
+      } else {
+        const r1 = _vaults.filter((v) => v.chainId === collateral.chainId);
+        const r2 = _vaults.filter((v) => v.chainId === debt.chainId);
+        const [a, b] = await Promise.all([
+          batchLoad(r1, account, collateral.chain),
+          batchLoad(r2, account, debt.chain),
+        ]);
+        if (a.success && b.success) vaults.push(...a.data, ...b.data);
+        else return a.success ? b : a;
       }
+
+      // sort them by borrow rate
+      const sorted = vaults.sort((a, b) =>
+        Number(a.activeProvider?.borrowAprBase) <=
+        Number(b.activeProvider?.borrowAprBase)
+          ? -1
+          : 0
+      );
+      // TODO: sort by safety rating too
+
+      //if (collateral.chainId === debt.chainId) {
+      //// sort again to privilege vaults on the same chain
+      //sorted.sort((a) =>
+      //a.collateral.chainId === collateral.chainId ? -1 : 0
+      //);
+      //}
 
       return new FujiResultSuccess(sorted);
     } catch (error) {

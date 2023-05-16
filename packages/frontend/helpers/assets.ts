@@ -16,15 +16,26 @@ export enum Mode {
   PAYBACK, // removePosition: debt
 }
 
-export type AssetType = 'debt' | 'collateral';
+export enum AssetType {
+  Debt = 'debt',
+  Collateral = 'collateral',
+}
 
-export type AllowanceStatus =
-  | 'initial'
-  | 'fetching'
-  | 'allowing'
-  | 'ready'
-  | 'unneeded'
-  | 'error';
+export enum FetchStatus {
+  Initial,
+  Loading,
+  Ready,
+  Error,
+}
+
+export enum AllowanceStatus {
+  Initial,
+  Loading,
+  Ready,
+  Error,
+  Approving,
+  Unneeded,
+}
 
 export type Allowance = {
   status: AllowanceStatus;
@@ -74,14 +85,16 @@ export const defaultCurrency = (
 
 export const defaultAssetForType = (type: AssetType): AssetChange => {
   const defaultCurrencies =
-    type === 'debt' ? defaultDebtCurrencies : defaultCollateralCurrencies;
+    type === AssetType.Debt
+      ? defaultDebtCurrencies
+      : defaultCollateralCurrencies;
   return {
     selectableCurrencies: defaultCurrencies,
     balances: {},
     input: '',
     chainId: DEFAULT_CHAIN_ID,
     allowance: {
-      status: 'initial',
+      status: AllowanceStatus.Initial,
       value: undefined,
     },
     currency: defaultCurrency(defaultCurrencies),
@@ -100,11 +113,11 @@ export const needsAllowance = (
   asset: AssetChange,
   amount: number
 ): boolean => {
-  if (asset.allowance.status === 'unneeded') {
+  if (asset.allowance.status === AllowanceStatus.Unneeded) {
     return false;
   }
   return (
-    (type === 'debt'
+    (type === AssetType.Debt
       ? mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW
       : mode === Mode.DEPOSIT || mode === Mode.DEPOSIT_AND_BORROW) &&
     asset.allowance.value !== undefined &&

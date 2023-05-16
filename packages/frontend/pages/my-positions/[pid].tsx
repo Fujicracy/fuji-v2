@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import BorrowWrapper from '../../components/Borrow/Wrapper';
 import { isChain } from '../../helpers/chains';
 import { showBorrow } from '../../helpers/navigation';
-import { useBorrow } from '../../store/borrow.store';
+import { FormType, useBorrow } from '../../store/borrow.store';
 
 const PositionPage: NextPage = () => {
   const router = useRouter();
@@ -19,7 +19,7 @@ const PositionPage: NextPage = () => {
   const changeFormType = useBorrow((state) => state.changeFormType);
 
   useEffect(() => {
-    changeFormType('edit');
+    changeFormType(FormType.Edit);
   }, [changeFormType]);
 
   if (!address || !chain) {

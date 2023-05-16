@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { DUST_AMOUNT, NOTIFICATION_MESSAGES } from '../constants';
+import { AssetType } from '../helpers/assets';
 import { notify } from '../helpers/notifications';
 import {
   getAccrual,
@@ -58,19 +59,19 @@ export const usePositions = create<PositionsStore>()(
             )
           : [];
 
-        const totalDepositsUSD = getTotalSum(positions, 'collateral');
-        const totalDebtUSD = getTotalSum(positions, 'debt');
+        const totalDepositsUSD = getTotalSum(positions, AssetType.Collateral);
+        const totalDebtUSD = getTotalSum(positions, AssetType.Debt);
 
         const totalAccrued = positions.reduce((acc, p) => {
           const accrueCollateral = getAccrual(
             p.collateral.amount * p.collateral.usdPrice,
             p.collateral.baseAPR,
-            'collateral'
+            AssetType.Collateral
           );
           const accrueDebt = getAccrual(
             p.debt.amount * p.debt.usdPrice,
             p.debt.baseAPR,
-            'debt'
+            AssetType.Debt
           );
           return accrueCollateral + accrueDebt + acc;
         }, 0);

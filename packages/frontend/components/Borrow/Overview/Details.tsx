@@ -1,6 +1,5 @@
 import { Box, Divider, Grid, Stack, Typography, useTheme } from '@mui/material';
-import { BorrowingVault, LendingProviderDetails } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
+import { BorrowingVault, LendingProviderWithFinancials } from '@x-fuji/sdk';
 
 import { chainName } from '../../../helpers/chains';
 import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
@@ -16,13 +15,15 @@ type DetailsProps = {
   isMobile: boolean;
   isEditing: boolean;
   vault?: BorrowingVault;
-  providers?: LendingProviderDetails[];
+  providers?: LendingProviderWithFinancials[];
+  activeProvider?: LendingProviderWithFinancials;
 };
 
 function Details({
   ltv,
   ltvThreshold,
   providers,
+  activeProvider,
   vault,
   isMobile,
   isEditing,
@@ -69,12 +70,12 @@ function Details({
             {providers?.length ? (
               <Stack direction="row" gap={0.6} alignItems="center">
                 <ProviderIcon
-                  provider={providers.find((p) => p.active)?.name || ''}
+                  provider={activeProvider?.name || ''}
                   height={18}
                   width={18}
                 />
                 <Typography variant="small">
-                  {providers.find((p) => p.active)?.name} on
+                  {activeProvider?.name} on
                 </Typography>
                 <NetworkIcon
                   network={vault?.chainId || ''}
@@ -104,14 +105,10 @@ function Details({
             title={<ProvidersTooltip providers={providers} />}
           >
             <Box sx={{ alignItems: 'center' }}>
-              {providers?.length ? (
+              {activeProvider ? (
                 <Typography variant="small">
                   <span style={{ color: palette.success.main }}>
-                    {(
-                      parseFloat(formatUnits(providers[0].depositRate, 27)) *
-                      100
-                    ).toFixed(2)}
-                    %
+                    {activeProvider.depositAprBase?.toFixed(2)}%
                   </span>
                 </Typography>
               ) : (
@@ -135,13 +132,10 @@ function Details({
             title={<ProvidersTooltip providers={providers} isBorrow />}
           >
             <Box sx={{ alignItems: 'center' }}>
-              {providers?.length ? (
+              {activeProvider ? (
                 <Typography variant="small">
                   <span style={{ color: palette.warning.main }}>
-                    {(
-                      parseFloat(formatUnits(providers[0].borrowRate, 27)) * 100
-                    ).toFixed(2)}
-                    %
+                    {activeProvider.borrowAprBase?.toFixed(2)}%
                   </span>
                 </Typography>
               ) : (

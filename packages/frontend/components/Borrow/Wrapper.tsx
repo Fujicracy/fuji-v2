@@ -22,7 +22,7 @@ import {
   viewEditedPosition,
 } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
-import { useBorrow } from '../../store/borrow.store';
+import { FormType, useBorrow } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 import { usePositions } from '../../store/positions.store';
 import Header from '../Shared/Header/Header';
@@ -48,7 +48,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   const mode = useBorrow((state) => state.mode);
   const formType = useBorrow((state) => state.formType);
 
-  const isEditing = formType !== 'create';
+  const isEditing = formType !== FormType.Create;
 
   const [basePosition, setBasePosition] = useState<BasePosition>(
     viewDynamicPosition(!isEditing, undefined)

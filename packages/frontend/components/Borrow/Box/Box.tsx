@@ -58,15 +58,15 @@ function BorrowBox({
     <Box
       mb={
         (isEditing && actionType === ActionType.REMOVE
-          ? 'debt'
-          : 'collateral') === type
+          ? AssetType.Debt
+          : AssetType.Collateral) === type
           ? '1rem'
           : undefined
       }
     >
       <ChainSelect
         label={
-          type === 'collateral'
+          type === AssetType.Collateral
             ? actionType === ActionType.ADD
               ? 'Collateral from'
               : 'Withdraw to'
@@ -78,7 +78,7 @@ function BorrowBox({
         value={chainId}
         disabled={isExecuting}
         onChange={(chainId) =>
-          type === 'collateral'
+          type === AssetType.Collateral
             ? changeCollateralChain(chainId, !isEditing, assetChange.currency)
             : changeDebtChain(chainId, !isEditing, assetChange.currency)
         }
@@ -97,12 +97,12 @@ function BorrowBox({
         basePosition={basePosition}
         isFocusedByDefault={index === 0}
         onCurrencyChange={(currency) =>
-          type === 'collateral'
+          type === AssetType.Collateral
             ? changeCollateralCurrency(currency)
             : changeDebtCurrency(currency)
         }
         onInputChange={(value) =>
-          type === 'collateral'
+          type === AssetType.Collateral
             ? changeCollateralValue(value)
             : changeDebtValue(value)
         }

@@ -103,7 +103,7 @@ function CurrencyCard({
 
   const shouldShowNativeWrappedPair =
     isEditing &&
-    type === 'collateral' &&
+    type === AssetType.Collateral &&
     isNativeOrWrapped(currency, selectableCurrencies);
 
   const currencyList = shouldShowNativeWrappedPair
@@ -122,7 +122,7 @@ function CurrencyCard({
       basePosition.position.collateral.amount - DUST_AMOUNT / 100
     );
     const amount =
-      actionType === ActionType.REMOVE && type === 'collateral'
+      actionType === ActionType.REMOVE && type === AssetType.Collateral
         ? deductedCollateral -
           (basePosition.position.debt.amount - Number(debt.input)) /
             ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
@@ -191,8 +191,9 @@ function CurrencyCard({
       variant="outlined"
       sx={{
         borderColor:
-          (actionType === ActionType.ADD ? 'collateral' : 'debt') === type &&
-          Number(assetChange.input) > balance
+          (actionType === ActionType.ADD
+            ? AssetType.Collateral
+            : AssetType.Debt) === type && Number(assetChange.input) > balance
             ? palette.error.dark
             : focused
             ? palette.info.main

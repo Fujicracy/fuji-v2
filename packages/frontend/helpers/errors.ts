@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { NOTIFICATION_MESSAGES, SOCIAL_URL } from '../constants';
+import { NOTIFICATION_MESSAGES, SENTRY_DSN, SOCIAL_URL } from '../constants';
 import { NotificationLink, notify } from './notifications';
 
 enum ErrorCode {
@@ -15,7 +15,7 @@ export const initErrorReporting = () => {
     return;
   }
   Sentry.init({
-    dsn: 'https://f64501e2fca94d6c9434a00ed0aece54@o1151449.ingest.sentry.io/4504884437057536',
+    dsn: SENTRY_DSN,
     integrations: [new BrowserTracing()],
     tracesSampleRate: 1.0,
   });
