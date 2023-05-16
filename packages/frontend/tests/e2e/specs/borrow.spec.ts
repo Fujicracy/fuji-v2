@@ -107,12 +107,23 @@ describe('Borrow', () => {
     cy.get('[data-cy="routing-modal-close-button"]').should('exist').click();
   });
   it('should show fees', () => {
+    // checking high level fee is shown and not 0
+    cy.get('[data-cy="fees-container"]')
+      .find('span')
+      .eq(1)
+      .invoke('text')
+      .then((text) => {
+        expect(parseFloat(text.slice(2))).to.be.gt(0);
+      });
+    // unfolding fees
     cy.get('[data-cy="fees-container"]').should('exist').click();
+    // checking first unfolded fee is 'Bridge fee'
     cy.get('[data-cy="fee-item"]')
       .eq(0)
       .find('span')
       .first()
-      .should('contain.text', 'Bridge fee');
+      .should('contain.text', 'Bridge Fee');
+    // checking 'Bridge fee' value greater than 0
     cy.get('[data-cy="fee-item"]')
       .eq(0)
       .find('span')
@@ -121,5 +132,11 @@ describe('Borrow', () => {
       .then((text) => {
         expect(parseFloat(text.slice(2))).to.be.gt(0);
       });
+    // checking second unfolded fee is 'Relayer Fee'
+    cy.get('[data-cy="fee-item"]')
+      .eq(1)
+      .find('span')
+      .first()
+      .should('contain.text', 'Relayer Fee');
   });
 });

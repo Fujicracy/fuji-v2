@@ -81,7 +81,7 @@ function Fees() {
       <Collapse in={show} sx={{ width: '100%' }}>
         {crossChainTx && transactionMeta.bridgeFees && (
           <Fee
-            label="Bridge fee"
+            label="Bridge Fee"
             value={`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)}`}
             tooltip={bridgeTooltip()}
           />
