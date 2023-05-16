@@ -338,8 +338,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     uint256 amount,
     uint256 borrowAmount,
     address router,
-    address vault_,
-    uint256 slippage
+    address vault_
   )
     internal
     returns (bytes memory callData)
@@ -368,7 +367,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       actionArgsHash // actions args hash
     );
 
-    callData = abi.encode(actions, args, slippage);
+    callData = abi.encode(actions, args);
   }
 
   function _getDepositAndBorrow(

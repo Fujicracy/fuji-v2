@@ -113,10 +113,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     deal(collateralAsset, ALICE, amount);
 
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 0;
-
     uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
 
     vm.startPrank(ALICE);
@@ -134,7 +130,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destActions[0] = IRouter.Action.Deposit;
     destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
-    bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
+    bytes memory destCallData = abi.encode(destActions, destArgs);
     args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
 
     vm.expectEmit(false, false, false, false);
@@ -147,18 +143,8 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 0;
-
     bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE,
-      ALICE_PK,
-      amount,
-      borrowAmount,
-      address(connextRouter),
-      address(vault),
-      slippageThreshold
+      ALICE, ALICE_PK, amount, borrowAmount, address(connextRouter), address(vault)
     );
 
     vm.expectEmit(true, true, true, false);
@@ -188,66 +174,13 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), 0);
   }
 
-  function test_bridgeSlippageInbound() public {
-    uint256 amount = 2 ether;
-    uint256 borrowAmount = 1000e6;
-
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 5;
-
-    bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE,
-      ALICE_PK,
-      amount,
-      borrowAmount,
-      address(connextRouter),
-      address(vault),
-      slippageThreshold
-    );
-
-    vm.expectEmit(true, true, true, false);
-    emit Deposit(address(connextRouter), ALICE, amount, amount);
-
-    vm.expectEmit(true, true, true, false);
-    emit Borrow(address(connextRouter), ALICE, ALICE, borrowAmount, borrowAmount);
-
-    // send directly the bridged funds to our router
-    // thus mocking Connext behavior
-    // including a 0.03% slippage (3 BPS)
-    uint256 slippageAmount = ((amount * 10000) / 10003);
-    deal(collateralAsset, address(connextRouter), slippageAmount);
-
-    vm.startPrank(registry[domain].connext);
-    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
-    // the same address as the one on GOERLI
-    connextRouter.xReceive(
-      "", slippageAmount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
-    );
-    vm.stopPrank();
-
-    // Assert ALICE has received shares
-    assertGt(vault.balanceOf(ALICE), 0);
-    // Since ALICE is first depositor, assert ALICE shares are equal `slippageAmount`.
-    assertEq(vault.balanceOf(ALICE), slippageAmount);
-    // Assert ALICE received borrowAmount
-    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
-    // Assert router or ConnextHandler does not have collateral.
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextRouter)), 0);
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), 0);
-  }
-
   function test_attackXReceive() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 5;
-
     // This calldata has to fail and funds handled accordingly by the router.
     bytes memory failingCallData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
     );
 
     // Send directly the bridged funds to our router thus mocking Connext behavior
@@ -267,13 +200,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // Attacker makes first attempt to take funds using xReceive, BOB
     address attacker = BOB;
     bytes memory attackCallData = _getDepositAndBorrowCallData(
-      attacker,
-      BOB_PK,
-      amount,
-      borrowAmount,
-      address(connextRouter),
-      address(vault),
-      slippageThreshold
+      attacker, BOB_PK, amount, borrowAmount, address(connextRouter), address(vault)
     );
 
     // call attack faked as from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
@@ -316,13 +243,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 5;
-
     // make the callData to fail
     bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
     );
 
     // send directly the bridged funds to our router
@@ -346,13 +269,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 5;
-
     // make the callData to fail
     bytes memory badCallData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
     );
 
     // send directly the bridged funds to our router
@@ -479,13 +398,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
 
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 0;
-
     // This calldata has to fail and funds handled accordingly by the router.
     bytes memory failingCallData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault), slippageThreshold
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
     );
 
     // send directly the bridged funds to our router
@@ -514,7 +429,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // Create different calldata
     uint256 newAmount = 1.5 ether;
     bytes memory newfailingCallData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, newAmount, borrowAmount, address(0), address(vault), slippageThreshold
+      ALICE, ALICE_PK, newAmount, borrowAmount, address(0), address(vault)
     );
 
     // send directly the bridged funds to our router
@@ -550,10 +465,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     uint256 amount = 2 ether;
     deal(collateralAsset, ALICE, amount);
 
-    // The maximum slippage acceptable, in BPS, due to the Connext bridging mechanics
-    // Eg. 0.05% slippage threshold will be 5.
-    uint256 slippageThreshold = 0;
-
     uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
 
     IRouter.Action[] memory actions1 = new IRouter.Action[](1);
@@ -570,7 +481,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destActions[0] = IRouter.Action.Deposit;
     destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
-    bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
+    bytes memory destCallData = abi.encode(destActions, destArgs);
     args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
 
     bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
@@ -630,7 +541,6 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // stack too deep to have these variables
     // uint256 amount = 2 ether;
     // uint256 borrowAmount = 100e8;
-    // uint256 slippageThreshold = 0;
     uint32 destDomain = OPTIMISM_GOERLI_DOMAIN;
     MockTestFlasher flasher = new MockTestFlasher();
 
@@ -786,8 +696,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
   //     amount,
   //     borrowAmount,
   //     address(connextRouter),
-  //     address(vault),
-  //     slippageThreshold
+  //     address(vault)
   //   );
 
   //   vm.expectEmit(true, true, true, false);
