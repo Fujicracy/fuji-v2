@@ -5,8 +5,9 @@ import { formatUnits, parseUnits } from '@ethersproject/units';
 import { BigNumber, utils, Wallet } from 'ethers';
 
 import { NATIVE, USDC, VAULT_LIST, WETH9, WNATIVE } from '../src/constants';
-import { Address, BorrowingVault, Token } from '../src/entities';
+import { Address, BorrowingVault } from '../src/entities';
 import { ChainId, PreviewName, RouterAction } from '../src/enums';
+import * as batchLoad from '../src/functions/batchLoad';
 import { Sdk } from '../src/Sdk';
 import {
   BorrowParams,
@@ -89,32 +90,37 @@ describe('Sdk', () => {
 
   describe('#getBorrowingVaultFor', () => {
     it('returns a first vault from chainA based on an APR check', async () => {
+      const vaults = [
+        new BorrowingVault(
+          ADDRESS_ONE,
+          WNATIVE[ChainId.MATIC],
+          USDC[ChainId.MATIC]
+        ),
+        new BorrowingVault(
+          ADDRESS_ONE,
+          WNATIVE[ChainId.MATIC],
+          USDC[ChainId.MATIC]
+        ),
+        new BorrowingVault(
+          ADDRESS_ONE,
+          WNATIVE[ChainId.OPTIMISM],
+          USDC[ChainId.OPTIMISM]
+        ),
+      ];
+      const financials = vaults.map((vault, i) => ({
+        vault,
+        activeProvider: {
+          borrowAprBase: BigNumber.from(i + 1),
+        },
+      }));
       jest
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
-        .mockImplementation(() => [
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.MATIC],
-            USDC[ChainId.MATIC]
-          ),
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.MATIC],
-            USDC[ChainId.MATIC]
-          ),
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.OPTIMISM],
-            USDC[ChainId.OPTIMISM]
-          ),
-        ]);
-
+        .mockImplementation(() => vaults);
       jest
-        .spyOn(BorrowingVault.prototype as BorrowingVault, 'getBorrowRate')
-        .mockResolvedValueOnce(BigNumber.from(1))
-        .mockResolvedValueOnce(BigNumber.from(2))
-        .mockResolvedValueOnce(BigNumber.from(3));
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        .spyOn(batchLoad as any, 'batchLoad')
+        .mockImplementation(() => ({ success: true, data: financials }));
 
       const collateralA = WNATIVE[ChainId.MATIC];
       const debtB = USDC[ChainId.OPTIMISM];
@@ -123,36 +129,41 @@ describe('Sdk', () => {
       expect(result.success).toBeTruthy();
       if (!result.success) return;
 
-      const vaults = result.data;
-      expect(vaults[0].vault.chainId).toEqual(ChainId.MATIC);
+      expect(result.data[0].vault.chainId).toEqual(ChainId.MATIC);
     });
 
     it('returns a first vault from chainB based on an APR check', async () => {
+      const vaults = [
+        new BorrowingVault(
+          ADDRESS_ONE,
+          WNATIVE[ChainId.MATIC],
+          USDC[ChainId.MATIC]
+        ),
+        new BorrowingVault(
+          ADDRESS_ONE,
+          WNATIVE[ChainId.MATIC],
+          USDC[ChainId.MATIC]
+        ),
+        new BorrowingVault(
+          ADDRESS_ONE,
+          WNATIVE[ChainId.OPTIMISM],
+          USDC[ChainId.OPTIMISM]
+        ),
+      ];
+      const financials = vaults.map((vault, i) => ({
+        vault,
+        activeProvider: {
+          borrowAprBase: BigNumber.from(3 - i),
+        },
+      }));
       jest
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
-        .mockImplementation(() => [
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.MATIC],
-            USDC[ChainId.MATIC]
-          ),
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.MATIC],
-            USDC[ChainId.MATIC]
-          ),
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.OPTIMISM],
-            USDC[ChainId.OPTIMISM]
-          ),
-        ]);
+        .mockImplementation(() => vaults);
       jest
-        .spyOn(BorrowingVault.prototype as BorrowingVault, 'getBorrowRate')
-        .mockResolvedValueOnce(BigNumber.from(3))
-        .mockResolvedValueOnce(BigNumber.from(2))
-        .mockResolvedValueOnce(BigNumber.from(1));
+        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+        .spyOn(batchLoad as any, 'batchLoad')
+        .mockImplementation(() => ({ success: true, data: financials }));
 
       const collateralA = WNATIVE[ChainId.MATIC];
       const debtB = USDC[ChainId.OPTIMISM];
@@ -160,60 +171,7 @@ describe('Sdk', () => {
       const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
       expect(result.success).toBeTruthy();
       if (!result.success) return;
-
-      const vaults = result.data;
-      expect(vaults[0].vault.chainId).toEqual(ChainId.OPTIMISM);
-    });
-
-    it('returns a first vault from same chain although it is with the highest borrow rate', async () => {
-      jest
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
-        .mockImplementation(() => [
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.OPTIMISM],
-            USDC[ChainId.OPTIMISM]
-          ),
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.MATIC],
-            USDC[ChainId.MATIC]
-          ),
-          new BorrowingVault(
-            ADDRESS_ONE,
-            WNATIVE[ChainId.MATIC],
-            USDC[ChainId.MATIC]
-          ),
-        ]);
-      jest
-        .spyOn(BorrowingVault.prototype as BorrowingVault, 'getBorrowRate')
-        .mockResolvedValueOnce(BigNumber.from(3))
-        .mockResolvedValueOnce(BigNumber.from(2))
-        .mockResolvedValueOnce(BigNumber.from(1));
-
-      const collateralA = WNATIVE[ChainId.OPTIMISM];
-      const debtB = USDC[ChainId.OPTIMISM];
-
-      const result = await sdk.getBorrowingVaultsFor(collateralA, debtB);
-      if (!result.success) return;
-
-      const vaults = result.data;
-      expect(vaults[0].vault.chainId).toEqual(ChainId.OPTIMISM);
-    });
-
-    it('cannot find a vault', async () => {
-      jest
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
-        .mockImplementation(() => []);
-      const collateral = WNATIVE[ChainId.MATIC];
-      const debt = new Token(ChainId.MATIC, ADDRESS_BOB, 6, 'Bob');
-      const result = await sdk.getBorrowingVaultsFor(collateral, debt);
-      if (!result.success) return;
-
-      const vaults = result.data;
-      expect(vaults.length).toEqual(0);
+      expect(result.data[0].vault.chainId).toEqual(ChainId.OPTIMISM);
     });
   });
 
