@@ -75,7 +75,11 @@ function ChainSelectContent({
     >
       {chains.map((chain) => {
         return (
-          <MenuItem key={chain.chainId} value={chain.chainId}>
+          <MenuItem
+            key={chain.chainId}
+            value={chain.chainId}
+            data-cy="borrow-chain-select-item"
+          >
             <Grid container alignItems="center">
               <NetworkIcon network={chain.name} height={18} width={18} />
               <span style={{ marginLeft: '0.5rem' }}>

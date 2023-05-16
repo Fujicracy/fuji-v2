@@ -87,4 +87,15 @@ describe('Borrow', () => {
           });
       });
   });
+  it('should change debt chain', () => {
+    cy.get('[data-cy="borrow-chain-select"]')
+      .last()
+      .click()
+      .then(() => {
+        cy.get('[data-cy="borrow-chain-select-item"]').eq(1).click();
+        cy.get('[data-cy="borrow-chain-select"]')
+          .last()
+          .should('contain.text', 'Gnosis');
+      });
+  });
 });
