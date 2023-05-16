@@ -34,7 +34,7 @@ describe('Borrow', () => {
       .should('not.have.text', '0');
   });
   // Requires funds on Optimism to run
-  it('should input max amount', () => {
+  it('should input max collateral amount', () => {
     // clearing collateral input
     cy.get('[data-cy="borrow-input"]').first().find('input').clear();
     // clicking MAX
@@ -46,7 +46,7 @@ describe('Borrow', () => {
       .should('not.have.value', '0');
   });
   // Requires funds on Optimism to run
-  it('should input max amount', () => {
+  it('should input recommended debt amount', () => {
     cy.get('[data-cy="recommended-value"]')
       .first()
       .should('not.have.text', '0');
@@ -57,5 +57,16 @@ describe('Borrow', () => {
       .last()
       .find('input')
       .should('not.have.value', '0');
+  });
+  // Requires funds on Optimism to run
+  it('should show correct summary', () => {
+    cy.get('[data-cy="borrow-summary-amount"]')
+      .first()
+      .should('not.have.text', '0 WETH');
+    [1, 2, 3].forEach((index) => {
+      cy.get('[data-cy="borrow-summary-amount"]')
+        .eq(index)
+        .should('not.have.text', '$0.00');
+    });
   });
 });
