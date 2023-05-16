@@ -25,4 +25,16 @@ describe('Borrow', () => {
       .should('exist')
       .should('contain.text', 'Insufficient');
   });
+  // Requires funds on Optimism to run
+  it('should input max amount', () => {
+    // clearing collateral input
+    cy.get('[data-cy="borrow-input"]').first().find('input').clear();
+    // clicking MAX
+    cy.get('[data-cy="max-btn"]').click();
+    // collateral input value should be changed
+    cy.get('[data-cy="borrow-input"]')
+      .first()
+      .find('input')
+      .should('not.have.value', '0');
+  });
 });

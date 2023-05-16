@@ -308,6 +308,7 @@ function CurrencyCard({
 
             {Number(recommended()) > 0 && (
               <Typography
+                data-cy="recommended-btn"
                 variant="smallDark"
                 sx={{
                   cursor: 'pointer',
@@ -323,6 +324,7 @@ function CurrencyCard({
                 onClick={handleRecommended}
               >
                 <Typography
+                  data-cy="recommended-value"
                   variant="smallDark"
                   color={palette.success.main}
                   sx={{
