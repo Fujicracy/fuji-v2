@@ -15,7 +15,6 @@ import {
 import { notify } from '../helpers/notifications';
 import { storeOptions } from '../helpers/stores';
 import { sdk } from '../services/sdk';
-import { useAuth } from './auth.store';
 
 type MarketsState = {
   rows: MarketRow[];
@@ -25,7 +24,7 @@ type MarketsState = {
 };
 
 type MarketsActions = {
-  fetchMarkets: () => void;
+  fetchMarkets: (addr?: string) => void;
 };
 
 const initialState: MarketsState = {
@@ -42,7 +41,7 @@ export const useMarkets = create<MarketsStore>()(
     (set, get) => ({
       ...initialState,
 
-      fetchMarkets: async () => {
+      fetchMarkets: async (address) => {
         set({ loading: true });
         const vaults = sdk.getAllBorrowingVaults();
 
@@ -52,7 +51,6 @@ export const useMarkets = create<MarketsStore>()(
           set({ rows: rowsBase });
         }
 
-        const address = useAuth.getState().address;
         const result = await getAllBorrowingVaultFinancials(
           address ? Address.from(address) : undefined
         );

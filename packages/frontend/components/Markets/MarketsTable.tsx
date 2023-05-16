@@ -39,7 +39,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
   const walletChainId = useAuth((state) => state.chainId);
 
   useEffect(() => {
-    fetchMarkets();
+    fetchMarkets(address);
   }, [address, fetchMarkets]);
 
   // Filters original rows depends on search or chain
