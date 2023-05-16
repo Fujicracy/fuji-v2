@@ -106,4 +106,20 @@ describe('Borrow', () => {
     });
     cy.get('[data-cy="routing-modal-close-button"]').should('exist').click();
   });
+  it('should show fees', () => {
+    cy.get('[data-cy="fees-container"]').should('exist').click();
+    cy.get('[data-cy="fee-item"]')
+      .eq(0)
+      .find('span')
+      .first()
+      .should('contain.text', 'Bridge fee');
+    cy.get('[data-cy="fee-item"]')
+      .eq(0)
+      .find('span')
+      .eq(1)
+      .invoke('text')
+      .then((text) => {
+        expect(parseFloat(text.slice(2))).to.be.gt(0);
+      });
+  });
 });

@@ -48,6 +48,7 @@ function Fees() {
 
   return (
     <Card
+      data-cy="fees-container"
       variant="outlined"
       sx={{ cursor: 'pointer', border: 'none' }}
       onClick={handleClick}
@@ -138,7 +139,13 @@ const Fee = ({ label, value, sponsored, tooltip }: FeeProps) => {
   );
 
   return (
-    <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
+    <Stack
+      data-cy="fee-item"
+      direction="row"
+      justifyContent="space-between"
+      width="92%"
+      mt="1rem"
+    >
       <Typography variant="small">{label}</Typography>
       {tooltip ? (
         <Tooltip title={tooltip} placement="top">
