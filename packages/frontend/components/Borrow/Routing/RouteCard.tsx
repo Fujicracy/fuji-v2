@@ -225,6 +225,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
 
   return (
     <Paper
+      data-cy="route-card"
       sx={{
         border: `2px solid ${
           selected ? palette.primary.main : palette.secondary.light

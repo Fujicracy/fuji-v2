@@ -98,4 +98,12 @@ describe('Borrow', () => {
           .should('contain.text', 'Gnosis');
       });
   });
+  it('should display available routes', () => {
+    cy.get('[data-cy="borrow-routes-button"]').should('exist').click();
+    cy.get('[data-cy="routing-modal"]').should('exist');
+    cy.get('[data-cy="route-card"]').then((value) => {
+      expect(value.length).to.be.gt(1);
+    });
+    cy.get('[data-cy="routing-modal-close-button"]').should('exist').click();
+  });
 });
