@@ -321,16 +321,17 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       uint256 slippage,
       address asset,
       uint256 amount,
+      address sender,
       address delegate,
       bytes memory callData
-    ) = abi.decode(params, (uint256, uint256, address, uint256, address, bytes));
+    ) = abi.decode(params, (uint256, uint256, address, uint256, address, address, bytes));
 
     (Action[] memory actions, bytes[] memory args,) =
       abi.decode(callData, (Action[], bytes[], uint256));
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
-    _safePullTokenFrom(asset, msg.sender, amount);
+    _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
