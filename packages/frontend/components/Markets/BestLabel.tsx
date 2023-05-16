@@ -2,7 +2,7 @@ import { Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Image from 'next/image';
 
-import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
+import { TooltipWrapper } from '../Shared/Tooltips';
 
 function BestLabel() {
   const { palette } = useTheme();

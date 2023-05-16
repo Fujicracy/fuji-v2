@@ -16,11 +16,11 @@ import {
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { MarketRow, Status } from '../../helpers/markets';
+import { MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
 import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
-import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
+import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
 import BestLabel from './BestLabel';
 
@@ -47,10 +47,10 @@ function MarketsTableRow({
     setExpandRow(openedByDefault);
   }, [openedByDefault]);
 
-  const loaderOrError = (status: Status) =>
-    status === Status.Loading ? (
+  const loaderOrError = (status: MarketRowStatus) =>
+    status === MarketRowStatus.Loading ? (
       <Skeleton />
-    ) : status === Status.Error ? (
+    ) : status === MarketRowStatus.Error ? (
       <Tooltip title="Error loading data" arrow>
         <ErrorOutlineIcon />
       </Tooltip>
@@ -60,7 +60,7 @@ function MarketsTableRow({
 
   const isHighLevelRow = !row.isChild && !row.isGrandChild;
   const shouldNetworkColumnBeShown =
-    row.chain.status === Status.Ready &&
+    row.chain.status === MarketRowStatus.Ready &&
     (!isHighLevelRow || (isHighLevelRow && !expandRow));
 
   return (
@@ -160,7 +160,7 @@ function MarketsTableRow({
           sx={{ color: palette.warning.main }}
         >
           {loaderOrError(row.borrowApr.status)}
-          {row.borrowApr.status === Status.Ready && !expandRow && (
+          {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.borrowAprReward?.value > 0 && (
                 <Tooltip
@@ -186,7 +186,7 @@ function MarketsTableRow({
           sx={{ color: palette.success.main }}
         >
           {loaderOrError(row.depositApr.status)}
-          {row.depositApr.status === Status.Ready && !expandRow && (
+          {row.depositApr.status === MarketRowStatus.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.depositAprReward?.value > 0 && (
                 <Tooltip
@@ -207,16 +207,16 @@ function MarketsTableRow({
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
-          {loaderOrError(row.integratedProtocols.status)}
+          {loaderOrError(row.integratedProviders.status)}
           {!expandRow && (
-            <IntegratedProtocols protocols={row.integratedProtocols} />
+            <IntegratedProviders providers={row.integratedProviders} />
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
           {!expandRow && (
             <>
               {loaderOrError(row.safetyRating.status)}
-              {row.safetyRating.status === Status.Ready && (
+              {row.safetyRating.status === MarketRowStatus.Ready && (
                 <SafetyRating rating={row.safetyRating?.value} />
               )}
             </>
@@ -224,7 +224,7 @@ function MarketsTableRow({
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
           {!expandRow && loaderOrError(row.liquidity.status)}
-          {row.liquidity.status === Status.Ready &&
+          {row.liquidity.status === MarketRowStatus.Ready &&
             !expandRow &&
             formatValue(row.liquidity.value, {
               maximumSignificantDigits: 3,

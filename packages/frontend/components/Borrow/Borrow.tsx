@@ -23,7 +23,7 @@ import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import ConfirmTransactionModal from '../Shared/ConfirmTransactionModal';
-import SignTooltip from '../Shared/Tooltips/SignTooltip';
+import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 import BorrowBox from './Box/Box';
 import BorrowButton from './Button';
