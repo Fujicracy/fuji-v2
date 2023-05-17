@@ -579,15 +579,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     if (receiver == address(0) || assets == 0 || shares == 0) {
       revert BaseVault__deposit_invalidInput();
     }
-    /**
-     * @dev Check that new deposit doesn't exceed the `depositCap` imposed
-     * on this vault.
-     * Computation uses shares because it's cheaper to get `totalSupply()`
-     * compared to `totalAssets()`.
-     */
-    if (shares > maxMint(receiver)) {
-      revert BaseVault__deposit_moreThanMax();
-    }
     if (assets < minAmount) {
       revert BaseVault__deposit_lessThanMin();
     }
