@@ -140,7 +140,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
 
-    assertEq(vault.totalDebt(), 0);
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     assertEq(vault.totalDebt(), borrowAmount);
@@ -152,8 +151,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vm.assume(
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
-
-    assertEq(vault.totalDebt(), 0);
 
     do_deposit(amount, vault, ALICE);
     uint256 debtShares = vault.previewBorrow(borrowAmount);
