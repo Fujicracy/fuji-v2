@@ -70,7 +70,6 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__burnDebt_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
   error BorrowingVault__correctDebt_noNeedForCorrection();
-  error BorrowingVault__withdraw_debtNeedsCorrection();
 
   /*///////////////////
    Liquidation controls
@@ -436,7 +435,6 @@ contract BorrowingVault is BaseVault {
 
     if (totalDebt_ == 0 && supply > 0 && supply > totalDebt_) {
       _pause(VaultActions.Withdraw);
-      revert BorrowingVault__withdraw_debtNeedsCorrection();
     }
     super._withdraw(caller, receiver, owner, assets, shares);
   }
