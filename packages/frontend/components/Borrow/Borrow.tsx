@@ -13,7 +13,7 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
-import { ActionType, needsAllowance } from '../../helpers/assets';
+import { ActionType, Mode, needsAllowance } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName, hexToChainId } from '../../helpers/chains';
 import { showBorrow, showPosition } from '../../helpers/navigation';
@@ -175,6 +175,14 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const proceedWithConfirmation = (action?: () => void) => {
     setConfirmationModalAction(() => action);
     setIsConfirmationModalShown(true);
+
+    if (mode === Mode.PAYBACK_AND_WITHDRAW) {
+      (async () => {
+        await useBorrow.getState().updateTransactionMeta();
+        // TODO: here we check... what, if the collateral amount is close to max?
+        // and if that's the case... we update the input / edited position
+      })();
+    }
   };
 
   const warningContent = useMemo(() => {
