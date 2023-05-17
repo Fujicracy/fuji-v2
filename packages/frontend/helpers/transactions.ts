@@ -148,7 +148,7 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
   });
 };
 
-const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {
+export const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {
   return bridgeFees.reduce((sum, fee) => {
     const cost = fee.amount * fee.priceUSD;
     return sum + cost;

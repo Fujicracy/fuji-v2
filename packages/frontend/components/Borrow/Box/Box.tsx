@@ -6,14 +6,17 @@ import {
   AssetChange,
   AssetType,
   LtvMeta,
+  Mode,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
+import { TransactionMeta } from '../../../helpers/transactions';
 import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
 import TokenCard from './TokenCard';
 
 type BorrowBoxProps = {
   isEditing: boolean;
+  mode: Mode;
   actionType: ActionType;
   type: AssetType;
   chainId: ChainId;
@@ -25,12 +28,15 @@ type BorrowBoxProps = {
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
   index: number;
+  meta: TransactionMeta;
 };
 
 function BorrowBox({
   isEditing,
   actionType,
   assetChange,
+  mode,
+  meta,
   type,
   chainId,
   isExecuting,
@@ -89,6 +95,8 @@ function BorrowBox({
         maxAmount={maxAmount}
         isEditing={isEditing}
         assetChange={assetChange}
+        mode={mode}
+        meta={meta}
         actionType={actionType}
         disabled={isEditing}
         isExecuting={isExecuting}

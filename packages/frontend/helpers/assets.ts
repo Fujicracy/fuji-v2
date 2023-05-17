@@ -1,7 +1,9 @@
 import { ChainId, Token } from '@x-fuji/sdk';
 
-import { LTV_RECOMMENDED_DECREASE } from '../constants';
+import { DUST_AMOUNT, LTV_RECOMMENDED_DECREASE } from '../constants';
 import { AssetMeta } from '../store/models/Position';
+import { BasePosition } from './positions';
+import { TransactionMeta, bridgeFeeSum } from './transactions';
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
@@ -88,4 +90,34 @@ export const remainingBorrowLimit = (
 ): number => {
   const max = maxBorrowLimit(collateral.amount, collateral.usdPrice, maxLtv);
   return max - debt.amount * debt.usdPrice;
+};
+
+export const withdrawingCollateralMaxAmount = (
+  basePosition: BasePosition,
+  meta: TransactionMeta,
+  mode: Mode
+): number => {
+  const deductedCollateral = Math.max(
+    0,
+    basePosition.position.collateral.amount - DUST_AMOUNT / 100
+  );
+
+  const debtAmount =
+    (basePosition.editedPosition
+      ? basePosition.editedPosition.debt
+      : basePosition.position.debt
+    ).amount -
+    (mode === Mode.PAYBACK_AND_WITHDRAW &&
+    meta.bridgeFees &&
+    meta.estimateSlippage
+      ? bridgeFeeSum(meta.bridgeFees) + meta.estimateSlippage // Conversion pending
+      : 0);
+
+  const ltvMax = basePosition.position.ltvMax;
+  const currentLtvMax = ltvMax > 1 ? ltvMax / 100 : ltvMax;
+
+  const amount =
+    debtAmount / (currentLtvMax * basePosition.position.collateral.usdPrice);
+
+  return amount;
 };

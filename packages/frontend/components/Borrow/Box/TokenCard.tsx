@@ -23,15 +23,17 @@ import React, {
   useState,
 } from 'react';
 
-import { DUST_AMOUNT } from '../../../constants';
 import {
   ActionType,
   AssetChange,
   AssetType,
   LtvMeta,
+  Mode,
   recommendedLTV,
+  withdrawingCollateralMaxAmount,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
+import { TransactionMeta } from '../../../helpers/transactions';
 import {
   formatValue,
   toNotSoFixed,
@@ -44,8 +46,10 @@ import { TokenIcon } from '../../Shared/Icons';
 
 type SelectTokenCardProps = {
   type: AssetType;
+  mode: Mode;
   actionType: ActionType;
   assetChange: AssetChange;
+  meta: TransactionMeta;
   isExecuting: boolean;
   disabled: boolean;
   value: string;
@@ -63,6 +67,8 @@ function TokenCard({
   type,
   showMax,
   assetChange,
+  mode,
+  meta,
   actionType,
   isExecuting,
   disabled,
@@ -102,17 +108,9 @@ function TokenCard({
   }, []);
 
   const handleMax = () => {
-    // when we do max withdrawal, we have to deduct a small amount,
-    // otherwise the tx can fail due to some unaccounted dust lefovers
-    const deductedCollateral = Math.max(
-      0,
-      basePosition.position.collateral.amount - DUST_AMOUNT / 100
-    );
     const amount =
       actionType === ActionType.REMOVE && type === 'collateral'
-        ? deductedCollateral -
-          (basePosition.position.debt.amount - Number(debt.input)) /
-            ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
+        ? withdrawingCollateralMaxAmount(basePosition, meta, mode)
         : maxAmount;
     handleInput(String(amount));
   };
