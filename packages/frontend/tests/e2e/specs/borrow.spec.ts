@@ -106,6 +106,28 @@ describe('Borrow', () => {
     });
     cy.get('[data-cy="routing-modal-close-button"]').should('exist').click();
   });
+  it('should show and change slippage', () => {
+    cy.get('[data-cy="slippage-settings"]').should('exist').click();
+    cy.get('[data-cy="slippage-default-option"]')
+      .first()
+      .click()
+      .then(() => {
+        let localSlippage = JSON.parse(localStorage.getItem('xFuji/borrow'))
+          ?.state?.slippage;
+        expect(localSlippage).to.be.equal(100);
+        cy.get('[data-cy="slippage-input"]')
+          .first()
+          .find('input')
+          .clear()
+          .type('2.1')
+          .then(() => {
+            localSlippage = JSON.parse(localStorage.getItem('xFuji/borrow'))
+              ?.state?.slippage;
+            expect(localSlippage).to.be.equal(210);
+            cy.get('[data-cy="slippage-close-button"]').click();
+          });
+      });
+  });
   it('should show fees', () => {
     // checking high level fee is shown and not 0
     cy.get('[data-cy="fees-container"]')
