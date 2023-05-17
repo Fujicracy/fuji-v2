@@ -375,7 +375,9 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     // Ensure calldata is fixed
     // In this case the badCalldata previously had sender as address(0).
     // The ConnextHhander replaces `sender` with its address when recording the failed transfer.
-    ConnextHandler.FailedTxn memory transfer = connextHandler.getFailedTransaction(transferId);
+
+    ConnextHandler.FailedTxn memory transfer =
+      connextHandler.getFailedTxn(transferId, connextHandler.getFailedTxnNextNonce(transferId) - 1);
 
     // Fix the args that failed.
     transfer.args[0] = abi.encode(address(vault), amount, ALICE, address(connextHandler));
@@ -397,7 +399,12 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       actionArgsHash
     );
 
-    connextHandler.executeFailedWithUpdatedArgs(transferId, transfer.actions, transfer.args);
+    connextHandler.executeFailedWithUpdatedArgs(
+      transferId,
+      transfer.actions,
+      transfer.args,
+      connextHandler.getFailedTxnNextNonce(transferId) - 1
+    );
     // Assert Alice has funds deposited in the vault
     assertGt(vault.balanceOf(ALICE), 0);
     // Assert Alice was able to borrow from the vault
@@ -506,10 +513,13 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.stopPrank();
 
     // Assert handler has recorded failed transfer
-    ConnextHandler.FailedTxn memory ftxn = connextHandler.getFailedTransaction(transferId_);
+    uint256 expectedNonce = connextHandler.getFailedTxnNextNonce(transferId_) - 1;
+    ConnextHandler.FailedTxn memory ftxn = connextHandler.getFailedTxn(transferId_, expectedNonce);
+
     assertEq(ftxn.transferId, transferId_);
     assertEq(ftxn.asset, collateralAsset);
     assertEq(ftxn.amount, amount);
+    assertEq(ftxn.nonce, expectedNonce);
 
     // Create different calldata
     uint256 newAmount = 1.5 ether;
@@ -535,10 +545,13 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     vm.stopPrank();
 
     // Assert handler has not modified the recorded failed transfer
-    ConnextHandler.FailedTxn memory newftxn = connextHandler.getFailedTransaction(transferId_);
+    expectedNonce = connextHandler.getFailedTxnNextNonce(transferId_) - 1;
+    ConnextHandler.FailedTxn memory newftxn =
+      connextHandler.getFailedTxn(transferId_, expectedNonce);
     assertEq(newftxn.transferId, transferId_);
     assertEq(newftxn.asset, collateralAsset);
-    assertEq(newftxn.amount, amount);
+    assertEq(newftxn.amount, newAmount);
+    assertEq(newftxn.nonce, expectedNonce);
   }
 
   function test_simpleFlashloan() public {
