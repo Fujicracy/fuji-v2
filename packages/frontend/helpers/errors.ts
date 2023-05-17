@@ -30,19 +30,18 @@ export const handleTransactionError = (
   failureMessage?: string
 ) => {
   // error.code is a bit useless there, there are only a handful of them
-  const code: ErrorCode =
-    error instanceof Error
-      ? error.message.includes('user rejected')
-        ? ErrorCode.CANCELLED
-        : error.message.includes('insufficient funds')
-        ? ErrorCode.INSUFFICIENT_FUNDS
-        : ErrorCode.OTHER
-      : ErrorCode.OTHER;
+  const code: ErrorCode = !(error instanceof Error)
+    ? ErrorCode.OTHER
+    : error.message.includes('user rejected')
+    ? ErrorCode.CANCELLED
+    : error.message.includes('insufficient funds')
+    ? ErrorCode.INSUFFICIENT_FUNDS
+    : ErrorCode.OTHER;
 
   const message =
     code === ErrorCode.CANCELLED
       ? cancelledMessage
-      : ErrorCode.INSUFFICIENT_FUNDS
+      : code === ErrorCode.INSUFFICIENT_FUNDS
       ? NOTIFICATION_MESSAGES.TX_INSUFFICIENT_FUNDS
       : failureMessage || stringifyError(error);
 
@@ -55,5 +54,6 @@ export const handleTransactionError = (
     type: 'error',
     message,
     link,
+    sticky: code === ErrorCode.OTHER,
   });
 };
