@@ -110,13 +110,14 @@ export const withdrawingCollateralMaxAmount = (
     (mode === Mode.PAYBACK_AND_WITHDRAW &&
     meta.bridgeFees &&
     meta.estimateSlippage
-      ? bridgeFeeSum(meta.bridgeFees) + meta.estimateSlippage // Conversion pending
+      ? bridgeFeeSum(meta.bridgeFees) + meta.estimateSlippage // TODO:
       : 0);
 
   const ltvMax = basePosition.position.ltvMax;
   const currentLtvMax = ltvMax > 1 ? ltvMax / 100 : ltvMax;
 
   const amount =
+    deductedCollateral -
     debtAmount / (currentLtvMax * basePosition.position.collateral.usdPrice);
 
   return amount;
