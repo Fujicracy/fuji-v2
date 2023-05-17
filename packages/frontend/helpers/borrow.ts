@@ -8,9 +8,9 @@ export function modeForContext(
   isEditing: boolean,
   actionType: ActionType,
   collateral: number,
-  debt: number
+  debt?: number
 ): Mode {
-  if (!isEditing) return Mode.DEPOSIT_AND_BORROW;
+  if (!isEditing || !debt) return Mode.DEPOSIT_AND_BORROW;
   if ((collateral > 0 && debt > 0) || (collateral === 0 && debt === 0)) {
     return ActionType.ADD === actionType
       ? Mode.DEPOSIT_AND_BORROW

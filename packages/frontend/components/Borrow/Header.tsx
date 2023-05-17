@@ -31,7 +31,7 @@ function BorrowHeader({
 
   return (
     <>
-      {isEditing ? (
+      {isEditing && debt ? (
         <Stack
           direction="row"
           justifyContent="space-between"

@@ -49,10 +49,10 @@ import { CurrencyIcon } from '../../Shared/Icons';
 type SelectCurrencyCardProps = {
   type: AssetType;
   actionType: ActionType;
-  assetChange: AssetChange;
+  assetChange: AssetChange | undefined;
   isExecuting: boolean;
   disabled: boolean;
-  value: string;
+  value: string | undefined;
   showMax: boolean;
   maxAmount: number;
   onCurrencyChange: (currency: Currency) => void;
@@ -81,25 +81,47 @@ function CurrencyCard({
 }: SelectCurrencyCardProps) {
   const { palette } = useTheme();
 
-  const { currency, usdPrice, balances, selectableCurrencies } = assetChange;
+  const { currency, usdPrice, balances, selectableCurrencies } = assetChange
+    ? assetChange
+    : {
+        currency: undefined,
+        usdPrice: undefined,
+        balances: undefined,
+        selectableCurrencies: undefined,
+      };
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
-
+  const [textInput, setTextInput] = useState<HTMLInputElement | undefined>(
+    undefined
+  );
+  const [focused, setFocused] = useState<boolean>(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const handleRef = useCallback((node: HTMLInputElement) => {
+    setTextInput(node);
+  }, []);
+  useEffect(() => {
+    if (isFocusedByDefault) {
+      textInput?.focus();
+    }
+  }, [isFocusedByDefault, textInput]);
+  if (
+    assetChange === undefined ||
+    value === undefined ||
+    debt === undefined ||
+    balances === undefined ||
+    selectableCurrencies === undefined
+  ) {
+    return <></>; // TODO:
+  }
   const balance = balances[currency.symbol];
 
   const { ltv, ltvMax } = ltvMeta;
 
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const isOpen = Boolean(anchorEl);
   const open = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
   const close = () => setAnchorEl(null);
-
-  const [textInput, setTextInput] = useState<HTMLInputElement | undefined>(
-    undefined
-  );
-  const [focused, setFocused] = useState<boolean>(false);
 
   const shouldShowNativeWrappedPair =
     isEditing &&
@@ -109,10 +131,6 @@ function CurrencyCard({
   const currencyList = shouldShowNativeWrappedPair
     ? nativeAndWrappedPair(selectableCurrencies)
     : selectableCurrencies;
-
-  const handleRef = useCallback((node: HTMLInputElement) => {
-    setTextInput(node);
-  }, []);
 
   const handleMax = () => {
     // when we do max withdrawal, we have to deduct a small amount,
@@ -166,12 +184,6 @@ function CurrencyCard({
     onCurrencyChange(currency);
     close();
   };
-
-  useEffect(() => {
-    if (isFocusedByDefault) {
-      textInput?.focus();
-    }
-  }, [isFocusedByDefault, textInput]);
 
   const blink = keyframes`
     from {

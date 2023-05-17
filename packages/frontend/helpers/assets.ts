@@ -88,16 +88,28 @@ export const defaultAssetForType = (type: AssetType): AssetChange => {
     type === AssetType.Debt
       ? defaultDebtCurrencies
       : defaultCollateralCurrencies;
+  return assetForData(
+    DEFAULT_CHAIN_ID,
+    defaultCurrencies,
+    defaultCurrency(defaultCurrencies)
+  );
+};
+
+export const assetForData = (
+  chainId: ChainId,
+  selectableCurrencies: Currency[],
+  currency: Currency
+): AssetChange => {
   return {
-    selectableCurrencies: defaultCurrencies,
+    selectableCurrencies,
     balances: {},
     input: '',
-    chainId: DEFAULT_CHAIN_ID,
+    chainId,
     allowance: {
       status: AllowanceStatus.Initial,
       value: undefined,
     },
-    currency: defaultCurrency(defaultCurrencies),
+    currency,
     amount: 0,
     usdPrice: 0,
   };

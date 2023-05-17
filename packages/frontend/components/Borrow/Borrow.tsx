@@ -101,6 +101,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const prevActionType = useRef<ActionType>(ActionType.ADD);
 
   const shouldSignTooltipBeShown = useMemo(() => {
+    if (!debt) return false;
     const collateralAmount = parseFloat(collateral.input);
     const debtAmount = parseFloat(debt.input);
     const collateralAllowance = needsAllowance(
@@ -203,10 +204,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       isEditing,
       actionType,
       Number(collateral.input),
-      Number(debt.input)
+      debt && Number(debt.input)
     );
     changeMode(mode);
-  }, [changeMode, isEditing, collateral.input, debt.input, actionType]);
+  }, [changeMode, isEditing, collateral.input, debt, actionType]);
 
   const proceedWithConfirmation = (action?: () => void) => {
     setConfirmationModalAction(() => action);
@@ -263,7 +264,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             isEditing={isEditing}
             actionType={actionType}
             onActionTypeChange={(type) => setActionType(type)}
-            isCrossChainOperation={collateral.chainId !== debt.chainId}
+            isCrossChainOperation={
+              debt ? collateral.chainId !== debt.chainId : false
+            }
           />
           {(actionType === ActionType.ADD
             ? [collateral, debt]
@@ -272,7 +275,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             const collateralIndex = actionType === ActionType.ADD ? 0 : 1;
             const type =
               index === collateralIndex ? AssetType.Collateral : AssetType.Debt;
-            const balance = assetChange.balances[assetChange.currency.symbol];
+            const balance = assetChange
+              ? assetChange.balances[assetChange.currency.symbol]
+              : 0; // TODO: test
             const debtAmount = position.debt.amount;
             const maxAmount =
               type === AssetType.Debt && debtAmount && debtAmount < balance
@@ -290,9 +295,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 assetChange={assetChange}
                 isEditing={isEditing}
                 actionType={actionType}
-                chainId={assetChange.chainId}
+                chainId={assetChange?.chainId}
                 isExecuting={isExecuting}
-                value={assetChange.input}
+                value={assetChange?.input}
                 ltvMeta={dynamicLtvMeta}
                 basePosition={basePosition}
               />

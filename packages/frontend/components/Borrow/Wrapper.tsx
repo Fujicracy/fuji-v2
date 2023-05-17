@@ -60,7 +60,8 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   useEffect(() => {
     let matchPosition: Position | undefined;
     let editedPosition: Position | undefined;
-    if (address && positions.length > 0 && query) {
+    if (address && positions.length > 0 && query && baseDebt) {
+      // TODO:
       matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&

@@ -36,7 +36,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const activeProvider = useBorrow((state) => state.activeProvider);
 
   const collateralInput = useBorrow((state) => state.collateral.input);
-  const debtInput = useBorrow((state) => state.debt.input);
+  const debtInput = useBorrow((state) => state.debt?.input);
 
   const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
   const recommendedLtv = recommendedLTV(ltvMax);
@@ -46,7 +46,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
     collateral.usdPrice,
     ltvMax
   );
-
+  if (!debtInput) return <></>; // TODO: handle this case
   return (
     <Container isMobile={isMobile}>
       {!isMobile && <Title providers={allProviders} vault={vault} />}

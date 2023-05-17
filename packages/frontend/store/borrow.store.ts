@@ -33,8 +33,10 @@ import {
 import {
   AllowanceStatus,
   AssetChange,
+  assetForData,
   AssetType,
   defaultAssetForType,
+  defaultCurrency,
   FetchStatus,
   foundCurrency,
   LiquidationMeta,
@@ -78,7 +80,7 @@ type BorrowState = {
   allProviders: LendingProviderWithFinancials[] | [];
 
   collateral: AssetChange;
-  debt: AssetChange;
+  debt?: AssetChange;
 
   ltv: LtvMeta;
   liquidationMeta: LiquidationMeta;
@@ -99,7 +101,7 @@ type BorrowState = {
 };
 
 type BorrowActions = {
-  assetForType: (type: AssetType) => AssetChange;
+  assetForType: (type: AssetType) => AssetChange | undefined;
   changeFormType: (type: FormType) => void;
   changeMode: (mode: Mode) => void;
   changeAll: (
@@ -171,7 +173,7 @@ const initialState: BorrowState = {
   activeProvider: undefined,
 
   collateral: defaultAssetForType(AssetType.Collateral),
-  debt: defaultAssetForType(AssetType.Debt),
+  debt: undefined,
 
   ltv: {
     ltv: 0,
@@ -236,9 +238,13 @@ export const useBorrow = create<BorrowStore>()(
               state.collateral.selectableCurrencies = collaterals;
               state.collateral.currency = collateral;
 
-              state.debt.chainId = debt.chainId;
-              state.debt.selectableCurrencies = debts;
-              state.debt.currency = debt;
+              if (!state.debt)
+                state.debt = assetForData(debt.chainId, debts, debt);
+              else {
+                state.debt.chainId = debt.chainId;
+                state.debt.selectableCurrencies = debts;
+                state.debt.currency = debt;
+              }
             })
           );
 
@@ -309,13 +315,21 @@ export const useBorrow = create<BorrowStore>()(
           }
           set(
             produce((state: BorrowState) => {
-              const t = type === AssetType.Debt ? state.debt : state.collateral;
-              t.chainId = chainId;
-              t.selectableCurrencies = currencies;
-              const found = foundCurrency(t.selectableCurrencies, t.currency);
-              if (found) t.currency = found;
-              else if (state.formType === FormType.Create)
-                t.currency = currencies[0];
+              let t = type === AssetType.Debt ? state.debt : state.collateral;
+              if (!t)
+                t = assetForData(
+                  chainId,
+                  currencies,
+                  defaultCurrency(currencies)
+                );
+              else {
+                t.chainId = chainId;
+                t.selectableCurrencies = currencies;
+                const found = foundCurrency(t.selectableCurrencies, t.currency);
+                if (found) t.currency = found;
+                else if (state.formType === FormType.Create)
+                  t.currency = currencies[0];
+              }
             })
           );
           get().updateCurrencyPrice(type);
@@ -333,10 +347,10 @@ export const useBorrow = create<BorrowStore>()(
         changeAssetCurrency(type, currency) {
           set(
             produce((state: BorrowState) => {
-              if (type === AssetType.Debt) {
-                state.debt.currency = currency;
-              } else {
+              if (type === AssetType.Collateral) {
                 state.collateral.currency = currency;
+              } else if (state.debt) {
+                state.debt.currency = currency;
               }
             })
           );
@@ -348,10 +362,10 @@ export const useBorrow = create<BorrowStore>()(
         changeAssetValue(type, value) {
           set(
             produce((state: BorrowState) => {
-              if (type === AssetType.Debt) {
-                state.debt.input = value;
-              } else {
+              if (type === AssetType.Collateral) {
                 state.collateral.input = value;
+              } else if (state.debt) {
+                state.debt.input = value;
               }
             })
           );
@@ -424,6 +438,7 @@ export const useBorrow = create<BorrowStore>()(
                 formatUnits(depositBalance, dec)
               );
 
+              if (!s.debt) return;
               const dec2 = s.debt.currency.decimals;
               s.debt.amount = parseFloat(formatUnits(borrowBalance, dec2));
             })
@@ -452,11 +467,11 @@ export const useBorrow = create<BorrowStore>()(
 
         async updateBalances(type) {
           const address = useAuth.getState().address;
-          if (!address) {
+          const asset = get().assetForType(type);
+          if (!address || !asset) {
             return;
           }
 
-          const asset = get().assetForType(type);
           const currencies = asset.selectableCurrencies;
           const currency = asset.currency;
           const chainId = currency.chainId;
@@ -465,7 +480,9 @@ export const useBorrow = create<BorrowStore>()(
             console.error(result.error.message);
             return;
           }
-          const currentCurrency = get().assetForType(type).currency;
+          const currentAsset = get().assetForType(type);
+          if (!currentAsset) return; // TODO: handle this case?
+          const currentCurrency = currentAsset.currency;
           if (
             currency.address !== currentCurrency.address ||
             currency.chainId !== currentCurrency.chainId
@@ -478,10 +495,10 @@ export const useBorrow = create<BorrowStore>()(
         async changeBalances(type, balances) {
           set(
             produce((state: BorrowState) => {
-              if (type === AssetType.Debt) {
-                state.debt.balances = balances;
-              } else if (type === AssetType.Collateral) {
+              if (type === AssetType.Collateral) {
                 state.collateral.balances = balances;
+              } else if (state.debt) {
+                state.debt.balances = balances;
               }
             })
           );
@@ -490,19 +507,21 @@ export const useBorrow = create<BorrowStore>()(
         async changeAllowance(type, status, amount) {
           set(
             produce((s: BorrowState) => {
-              if (type === AssetType.Debt) {
-                s.debt.allowance.status = status;
-                if (amount !== undefined) s.debt.allowance.value = amount;
-              } else {
+              if (type === AssetType.Collateral) {
                 s.collateral.allowance.status = status;
                 if (amount !== undefined) s.collateral.allowance.value = amount;
+              } else if (s.debt) {
+                s.debt.allowance.status = status;
+                if (amount !== undefined) s.debt.allowance.value = amount;
               }
             })
           );
         },
 
         async updateCurrencyPrice(type) {
-          const currency = get().assetForType(type).currency;
+          const asset = get().assetForType(type);
+          if (!asset) return;
+          const currency = asset.currency;
 
           const result = await currency.getPriceUSD();
           if (!result.success) {
@@ -510,8 +529,9 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
 
-          const currentCurrency = get().assetForType(type).currency;
-          if (currency.address !== currentCurrency.address) return;
+          const currentCurrency = get().assetForType(type)?.currency;
+          if (!currentCurrency || currency.address !== currentCurrency.address)
+            return;
 
           let currencyValue = result.data;
           const isTestNet = testChains.some(
@@ -523,10 +543,10 @@ export const useBorrow = create<BorrowStore>()(
 
           set(
             produce((state: BorrowState) => {
-              if (type === AssetType.Debt) {
-                state.debt.usdPrice = currencyValue;
-              } else {
+              if (type === AssetType.Collateral) {
                 state.collateral.usdPrice = currencyValue;
+              } else if (state.debt) {
+                state.debt.usdPrice = currencyValue;
               }
             })
           );
@@ -535,7 +555,9 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async updateAllowance(type) {
-          const currency = get().assetForType(type).currency;
+          const asset = get().assetForType(type);
+          if (!asset) return;
+          const currency = asset.currency;
           const address = useAuth.getState().address;
 
           if (!address) {
@@ -552,8 +574,9 @@ export const useBorrow = create<BorrowStore>()(
               Address.from(address)
             );
 
-            const currentCurrency = get().assetForType(type).currency;
+            const currentCurrency = get().assetForType(type)?.currency;
             if (
+              !currentCurrency ||
               currency.address !== currentCurrency.address ||
               currency.chainId !== currentCurrency.chainId
             )
@@ -569,10 +592,11 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async updateVault() {
+          const debt = get().debt?.currency;
+          if (!debt) return;
           set({ availableVaultsStatus: FetchStatus.Loading });
 
           const collateral = get().collateral.currency;
-          const debt = get().debt.currency;
           const addr = useAuth.getState().address;
           const account = addr ? Address.from(addr) : undefined;
 
@@ -588,9 +612,10 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
           // check if currencies already changed before the previous async call completed
+          const currentDebt = get().debt;
           if (
             !collateral.equals(get().collateral.currency) ||
-            !debt.equals(get().debt.currency)
+            (currentDebt && !debt.equals(currentDebt.currency))
           ) {
             await get().updateVault();
             return;
@@ -625,6 +650,9 @@ export const useBorrow = create<BorrowStore>()(
             mode,
             slippage,
           } = get();
+          if (!debt) {
+            return;
+          }
           const collateralInput =
             collateral.input === '' ? '0' : collateral.input;
           const debtInput = debt.input === '' ? '0' : debt.input;
@@ -714,12 +742,14 @@ export const useBorrow = create<BorrowStore>()(
         ),
 
         updateLtv() {
+          const debt = get().debt;
+          if (!debt) return;
           const collateralAmount = parseFloat(get().collateral.input);
           const collateralPrice = get().collateral.usdPrice;
           const collateralValue = collateralAmount * collateralPrice;
 
-          const debtAmount = parseFloat(get().debt.input);
-          const debtPrice = get().debt.usdPrice;
+          const debtAmount = parseFloat(debt.input);
+          const debtPrice = debt.usdPrice;
           const debtValue = debtAmount * debtPrice;
 
           const ltv =
@@ -735,11 +765,13 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         updateLiquidation() {
+          const debt = get().debt;
+          if (!debt) return;
           const collateralAmount = parseFloat(get().collateral.input);
           const collateralPrice = get().collateral.usdPrice;
 
-          const debtAmount = parseFloat(get().debt.input);
-          const debtPrice = get().debt.usdPrice;
+          const debtAmount = parseFloat(debt.input);
+          const debtPrice = debt.usdPrice;
           const debtValue = debtAmount * debtPrice;
 
           if (!debtValue || !collateralAmount) {
@@ -773,7 +805,9 @@ export const useBorrow = create<BorrowStore>()(
          * @param type
          */
         async allow(type) {
-          const { currency, input } = get().assetForType(type);
+          const asset = get().assetForType(type);
+          if (!asset) return;
+          const { currency, input } = asset;
           const amount = parseFloat(input);
           const userAddress = useAuth.getState().address;
           const provider = useAuth.getState().provider;

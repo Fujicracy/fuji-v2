@@ -21,7 +21,7 @@ import { Position } from '../../store/models/Position';
 type BorrowButtonProps = {
   address: string | undefined;
   collateral: AssetChange;
-  debt: AssetChange;
+  debt: AssetChange | undefined;
   position: Position;
   walletChainId: ChainId | undefined;
   ltvMeta: LtvMeta;
@@ -65,34 +65,6 @@ function BorrowButton({
   onClick,
   withConfirmation,
 }: BorrowButtonProps) {
-  const collateralAmount = parseFloat(collateral.input);
-  const debtAmount = parseFloat(debt.input);
-  const collateralBalance = collateral.balances[collateral.currency.symbol];
-  const debtBalance = debt.balances[debt.currency.symbol];
-
-  const executionStep = needsSignature ? 2 : 1;
-  const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
-    mode === Mode.DEPOSIT_AND_BORROW
-      ? `${needsSignature ? '' : 'Deposit & '}Borrow`
-      : mode === Mode.BORROW
-      ? 'Borrow'
-      : mode === Mode.DEPOSIT
-      ? 'Deposit'
-      : mode === Mode.PAYBACK_AND_WITHDRAW
-      ? 'Payback & Withdraw'
-      : mode === Mode.WITHDRAW
-      ? 'Withdraw'
-      : 'Payback'
-  }`;
-
-  const loadingButtonTitle =
-    (collateral.allowance.status === AllowanceStatus.Approving &&
-      'Approving...') ||
-    (debt.allowance.status === AllowanceStatus.Approving && 'Approving...') ||
-    (isSigning && '(1/2) Signing...') ||
-    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
-    actionTitle;
-
   const regularButton = (
     title: string,
     onClick: () => void,
@@ -135,6 +107,37 @@ function BorrowButton({
       {loadingButtonTitle}
     </LoadingButton>
   );
+
+  if (!debt) {
+    return disabledButton('Please choose a debt chain');
+  }
+  const collateralAmount = parseFloat(collateral.input);
+  const debtAmount = parseFloat(debt.input);
+  const collateralBalance = collateral.balances[collateral.currency.symbol];
+  const debtBalance = debt.balances[debt.currency.symbol];
+
+  const executionStep = needsSignature ? 2 : 1;
+  const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
+    mode === Mode.DEPOSIT_AND_BORROW
+      ? `${needsSignature ? '' : 'Deposit & '}Borrow`
+      : mode === Mode.BORROW
+      ? 'Borrow'
+      : mode === Mode.DEPOSIT
+      ? 'Deposit'
+      : mode === Mode.PAYBACK_AND_WITHDRAW
+      ? 'Payback & Withdraw'
+      : mode === Mode.WITHDRAW
+      ? 'Withdraw'
+      : 'Payback'
+  }`;
+
+  const loadingButtonTitle =
+    (collateral.allowance.status === AllowanceStatus.Approving &&
+      'Approving...') ||
+    (debt.allowance.status === AllowanceStatus.Approving && 'Approving...') ||
+    (isSigning && '(1/2) Signing...') ||
+    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
+    actionTitle;
 
   const firstStep = transactionMeta.steps[0];
   const bridgeStep = transactionMeta.steps.find(

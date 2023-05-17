@@ -9,7 +9,7 @@ import { NetworkIcon } from '../../Shared/Icons';
 type ChainSelectProps = {
   label: string;
   type: AssetType;
-  value: ChainId;
+  value: ChainId | undefined;
   disabled: boolean;
   onChange: (chainId: ChainId) => void;
 };
@@ -20,6 +20,7 @@ const ChainSelect = ({
   disabled,
   onChange,
 }: ChainSelectProps) => {
+  if (!value) return null; // TODO:
   const labelId = `${type}-label`;
 
   return (
