@@ -185,35 +185,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Requirements:
    * - Must be overriden to call {VaultPermissions-_spendWithdrawAllowance}.
    * - Must convert `shares` to `assets` before calling internal functions.
+   * - Must assume msg.sender as the operator.
    *
    * @param owner of `shares`
-   * @param operator allowed to act on `owners` behalf
-   * @param receiver to whom `shares` will be spent
+   * @param spender to whom `shares` will be spent
    * @param shares amount to spend
    */
-  function _spendAllowance(
-    address owner,
-    address operator,
-    address receiver,
-    uint256 shares
-  )
-    internal
-  {
-    _spendWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
-  }
-
-  /**
-   * @dev Called during {ERC20-transferFrom} to decrease allowance.
-   * Requirements:
-   * - Must be overriden to call {VaultPermissions-_spendWithdrawAllowance}.
-   * - Must convert `shares` to `assets` before calling internal functions.
-   *
-   * @param owner of `shares`
-   * @param receiver to whom `shares` will be spent
-   * @param shares amount to spend
-   */
-  function _spendAllowance(address owner, address receiver, uint256 shares) internal override {
-    _spendWithdrawAllowance(owner, receiver, receiver, convertToAssets(shares));
+  function _spendAllowance(address owner, address spender, uint256 shares) internal override {
+    _spendWithdrawAllowance(owner, msg.sender, spender, convertToAssets(shares));
   }
 
   /*//////////////////////////////////////////
@@ -629,7 +608,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__withdraw_moreThanMax();
     }
     if (caller != owner) {
-      _spendAllowance(owner, caller, receiver, shares);
+      _spendWithdrawAllowance(owner, caller, receiver, assets);
     }
   }
 
