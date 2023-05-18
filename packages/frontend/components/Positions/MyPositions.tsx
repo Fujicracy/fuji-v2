@@ -1,9 +1,8 @@
-import { Box, Grid, Typography } from '@mui/material';
+import { Grid, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending';
 import MyPositionsBorrowTable from './MyPositionsBorrowTable';
 import MyPositionsSummary from './MyPositionsSummary';
 
@@ -34,9 +33,7 @@ function MyPositions() {
       {currentTab === 0 ? (
         <MyPositionsBorrowTable loading={isLoading} />
       ) : (
-        <Box sx={{ height: '31rem', width: '100%' }}>
-          <Lending />
-        </Box>
+        <></>
       )}
     </>
   );

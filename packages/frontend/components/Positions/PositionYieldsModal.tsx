@@ -79,10 +79,7 @@ export function PositionYieldsModal({
         <Divider sx={{ m: '1.375rem 0' }} />
 
         <Grid container mb="1rem">
-          <BorrowLendingTabNavigation
-            onChange={(tab) => setCurrentTab(tab)}
-            isLendingDisabled
-          />
+          <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
         </Grid>
 
         <Stack
@@ -136,7 +133,7 @@ export function PositionYieldsModal({
           <PeriodOptions onChange={setDaysPeriod} />
         </Stack>
 
-        {currentTab === 0 && (
+        {currentTab === 0 ? (
           <Box sx={{ maxWidth: '46rem' }}>
             <PositionYieldTable
               loading={loading}
@@ -144,6 +141,8 @@ export function PositionYieldsModal({
               callback={(value) => setEstEarnings(value)}
             />
           </Box>
+        ) : (
+          <></>
         )}
 
         <Button
