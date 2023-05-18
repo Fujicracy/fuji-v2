@@ -135,7 +135,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
     bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
@@ -427,8 +427,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       address(vault), ALICE, address(connextRouter), borrowAmount
     );
     args[2] = abi.encode(address(vault), borrowAmount, address(connextRouter), ALICE);
-    args[3] =
-      abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter), ALICE);
+    args[3] = abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter));
 
     bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
 
@@ -584,7 +583,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
     bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
 
     bytes memory requestorCall = abi.encodeWithSelector(IRouter.xBundle.selector, actions, args);
 
@@ -676,7 +675,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       abi.encode(destChainDepositAndBorrowActions, destChainDepositAndBorrowArgs, 0);
 
     originArgs1[0] =
-      abi.encode(destDomain, 30, collateralAsset, 1 ether, ALICE, destChainDepositAndBorrowCallData);
+      abi.encode(destDomain, 30, collateralAsset, 1 ether, destChainDepositAndBorrowCallData);
 
     //assert dispatch
     vm.expectEmit(false, false, false, false);
@@ -704,7 +703,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destInnerActions[3] = IRouter.Action.XTransfer;
     destInnerArgs[0] = abi.encode(address(vault), 100e6, ALICE, address(connextRouter));
     destInnerArgs[2] = abi.encode(address(vault), 1 ether, ALICE, address(connextRouter));
-    destInnerArgs[3] = abi.encode(GOERLI_DOMAIN, 0, collateralAsset, 1 ether, ALICE, ALICE, ALICE);
+    destInnerArgs[3] = abi.encode(GOERLI_DOMAIN, 0, collateralAsset, 1 ether, ALICE, ALICE);
 
     //flashloan parameters
     bytes memory requestorCalldata =
@@ -713,7 +712,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] =
       abi.encode(address(flasher), debtAsset, 100e6, address(connextRouter), requestorCalldata);
     bytes memory destCallData = abi.encode(destActions, destArgs, 0);
-    originArgs2[0] = abi.encode(destDomain, 0, collateralAsset, 0, ALICE, destCallData);
+    originArgs2[0] = abi.encode(destDomain, 0, collateralAsset, 0, destCallData);
 
     //assert dispatch
     vm.expectEmit(false, false, false, false);
@@ -768,7 +767,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
 
     bytes memory destCallData = abi.encode(destActions, destArgs, 0);
 
-    originArgs[1] = abi.encode(destDomain, 0, collateralAsset, 0, ALICE, destCallData);
+    originArgs[1] = abi.encode(destDomain, 0, collateralAsset, 0, destCallData);
 
     // Expect revert due to wrong beneficiary in cross transaction
     vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notBeneficiary.selector);

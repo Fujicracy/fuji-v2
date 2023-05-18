@@ -99,7 +99,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
     bytes memory destCallData = abi.encode(destActions, destArgs, slippageThreshold);
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, destCallData);
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
@@ -298,8 +298,7 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
       address(vault), ALICE, address(connextRouter), borrowAmount
     );
     args[2] = abi.encode(address(vault), borrowAmount, address(connextRouter), ALICE);
-    args[3] =
-      abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter), ALICE);
+    args[3] = abi.encode(MUMBAI_DOMAIN, 30, debtAsset, borrowAmount, ALICE, address(connextRouter));
 
     bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
 
