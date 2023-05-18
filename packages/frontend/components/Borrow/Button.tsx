@@ -142,27 +142,29 @@ function BorrowButton({
     debt.allowance.status === 'allowing'
   ) {
     return loadingButton(false, true);
-  } else if (firstStep?.chainId !== hexToChainId(walletChain?.id)) {
-    return regularButton(
-      `Switch to ${chainName(firstStep?.chainId)} Network`,
-      () => onChainChangeClick(firstStep?.chainId)
-    );
   } else if (availableVaultStatus === 'error') {
-    return disabledButton('Error fetching on-chain data');
+    return disabledButton('Unsupported pair');
   } else if (
-    collateral.chainId !== debt.chainId &&
-    debt.token.symbol === 'DAI'
+    collateral.token.chainId !== collateral.chainId &&
+    collateral.token.symbol === 'MaticX'
   ) {
-    return disabledButton('Cross-chain DAI not supported');
+    return disabledButton('MaticX: not supported cross-chain');
   } else if (
     !isEditing &&
     hasBalanceInVault &&
-    availableVaultStatus === 'ready' &&
     transactionMeta.status === 'ready'
   ) {
     return regularButton('Manage position', () => {
       onRedirectClick(false);
     });
+  } else if (
+    firstStep &&
+    firstStep?.chainId !== hexToChainId(walletChain?.id)
+  ) {
+    return regularButton(
+      `Switch to ${chainName(firstStep?.chainId)} Network`,
+      () => onChainChangeClick(firstStep?.chainId)
+    );
   } else if (isEditing && !hasBalanceInVault) {
     return regularButton('Borrow', () =>
       clickWithConfirmation(() => {

@@ -1,7 +1,7 @@
 import { Address, BorrowingVault } from '../entities';
 import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
-import { DAI, USDC, USDT, WETH9 } from './tokens';
+import { DAI, MATICX, USDC, USDT, WETH9 } from './tokens';
 
 export const VAULT_LIST: ChainVaultList = {
   [ChainId.ETHEREUM]: [],
@@ -27,6 +27,11 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0x9fafDa0f9400856b89f6777629C0c765331B1877'),
       WETH9[ChainId.MATIC],
       DAI[ChainId.MATIC]
+    ),
+    new BorrowingVault(
+      Address.from('0x23B7C49610f4DC7E7a764Cf619ce2bC8eA72c856'),
+      MATICX,
+      USDC[ChainId.MATIC]
     ),
   ],
   [ChainId.MATIC_MUMBAI]: [
@@ -66,7 +71,7 @@ export const VAULT_LIST: ChainVaultList = {
       USDC[ChainId.OPTIMISM]
     ),
     new BorrowingVault(
-      Address.from('0x7C9631346D39a3b10519711F7507ebd5D7D850E0'),
+      Address.from('0xC8054218c5fbA84E18C6F26f51Ec691Ee9725e49'),
       WETH9[ChainId.OPTIMISM],
       DAI[ChainId.OPTIMISM]
     ),
