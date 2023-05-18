@@ -20,6 +20,7 @@ import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
+import {LibBytes} from "../libraries/LibBytes.sol";
 
 abstract contract BaseRouter is SystemAccessControl, IRouter {
   /**
@@ -283,6 +284,12 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
         tokensToCheck = _addTokenToList(asset, tokensToCheck);
+
+        (Action[] memory innerActions, bytes[] memory innerArgs) = abi.decode(
+          LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
+        );
+
+        beneficiary = _getBeneficiaryFromCalldata(innerActions, innerArgs);
 
         // Call Flasher.
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
@@ -687,6 +694,24 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       return user;
     }
   }
+
+  /**
+   * @dev Extracts the beneficiary from a set of actions and args.
+   * Requirements:
+   * - Must be implemented in child contract, and added to `_crossTransfer` and
+   * `crossTansferWithCalldata`.
+   *
+   * @param actions an array of actions that will be executed in a row
+   * @param args an array of encoded inputs needed to execute each action
+   */
+  function _getBeneficiaryFromCalldata(
+    Action[] memory actions,
+    bytes[] memory args
+  )
+    internal
+    view
+    virtual
+    returns (address beneficiary_);
 
   function _checkVaultInput(address vault_) internal view {
     if (!chief.isVaultActive(vault_)) {

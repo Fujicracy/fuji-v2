@@ -366,13 +366,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param actions to execute in {BaseRouter-xBundle}
    * @param args to execute in {BaseRouter-xBundle}
    */
-
   function _getBeneficiaryFromCalldata(
     Action[] memory actions,
     bytes[] memory args
   )
     internal
     view
+    override
     returns (address beneficiary_)
   {
     if (actions[0] == Action.Deposit || actions[0] == Action.Payback) {
@@ -401,6 +401,33 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       );
 
       beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
+    } else if (actions[0] == Action.XTransfer) {
+      (,,,, address receiver,,) =
+        abi.decode(args[0], (uint256, uint256, address, uint256, address, address, address));
+      beneficiary_ = receiver;
+    } else if (actions[0] == Action.XTransferWithCall) {
+      (,,,,, bytes memory callData) =
+        abi.decode(args[0], (uint256, uint256, address, uint256, address, bytes));
+
+      (Action[] memory actions_, bytes[] memory args_,) =
+        abi.decode(callData, (Action[], bytes[], uint256));
+
+      beneficiary_ = _getBeneficiaryFromCalldata(actions_, args_);
+    } else if (actions[0] == Action.DepositETH) {
+      /// @dev There is no beneficiary in depositETH, therefore we do a recurssion with i = 1
+      uint256 len = actions.length;
+
+      Action[] memory chopActions = new Action[](len -1);
+      bytes[] memory chopArgs = new bytes[](len -1);
+
+      for (uint256 i = 1; i < len;) {
+        chopActions[i - 1] = actions[i];
+        chopArgs[i - 1] = args[i];
+        unchecked {
+          ++i;
+        }
+      }
+      beneficiary_ = _getBeneficiaryFromCalldata(chopActions, chopArgs);
     } else if (actions[0] == Action.Swap) {
       /// @dev swap cannot be actions[0].
       revert BaseRouter__bundleInternal_swapNotFirstAction();
