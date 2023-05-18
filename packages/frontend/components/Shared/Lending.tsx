@@ -1,13 +1,23 @@
-import { Container, Stack, Typography, useTheme } from '@mui/material';
+import { Container, Grid, Stack, Typography, useTheme } from '@mui/material';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import React from 'react';
+import React, { useState } from 'react';
 
 import { PATH } from '../../constants';
+import { BasePosition, viewDynamicPosition } from '../../helpers/positions';
+import { useBorrow } from '../../store/borrow.store';
+import LendingForm from '../Lending/LendingForm';
 
 function Lending() {
   const { palette } = useTheme();
   const router = useRouter();
+  const formType = useBorrow((state) => state.formType);
+
+  const isEditing = formType !== 'create';
+
+  const [basePosition, setBasePosition] = useState<BasePosition>(
+    viewDynamicPosition(false, undefined)
+  );
 
   return (
     <Container>
@@ -33,6 +43,13 @@ function Lending() {
           Back to All Lending Vaults
         </Typography>
       </Stack>
+
+      <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
+        <Grid item xs={12} lg={7.5}></Grid>
+        <Grid item sm={12} lg={4.5}>
+          <LendingForm isEditing={isEditing} basePosition={basePosition} />
+        </Grid>
+      </Grid>
     </Container>
   );
 }
