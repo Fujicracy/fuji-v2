@@ -30,7 +30,7 @@ import {
   LtvMeta,
   Mode,
   recommendedLTV,
-  withdrawingCollateralMaxAmount,
+  withdrawMaxAmount,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { TransactionMeta } from '../../../helpers/transactions';
@@ -110,7 +110,7 @@ function TokenCard({
   const handleMax = () => {
     const amount =
       actionType === ActionType.REMOVE && type === 'collateral'
-        ? withdrawingCollateralMaxAmount(basePosition, meta, mode)
+        ? withdrawMaxAmount(basePosition, meta, mode)
         : maxAmount;
     handleInput(String(amount));
   };

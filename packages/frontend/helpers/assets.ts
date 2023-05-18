@@ -1,9 +1,10 @@
-import { ChainId, Token } from '@x-fuji/sdk';
+import { ChainId, OperationType, Token } from '@x-fuji/sdk';
 
 import { DUST_AMOUNT, LTV_RECOMMENDED_DECREASE } from '../constants';
+import { sdk } from '../services/sdk';
 import { AssetMeta } from '../store/models/Position';
 import { BasePosition } from './positions';
-import { TransactionMeta, bridgeFeeSum } from './transactions';
+import { TransactionMeta } from './transactions';
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
@@ -92,7 +93,7 @@ export const remainingBorrowLimit = (
   return max - debt.amount * debt.usdPrice;
 };
 
-export const withdrawingCollateralMaxAmount = (
+export const withdrawMaxAmount = (
   basePosition: BasePosition,
   meta: TransactionMeta,
   mode: Mode
@@ -102,16 +103,31 @@ export const withdrawingCollateralMaxAmount = (
     basePosition.position.collateral.amount - DUST_AMOUNT / 100
   );
 
-  const debtAmount =
-    (basePosition.editedPosition
+  let debtAmount = (
+    basePosition.editedPosition
       ? basePosition.editedPosition.debt
       : basePosition.position.debt
-    ).amount -
-    (mode === Mode.PAYBACK_AND_WITHDRAW &&
-    meta.bridgeFees &&
-    meta.estimateSlippage
-      ? bridgeFeeSum(meta.bridgeFees) + meta.estimateSlippage // TODO:
-      : 0);
+  ).amount;
+
+  if (mode === Mode.PAYBACK_AND_WITHDRAW) {
+    const r = sdk.previews.getOperationTypeFromSteps(meta.steps);
+    if (!r.success) {
+      throw 'Sdk cannot determine op type!';
+    }
+    if (
+      r.data === OperationType.THREE_CHAIN ||
+      r.data === OperationType.TWO_CHAIN_VAULT_ON_DEST
+    ) {
+      const { bridgeFees, estimateSlippage } = meta;
+      if (!bridgeFees || !estimateSlippage) {
+        throw 'No bridgeFees or estimateSlippage!';
+      }
+      const deltaDebt =
+        bridgeFees[0].amount + debtAmount * (estimateSlippage / 100);
+      // add to the current debt input so that the calculated withdrawing amount is smaller
+      debtAmount += deltaDebt;
+    }
+  }
 
   const ltvMax = basePosition.position.ltvMax;
   const currentLtvMax = ltvMax > 1 ? ltvMax / 100 : ltvMax;

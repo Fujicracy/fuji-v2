@@ -12,6 +12,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import { sdk } from '../services/sdk';
 import { FetchStatus } from '../store/borrow.store';
 import { chainName, transactionUrl } from './chains';
+import { stringifyError } from './errors';
 import {
   HistoryEntry,
   HistoryEntryStatus,
@@ -20,7 +21,6 @@ import {
 } from './history';
 import { BridgeFee } from './routing';
 import { camelize, toNotSoFixed } from './values';
-import { stringifyError } from './errors';
 
 export type TransactionMeta = {
   status: FetchStatus;
