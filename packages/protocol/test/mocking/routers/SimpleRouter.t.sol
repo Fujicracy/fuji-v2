@@ -255,7 +255,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     vm.expectEmit(true, true, true, true);
     emit Borrow(address(simpleRouter), ALICE, ALICE, borrowAmount, borrowAmount);
 
-    vm.deal(ALICE, amount);
+    deal(ALICE, amount);
 
     vm.prank(ALICE);
     simpleRouter.xBundle{value: amount}(actions, args);
@@ -536,6 +536,8 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     bytes memory data =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(newVault), true);
     _callWithTimelock(address(chief), data);
+
+    _initalizeVault(address(newVault), INITIALIZER);
 
     _dealMockERC20(collateralAsset, ALICE, amount);
 
