@@ -12,7 +12,10 @@ type TitleProps = {
 };
 
 function Title({ providers, vault, selectedTab, onTabClick }: TitleProps) {
-  const tabs = ['Overview', 'Analytics'];
+  const tabs = [
+    'Overview',
+    // 'Analytics', TODO: remove comment to enable
+  ];
 
   return (
     <>
