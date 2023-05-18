@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
+import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -33,6 +35,13 @@ contract MockingSetup is CoreRoles, Test {
 
   address public collateralAsset;
   address public debtAsset;
+
+  address public INITIALIZER = vm.addr(0x111A13); //arbitrary address
+
+  uint256 initializeVaultSharesAmount;
+  uint256 initializeVaultSharesDebtAmount;
+
+  uint256 initializeYieldVaultSharesAmount;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -92,7 +101,13 @@ contract MockingSetup is CoreRoles, Test {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
 
-    _initalizeVault(address(vault), address(this));
+    uint256 minAmount = vault.minAmount();
+    initializeVaultSharesAmount = 10 * minAmount;
+    initializeVaultSharesDebtAmount = minAmount;
+
+    initializeYieldVaultSharesAmount = minAmount;
+
+    _initalizeVault(address(vault), INITIALIZER);
   }
 
   function _initalizeVault(address vault_, address initializer) internal {
@@ -100,15 +115,27 @@ contract MockingSetup is CoreRoles, Test {
     address collatAsset_ = bVault.asset();
     address debtAsset_ = bVault.debtAsset();
 
-    uint256 minAmount = bVault.minAmount();
-
-    deal(collatAsset_, initializer, minAmount);
-    deal(debtAsset_, initializer, minAmount);
+    //todo set collateralAsset amount
+    deal(collatAsset_, initializer, initializeVaultSharesAmount);
+    deal(debtAsset_, initializer, initializeVaultSharesDebtAmount);
 
     vm.startPrank(initializer);
-    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, minAmount);
-    SafeERC20.safeApprove(IERC20(debtAsset), vault_, minAmount);
-    bVault.initializeVaultShares(minAmount, minAmount);
+    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, initializeVaultSharesAmount);
+    SafeERC20.safeApprove(IERC20(debtAsset), vault_, initializeVaultSharesDebtAmount);
+    bVault.initializeVaultShares(initializeVaultSharesAmount, initializeVaultSharesDebtAmount);
+    vm.stopPrank();
+  }
+
+  function _initalizeYieldVault(address vault_, address initializer) internal {
+    YieldVault v = YieldVault(payable(vault_));
+    address collatAsset_ = v.asset();
+
+    //todo set collateralAsset amount
+    deal(collatAsset_, initializer, initializeYieldVaultSharesAmount);
+
+    vm.startPrank(initializer);
+    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, initializeYieldVaultSharesAmount);
+    v.initializeVaultShares(initializeYieldVaultSharesAmount, 0);
     vm.stopPrank();
   }
 
