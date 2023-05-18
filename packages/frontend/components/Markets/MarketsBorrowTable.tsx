@@ -34,9 +34,9 @@ import SizableTableCell from '../Shared/SizableTableCell';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import { MarketFilters } from './MarketFiltersHeader';
-import MarketsTableRow from './MarketsTableRow';
+import MarketsBorrowTableRow from './MarketsBorrowTableRow';
 
-function MarketsTable({ filters }: { filters: MarketFilters }) {
+function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   const { palette } = useTheme();
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
@@ -213,7 +213,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
           ) : filteredRows.length > 0 ? (
             filteredRows.map((row, i) => {
               return (
-                <MarketsTableRow
+                <MarketsBorrowTableRow
                   key={i}
                   row={row}
                   onClick={handleClick}
@@ -267,4 +267,4 @@ function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
   );
 }
 
-export default MarketsTable;
+export default MarketsBorrowTable;

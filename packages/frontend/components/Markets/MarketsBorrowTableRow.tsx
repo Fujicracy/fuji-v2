@@ -36,7 +36,7 @@ type MarketsTableRowProps = {
   openedByDefault?: boolean;
 };
 
-function MarketsTableRow({
+function MarketsBorrowTableRow({
   row,
   onClick,
   openedByDefault = false,
@@ -295,7 +295,7 @@ function MarketsTableRow({
                 sx={{ borderCollapse: 'initial' }}
               >
                 <TableBody>
-                  <MarketsTableRow row={collapsedRow} onClick={onClick} />
+                  <MarketsBorrowTableRow row={collapsedRow} onClick={onClick} />
                 </TableBody>
               </Table>
             ))}
@@ -306,7 +306,7 @@ function MarketsTableRow({
   );
 }
 
-export default MarketsTableRow;
+export default MarketsBorrowTableRow;
 
 type ToggleProps = {
   expandRow: boolean;
