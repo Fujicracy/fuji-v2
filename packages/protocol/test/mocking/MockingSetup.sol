@@ -140,7 +140,8 @@ contract MockingSetup is CoreRoles, Test {
   }
 
   function _dealMockERC20(address mockerc20, address to, uint256 amount) internal {
-    MockERC20(mockerc20).mint(to, amount);
+    // MockERC20(mockerc20).mint(to, amount);
+    deal(mockerc20, to, amount);
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {
