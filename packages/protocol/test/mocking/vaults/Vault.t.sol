@@ -142,7 +142,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount);
+    assertEq(vault.totalDebt(), borrowAmount + initializeVaultSharesDebtAmount);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
@@ -157,7 +157,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_mintDebt(debtShares, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount);
+    assertEq(vault.totalDebt(), borrowAmount + initializeVaultSharesDebtAmount);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
@@ -289,7 +289,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(BaseVault.BaseVault__deposit_moreThanMax.selector);
     vm.prank(BOB);
-    vault.deposit(depositBob, BOB);
+    do_deposit(depositBob, vault, BOB);
   }
 
   function test_maxCapChecks(uint256 maxCap, uint96 firstDeposit, uint96 secondDeposit) public {
