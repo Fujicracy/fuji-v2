@@ -68,55 +68,67 @@ function LendingDetails() {
           </Grid>
         </Grid>
 
-        <Stack flexDirection="row" justifyContent="space-between">
+        <Stack
+          flexDirection="row"
+          justifyContent="space-between"
+          sx={{ width: '100%' }}
+        >
+          <Stack
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="start"
+          >
+            {loading ? (
+              <>
+                <Skeleton
+                  sx={{
+                    width: '3.5rem',
+                    height: '3rem',
+                    m: '0',
+                  }}
+                />
+                <Skeleton
+                  sx={{
+                    width: '5.5rem',
+                    height: '3rem',
+                    m: '-1rem 0',
+                  }}
+                />
+              </>
+            ) : (
+              <>
+                <Typography
+                  variant="body2"
+                  fontSize="1.125rem"
+                  fontWeight={700}
+                  lineHeight="1.8rem"
+                >
+                  {'2.07%'}
+                </Typography>
+                <Typography
+                  variant="smallDark"
+                  fontSize="0.875rem"
+                  lineHeight="1.4rem"
+                >
+                  {'Mar 15, 2023'}
+                </Typography>
+              </>
+            )}
+          </Stack>
+
           <PeriodOptions onChange={setSelectedPeriod} isDayExcluded={true} />
         </Stack>
 
         {loading ? (
-          <>
-            <Skeleton
-              sx={{
-                width: '3.5rem',
-                height: '3rem',
-                m: '-1rem 0',
-              }}
-            />
-            <Skeleton
-              sx={{
-                width: '5.5rem',
-                height: '3rem',
-                m: '-1rem 0',
-              }}
-            />
-
-            <Skeleton
-              sx={{
-                width: '100%',
-                height: '38rem',
-                m: '-8rem 0 -6rem 0',
-              }}
-            />
-          </>
+          <Skeleton
+            sx={{
+              width: '100%',
+              height: '38rem',
+              m: '-8rem 0 -6rem 0',
+            }}
+          />
         ) : !data ? (
-          <>
-            <Typography
-              variant="body2"
-              fontSize="1.125rem"
-              fontWeight={700}
-              lineHeight="1.8rem"
-            >
-              {'2.07%'}
-            </Typography>
-            <Typography
-              variant="smallDark"
-              fontSize="0.875rem"
-              lineHeight="1.4rem"
-            >
-              {'Mar 15, 2023'}
-            </Typography>
-
-            <APYChart />
-          </>
+          <APYChart />
         ) : (
           <EmptyChartState />
         )}
