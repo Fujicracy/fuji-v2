@@ -21,6 +21,8 @@ export const initErrorReporting = () => {
   });
 };
 
+export const sendToSentry = (error: unknown) => Sentry.captureException(error);
+
 export const stringifyError = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 

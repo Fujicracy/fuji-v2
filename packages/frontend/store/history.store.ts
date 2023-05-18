@@ -34,6 +34,7 @@ import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { usePositions } from './positions.store';
+import { sendToSentry } from '../helpers/errors';
 
 export type HistoryStore = HistoryState & HistoryActions;
 
@@ -295,6 +296,7 @@ export const useHistory = create<HistoryStore>()(
                   txHash
                 );
                 if (!crosschainResult.success) {
+                  sendToSentry(crosschainResult.error); // TODO: let's add smth to reconize it
                   throw crosschainResult.error;
                 }
                 if (crosschainResult.data.status === ConnextTxStatus.EXECUTED) {
