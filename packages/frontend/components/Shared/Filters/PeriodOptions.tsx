@@ -21,10 +21,10 @@ export function PeriodOptions({
   onChange: (value: number) => void;
   isDayExcluded?: boolean;
 }) {
-  const [daysPeriod, setDaysPeriod] = useState<number>(periodOptions[0].value);
   const options = useMemo(() => {
     return isDayExcluded ? periodOptions.slice(1) : periodOptions;
   }, [isDayExcluded]);
+  const [daysPeriod, setDaysPeriod] = useState<number>(options[0].value);
 
   const onPeriodChange = (value: number) => {
     setDaysPeriod(value);
