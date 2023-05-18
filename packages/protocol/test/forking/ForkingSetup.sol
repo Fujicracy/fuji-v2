@@ -226,8 +226,10 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _callWithTimelock(address(chief), executionCall);
 
     uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
-    initializeVaultSharesAmount = 10 * minAmount;
     initializeVaultSharesDebtAmount = minAmount;
+    initializeVaultSharesAmount = _getMinCollateralAmount(
+      BorrowingVault(payable(address(vault))), initializeVaultSharesDebtAmount
+    );
 
     initializeYieldVaultSharesAmount = minAmount;
 
@@ -275,8 +277,10 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _callWithTimelock(address(chief), executionCall);
 
     uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
-    initializeVaultSharesAmount = 10 * minAmount;
     initializeVaultSharesDebtAmount = minAmount;
+    initializeVaultSharesAmount = _getMinCollateralAmount(
+      BorrowingVault(payable(address(vault))), initializeVaultSharesDebtAmount
+    );
 
     initializeYieldVaultSharesAmount = minAmount;
 
@@ -297,6 +301,18 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     SafeERC20.safeIncreaseAllowance(IERC20(debtAsset), vault_, initializeVaultSharesDebtAmount);
     bVault.initializeVaultShares(initializeVaultSharesAmount, initializeVaultSharesDebtAmount);
     vm.stopPrank();
+  }
+
+  function _getMinCollateralAmount(
+    BorrowingVault vault_,
+    uint256 debt
+  )
+    internal
+    view
+    returns (uint256)
+  {
+    uint256 price = oracle.getPriceOf(vault_.debtAsset(), vault_.asset(), vault_.debtDecimals());
+    return (debt * 1e18 * 10 ** vault_.decimals()) / (vault_.maxLtv() * price) + 1;
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {
