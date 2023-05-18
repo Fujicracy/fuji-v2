@@ -61,6 +61,13 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   address public collateralAsset;
   address public debtAsset;
 
+  address public INITIALIZER = vm.addr(0x111A13); //arbitrary address
+
+  uint256 initializeVaultSharesAmount;
+  uint256 initializeVaultSharesDebtAmount;
+
+  uint256 initializeYieldVaultSharesAmount;
+
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
 
@@ -218,6 +225,12 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
 
+    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
+    initializeVaultSharesAmount = 10 * minAmount;
+    initializeVaultSharesDebtAmount = minAmount;
+
+    initializeYieldVaultSharesAmount = minAmount;
+
     _initalizeVault(address(vault), address(this));
   }
 
@@ -261,7 +274,13 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
 
-    _initalizeVault(address(vault), address(this));
+    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
+    initializeVaultSharesAmount = 10 * minAmount;
+    initializeVaultSharesDebtAmount = minAmount;
+
+    initializeYieldVaultSharesAmount = minAmount;
+
+    _initalizeVault(address(vault), INITIALIZER);
   }
 
   function _initalizeVault(address vault_, address initializer) internal {
@@ -269,15 +288,14 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     address collatAsset_ = bVault.asset();
     address debtAsset_ = bVault.debtAsset();
 
-    uint256 minAmount = bVault.minAmount();
-
-    deal(collatAsset_, initializer, minAmount * 1e18);
-    deal(debtAsset_, initializer, minAmount);
+    //todo set collateral asset amount
+    deal(collatAsset_, initializer, initializeVaultSharesAmount);
+    deal(debtAsset_, initializer, initializeVaultSharesDebtAmount);
 
     vm.startPrank(initializer);
-    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, minAmount * 1e18);
-    SafeERC20.safeApprove(IERC20(debtAsset), vault_, minAmount);
-    bVault.initializeVaultShares(minAmount * 1e18, minAmount);
+    SafeERC20.safeIncreaseAllowance(IERC20(collateralAsset), vault_, initializeVaultSharesAmount);
+    SafeERC20.safeIncreaseAllowance(IERC20(debtAsset), vault_, initializeVaultSharesDebtAmount);
+    bVault.initializeVaultShares(initializeVaultSharesAmount, initializeVaultSharesDebtAmount);
     vm.stopPrank();
   }
 
