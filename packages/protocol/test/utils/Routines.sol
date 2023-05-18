@@ -27,7 +27,7 @@ contract Routines is Test {
     deal(asset, from, amount);
 
     vm.startPrank(from);
-    SafeERC20.safeApprove(IERC20(asset), address(v), amount);
+    SafeERC20.safeIncreaseAllowance(IERC20(asset), address(v), amount);
     v.deposit(amount, from);
     vm.stopPrank();
 
