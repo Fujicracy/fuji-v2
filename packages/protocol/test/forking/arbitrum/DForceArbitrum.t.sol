@@ -48,8 +48,12 @@ contract DForceArbitrumForkingTest is Routines, ForkingSetup {
     uint256 borrowBalance = vault.totalDebt();
 
     //account for rounding issue
-    assertApproxEqAbs(depositBalance, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);
-    assertApproxEqAbs(borrowBalance, BORROW_AMOUNT, BORROW_AMOUNT / 1000);
+    assertApproxEqAbs(
+      depositBalance - initializeVaultSharesAmount, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000
+    );
+    assertApproxEqAbs(
+      borrowBalance - initializeVaultSharesDebtAmount, BORROW_AMOUNT, BORROW_AMOUNT / 1000
+    );
   }
 
   function test_getInterestRates() public {
