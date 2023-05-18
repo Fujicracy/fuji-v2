@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { PATH } from '../../constants';
 import { BasePosition, viewDynamicPosition } from '../../helpers/positions';
 import { useBorrow } from '../../store/borrow.store';
+import LendingDetails from '../Lending/LendingDetails';
 import LendingForm from '../Lending/LendingForm';
 
 function Lending() {
@@ -45,7 +46,9 @@ function Lending() {
       </Stack>
 
       <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
-        <Grid item xs={12} lg={7.5}></Grid>
+        <Grid item xs={12} lg={7.5}>
+          <LendingDetails />
+        </Grid>
         <Grid item sm={12} lg={4.5}>
           <LendingForm isEditing={isEditing} basePosition={basePosition} />
         </Grid>
