@@ -256,7 +256,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 index={index}
                 type={type}
                 mode={mode}
-                meta={transactionMeta}
                 showMax={!showLtv}
                 maxAmount={maxAmount}
                 assetChange={assetChange}

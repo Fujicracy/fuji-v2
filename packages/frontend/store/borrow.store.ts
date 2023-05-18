@@ -952,7 +952,7 @@ export const useBorrow = create<BorrowStore>()(
         },
       }),
       {
-        enabled: process.env.NEXT_PUBLIC_APP_ENV === 'production',
+        enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
         name: 'xFuji/borrow',
       }
     ),

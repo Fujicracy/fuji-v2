@@ -14,6 +14,7 @@ export enum NOTIFICATION_MESSAGES {
   TX_SUCCESS = 'Your transaction was executed successfully.',
   TX_CROSSCHAIN = 'Your transaction was executed successfully on %CHAIN1% and it also needs to get confirmed on %CHAIN2%.',
   UNEXPECTED_UNDEFINED = 'Unexpected undefined value.',
+  ONCHAIN_FAILURE = `We're having a hard time fetching some on-chain data`,
 }
 
 export function formatCrosschainNotificationMessage(

@@ -33,7 +33,6 @@ import {
   withdrawMaxAmount,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
-import { TransactionMeta } from '../../../helpers/transactions';
 import {
   formatValue,
   toNotSoFixed,
@@ -49,14 +48,13 @@ type SelectTokenCardProps = {
   mode: Mode;
   actionType: ActionType;
   assetChange: AssetChange;
-  meta: TransactionMeta;
   isExecuting: boolean;
   disabled: boolean;
   value: string;
   showMax: boolean;
   maxAmount: number;
   onTokenChange: (token: Token) => void;
-  onInputChange: (value: string) => void;
+  onInputChange: (value: string, type?: AssetType) => void;
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
   isEditing: boolean;
@@ -68,7 +66,6 @@ function TokenCard({
   showMax,
   assetChange,
   mode,
-  meta,
   actionType,
   isExecuting,
   disabled,
@@ -102,17 +99,32 @@ function TokenCard({
     undefined
   );
   const [focused, setFocused] = useState<boolean>(false);
+  const [calculatingMax, setCalculatingMax] = useState<boolean>(false);
 
   const handleRef = useCallback((node: HTMLInputElement) => {
     setTextInput(node);
   }, []);
 
-  const handleMax = () => {
-    const amount =
-      actionType === ActionType.REMOVE && type === 'collateral'
-        ? withdrawMaxAmount(basePosition, meta, mode)
-        : maxAmount;
-    handleInput(String(amount));
+  const handleMax = async () => {
+    if (calculatingMax) return;
+    setCalculatingMax(true);
+    let maxCollateralAmount = maxAmount;
+    if (actionType === ActionType.REMOVE && type === 'collateral') {
+      const result = await withdrawMaxAmount(
+        basePosition,
+        value === '' && type === 'collateral' && debt.input !== ''
+          ? Mode.PAYBACK_AND_WITHDRAW
+          : mode
+      );
+      if (result.success) {
+        maxCollateralAmount = result.data.collateral;
+        if (result.data.debt) {
+          onInputChange(String(result.data.debt), 'debt');
+        }
+      }
+    }
+    setCalculatingMax(false);
+    handleInput(String(maxCollateralAmount));
   };
 
   const handleInput = (val: string) => {
