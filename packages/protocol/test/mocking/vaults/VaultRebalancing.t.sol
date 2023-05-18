@@ -194,6 +194,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
       DEFAULT_LIQ_RATIO
     );
 
+    _initalizeVault(address(bvault), INITIALIZER);
+
     yvault = new YieldVault(
       collateralAsset,
       address(chief),
@@ -201,6 +203,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
       "fyvtWETH",
       providers
     );
+
+    _initalizeYieldVault(address(yvault), INITIALIZER);
 
     flasher = new MockFlasher();
     bytes memory executionCall =
@@ -252,13 +256,16 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
 
   function test_assertSetUp() public {
     assertEq(
-      mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 4 * DEPOSIT_AMOUNT
+      mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))),
+      4 * DEPOSIT_AMOUNT + initializeVaultSharesAmount
     );
     assertEq(
-      mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), 4 * BORROW_AMOUNT
+      mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))),
+      4 * BORROW_AMOUNT + initializeVaultSharesDebtAmount
     );
     assertEq(
-      mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 4 * DEPOSIT_AMOUNT
+      mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))),
+      4 * DEPOSIT_AMOUNT + initializeYieldVaultSharesAmount
     );
 
     assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
@@ -267,8 +274,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_fullRebalancingBorrowingVault() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
-    uint256 debt = 4 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + bvault.convertToAssets(initializeVaultSharesAmount); // ALICE, BOB, CHARLIE, DAVID
+    uint256 debt = 4 * BORROW_AMOUNT + bvault.convertToDebt(initializeVaultSharesDebtAmount); // ALICE, BOB, CHARLIE, DAVID
 
     dealMockERC20(debtAsset, address(this), debt);
 
@@ -283,7 +290,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_fullRebalancingYieldVault() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initializeYieldVaultSharesAmount; // ALICE, BOB, CHARLIE, DAVID
 
     yvault.rebalance(assets, 0, mockProviderA, mockProviderB, 0, true);
 
@@ -294,8 +301,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   function test_partialRebalancingBorrowingVault() public {
     uint256 assets75 = 3 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE
     uint256 debt75 = 3 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE
-    uint256 assets25 = DEPOSIT_AMOUNT; // DAVID
-    uint256 debt25 = BORROW_AMOUNT; // DAVID
+    uint256 assets25 = DEPOSIT_AMOUNT + initializeVaultSharesAmount; // DAVID
+    uint256 debt25 = BORROW_AMOUNT + initializeVaultSharesDebtAmount; // DAVID
 
     dealMockERC20(debtAsset, address(this), debt75);
 
@@ -311,8 +318,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
 
   //TODO add more test cases with RebalancerManager contract.
   function test_rebalanceBorrowingVaultWithRebalancer() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
-    uint256 debt = 4 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initializeVaultSharesAmount; // ALICE, BOB, CHARLIE, DAVID
+    uint256 debt = 4 * BORROW_AMOUNT + initializeVaultSharesDebtAmount; // ALICE, BOB, CHARLIE, DAVID
 
     rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
 
@@ -324,7 +331,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_rebalanceYieldVaultWithRebalancer() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initializeYieldVaultSharesAmount; // ALICE, BOB, CHARLIE, DAVID
 
     rebalancer.rebalanceVault(yvault, assets, 0, mockProviderA, mockProviderB, flasher, true);
 
@@ -335,7 +342,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   //MALICIOUS TESTS
 
   function test_rebalanceYieldVaultWithRebalancerAndInvalidDebt(uint256 debt) public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initializeYieldVaultSharesAmount; // ALICE, BOB, CHARLIE, DAVID
 
     //debt !=0
     rebalancer.rebalanceVault(yvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
