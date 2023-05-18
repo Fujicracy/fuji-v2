@@ -50,7 +50,7 @@ function Lending() {
           <LendingDetails />
         </Grid>
         <Grid item sm={12} lg={4.5}>
-          <LendingForm isEditing={isEditing} basePosition={basePosition} />
+          <LendingForm isEditing={false} basePosition={basePosition} />
         </Grid>
       </Grid>
     </Container>
