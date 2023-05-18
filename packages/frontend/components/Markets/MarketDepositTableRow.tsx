@@ -18,7 +18,6 @@ import { MouseEvent, useEffect, useState } from 'react';
 
 import { MarketRow, Status } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
-import { formatValue } from '../../helpers/values';
 import {
   DropletIcon,
   NetworkIcon,
@@ -27,7 +26,6 @@ import {
 } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import Toggle from '../Shared/Table/Toggle';
-import BestLabel from './BestLabel';
 
 type MarketsTableRowProps = {
   row: MarketRow;
@@ -35,7 +33,7 @@ type MarketsTableRowProps = {
   openedByDefault?: boolean;
 };
 
-function MarketsBorrowTableRow({
+function MarketsDepositTableRow({
   row,
   onClick,
   openedByDefault = false,
@@ -86,15 +84,8 @@ function MarketsBorrowTableRow({
           '&:hover': { '& .MuiTableCell-root': { background: '#34363E' } },
         }}
       >
-        <SizableTableCell
-          width="160px"
-          sx={{
-            position: 'sticky',
-            left: 0,
-            zIndex: 5,
-          }}
-        >
-          {row.debt && isHighLevelRow && (
+        <SizableTableCell width="120px">
+          {row.collateral && isHighLevelRow && (
             <Stack direction="row" gap={0.5} alignItems="center">
               <Toggle
                 expandRow={expandRow}
@@ -105,28 +96,13 @@ function MarketsBorrowTableRow({
                 direction="row"
                 alignItems="center"
                 flexWrap="nowrap"
-                data-cy="market-row-debt"
+                data-cy="market-row-collateral"
               >
-                <TokenIcon token={row.debt} height={32} width={32} />
+                <TokenIcon token={row.collateral} height={32} width={32} />
                 <Typography ml="0.5rem" variant="small">
-                  {row.debt}
+                  {row.collateral}
                 </Typography>
               </Stack>
-            </Stack>
-          )}
-        </SizableTableCell>
-        <SizableTableCell width="120px">
-          {row.collateral && isHighLevelRow && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              flexWrap="nowrap"
-              data-cy="market-row-collateral"
-            >
-              <TokenIcon token={row.collateral} height={32} width={32} />
-              <Typography ml="0.5rem" variant="small">
-                {row.collateral}
-              </Typography>
             </Stack>
           )}
         </SizableTableCell>
@@ -154,34 +130,7 @@ function MarketsBorrowTableRow({
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
-                {row.isBest && <BestLabel />}
               </Stack>
-            </Stack>
-          )}
-        </SizableTableCell>
-        <SizableTableCell
-          align="right"
-          width="140px"
-          sx={{ color: palette.warning.main }}
-        >
-          {loaderOrError(row.borrowApr.status)}
-          {row.borrowApr.status === Status.Ready && !expandRow && (
-            <Stack direction="row" alignItems="center" justifyContent="right">
-              {row.borrowAprReward?.value > 0 && (
-                <Tooltip
-                  title={`${row.borrowAprBase.value.toFixed(
-                    2
-                  )}% (base) - ${row.borrowAprReward.value.toFixed(
-                    2
-                  )}% (reward)`}
-                  arrow
-                >
-                  <IconButton>
-                    <DropletIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {row.borrowApr.value.toFixed(2)} %
             </Stack>
           )}
         </SizableTableCell>
@@ -266,16 +215,6 @@ function MarketsBorrowTableRow({
             </>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
-          {!expandRow && loaderOrError(row.liquidity.status)}
-          {row.liquidity.status === Status.Ready &&
-            !expandRow &&
-            formatValue(row.liquidity.value, {
-              maximumSignificantDigits: 3,
-              notation: 'compact',
-              style: 'currency',
-            })}
-        </SizableTableCell>
       </TableRow>
 
       <TableRow>
@@ -294,7 +233,10 @@ function MarketsBorrowTableRow({
                 sx={{ borderCollapse: 'initial' }}
               >
                 <TableBody>
-                  <MarketsBorrowTableRow row={collapsedRow} onClick={onClick} />
+                  <MarketsDepositTableRow
+                    row={collapsedRow}
+                    onClick={onClick}
+                  />
                 </TableBody>
               </Table>
             ))}
@@ -305,4 +247,4 @@ function MarketsBorrowTableRow({
   );
 }
 
-export default MarketsBorrowTableRow;
+export default MarketsDepositTableRow;

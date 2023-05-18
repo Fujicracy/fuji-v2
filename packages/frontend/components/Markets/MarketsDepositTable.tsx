@@ -7,7 +7,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  useTheme,
 } from '@mui/material';
 import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
@@ -33,13 +32,11 @@ import SizableTableCell from '../Shared/SizableTableCell';
 import EmptyRowsState from '../Shared/Table/EmptyRowsState';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import MarketsDepositTableRow from './MarketDepositTableRow';
 import { MarketFilters } from './MarketFiltersHeader';
-import MarketsBorrowTableRow from './MarketsBorrowTableRow';
 
-function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
-  const { palette } = useTheme();
+function MarketsDepositTable({ filters }: { filters: MarketFilters }) {
   const address = useAuth((state) => state.address);
-  // const [appSorting] = useState<SortBy>("descending")
   const [rows, setRows] = useState<MarketRow[]>([]);
   const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -109,60 +106,17 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
 
   return (
     <TableContainer sx={{ mt: '0.75rem' }}>
-      <Table
-        aria-label="Markets table"
-        // border-collapse fix bug on borders on firefox with sticky column
-        sx={{ borderCollapse: 'initial' }}
-      >
+      <Table aria-label="Markets table" sx={{ borderCollapse: 'initial' }}>
         <TableHead>
           <TableRow sx={{ height: '2.625rem' }}>
-            <SizableTableCell
-              width="160px"
-              sx={{
-                position: 'sticky',
-                left: 0,
-                zIndex: 1,
-                background: palette.secondary.contrastText,
-                pl: '48px',
-              }}
-              align="left"
-            >
-              Borrow
-            </SizableTableCell>
             <SizableTableCell align="left" width="120px">
-              Collateral
+              Asset
             </SizableTableCell>
             <SizableTableCell width="200px" align="left" sx={{ pl: '48px' }}>
               Network
             </SizableTableCell>
-            <SizableTableCell width="140px" align="right">
-              <Stack
-                direction="row"
-                spacing="0.25rem"
-                alignItems="center"
-                justifyContent="right"
-                // Disabling app sorting for 1st iteration
-                // sx={{ cursor: "pointer" }}
-                // onClick={() =>
-                //   setAppSorting(
-                //     appSorting === "ascending" ? "descending" : "ascending"
-                //   )
-                // }
-              >
-                <span>Borrow APR</span>
-                {/* {appSorting === "descending" ? (
-                  <KeyboardArrowUpIcon
-                    sx={{ color: palette.info.main, fontSize: "0.875rem" }}
-                  />
-                ) : (
-                  <KeyboardArrowDownIcon
-                    sx={{ color: palette.info.main, fontSize: "0.875rem" }}
-                  />
-                )} */}
-              </Stack>
-            </SizableTableCell>
             <SizableTableCell width="130px" align="right">
-              Collateral APY
+              Vault APY
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
               <Stack
@@ -191,15 +145,12 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
                 <span>Safety Rating</span>
               </Stack>
             </SizableTableCell>
-            <SizableTableCell width="140px" align="right">
-              Liquidity
-            </SizableTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {isLoading ? (
             <TableRow>
-              {new Array(8).fill('').map((_, index) => (
+              {new Array(5).fill('').map((_, index) => (
                 <TableCell
                   key={`loading${index}`}
                   sx={{
@@ -213,7 +164,7 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
           ) : filteredRows.length > 0 ? (
             filteredRows.map((row, i) => {
               return (
-                <MarketsBorrowTableRow
+                <MarketsDepositTableRow
                   key={i}
                   row={row}
                   onClick={handleClick}
@@ -234,4 +185,4 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   );
 }
 
-export default MarketsBorrowTable;
+export default MarketsDepositTable;

@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { chains } from '../../helpers/chains';
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending';
 import { MarketFilters } from './MarketFiltersHeader';
 import MarketFiltersHeader from './MarketFiltersHeader';
 import MarketsBorrowTable from './MarketsBorrowTable';
+import MarketsDepositTable from './MarketsDepositTable';
 
 function Markets() {
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -36,16 +36,14 @@ function Markets() {
         <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
       </Grid>
 
-      {currentTab === 0 ? (
-        <Box>
-          <MarketFiltersHeader filters={filters} setFilters={setFilters} />
+      <Box>
+        <MarketFiltersHeader filters={filters} setFilters={setFilters} />
+        {currentTab === 0 ? (
           <MarketsBorrowTable filters={filters} />
-        </Box>
-      ) : (
-        <Box sx={{ height: '33rem', width: '100%' }}>
-          <Lending />
-        </Box>
-      )}
+        ) : (
+          <MarketsDepositTable filters={filters} />
+        )}
+      </Box>
     </Box>
   );
 }
