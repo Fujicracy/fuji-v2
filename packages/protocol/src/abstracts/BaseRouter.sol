@@ -699,7 +699,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @dev Extracts the beneficiary from a set of actions and args.
    * Requirements:
    * - Must be implemented in child contract, and added to `_crossTransfer` and
-   * `crossTansferWithCalldata`.
+   * `crossTansferWithCalldata` when applicable.
    *
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
