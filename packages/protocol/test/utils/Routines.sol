@@ -68,7 +68,7 @@ contract Routines is Test {
     deal(asset, from, prevDebt); // ensure user has accrued interest to payback.
 
     vm.startPrank(from);
-    SafeERC20.safeApprove(IERC20(v.debtAsset()), address(v), amount);
+    SafeERC20.safeIncreaseAllowance(IERC20(v.debtAsset()), address(v), amount);
     v.payback(amount, from);
     vm.stopPrank();
 
