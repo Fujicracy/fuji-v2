@@ -1,4 +1,5 @@
 import { Box, Grid, Typography, useMediaQuery } from '@mui/material';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 import { chains } from '../../helpers/chains';
@@ -11,7 +12,10 @@ import MarketsDepositTable from './MarketsDepositTable';
 
 function Markets() {
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [currentTab, setCurrentTab] = useState(0);
+  const router = useRouter();
+  const [currentTab, setCurrentTab] = useState<number>(
+    parseInt((router.query?.tab as string) || '0')
+  );
   const [filters, setFilters] = useState<MarketFilters>({
     searchQuery: '',
     chains: chains.map((c) => c.name),
@@ -33,7 +37,10 @@ function Markets() {
         alignItems="center"
         wrap="wrap"
       >
-        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+        <BorrowLendingTabNavigation
+          onChange={(tab) => setCurrentTab(tab)}
+          defaultTab={parseInt((router.query?.tab as string) || '0')}
+        />
       </Grid>
 
       <Box>

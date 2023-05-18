@@ -3,8 +3,8 @@ import { alpha, useTheme } from '@mui/material/styles';
 import React from 'react';
 
 import { AssetMeta } from '../../../store/models/Position';
-import { TokenIcon } from '../../Shared/Icons';
-import LinkIcon from '../../Shared/Icons/LinkIcon';
+import { TokenIcon } from '../Icons';
+import LinkIcon from '../Icons/LinkIcon';
 
 type AnalyticsHeaderProps = {
   collateral: AssetMeta;

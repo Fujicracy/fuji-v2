@@ -3,13 +3,15 @@ import { useState } from 'react';
 
 function BorrowLendingTabNavigation({
   onChange,
+  defaultTab,
 }: {
   onChange: (value: number) => void;
+  defaultTab?: number;
 }) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
-  const [currentTab, setCurrentTab] = useState(0);
+  const [currentTab, setCurrentTab] = useState(defaultTab);
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
     onChange(newValue);

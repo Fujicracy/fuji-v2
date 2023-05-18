@@ -3,14 +3,14 @@ import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
+import AnalyticsHeader from '../../Shared/Analytics/AnalyticsHeader';
+import InfoBlock from '../../Shared/Analytics/InfoBlock';
+import PoolInfo from '../../Shared/Analytics/PoolInfo';
 import APYChart from '../../Shared/Charts/APYChart';
 import EmptyChartState from '../../Shared/Charts/EmptyState';
 import PeriodOptions from '../../Shared/Filters/PeriodOptions';
 import { ProviderIcon } from '../../Shared/Icons';
 import TabSwitch from '../../Shared/TabSwitch';
-import AnalyticsHeader from '../Analytics/AnalyticsHeader';
-import InfoBlock from '../Analytics/InfoBlock';
-import PoolInfo from '../Analytics/PoolInfo';
 
 enum ChartTab {
   BORROW = 0,

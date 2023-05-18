@@ -4,7 +4,7 @@ import { linearGradientDef } from '@nivo/core';
 import { LineSvgProps, ResponsiveLine } from '@nivo/line';
 import React from 'react';
 
-import APYChartTooltip from '../../Borrow/Analytics/APYChartTooltip';
+import APYChartTooltip from '../Analytics/APYChartTooltip';
 
 const testData = [
   {
