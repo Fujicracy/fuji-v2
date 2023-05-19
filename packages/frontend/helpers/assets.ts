@@ -13,13 +13,9 @@ import {
 } from '../constants';
 import { sdk } from '../services/sdk';
 import { AssetMeta } from '../store/models/Position';
-import { BasePosition } from './positions';
-import { TransactionMeta } from './transactions';
-import { validAmount } from './values';
 import { notify } from './notifications';
+import { BasePosition } from './positions';
 import { fetchRoutes } from './routing';
-import { useBorrow } from '../store/borrow.store';
-import { useAuth } from '../store/auth.store';
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
@@ -109,9 +105,11 @@ export const remainingBorrowLimit = (
 };
 
 export const withdrawMaxAmount = async (
+  mode: Mode,
   basePosition: BasePosition,
-  mode: Mode
-): FujiResultPromise<{ collateral: number; debt?: number }> => {
+  debt: AssetChange,
+  collateral: AssetChange
+): FujiResultPromise<number> => {
   const deductedCollateral = Math.max(
     0,
     basePosition.position.collateral.amount - DUST_AMOUNT / 100
@@ -124,44 +122,43 @@ export const withdrawMaxAmount = async (
   ).amount;
 
   if (mode === Mode.PAYBACK_AND_WITHDRAW) {
-    let failed = true;
+    let failed;
 
-    // Get the data statically from the stores directly, no point passing everything around
-    const { activeVault, availableVaults, collateral, debt, mode, slippage } =
-      useBorrow.getState();
-    const address = useAuth.getState().address;
-    if (activeVault && address) {
+    if (basePosition.position.vault) {
       // Fetch metadata for the operation
       const response = await fetchRoutes(
         mode,
-        activeVault,
+        basePosition.position.vault,
         collateral.token,
         debt.token,
-        collateral.input, // TODO:
-        debt.input, // TODO:
-        address,
-        availableVaults.indexOf(activeVault) === 0,
-        slippage
+        '1', // we don't care about the collateral input
+        debt.input,
+        '0x0000000000000000000000000000000000000000', // we don't care
+        false,
+        0
       );
       if (response.success) {
+        const { bridgeFees, estimateSlippage } = response.data;
         const r = sdk.previews.getOperationTypeFromSteps(response.data.steps);
         if (
           r.success &&
           (r.data === OperationType.THREE_CHAIN ||
             r.data === OperationType.TWO_CHAIN_VAULT_ON_DEST) &&
-          response.data.bridgeFees &&
-          response.data.estimateSlippage
+          bridgeFees &&
+          estimateSlippage
         ) {
-          const { bridgeFees, estimateSlippage } = response.data;
           const deltaDebt =
             bridgeFees[0].amount + debtAmount * (estimateSlippage / 100);
           // add to the current debt input so that the calculated withdrawing amount is smaller
           debtAmount += deltaDebt;
-          // We got to the end, mark as success
-          failed = false;
-          // TODO: Depending on a condition, we need to call the function again, so we need to take part of the above to a different function
+        } else if (!r.success) {
+          failed = true;
         }
+      } else {
+        failed = true;
       }
+    } else {
+      failed = true;
     }
     if (failed) {
       notify({
@@ -178,5 +175,5 @@ export const withdrawMaxAmount = async (
     deductedCollateral -
     debtAmount / (currentLtvMax * basePosition.position.collateral.usdPrice);
 
-  return new FujiResultSuccess({ collateral: amount, debt: debtAmount });
+  return new FujiResultSuccess(amount);
 };

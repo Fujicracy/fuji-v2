@@ -110,17 +110,16 @@ function TokenCard({
     setCalculatingMax(true);
     let maxCollateralAmount = maxAmount;
     if (actionType === ActionType.REMOVE && type === 'collateral') {
+      const precalculatedMode =
+        value === '' && debt.input !== '' ? Mode.PAYBACK_AND_WITHDRAW : mode;
       const result = await withdrawMaxAmount(
+        precalculatedMode,
         basePosition,
-        value === '' && type === 'collateral' && debt.input !== ''
-          ? Mode.PAYBACK_AND_WITHDRAW
-          : mode
+        debt,
+        collateral
       );
       if (result.success) {
-        maxCollateralAmount = result.data.collateral;
-        if (result.data.debt) {
-          onInputChange(String(result.data.debt), 'debt');
-        }
+        maxCollateralAmount = result.data;
       }
     }
     setCalculatingMax(false);
