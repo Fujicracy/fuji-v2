@@ -14,8 +14,8 @@ import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 import {SimpleRouter} from "../../../src/routers/SimpleRouter.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {FlasherAaveV3} from "../../../src/flashloans/FlasherAaveV3.sol";
-import {AaveV3Polygon} from "../../../src/providers/polygon/AaveV3Polygon.sol";
-import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
+import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
+import {AaveV3} from "../../../src/providers/mainnet/AaveV3.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 
 contract VaultSetProvidersForkingTest is Routines, ForkingSetup {
@@ -29,8 +29,8 @@ contract VaultSetProvidersForkingTest is Routines, ForkingSetup {
   function setUp() public {
     setUpFork(MAINNET_DOMAIN);
 
-    aaveV2 = new AaveV2Polygon();
-    aaveV3 = new AaveV3Polygon();
+    aaveV2 = new AaveV2();
+    aaveV3 = new AaveV3();
     ILendingProvider[] memory providers = new ILendingProvider[](2);
     providers[0] = aaveV3; // activeProvider
     providers[1] = aaveV2;
@@ -38,6 +38,7 @@ contract VaultSetProvidersForkingTest is Routines, ForkingSetup {
     // Using USDT as the debt asset.
     // because USDT reverts on approve if they already have an allowance
     debtAsset = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    vm.label(debtAsset, "USDT");
     deploy(providers);
   }
 
