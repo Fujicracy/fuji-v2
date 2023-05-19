@@ -1,4 +1,4 @@
-import { Card, Divider, Grid, Typography } from '@mui/material';
+import { Card, Divider, Grid, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
@@ -80,6 +80,8 @@ function VaultStrategy() {
           <Typography variant="body">{slide.text}</Typography>
         </Grid>
       ))}
+
+      <Stack></Stack>
     </Card>
   );
 }

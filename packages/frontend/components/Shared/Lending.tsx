@@ -46,10 +46,10 @@ function Lending() {
       </Stack>
 
       <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
-        <Grid item xs={12} lg={7.5}>
+        <Grid item xs={12} lg={7.5} order={{ xs: 2, lg: 1 }}>
           <LendingDetails />
         </Grid>
-        <Grid item sm={12} lg={4.5}>
+        <Grid item sm={12} lg={4.5} order={{ xs: 1, lg: 2 }}>
           <LendingForm isEditing={false} basePosition={basePosition} />
         </Grid>
       </Grid>
