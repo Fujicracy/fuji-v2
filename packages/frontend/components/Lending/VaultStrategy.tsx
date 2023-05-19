@@ -1,5 +1,6 @@
-import { Card, Divider, Grid, Stack, Typography } from '@mui/material';
+import { Card, Chip, Divider, Grid, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import Image from 'next/image';
 import React, { useState } from 'react';
 
 enum Direction {
@@ -22,8 +23,8 @@ function VaultStrategy() {
     {
       id: 2,
       image: '/assets/images/onboarding/onboarding_1.svg',
-      title: '3Vault received the deposits',
-      text: '3The vault receives ETH from depositors and invests 100% of it to the highest APY available in the market',
+      title: '2Vault received the deposits',
+      text: '2The vault receives ETH from depositors and invests 100% of it to the highest APY available in the market',
     },
     {
       id: 3,
@@ -34,8 +35,10 @@ function VaultStrategy() {
   ];
 
   const handleNextSlide = (direction: Direction) => {
-    const next =
+    let next =
       direction === Direction.Next ? currentSlide + 1 : currentSlide - 1;
+    next = Math.min(Math.max(next, 1), slides.length);
+
     setCurrentSlide(next);
   };
 
@@ -81,7 +84,71 @@ function VaultStrategy() {
         </Grid>
       ))}
 
-      <Stack></Stack>
+      <Stack
+        direction="row"
+        alignItems="center"
+        justifyContent="center"
+        sx={{ width: '100%', mt: '1.5rem' }}
+      >
+        <Chip
+          label={
+            <Image
+              src={'/assets/images/shared/arrowBack.svg'}
+              alt={'Back arrow'}
+              width={14}
+              height={14}
+            />
+          }
+          onClick={() => handleNextSlide(Direction.Previous)}
+        />
+        <Grid
+          container
+          wrap="wrap"
+          alignItems="center"
+          justifyContent="center"
+          gap={1}
+          sx={{
+            maxWidth: '14.25rem !important',
+          }}
+        >
+          {slides.map((slide) => (
+            <Grid
+              item
+              sm={2.75}
+              key={`slide-button-${slide.id}`}
+              sx={{
+                height: '0.25rem',
+                borderRadius: '100px',
+                backgroundColor:
+                  currentSlide === slide.id
+                    ? palette.primary.main
+                    : palette.secondary.main,
+                maxWidth: '3rem !important',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor:
+                    currentSlide === slide.id
+                      ? palette.primary.main
+                      : palette.secondary.light,
+                },
+              }}
+              onClick={() => setCurrentSlide(slide.id)}
+            />
+          ))}
+        </Grid>
+        <Chip
+          label={
+            <Image
+              src={'/assets/images/shared/arrowBack.svg'}
+              alt={'Back arrow'}
+              width={14}
+              height={14}
+              style={{ transform: 'rotate(180deg)' }}
+            />
+          }
+          onClick={() => handleNextSlide(Direction.Next)}
+        />
+      </Stack>
     </Card>
   );
 }
