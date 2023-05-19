@@ -108,7 +108,7 @@ function VaultStrategy() {
         />
         <Grid
           container
-          wrap="wrap"
+          wrap="nowrap"
           alignItems="center"
           justifyContent="center"
           gap={1}
@@ -119,16 +119,16 @@ function VaultStrategy() {
           {slides.map((slide) => (
             <Grid
               item
-              sm={2.75}
+              xs={2.75}
               key={`slide-button-${slide.id}`}
               sx={{
-                height: '0.25rem',
+                height: '4px',
                 borderRadius: '100px',
                 backgroundColor:
                   currentSlide === slide.id
                     ? palette.primary.main
                     : palette.secondary.main,
-                maxWidth: '3rem !important',
+                maxWidth: '3rem',
                 cursor: 'pointer',
                 '&:hover': {
                   backgroundColor:
