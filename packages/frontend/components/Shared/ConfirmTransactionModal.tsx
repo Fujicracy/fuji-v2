@@ -25,7 +25,7 @@ import RouteBox from './ConfirmationTransaction/RouteBox';
 import WarningInfo from './WarningInfo';
 
 type ConfirmTransactionModalProps = {
-  basePosition: BasePosition;
+  basePosition: BasePosition | undefined;
   transactionMeta: TransactionMeta;
   open: boolean;
   isEditing: boolean;
@@ -51,29 +51,31 @@ export function ConfirmTransactionModal({
 }: ConfirmTransactionModalProps) {
   const { palette } = useTheme();
   const { steps } = transactionMeta;
-  const { editedPosition, position } = basePosition;
+  const position = basePosition ? basePosition.position : undefined;
+  const editedPosition = basePosition ? basePosition.editedPosition : undefined;
   const slippage = useBorrow((state) => state.slippage);
 
-  const dynamicLtvMeta = {
-    ltv: editedPosition ? editedPosition.ltv : position.ltv,
-    ltvMax: position.ltvMax,
-    ltvThreshold: editedPosition
-      ? editedPosition.ltvThreshold
-      : position.ltvThreshold,
-  };
+  const dynamicLtvMeta = position
+    ? {
+        ltv: editedPosition ? editedPosition.ltv : position.ltv,
+        ltvMax: position.ltvMax,
+        ltvThreshold: editedPosition
+          ? editedPosition.ltvThreshold
+          : position.ltvThreshold,
+      }
+    : undefined;
 
   const estCost =
     transactionMeta.status === FetchStatus.Ready && transactionMeta.bridgeFees
       ? `~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`
       : 'n/a';
 
-  const positionBorrowLimit = remainingBorrowLimit(
-    position.collateral,
-    position.debt,
-    position.ltvMax
-  );
+  const positionBorrowLimit = position
+    ? remainingBorrowLimit(position.collateral, position.debt, position.ltvMax)
+    : undefined;
 
   const editedBorrowLimit =
+    position &&
     editedPosition &&
     remainingBorrowLimit(
       editedPosition.collateral,
@@ -92,6 +94,10 @@ export function ConfirmTransactionModal({
       transactionMeta.estimateSlippage > slippage / 100,
     [transactionMeta.estimateSlippage, slippage]
   );
+
+  if (!position || !dynamicLtvMeta) {
+    return <></>; // TODO:
+  }
 
   return (
     <Dialog

@@ -22,9 +22,9 @@ type BorrowButtonProps = {
   address: string | undefined;
   collateral: AssetChange;
   debt: AssetChange | undefined;
-  position: Position;
+  position: Position | undefined;
   walletChainId: ChainId | undefined;
-  ltvMeta: LtvMeta;
+  ltvMeta: LtvMeta | undefined;
   metaStatus: FetchStatus;
   needsSignature: boolean;
   isSigning: boolean;
@@ -145,6 +145,8 @@ function BorrowButton({
   );
   if (!address) {
     return regularButton('Connect wallet', onLoginClick, 'borrow-login');
+  } else if (!position || !ltvMeta) {
+    return disabledButton('Please choose a debt chain'); // TODO:
   } else if (
     collateral.allowance.status === AllowanceStatus.Approving ||
     debt.allowance.status === AllowanceStatus.Approving

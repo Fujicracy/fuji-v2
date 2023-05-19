@@ -39,7 +39,7 @@ import RoutingModal from './Routing/RoutingModal';
 
 type BorrowProps = {
   isEditing: boolean;
-  basePosition: BasePosition;
+  basePosition: BasePosition | undefined;
 };
 function Borrow({ isEditing, basePosition }: BorrowProps) {
   const router = useRouter();
@@ -77,15 +77,18 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
 
-  const { position, editedPosition } = basePosition;
+  const position = basePosition ? basePosition.position : undefined;
+  const editedPosition = basePosition ? basePosition.editedPosition : undefined;
 
-  const dynamicLtvMeta = {
-    ltv: editedPosition ? editedPosition.ltv : position.ltv,
-    ltvMax: position.ltvMax,
-    ltvThreshold: editedPosition
-      ? editedPosition.ltvThreshold
-      : position.ltvThreshold,
-  };
+  const dynamicLtvMeta = position
+    ? {
+        ltv: editedPosition ? editedPosition.ltv : position.ltv,
+        ltvMax: position.ltvMax,
+        ltvThreshold: editedPosition
+          ? editedPosition.ltvThreshold
+          : position.ltvThreshold,
+      }
+    : undefined;
 
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
@@ -277,8 +280,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               index === collateralIndex ? AssetType.Collateral : AssetType.Debt;
             const balance = assetChange
               ? assetChange.balances[assetChange.currency.symbol]
-              : 0; // TODO: test
-            const debtAmount = position.debt.amount;
+              : 0;
+            const debtAmount = position?.debt?.amount;
             const maxAmount =
               type === AssetType.Debt && debtAmount && debtAmount < balance
                 ? debtAmount

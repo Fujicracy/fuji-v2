@@ -50,8 +50,8 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
 
   const isEditing = formType !== FormType.Create;
 
-  const [basePosition, setBasePosition] = useState<BasePosition>(
-    viewDynamicPosition(!isEditing, undefined)
+  const [basePosition, setBasePosition] = useState<BasePosition | undefined>(
+    baseDebt ? viewDynamicPosition(!isEditing, undefined) : undefined
   );
   const [loading, setLoading] = useState<boolean>(
     isEditing && (!positions || positions.length === 0)
@@ -60,8 +60,10 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   useEffect(() => {
     let matchPosition: Position | undefined;
     let editedPosition: Position | undefined;
+    if (!baseDebt) {
+      return;
+    }
     if (address && positions.length > 0 && query && baseDebt) {
-      // TODO:
       matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&
@@ -174,9 +176,11 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
             <Grid item xs={12} md={5}>
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
-            <Grid item sm={12} md={7}>
-              <Overview isEditing={isEditing} basePosition={basePosition} />
-            </Grid>
+            {basePosition && (
+              <Grid item sm={12} md={7}>
+                <Overview isEditing={isEditing} basePosition={basePosition} />
+              </Grid>
+            )}
           </Grid>
         )}
       </Container>

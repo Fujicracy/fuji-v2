@@ -22,8 +22,8 @@ type BorrowBoxProps = {
   assetChange: AssetChange | undefined;
   showMax: boolean;
   maxAmount: number;
-  ltvMeta: LtvMeta;
-  basePosition: BasePosition;
+  ltvMeta: LtvMeta | undefined;
+  basePosition: BasePosition | undefined;
   index: number;
 };
 
@@ -84,30 +84,33 @@ function BorrowBox({
             : changeDebtChain(chainId, !isEditing, assetChange.currency);
         }}
       />
-      <CurrencyCard
-        type={type}
-        showMax={showMax}
-        maxAmount={maxAmount}
-        isEditing={isEditing}
-        assetChange={assetChange}
-        actionType={actionType}
-        disabled={isEditing}
-        isExecuting={isExecuting}
-        value={value}
-        ltvMeta={ltvMeta}
-        basePosition={basePosition}
-        isFocusedByDefault={index === 0}
-        onCurrencyChange={(currency) =>
-          type === AssetType.Collateral
-            ? changeCollateralCurrency(currency)
-            : changeDebtCurrency(currency)
-        }
-        onInputChange={(value) =>
-          type === AssetType.Collateral
-            ? changeCollateralValue(value)
-            : changeDebtValue(value)
-        }
-      />
+      {/* TODO: */}
+      {basePosition && ltvMeta && (
+        <CurrencyCard
+          type={type}
+          showMax={showMax}
+          maxAmount={maxAmount}
+          isEditing={isEditing}
+          assetChange={assetChange}
+          actionType={actionType}
+          disabled={isEditing}
+          isExecuting={isExecuting}
+          value={value}
+          ltvMeta={ltvMeta}
+          basePosition={basePosition}
+          isFocusedByDefault={index === 0}
+          onCurrencyChange={(currency) =>
+            type === AssetType.Collateral
+              ? changeCollateralCurrency(currency)
+              : changeDebtCurrency(currency)
+          }
+          onInputChange={(value) =>
+            type === AssetType.Collateral
+              ? changeCollateralValue(value)
+              : changeDebtValue(value)
+          }
+        />
+      )}
     </Box>
   );
 }
