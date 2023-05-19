@@ -18,7 +18,7 @@ import {AaveV3Polygon} from "../../../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 
-contract VaultRebalancingForkingTest is Routines, ForkingSetup {
+contract VaultSetProvidersForkingTest is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
   ILendingProvider public aaveV3;
   IRouter public router;
