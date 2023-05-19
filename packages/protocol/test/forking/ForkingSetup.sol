@@ -233,7 +233,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     initializeYieldVaultSharesAmount = minAmount;
 
-    _initalizeVault(address(vault), address(this));
+    _initalizeVault(address(vault), INITIALIZER);
   }
 
   function deployVault(
