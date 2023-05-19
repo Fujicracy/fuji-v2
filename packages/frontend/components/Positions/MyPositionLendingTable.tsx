@@ -1,4 +1,5 @@
 import {
+  Chip,
   Skeleton,
   Stack,
   Table,
@@ -13,7 +14,6 @@ import {
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-import { recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { showPosition } from '../../helpers/navigation';
 import {
@@ -26,11 +26,12 @@ import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import { NetworkIcon, TokenIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
+import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
+import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import EmptyState from './EmptyState';
-import LiquidationBox from './LiquidationBox';
 
-function MyPositionsBorrowTable() {
+function MyPositionsLendingTable() {
   const { palette } = useTheme();
   const router = useRouter();
   const account = useAuth((state) => state.address);
@@ -49,22 +50,22 @@ function MyPositionsBorrowTable() {
 
   if (!account) {
     return (
-      <MyPositionsBorrowTableContainer>
+      <MyPositionsLendingTableContainer>
         <EmptyState reason="no-wallet" />
-      </MyPositionsBorrowTableContainer>
+      </MyPositionsLendingTableContainer>
     );
   }
   if (loading) {
     return (
-      <MyPositionsBorrowTableContainer>
+      <MyPositionsLendingTableContainer>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(7).fill('').map((_, index) => (
+          {new Array(5).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
           ))}
         </TableRow>
-      </MyPositionsBorrowTableContainer>
+      </MyPositionsLendingTableContainer>
     );
   }
 
@@ -74,7 +75,7 @@ function MyPositionsBorrowTable() {
   }
 
   return (
-    <MyPositionsBorrowTableContainer>
+    <MyPositionsLendingTableContainer>
       {rows.length === 0 && positions.length === 0 ? (
         <EmptyState reason="no-positions" />
       ) : (
@@ -103,22 +104,6 @@ function MyPositionsBorrowTable() {
               </TableCell>
               <TableCell>
                 <Stack direction="row" alignItems="center">
-                  <TokenIcon token={row.debt.symbol} width={24} height={24} />
-                  <Typography variant="small" fontWeight={500} ml="0.5rem">
-                    {formatValue(row.debt.amount)} {row.debt.symbol}
-                  </Typography>
-                  <Typography variant="xsmall" ml="0.25rem">
-                    (
-                    {formatValue(row.debt.usdValue, {
-                      style: 'currency',
-                      minimumFractionDigits: 2,
-                    })}
-                    )
-                  </Typography>
-                </Stack>
-              </TableCell>
-              <TableCell>
-                <Stack direction="row" alignItems="center">
                   <TokenIcon
                     token={row.collateral.symbol}
                     width={24}
@@ -142,51 +127,56 @@ function MyPositionsBorrowTable() {
                   {row.apr}%
                 </Typography>
               </TableCell>
-              <TableCell align="center">
-                {formatValue(row.oraclePrice, {
-                  style: 'currency',
-                  minimumFractionDigits: 0,
-                })}
+              <TableCell align="right">
+                <IntegratedProtocols integratedProtocols={[]} />
               </TableCell>
-              <LiquidationBox
-                liquidationPrice={row.liquidationPrice}
-                percentPriceDiff={row.percentPriceDiff}
-                ltv={row.ltv}
-                recommendedLtv={recommendedLTV(row.ltvMax)}
-              />
+              <TableCell align="right">
+                <Chip
+                  variant={'success'}
+                  label={'A+'}
+                  sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
+                />
+              </TableCell>
             </TableRow>
           ))}
-          <ExtraTableSpace colSpan={7} itemLength={rows.length} max={5} />
+          <ExtraTableSpace colSpan={5} itemLength={rows.length} max={5} />
         </>
       )}
-    </MyPositionsBorrowTableContainer>
+    </MyPositionsLendingTableContainer>
   );
 }
 
-export default MyPositionsBorrowTable;
+export default MyPositionsLendingTable;
 
-type PositionsBorrowTableElementProps = {
+type PositionsLendingTableElementProps = {
   children: string | JSX.Element | JSX.Element[];
 };
 
-function MyPositionsBorrowTableHeader() {
+function MyPositionsLendingTableHeader() {
   return (
     <TableHead>
       <TableRow sx={{ height: '2.625rem' }}>
         <TableCell>Network</TableCell>
-        <TableCell>Borrow Amount</TableCell>
-        <TableCell>Collateral Amount</TableCell>
-        <TableCell align="center">Borrow APR</TableCell>
-        <TableCell align="center">Oracle price</TableCell>
+        <TableCell>Lend Amount</TableCell>
+        <TableCell align="center">Lend APR</TableCell>
         <TableCell align="right">
-          <Stack direction="row" alignItems="center" justifyContent="right">
-            <InfoTooltip
-              title={
-                'When the price of the provided collateral drops below the indicated liquidation price, your position is going to be liquidated.'
-              }
-              isLeft
-            />
-            Liquidation price
+          <InfoTooltip
+            title={
+              'In the background, Fuji rebalances between these protocols to provide the best terms.'
+            }
+            isLeft
+          />
+          <span>Protocols</span>
+        </TableCell>
+        <TableCell align="center">
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing="0.25rem"
+            justifyContent="right"
+          >
+            <DocsTooltip />
+            <span>Safety Rating</span>
           </Stack>
         </TableCell>
       </TableRow>
@@ -194,13 +184,13 @@ function MyPositionsBorrowTableHeader() {
   );
 }
 
-function MyPositionsBorrowTableContainer({
+function MyPositionsLendingTableContainer({
   children,
-}: PositionsBorrowTableElementProps) {
+}: PositionsLendingTableElementProps) {
   return (
     <TableContainer>
-      <Table aria-label="Positions table" size="small">
-        <MyPositionsBorrowTableHeader />
+      <Table aria-label="Positions дутвштп table" size="small">
+        <MyPositionsLendingTableHeader />
         <TableBody>{children}</TableBody>
       </Table>
     </TableContainer>
