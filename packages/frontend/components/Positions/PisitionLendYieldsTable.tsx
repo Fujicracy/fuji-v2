@@ -21,19 +21,17 @@ import {
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
-import { TokenIcon, TokenWithNetworkIcon } from '../Shared/Icons';
+import { TokenWithNetworkIcon } from '../Shared/Icons';
 
-type PositionYieldTableProps = {
+type PositionLendYieldTableProps = {
   loading: boolean;
   days: number;
-  callback: (value: number) => void;
 };
 
-function PositionYieldTable({
+function PositionLendYieldTable({
   loading,
   days,
-  callback,
-}: PositionYieldTableProps) {
+}: PositionLendYieldTableProps) {
   const { palette } = useTheme();
   const account = useAuth((state) => state.address);
   const positions = usePositions((state) => state.positions);
@@ -46,74 +44,37 @@ function PositionYieldTable({
     })();
   }, [loading, account, positions]);
 
-  // TODO: move to parent
-  useEffect(() => {
-    callback(
-      rows.reduce((a, c) => {
-        return (
-          a +
-          getEstimatedEarnings({
-            days,
-            collateralInUsd: c.collateral.usdValue,
-            collateralAPR: c.collateral.baseAPR,
-            debtInUsd: c.debt.usdValue,
-            debtAPR: c.debt.baseAPR,
-          })
-        );
-      }, 0)
-    );
-  }, [rows, days, callback]);
-
   if (loading) {
     return (
-      <PositionYieldTableContainer>
+      <PositionLendYieldTableContainer>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(6).fill('').map((_, index) => (
+          {new Array(3).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
           ))}
         </TableRow>
-      </PositionYieldTableContainer>
+      </PositionLendYieldTableContainer>
     );
   }
 
   return (
-    <PositionYieldTableContainer>
+    <PositionLendYieldTableContainer>
       {rows.map((row, i) => (
         <TableRow key={i}>
           <TableCell>
-            <Stack direction="row" alignItems="center" pt={1} pb={1}>
+            <Stack direction="row" alignItems="center" pt={1} pb={1} gap={1}>
               <TokenWithNetworkIcon
-                token={row.debt.symbol}
+                token={row.collateral.symbol}
                 network={chainName(row.chainId)}
                 innertTop="1.1rem"
               />
-              {row.debt.symbol}
-            </Stack>
-          </TableCell>
-          <TableCell>
-            <Stack direction="row" alignItems="center" pt={1} pb={1} gap={1}>
-              <TokenIcon token={row.collateral.symbol} width={32} height={32} />
               {row.collateral.symbol}
             </Stack>
           </TableCell>
-          <TableCell align="right">
-            <Typography variant="small" color={palette.warning.main}>
-              {formatValue(row.debt.baseAPR)}%
-            </Typography>
-          </TableCell>
-          <TableCell align="right">
+          <TableCell align="center">
             <Typography variant="small" color={palette.success.main}>
               {formatValue(row.collateral.baseAPR)}%
-            </Typography>
-          </TableCell>
-          <TableCell align="right">
-            <Typography variant="small">
-              {formatValue(
-                Number(row.collateral.baseAPR) - Number(row.debt.baseAPR)
-              )}
-              %
             </Typography>
           </TableCell>
           <TableCell align="right">
@@ -123,8 +84,8 @@ function PositionYieldTable({
                   days,
                   collateralInUsd: row.collateral.usdValue,
                   collateralAPR: row.collateral.baseAPR,
-                  debtInUsd: row.debt.usdValue,
-                  debtAPR: row.debt.baseAPR,
+                  debtInUsd: 0,
+                  debtAPR: 0,
                 }),
                 {
                   style: 'currency',
@@ -135,32 +96,29 @@ function PositionYieldTable({
           </TableCell>
         </TableRow>
       ))}
-    </PositionYieldTableContainer>
+    </PositionLendYieldTableContainer>
   );
 }
 
-export default PositionYieldTable;
+export default PositionLendYieldTable;
 
 type PositionYieldTableElementProps = {
   children: string | JSX.Element | JSX.Element[];
 };
 
-function PositionYieldTableHeader() {
+function PositionLendYieldTableHeader() {
   return (
     <TableHead>
       <TableRow sx={{ height: '2.625rem' }}>
-        <TableCell>Borrow</TableCell>
-        <TableCell>Collateral</TableCell>
-        <TableCell align="right">Borrow APY</TableCell>
-        <TableCell align="right">Collateral APY</TableCell>
-        <TableCell align="right">Net APY</TableCell>
+        <TableCell>Lending Asset</TableCell>
+        <TableCell align="center">Lend APY</TableCell>
         <TableCell align="right">Est. Yield/Cost</TableCell>
       </TableRow>
     </TableHead>
   );
 }
 
-function PositionYieldTableContainer({
+function PositionLendYieldTableContainer({
   children,
 }: PositionYieldTableElementProps) {
   return (
@@ -174,7 +132,7 @@ function PositionYieldTableContainer({
       }}
     >
       <Table aria-label="Positions yields table" size="small">
-        <PositionYieldTableHeader />
+        <PositionLendYieldTableHeader />
         <TableBody>{children}</TableBody>
       </Table>
     </TableContainer>

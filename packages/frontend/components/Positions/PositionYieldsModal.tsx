@@ -19,6 +19,7 @@ import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
+import PositionLendYieldTable from './PisitionLendYieldsTable';
 import PositionYieldTable from './PositionYieldTable';
 
 type PositionYieldsModalProps = {
@@ -132,18 +133,17 @@ export function PositionYieldsModal({
 
           <PeriodOptions onChange={setDaysPeriod} />
         </Stack>
-
-        {currentTab === 0 ? (
-          <Box sx={{ maxWidth: '46rem' }}>
+        <Box sx={{ maxWidth: '46rem', minWidth: '41rem', minHeight: '12rem' }}>
+          {currentTab === 0 ? (
             <PositionYieldTable
               loading={loading}
               days={daysPeriod}
               callback={(value) => setEstEarnings(value)}
             />
-          </Box>
-        ) : (
-          <></>
-        )}
+          ) : (
+            <PositionLendYieldTable loading={loading} days={daysPeriod} />
+          )}
+        </Box>
 
         <Button
           variant="gradient"
