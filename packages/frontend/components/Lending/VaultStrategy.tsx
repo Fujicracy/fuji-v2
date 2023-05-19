@@ -93,7 +93,7 @@ function VaultStrategy() {
         <Chip
           label={
             <Image
-              src={'/assets/images/shared/arrowBack.svg'}
+              src={'/assets/images/shared/arrowBackWhite.svg'}
               alt={'Back arrow'}
               width={14}
               height={12}
@@ -144,7 +144,7 @@ function VaultStrategy() {
         <Chip
           label={
             <Image
-              src={'/assets/images/shared/arrowBack.svg'}
+              src={'/assets/images/shared/arrowBackWhite.svg'}
               alt={'Back arrow'}
               width={14}
               height={12}
