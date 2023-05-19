@@ -292,7 +292,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     address collatAsset_ = bVault.asset();
     address debtAsset_ = bVault.debtAsset();
 
-    //todo set collateral asset amount
     deal(collatAsset_, initializer, initializeVaultSharesAmount);
     deal(debtAsset_, initializer, initializeVaultSharesDebtAmount);
 
