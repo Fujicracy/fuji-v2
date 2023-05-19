@@ -36,10 +36,13 @@ export class Nxtp {
       chains,
       logLevel: 'error',
     });
-    return {
+    const connextSdk = {
       base: sdkBase,
       pool: sdkPool,
       utils: sdkUtils,
     };
+    this._connextSdk = connextSdk;
+
+    return connextSdk;
   }
 }
