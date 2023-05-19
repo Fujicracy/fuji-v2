@@ -3,6 +3,7 @@ import { ChainId, Currency } from '@x-fuji/sdk';
 import { DEFAULT_CHAIN_ID, LTV_RECOMMENDED_DECREASE } from '../constants';
 import { sdk } from '../services/sdk';
 import { AssetMeta } from '../store/models/Position';
+import { BasePosition } from './positions';
 
 const defaultDebtCurrencies = sdk.getDebtForChain(DEFAULT_CHAIN_ID);
 const defaultCollateralCurrencies = sdk.getCollateralForChain(DEFAULT_CHAIN_ID);
@@ -153,4 +154,19 @@ export const remainingBorrowLimit = (
 ): number => {
   const max = maxBorrowLimit(collateral.amount, collateral.usdPrice, maxLtv);
   return max - debt.amount * debt.usdPrice;
+};
+
+export const ltvMeta = (
+  basePosition: BasePosition | undefined
+): LtvMeta | undefined => {
+  if (!basePosition?.position || !basePosition?.editedPosition)
+    return undefined;
+  const { position, editedPosition } = basePosition;
+  return {
+    ltv: editedPosition ? editedPosition.ltv : position.ltv,
+    ltvMax: position.ltvMax,
+    ltvThreshold: editedPosition
+      ? editedPosition.ltvThreshold
+      : position.ltvThreshold,
+  };
 };

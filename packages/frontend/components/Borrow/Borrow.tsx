@@ -18,6 +18,7 @@ import {
   ActionType,
   AssetType,
   FetchStatus,
+  ltvMeta,
   needsAllowance,
 } from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
@@ -78,17 +79,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const signAndExecute = useBorrow((state) => state.signAndExecute);
 
   const position = basePosition ? basePosition.position : undefined;
-  const editedPosition = basePosition ? basePosition.editedPosition : undefined;
-
-  const dynamicLtvMeta = position
-    ? {
-        ltv: editedPosition ? editedPosition.ltv : position.ltv,
-        ltvMax: position.ltvMax,
-        ltvThreshold: editedPosition
-          ? editedPosition.ltvThreshold
-          : position.ltvThreshold,
-      }
-    : undefined;
+  const dynamicLtvMeta = ltvMeta(basePosition);
 
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);

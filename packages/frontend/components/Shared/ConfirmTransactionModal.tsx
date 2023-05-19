@@ -8,6 +8,7 @@ import React, { useMemo } from 'react';
 import {
   ActionType,
   FetchStatus,
+  ltvMeta,
   recommendedLTV,
   remainingBorrowLimit,
 } from '../../helpers/assets';
@@ -51,19 +52,12 @@ export function ConfirmTransactionModal({
 }: ConfirmTransactionModalProps) {
   const { palette } = useTheme();
   const { steps } = transactionMeta;
-  const position = basePosition ? basePosition.position : undefined;
-  const editedPosition = basePosition ? basePosition.editedPosition : undefined;
+
   const slippage = useBorrow((state) => state.slippage);
 
-  const dynamicLtvMeta = position
-    ? {
-        ltv: editedPosition ? editedPosition.ltv : position.ltv,
-        ltvMax: position.ltvMax,
-        ltvThreshold: editedPosition
-          ? editedPosition.ltvThreshold
-          : position.ltvThreshold,
-      }
-    : undefined;
+  const position = basePosition ? basePosition.position : undefined;
+  const editedPosition = basePosition ? basePosition.editedPosition : undefined;
+  const dynamicLtvMeta = ltvMeta(basePosition);
 
   const estCost =
     transactionMeta.status === FetchStatus.Ready && transactionMeta.bridgeFees
