@@ -16,6 +16,7 @@ import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
 import { ProviderIcon } from '../Shared/Icons';
 import LendingHeader from './LendingHeader';
+import RiskBlock from './RiskBlock';
 import VaultStrategy from './VaultStrategy';
 
 function LendingDetails() {
@@ -136,6 +137,8 @@ function LendingDetails() {
       </Card>
 
       <VaultStrategy />
+
+      <RiskBlock />
     </>
   );
 }
