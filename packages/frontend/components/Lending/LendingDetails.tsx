@@ -16,6 +16,7 @@ import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
 import { ProviderIcon } from '../Shared/Icons';
 import LendingHeader from './LendingHeader';
+import VaultStrategy from './VaultStrategy';
 
 function LendingDetails() {
   const { palette } = useTheme();
@@ -133,6 +134,8 @@ function LendingDetails() {
           <EmptyChartState />
         )}
       </Card>
+
+      <VaultStrategy />
     </>
   );
 }
