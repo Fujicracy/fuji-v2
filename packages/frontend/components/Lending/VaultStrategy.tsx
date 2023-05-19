@@ -96,9 +96,14 @@ function VaultStrategy() {
               src={'/assets/images/shared/arrowBack.svg'}
               alt={'Back arrow'}
               width={14}
-              height={14}
+              height={12}
             />
           }
+          sx={{
+            '& .MuiChip-label': {
+              height: '12px',
+            },
+          }}
           onClick={() => handleNextSlide(Direction.Previous)}
         />
         <Grid
@@ -142,10 +147,15 @@ function VaultStrategy() {
               src={'/assets/images/shared/arrowBack.svg'}
               alt={'Back arrow'}
               width={14}
-              height={14}
+              height={12}
               style={{ transform: 'rotate(180deg)' }}
             />
           }
+          sx={{
+            '& .MuiChip-label': {
+              height: '12px',
+            },
+          }}
           onClick={() => handleNextSlide(Direction.Next)}
         />
       </Stack>
