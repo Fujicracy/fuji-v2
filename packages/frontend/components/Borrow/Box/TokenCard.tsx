@@ -110,6 +110,8 @@ function TokenCard({
     setCalculatingMax(true);
     let maxCollateralAmount = maxAmount;
     if (actionType === ActionType.REMOVE && type === 'collateral') {
+      // `mode` has to be precalculated because we set it based on inputs,
+      // the mode will be set after the end of this function.
       const precalculatedMode =
         value === '' && debt.input !== '' ? Mode.PAYBACK_AND_WITHDRAW : mode;
       const result = await withdrawMaxAmount(

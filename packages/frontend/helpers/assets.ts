@@ -121,25 +121,31 @@ export const withdrawMaxAmount = async (
       : basePosition.position.debt
   ).amount;
 
+  // In the case of PAYBACK_AND_WITHDRAW mode when the operation is cross-chain and
+  // the vault is on the destination chain, we need to take into account the fees and
+  // the slippage.
   if (mode === Mode.PAYBACK_AND_WITHDRAW) {
     let failed;
 
     if (basePosition.position.vault) {
-      // Fetch metadata for the operation
+      // Fetch metadata for the operation:
+      // we only need estimateSlippage, bridgeFees and steps
       const response = await fetchRoutes(
         mode,
         basePosition.position.vault,
         collateral.token,
         debt.token,
-        '1', // we don't care about the collateral input
+        // we don't care about the collateral input
+        '1',
         debt.input,
-        '0x0000000000000000000000000000000000000000', // we don't care
+        // we don't care about account
+        '0x0000000000000000000000000000000000000000',
         false,
         0
       );
       if (response.success) {
-        const { bridgeFees, estimateSlippage } = response.data;
-        const r = sdk.previews.getOperationTypeFromSteps(response.data.steps);
+        const { bridgeFees, estimateSlippage, steps } = response.data;
+        const r = sdk.previews.getOperationTypeFromSteps(steps);
         if (
           r.success &&
           (r.data === OperationType.THREE_CHAIN ||
