@@ -106,7 +106,6 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   BorrowingVault public newVault;
 
   function setUp() public {
-    oracle = new MockOracle();
     flasher = new MockFlasher();
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
@@ -537,7 +536,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(newVault), true);
     _callWithTimelock(address(chief), data);
 
-    _initalizeVault(address(newVault), INITIALIZER);
+    _initalizeVault(address(newVault), INITIALIZER, 10000 ether, 1 ether);
 
     _dealMockERC20(collateralAsset, ALICE, amount);
 

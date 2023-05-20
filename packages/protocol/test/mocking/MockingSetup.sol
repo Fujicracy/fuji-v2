@@ -31,7 +31,7 @@ contract MockingSetup is CoreRoles, Test {
   Chief public chief;
   TimelockController public timelock;
   ILendingProvider public mockProvider;
-  MockOracle oracle;
+  MockOracle public oracle;
 
   address public collateralAsset;
   address public debtAsset;
@@ -58,6 +58,7 @@ contract MockingSetup is CoreRoles, Test {
     vm.label(ALICE, "alice");
     vm.label(BOB, "bob");
     vm.label(CHARLIE, "charlie");
+    vm.label(INITIALIZER, "initializer");
 
     MockERC20 tWETH = new MockERC20("Test WETH", "tWETH");
     collateralAsset = address(tWETH);
@@ -107,22 +108,31 @@ contract MockingSetup is CoreRoles, Test {
 
     initializeYieldVaultSharesAmount = minAmount;
 
-    _initalizeVault(address(vault), INITIALIZER);
+    _initalizeVault(
+      address(vault), INITIALIZER, initializeVaultSharesAmount, initializeVaultSharesDebtAmount
+    );
   }
 
-  function _initalizeVault(address vault_, address initializer) internal {
+  function _initalizeVault(
+    address vault_,
+    address initializer,
+    uint256 assets,
+    uint256 debt
+  )
+    internal
+  {
     BorrowingVault bVault = BorrowingVault(payable(vault_));
     address collatAsset_ = bVault.asset();
     address debtAsset_ = bVault.debtAsset();
 
     //todo set collateralAsset amount
-    deal(collatAsset_, initializer, initializeVaultSharesAmount);
-    deal(debtAsset_, initializer, initializeVaultSharesDebtAmount);
+    _dealMockERC20(collatAsset_, initializer, assets);
+    _dealMockERC20(debtAsset_, initializer, debt);
 
     vm.startPrank(initializer);
-    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, initializeVaultSharesAmount);
-    SafeERC20.safeApprove(IERC20(debtAsset), vault_, initializeVaultSharesDebtAmount);
-    bVault.initializeVaultShares(initializeVaultSharesAmount, initializeVaultSharesDebtAmount);
+    SafeERC20.safeApprove(IERC20(collatAsset_), vault_, assets);
+    SafeERC20.safeApprove(IERC20(debtAsset_), vault_, debt);
+    bVault.initializeVaultShares(assets, debt);
     vm.stopPrank();
   }
 
@@ -141,7 +151,7 @@ contract MockingSetup is CoreRoles, Test {
 
   function _dealMockERC20(address mockerc20, address to, uint256 amount) internal {
     // MockERC20(mockerc20).mint(to, amount);
-    deal(mockerc20, to, amount);
+    deal(mockerc20, to, amount, true);
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {

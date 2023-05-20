@@ -194,7 +194,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
       DEFAULT_LIQ_RATIO
     );
 
-    _initalizeVault(address(bvault), INITIALIZER);
+    _initalizeVault(address(bvault), INITIALIZER, 10 ether, 1 ether);
 
     yvault = new YieldVault(
       collateralAsset,
