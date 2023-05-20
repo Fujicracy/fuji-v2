@@ -20,7 +20,7 @@ export class Nxtp {
 
     const chains: Record<string, { providers: string[] }> = {};
     Object.values(CHAIN)
-      .filter((c) => c.connextDomain)
+      .filter((c) => c.connextDomain && c.chainType === chainType)
       .forEach((c) => {
         if (c.connection) {
           chains[String(c.connextDomain)] = {
