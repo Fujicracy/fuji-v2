@@ -105,14 +105,17 @@ export const remainingBorrowLimit = (
 };
 
 export const withdrawMaxAmount = async (
-  mode: Mode,
+  mode: Mode.PAYBACK_AND_WITHDRAW | Mode.WITHDRAW,
   basePosition: BasePosition,
   debt: AssetChange,
   collateral: AssetChange
 ): FujiResultPromise<number> => {
+  // if price is too high as for BTC, deduct less
+  const significance = basePosition.position.collateral.usdPrice / 10000 + 1;
   const deductedCollateral = Math.max(
     0,
-    basePosition.position.collateral.amount - DUST_AMOUNT / 100
+    basePosition.position.collateral.amount -
+      DUST_AMOUNT / Math.pow(10, significance)
   );
 
   let debtAmount = (

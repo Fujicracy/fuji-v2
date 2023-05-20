@@ -45,7 +45,6 @@ import { TokenIcon } from '../../Shared/Icons';
 
 type SelectTokenCardProps = {
   type: AssetType;
-  mode: Mode;
   actionType: ActionType;
   assetChange: AssetChange;
   isExecuting: boolean;
@@ -54,7 +53,7 @@ type SelectTokenCardProps = {
   showMax: boolean;
   maxAmount: number;
   onTokenChange: (token: Token) => void;
-  onInputChange: (value: string, type?: AssetType) => void;
+  onInputChange: (value: string) => void;
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
   isEditing: boolean;
@@ -65,7 +64,6 @@ function TokenCard({
   type,
   showMax,
   assetChange,
-  mode,
   actionType,
   isExecuting,
   disabled,
@@ -113,7 +111,7 @@ function TokenCard({
       // `mode` has to be precalculated because we set it based on inputs,
       // the mode will be set after the end of this function.
       const precalculatedMode =
-        value === '' && debt.input !== '' ? Mode.PAYBACK_AND_WITHDRAW : mode;
+        debt.input !== '' ? Mode.PAYBACK_AND_WITHDRAW : Mode.WITHDRAW;
       const result = await withdrawMaxAmount(
         precalculatedMode,
         basePosition,

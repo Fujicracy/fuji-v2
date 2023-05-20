@@ -6,7 +6,6 @@ import {
   AssetChange,
   AssetType,
   LtvMeta,
-  Mode,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
@@ -15,7 +14,6 @@ import TokenCard from './TokenCard';
 
 type BorrowBoxProps = {
   isEditing: boolean;
-  mode: Mode;
   actionType: ActionType;
   type: AssetType;
   chainId: ChainId;
@@ -33,7 +31,6 @@ function BorrowBox({
   isEditing,
   actionType,
   assetChange,
-  mode,
   type,
   chainId,
   isExecuting,
@@ -92,7 +89,6 @@ function BorrowBox({
         maxAmount={maxAmount}
         isEditing={isEditing}
         assetChange={assetChange}
-        mode={mode}
         actionType={actionType}
         disabled={isEditing}
         isExecuting={isExecuting}
@@ -105,8 +101,8 @@ function BorrowBox({
             ? changeCollateralToken(token)
             : changeDebtToken(token)
         }
-        onInputChange={(value, t) =>
-          (t || type) === 'collateral'
+        onInputChange={(value) =>
+          type === 'collateral'
             ? changeCollateralValue(value)
             : changeDebtValue(value)
         }
