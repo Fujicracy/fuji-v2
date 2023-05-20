@@ -34,6 +34,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   address public BOB = vm.addr(BOB_PK);
   uint256 public constant CHARLIE_PK = 0xC;
   address public CHARLIE = vm.addr(CHARLIE_PK);
+  address public INITIALIZER = vm.addr(0x111A13); // arbitrary address
 
   uint32 originDomain;
 
@@ -56,17 +57,13 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   MockOracle mockOracle;
   IFujiOracle oracle;
 
-  address public dummy;
-
   address public collateralAsset;
   address public debtAsset;
 
-  address public INITIALIZER = vm.addr(0x111A13); //arbitrary address
+  uint256 initVaultShares;
+  uint256 initVaultDebtShares;
 
-  uint256 initializeVaultSharesAmount;
-  uint256 initializeVaultSharesDebtAmount;
-
-  uint256 initializeYieldVaultSharesAmount;
+  uint256 initYieldVaultShares;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -75,6 +72,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     vm.label(ALICE, "alice");
     vm.label(BOB, "bob");
     vm.label(CHARLIE, "charlie");
+    vm.label(INITIALIZER, "initializer");
 
     forks[GOERLI_DOMAIN] = vm.createFork("goerli");
     forks[OPTIMISM_GOERLI_DOMAIN] = vm.createFork("optimism_goerli");
@@ -226,14 +224,13 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _callWithTimelock(address(chief), executionCall);
 
     uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
-    initializeVaultSharesDebtAmount = minAmount;
-    initializeVaultSharesAmount = _getMinCollateralAmount(
-      BorrowingVault(payable(address(vault))), initializeVaultSharesDebtAmount
-    );
+    initVaultDebtShares = minAmount;
+    initVaultShares =
+      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
 
-    initializeYieldVaultSharesAmount = minAmount;
+    initYieldVaultShares = minAmount;
 
-    _initalizeVault(address(vault), address(this));
+    _initalizeVault(address(vault), address(this), initVaultShares, initVaultDebtShares);
   }
 
   function deployVault(
@@ -277,29 +274,35 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _callWithTimelock(address(chief), executionCall);
 
     uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
-    initializeVaultSharesDebtAmount = minAmount;
-    initializeVaultSharesAmount = _getMinCollateralAmount(
-      BorrowingVault(payable(address(vault))), initializeVaultSharesDebtAmount
-    );
+    initVaultDebtShares = minAmount;
+    initVaultShares =
+      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
 
-    initializeYieldVaultSharesAmount = minAmount;
+    initYieldVaultShares = minAmount;
 
-    _initalizeVault(address(vault), INITIALIZER);
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
-  function _initalizeVault(address vault_, address initializer) internal {
+  function _initalizeVault(
+    address vault_,
+    address initializer,
+    uint256 assets,
+    uint256 debt
+  )
+    internal
+  {
     BorrowingVault bVault = BorrowingVault(payable(vault_));
     address collatAsset_ = bVault.asset();
     address debtAsset_ = bVault.debtAsset();
 
     //todo set collateral asset amount
-    deal(collatAsset_, initializer, initializeVaultSharesAmount);
-    deal(debtAsset_, initializer, initializeVaultSharesDebtAmount);
+    deal(collatAsset_, initializer, assets, true);
+    deal(debtAsset_, initializer, debt, true);
 
     vm.startPrank(initializer);
-    SafeERC20.safeIncreaseAllowance(IERC20(collatAsset_), vault_, initializeVaultSharesAmount);
-    SafeERC20.safeIncreaseAllowance(IERC20(debtAsset_), vault_, initializeVaultSharesDebtAmount);
-    bVault.initializeVaultShares(initializeVaultSharesAmount, initializeVaultSharesDebtAmount);
+    SafeERC20.safeIncreaseAllowance(IERC20(collatAsset_), vault_, assets);
+    SafeERC20.safeIncreaseAllowance(IERC20(debtAsset_), vault_, debt);
+    bVault.initializeVaultShares(assets, debt);
     vm.stopPrank();
   }
 
