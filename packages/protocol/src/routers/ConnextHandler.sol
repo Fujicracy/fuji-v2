@@ -75,6 +75,7 @@ contract ConnextHandler {
 
   /// @dev Custom errors
   error ConnextHandler__callerNotConnextRouter();
+  error ConnextHandler__executeFailed_emptyTxn();
   error ConnextHandler__executeFailed_tranferAlreadyExecuted(bytes32 transferId, uint128 nonce);
 
   bytes32 private constant ZERO_BYTES32 =
@@ -208,10 +209,15 @@ contract ConnextHandler {
     onlyAllowedCaller
   {
     FailedTxn memory txn = _failedTxns[transferId][nonce];
-    if (txn.executed) {
+
+    if (txn.transferId == ZERO_BYTES32 || txn.originDomain == 0) {
+      revert ConnextHandler__executeFailed_emptyTxn();
+    } else if (txn.executed) {
       revert ConnextHandler__executeFailed_tranferAlreadyExecuted(transferId, nonce);
     }
+
     IERC20(txn.asset).approve(address(connextRouter), txn.amount);
+
     try connextRouter.xBundle(actions, args) {
       txn.executed = true;
       _failedTxns[transferId][nonce] = txn;
