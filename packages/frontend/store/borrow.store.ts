@@ -109,6 +109,7 @@ type BorrowActions = {
     debt: Currency,
     vault: BorrowingVault
   ) => void;
+  clearDebt: () => void;
   changeInputValues: (collateral: string, debt: string) => void;
   changeAssetChain: (
     type: AssetType,
@@ -284,6 +285,10 @@ export const useBorrow = create<BorrowStore>()(
 
           get().updateTransactionMeta();
           set({ availableVaultsStatus: FetchStatus.Ready });
+        },
+
+        async clearDebt() {
+          set({ debt: undefined });
         },
 
         async changeInputValues(collateral, debt) {

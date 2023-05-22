@@ -238,9 +238,12 @@ export function viewDynamicPosition(
   dynamic: boolean,
   position: Position | undefined,
   editedPosition: Position | undefined = undefined
-): BasePosition {
+): BasePosition | undefined {
   const baseCollateral = useBorrow.getState().collateral;
-  const baseDebt = useBorrow.getState().debt!; // TODO: not this ofc, but this won't be null atp;
+  const baseDebt = useBorrow.getState().debt; // TODO: not this ofc, but this won't be null atp;
+  if (!baseDebt) {
+    return undefined;
+  }
   const baseLtv = useBorrow.getState().ltv;
   const baseLiquidation = useBorrow.getState().liquidationMeta;
   return {

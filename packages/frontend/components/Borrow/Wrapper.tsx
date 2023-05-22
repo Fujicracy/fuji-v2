@@ -72,9 +72,11 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
           ? viewEditedPosition(baseCollateral, baseDebt, matchPosition, mode)
           : undefined;
     }
-    const basePosition = baseDebt
-      ? viewDynamicPosition(!isEditing, matchPosition, editedPosition)
-      : undefined;
+    const basePosition = viewDynamicPosition(
+      !isEditing,
+      matchPosition,
+      editedPosition
+    );
     setBasePosition(basePosition);
   }, [
     baseCollateral,
