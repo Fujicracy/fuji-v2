@@ -1,4 +1,4 @@
-import { Stack, Typography } from '@mui/material';
+import { Stack, Typography, useTheme } from '@mui/material';
 import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
@@ -8,7 +8,8 @@ import { chainName } from '../../helpers/chains';
 import { camelize, toNotSoFixed } from '../../helpers/values';
 import { NetworkIcon } from './Icons';
 
-function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
+function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
+  const { palette } = useTheme();
   const stepsToShow = steps.filter(
     (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
   );
@@ -74,14 +75,14 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
       return (
         <Image
           src="/assets/images/logo/connext.svg"
-          height={18}
-          width={18}
+          height={16}
+          width={16}
           alt="Connext icon"
         />
       );
     }
 
-    return <NetworkIcon network={chainName(chainId)} height={18} width={18} />;
+    return <NetworkIcon network={chainName(chainId)} height={16} width={16} />;
   }
 
   return (
@@ -91,21 +92,49 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
           <Stack
             key={index}
             direction="row"
+            alignItems="start"
             justifyContent="space-between"
             gap={2}
             mt={1}
+            sx={{
+              position: 'relative',
+              '&:not(:last-of-type):after': {
+                position: 'absolute',
+                content: '""',
+                borderLeft: `1px solid #47494C`,
+                height: '100%',
+                transform: 'translateY(25%)',
+                left: '5%',
+                zIndex: 1,
+              },
+            }}
           >
-            <Stack direction="row" alignItems="start">
-              {stepIcon(step)}
+            <Stack
+              direction="row"
+              alignItems="start"
+              justifyContent="start"
+              sx={{ zIndex: 2 }}
+            >
+              <Stack
+                alignItems="center"
+                justifyContent="center"
+                width={20}
+                height={20}
+                sx={{ backgroundColor: '#47494C', borderRadius: '100px' }}
+              >
+                {stepIcon(step)}
+              </Stack>
               <Stack
                 alignItems="start"
                 sx={{
                   ml: '0.5rem',
+                  textAlign: 'left',
                 }}
               >
                 <Typography variant="xsmall">{textForStep(step)}</Typography>
                 <Typography
                   variant="xsmallDark"
+                  color={palette.info.main}
                   sx={{
                     display: 'block',
                   }}
@@ -121,4 +150,4 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
   );
 }
 
-export default RoutesJumper;
+export default RoutesSteps;

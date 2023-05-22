@@ -4,7 +4,7 @@ import { RoutingStepDetails } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React from 'react';
 
-import RoutesJumper from '../RoutesJumper';
+import RoutesSteps from '../RoutesSteps';
 
 function RouteBox({
   steps,
@@ -47,7 +47,7 @@ function RouteBox({
 
       <Divider sx={{ m: '0.75rem 0', height: '1px', width: '100%' }} />
 
-      <RoutesJumper steps={steps} />
+      <RoutesSteps steps={steps} />
     </Card>
   );
 }
