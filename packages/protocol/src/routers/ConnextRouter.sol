@@ -76,7 +76,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   error ConnextRouter__xReceive_notReceivedAssetBalance();
   error ConnextRouter__xReceive_notAllowedCaller();
   error ConnextRouter__xReceiver_noValueTransferUseXbundle();
-  error ConnnextRouter__checkSlippage_outOfBounds();
   error ConnnextRouter__xBundleConnext_notSelfCalled();
 
   /// @dev The connext contract on the origin domain.
@@ -143,8 +142,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     external
     returns (bytes memory)
   {
-    (Action[] memory actions, bytes[] memory args, uint256 slippageThreshold) =
-      abi.decode(callData, (Action[], bytes[], uint256));
+    (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
     uint256 balance;
     uint256 beforeSlipped;
@@ -165,7 +163,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
        * replace `amount` in the encoded args for the first action if
        * the action is Deposit, or Payback.
        */
-      (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0], slippageThreshold);
+      (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
     }
 
     /**
@@ -222,8 +220,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   function _accountForSlippage(
     uint256 receivedAmount,
     Action action,
-    bytes memory args,
-    uint256 slippageThreshold
+    bytes memory args
   )
     internal
     pure
@@ -240,23 +237,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       if (amount != receivedAmount) {
         beforeSlipped = amount;
         newArgs = abi.encode(vault, receivedAmount, receiver, sender);
-        _checkSlippage(amount, receivedAmount, slippageThreshold);
       }
-    }
-  }
-
-  /**
-   * @dev Reverts if the slippage threshold is not respected.
-   *
-   * @param original amount send by the user from the source chain
-   * @param received amount actually received on the destination
-   * @param threshold slippage accepted by the user on the source chain
-   */
-  function _checkSlippage(uint256 original, uint256 received, uint256 threshold) internal pure {
-    uint256 upperBound = (original * (10000 + threshold)) / 10000;
-    uint256 lowerBound = (original * 10000) / (10000 + threshold);
-    if (received > upperBound || received < lowerBound) {
-      revert ConnnextRouter__checkSlippage_outOfBounds();
     }
   }
 
@@ -321,16 +302,17 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       uint256 slippage,
       address asset,
       uint256 amount,
+      address sender,
       address delegate,
       bytes memory callData
-    ) = abi.decode(params, (uint256, uint256, address, uint256, address, bytes));
+    ) = abi.decode(params, (uint256, uint256, address, uint256, address, address, bytes));
 
     (Action[] memory actions, bytes[] memory args,) =
       abi.decode(callData, (Action[], bytes[], uint256));
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
-    _safePullTokenFrom(asset, msg.sender, amount);
+    _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
