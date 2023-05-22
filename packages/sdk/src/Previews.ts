@@ -1,7 +1,14 @@
-import { FujiResultError, FujiResultSuccess } from './entities';
-import { OperationType, PreviewName } from './enums';
+import { AddressZero } from '@ethersproject/constants';
+
+import { Address, FujiResultError, FujiResultSuccess } from './entities';
+import { OperationType, PreviewName, RoutingStep } from './enums';
 import { getPreviewActions, getPreviewRoutingDetails } from './functions';
-import { FujiResult, FujiResultPromise, PreviewParams } from './types';
+import {
+  FujiResult,
+  FujiResultPromise,
+  PreviewParams,
+  RoutingStepDetails,
+} from './types';
 import { PreviewResult } from './types/PreviewResult';
 
 export class Previews {
@@ -54,6 +61,52 @@ export class Previews {
         return new FujiResultSuccess(OperationType.THREE_CHAIN);
       }
     }
+  }
+
+  getOperationTypeFromSteps(
+    steps: RoutingStepDetails[]
+  ): FujiResult<OperationType> {
+    const vaultChainId = steps.find((s) =>
+      [
+        RoutingStep.DEPOSIT,
+        RoutingStep.BORROW,
+        RoutingStep.PAYBACK,
+        RoutingStep.WITHDRAW,
+      ].includes(s.step)
+    )?.chainId;
+    const srcChainId = steps[0].chainId;
+    const tokenIn = steps[0].token;
+    const amountIn = steps[0].amount;
+    const tokenOut = steps[steps.length - 1].token;
+    const amountOut = steps[steps.length - 1].amount;
+
+    const p = {
+      srcChainId,
+      tokenIn,
+      amountIn,
+      tokenOut,
+      amountOut,
+      // only vault.chainId is needed here
+      vault: { chainId: vaultChainId },
+      account: Address.from(AddressZero),
+    };
+
+    const isDeposit = steps.find((s) => s.step === RoutingStep.DEPOSIT);
+    const isBorrow = steps.find((s) => s.step === RoutingStep.BORROW);
+    const isPayback = steps.find((s) => s.step === RoutingStep.PAYBACK);
+    const isWithdraw = steps.find((s) => s.step === RoutingStep.WITHDRAW);
+    let name;
+    if (isDeposit && isBorrow) {
+      name = PreviewName.DEPOSIT_AND_BORROW;
+    } else if (isPayback && isWithdraw) {
+      name = PreviewName.PAYBACK_AND_WITHDRAW;
+    } else if (isDeposit || isPayback) {
+      name = isDeposit ? PreviewName.DEPOSIT : PreviewName.PAYBACK;
+    } else {
+      name = isBorrow ? PreviewName.BORROW : PreviewName.WITHDRAW;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.getOperationType({ ...p, name } as any);
   }
 
   async get(params: PreviewParams): FujiResultPromise<PreviewResult> {
