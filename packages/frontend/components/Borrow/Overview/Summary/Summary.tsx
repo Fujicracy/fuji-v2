@@ -33,7 +33,7 @@ function Summary({
       title: 'Collateral Provided',
       amount: `${formatValue(collateral.amount, {
         maximumFractionDigits: 3,
-      })} ${collateral.currency.symbol}`,
+      })} ${collateral.currency.wrapped.symbol}`,
       footer: formatValue(collateral.amount * collateral.usdPrice, {
         style: 'currency',
       }),
