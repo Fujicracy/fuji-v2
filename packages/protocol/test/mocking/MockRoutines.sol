@@ -168,6 +168,6 @@ contract MockRoutines is Test {
 
   function dealMockERC20(address mockerc20, address to, uint256 amount) internal {
     // MockERC20(mockerc20).mint(to, amount);
-    deal(mockerc20, to, amount);
+    deal(mockerc20, to, amount, true);
   }
 }

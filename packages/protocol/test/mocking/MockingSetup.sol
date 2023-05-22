@@ -38,10 +38,8 @@ contract MockingSetup is CoreRoles, Test {
 
   address public INITIALIZER = vm.addr(0x111A13); //arbitrary address
 
-  uint256 initializeVaultSharesAmount;
-  uint256 initializeVaultSharesDebtAmount;
-
-  uint256 initializeYieldVaultSharesAmount;
+  uint256 initVaultShares;
+  uint256 initVaultDebtShares;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -103,14 +101,10 @@ contract MockingSetup is CoreRoles, Test {
     _callWithTimelock(address(chief), executionCall);
 
     uint256 minAmount = vault.minAmount();
-    initializeVaultSharesAmount = 10 * minAmount;
-    initializeVaultSharesDebtAmount = minAmount;
+    initVaultShares = 10 * minAmount;
+    initVaultDebtShares = minAmount;
 
-    initializeYieldVaultSharesAmount = minAmount;
-
-    _initalizeVault(
-      address(vault), INITIALIZER, initializeVaultSharesAmount, initializeVaultSharesDebtAmount
-    );
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
   function _initalizeVault(
@@ -125,7 +119,6 @@ contract MockingSetup is CoreRoles, Test {
     address collatAsset_ = bVault.asset();
     address debtAsset_ = bVault.debtAsset();
 
-    //todo set collateralAsset amount
     _dealMockERC20(collatAsset_, initializer, assets);
     _dealMockERC20(debtAsset_, initializer, debt);
 
@@ -136,16 +129,15 @@ contract MockingSetup is CoreRoles, Test {
     vm.stopPrank();
   }
 
-  function _initalizeYieldVault(address vault_, address initializer) internal {
-    YieldVault v = YieldVault(payable(vault_));
-    address collatAsset_ = v.asset();
+  function _initalizeYieldVault(address vault_, address initializer, uint256 assets) internal {
+    YieldVault yvault = YieldVault(payable(vault_));
+    address collatAsset_ = yvault.asset();
 
-    //todo set collateralAsset amount
-    deal(collatAsset_, initializer, initializeYieldVaultSharesAmount);
+    _dealMockERC20(collatAsset_, initializer, assets);
 
     vm.startPrank(initializer);
-    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, initializeYieldVaultSharesAmount);
-    v.initializeVaultShares(initializeYieldVaultSharesAmount, 0);
+    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, assets);
+    yvault.initializeVaultShares(assets, 0);
     vm.stopPrank();
   }
 
