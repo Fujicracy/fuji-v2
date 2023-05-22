@@ -95,11 +95,10 @@ contract ConnextRouterForkingTest is Routines, ForkingSetup {
     destArgs[0] = abi.encode(address(vault), amount, ALICE, address(connextRouter));
 
     bytes memory destCallData = abi.encode(destActions, destArgs);
-    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, destCallData);
+    args[0] = abi.encode(destDomain, 30, collateralAsset, amount, ALICE, ALICE, destCallData);
 
     vm.expectEmit(false, false, false, false);
     emit Dispatch("", 1, "", "");
-
     connextRouter.xBundle(actions, args);
   }
 
