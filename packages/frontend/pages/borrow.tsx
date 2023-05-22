@@ -2,21 +2,19 @@ import { NextPage } from 'next';
 import React, { useEffect, useState } from 'react';
 
 import BorrowWrapper from '../components/Borrow/Wrapper';
+import { AssetType } from '../helpers/assets';
 import { useAuth } from '../store/auth.store';
 import { FormType, useBorrow } from '../store/borrow.store';
 
 const formType = FormType.Create;
 
 const BorrowPage: NextPage = () => {
-  const changeFormType = useBorrow((state) => state.changeFormType);
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  );
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
-
+  const chainId = useAuth((state) => state.chainId);
   const allowChainOverride = useBorrow((state) => state.allowChainOverride);
 
-  const chainId = useAuth((state) => state.chainId);
+  const changeFormType = useBorrow((state) => state.changeFormType);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
+
   const [hasChain, setHasChain] = useState(false);
 
   useEffect(() => {
@@ -27,16 +25,10 @@ const BorrowPage: NextPage = () => {
     if (chainId && !hasChain) {
       setHasChain(true);
       if (!allowChainOverride || !chainId) return;
-      changeCollateralChain(chainId, false);
-      changeDebtChain(chainId, true);
+      changeAssetChain(AssetType.Collateral, chainId, false);
+      changeAssetChain(AssetType.Debt, chainId, true);
     }
-  }, [
-    allowChainOverride,
-    hasChain,
-    chainId,
-    changeCollateralChain,
-    changeDebtChain,
-  ]);
+  }, [allowChainOverride, hasChain, chainId, changeAssetChain]);
 
   return <BorrowWrapper formType={formType} />;
 };

@@ -65,10 +65,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const vault = useBorrow((state) => state.activeVault);
   const mode = useBorrow((state) => state.mode);
   const changeMode = useBorrow((state) => state.changeMode);
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  );
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
   const changeInputValues = useBorrow((state) => state.changeInputValues);
   const updateBalances = useBorrow((state) => state.updateBalances);
   const updateVault = useBorrow((state) => state.updateVault);
@@ -146,8 +143,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             walletChainId !== collateral.chainId &&
             isSupported(walletChainId)
           ) {
-            changeCollateralChain(walletChainId, true);
-            changeDebtChain(walletChainId, false);
+            changeAssetChain(AssetType.Collateral, walletChainId, true);
+            changeAssetChain(AssetType.Debt, walletChainId, false);
           } else {
             updateBalances(AssetType.Collateral);
             updateBalances(AssetType.Debt);
@@ -163,8 +160,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     collateral,
     walletChainId,
     vault,
-    changeCollateralChain,
-    changeDebtChain,
+    changeAssetChain,
     updateBalances,
     updateAllowance,
     updateVault,
