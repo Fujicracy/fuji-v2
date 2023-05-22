@@ -11,6 +11,8 @@ import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
 import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Chief} from "../../src/Chief.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
 import {IRouter} from "../../src/interfaces/IRouter.sol";
@@ -32,6 +34,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   address public BOB = vm.addr(BOB_PK);
   uint256 public constant CHARLIE_PK = 0xC;
   address public CHARLIE = vm.addr(CHARLIE_PK);
+  address public INITIALIZER = vm.addr(0x111A13); // arbitrary address
 
   uint32 originDomain;
 
@@ -54,10 +57,11 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   MockOracle mockOracle;
   IFujiOracle oracle;
 
-  address public dummy;
-
   address public collateralAsset;
   address public debtAsset;
+
+  uint256 initVaultShares;
+  uint256 initVaultDebtShares;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -66,6 +70,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     vm.label(ALICE, "alice");
     vm.label(BOB, "bob");
     vm.label(CHARLIE, "charlie");
+    vm.label(INITIALIZER, "initializer");
 
     forks[GOERLI_DOMAIN] = vm.createFork("goerli");
     forks[OPTIMISM_GOERLI_DOMAIN] = vm.createFork("optimism_goerli");
@@ -158,7 +163,11 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     originDomain = domain;
 
-    oracle = new FujiOracle(assets[originDomain], priceFeeds[originDomain], address(chief));
+    oracle = new FujiOracle(
+            assets[originDomain],
+            priceFeeds[originDomain],
+            address(chief)
+        );
 
     if (reg.connext != address(0)) {
       vm.label(reg.connext, "Connext");
@@ -176,7 +185,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     }
 
     if (domain == GOERLI_DOMAIN || domain == OPTIMISM_GOERLI_DOMAIN || domain == MUMBAI_DOMAIN) {
-      MockERC20 tDAI = new MockERC20("Test DAI", "tDAI");
+      MockERC20 tDAI = new MockERC20('Test DAI', 'tDAI');
       debtAsset = address(tDAI);
       vm.label(debtAsset, "testDAI");
 
@@ -197,20 +206,27 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
 
     vault = new BorrowingVault(
-      collateralAsset,
-      debtAsset,
-      address(oracle),
-      address(chief),
-      "Fuji-V2 WETH-USDC Vault Shares",
-      "fv2WETHUSDC",
-      providers,
-      DEFAULT_MAX_LTV,
-      DEFAULT_LIQ_RATIO
-    );
+            collateralAsset,
+            debtAsset,
+            address(oracle),
+            address(chief),
+            'Fuji-V2 WETH-USDC Vault Shares',
+            'fv2WETHUSDC',
+            providers,
+            DEFAULT_MAX_LTV,
+            DEFAULT_LIQ_RATIO
+        );
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
+
+    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
+    initVaultDebtShares = minAmount;
+    initVaultShares =
+      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
+
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
   function deployVault(
@@ -238,20 +254,68 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
 
     vault = new BorrowingVault(
-      collateralAsset,
-      debtAsset,
-      address(oracle),
-      address(chief),
-      nameVault,
-      symbolVault,
-      providers,
-      DEFAULT_MAX_LTV,
-      DEFAULT_LIQ_RATIO
-    );
+            collateralAsset,
+            debtAsset,
+            address(oracle),
+            address(chief),
+            nameVault,
+            symbolVault,
+            providers,
+            DEFAULT_MAX_LTV,
+            DEFAULT_LIQ_RATIO
+        );
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
+
+    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
+    initVaultDebtShares = minAmount;
+    initVaultShares =
+      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
+
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+  }
+
+  function _initalizeVault(
+    address vault_,
+    address initializer,
+    uint256 assets,
+    uint256 debt
+  )
+    internal
+  {
+    BorrowingVault bVault = BorrowingVault(payable(vault_));
+    address collatAsset_ = bVault.asset();
+    address debtAsset_ = bVault.debtAsset();
+
+    deal(collatAsset_, initializer, assets /*,true*/ );
+    deal(debtAsset_, initializer, debt /*,true*/ );
+
+    vm.startPrank(initializer);
+    SafeERC20.safeIncreaseAllowance(IERC20(collatAsset_), vault_, assets);
+    SafeERC20.safeIncreaseAllowance(IERC20(debtAsset_), vault_, debt);
+    bVault.initializeVaultShares(assets, debt);
+    vm.stopPrank();
+  }
+
+  function _getMinCollateralAmount(
+    BorrowingVault vault_,
+    uint256 debt
+  )
+    internal
+    view
+    returns (uint256)
+  {
+    uint256 price = oracle.getPriceOf(vault_.debtAsset(), vault_.asset(), vault_.debtDecimals());
+    uint256 minCollateralAmount =
+      (debt * 1e18 * 10 ** vault_.decimals()) / (vault_.maxLtv() * price) + 1;
+    if (minCollateralAmount < vault_.minAmount()) {
+      return vault_.minAmount();
+    }
+
+    // Multiply by two to ensure a healthier ltv.
+    return minCollateralAmount;
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {

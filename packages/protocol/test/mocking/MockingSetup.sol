@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
+import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {MockProvider} from "../../src/mocks/MockProvider.sol";
 import {Chief} from "../../src/Chief.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
@@ -27,10 +31,15 @@ contract MockingSetup is CoreRoles, Test {
   Chief public chief;
   TimelockController public timelock;
   ILendingProvider public mockProvider;
-  MockOracle oracle;
+  MockOracle public oracle;
 
   address public collateralAsset;
   address public debtAsset;
+
+  address public INITIALIZER = vm.addr(0x111A13); //arbitrary address
+
+  uint256 initVaultShares;
+  uint256 initVaultDebtShares;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -47,6 +56,7 @@ contract MockingSetup is CoreRoles, Test {
     vm.label(ALICE, "alice");
     vm.label(BOB, "bob");
     vm.label(CHARLIE, "charlie");
+    vm.label(INITIALIZER, "initializer");
 
     MockERC20 tWETH = new MockERC20("Test WETH", "tWETH");
     collateralAsset = address(tWETH);
@@ -89,10 +99,51 @@ contract MockingSetup is CoreRoles, Test {
     bytes memory executionCall =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
+
+    uint256 minAmount = vault.minAmount();
+    initVaultShares = 10 * minAmount;
+    initVaultDebtShares = minAmount;
+
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+  }
+
+  function _initalizeVault(
+    address vault_,
+    address initializer,
+    uint256 assets,
+    uint256 debt
+  )
+    internal
+  {
+    BorrowingVault bVault = BorrowingVault(payable(vault_));
+    address collatAsset_ = bVault.asset();
+    address debtAsset_ = bVault.debtAsset();
+
+    _dealMockERC20(collatAsset_, initializer, assets);
+    _dealMockERC20(debtAsset_, initializer, debt);
+
+    vm.startPrank(initializer);
+    SafeERC20.safeApprove(IERC20(collatAsset_), vault_, assets);
+    SafeERC20.safeApprove(IERC20(debtAsset_), vault_, debt);
+    bVault.initializeVaultShares(assets, debt);
+    vm.stopPrank();
+  }
+
+  function _initalizeYieldVault(address vault_, address initializer, uint256 assets) internal {
+    YieldVault yvault = YieldVault(payable(vault_));
+    address collatAsset_ = yvault.asset();
+
+    _dealMockERC20(collatAsset_, initializer, assets);
+
+    vm.startPrank(initializer);
+    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, assets);
+    yvault.initializeVaultShares(assets, 0);
+    vm.stopPrank();
   }
 
   function _dealMockERC20(address mockerc20, address to, uint256 amount) internal {
-    MockERC20(mockerc20).mint(to, amount);
+    // MockERC20(mockerc20).mint(to, amount);
+    deal(mockerc20, to, amount, true);
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {

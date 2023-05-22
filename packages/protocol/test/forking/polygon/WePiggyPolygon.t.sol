@@ -6,6 +6,10 @@ import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {WePiggyPolygon} from "../../../src/providers/polygon/WePiggyPolygon.sol";
+import {Chief} from "../../../src/Chief.sol";
+import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 
 contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
@@ -20,9 +24,35 @@ contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = wePiggy;
 
-    deployVault(
-      registry[POLYGON_DOMAIN].wmatic, registry[POLYGON_DOMAIN].usdc, "WMATIC", "USDC", providers
-    );
+    chief = new Chief(true, true);
+    timelock = TimelockController(payable(chief.timelock()));
+    // Grant this address all roles.
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
+
+    collateralAsset = registry[POLYGON_DOMAIN].wmatic;
+    vault = new BorrowingVault(
+            collateralAsset,
+            debtAsset,
+            address(oracle),
+            address(chief),
+            'Fuji-V2 WMATIC-USDC Vault Shares',
+            'fv2WMATICUSDC',
+            providers,
+            60e16, //WePiggy max ltv is 60%.
+            DEFAULT_LIQ_RATIO
+        );
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
+    _callWithTimelock(address(chief), executionCall);
+
+    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
+    initVaultDebtShares = minAmount;
+    initVaultShares =
+      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
+
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
   function test_depositAndBorrow() public {
@@ -48,9 +78,12 @@ contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
     uint256 depositBalance = vault.totalAssets();
     uint256 borrowBalance = vault.totalDebt();
 
+    uint256 expecteDepositBal = DEPOSIT_AMOUNT + initVaultShares;
+    uint256 expecteBorrowBal = BORROW_AMOUNT + initVaultDebtShares;
+
     //account for rounding issue
-    assertApproxEqAbs(depositBalance, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);
-    assertApproxEqAbs(borrowBalance, BORROW_AMOUNT, BORROW_AMOUNT / 1000);
+    assertApproxEqAbs(depositBalance, expecteDepositBal, expecteDepositBal / 1000);
+    assertApproxEqAbs(borrowBalance, expecteBorrowBal, expecteBorrowBal / 1000);
   }
 
   function test_getInterestRates() public {

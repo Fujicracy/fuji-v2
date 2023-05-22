@@ -42,6 +42,14 @@ interface IVault is IERC4626 {
   event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   /**
+   * @dev Emit when the vault is initialized
+   *
+   * @param initializer of this vault
+   *
+   */
+  event VaultInitialized(address initializer);
+
+  /**
    * @dev Emit when the oracle address is changed.
    *
    * @param newOracle the new oracle address
