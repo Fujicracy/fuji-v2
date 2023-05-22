@@ -53,7 +53,7 @@ type SelectCurrencyCardProps = {
   assetChange: AssetChange | undefined;
   isExecuting: boolean;
   disabled: boolean;
-  value: string | undefined;
+  value: string;
   showMax: boolean;
   maxAmount: number;
   onCurrencyChange: (currency: Currency) => void;
@@ -110,15 +110,6 @@ function CurrencyCard({
     }
   }, [isFocusedByDefault, textInput]);
 
-  if (
-    assetChange === undefined ||
-    value === undefined ||
-    debt === undefined ||
-    balances === undefined ||
-    selectableCurrencies === undefined
-  ) {
-    return <></>; // TODO: borrow-refactor
-  }
   const balance = balances ? balances[currency.symbol] : 0;
 
   const isOpen = Boolean(anchorEl);
@@ -128,13 +119,15 @@ function CurrencyCard({
   const close = () => setAnchorEl(null);
 
   const shouldShowNativeWrappedPair =
+    currency &&
     isEditing &&
     type === AssetType.Collateral &&
     isNativeOrWrapped(currency, selectableCurrencies);
 
-  const currencyList = shouldShowNativeWrappedPair
-    ? nativeAndWrappedPair(selectableCurrencies)
-    : selectableCurrencies;
+  const currencyList =
+    shouldShowNativeWrappedPair && selectableCurrencies
+      ? nativeAndWrappedPair(selectableCurrencies)
+      : selectableCurrencies;
 
   const handleMax = async () => {
     if (calculatingMax) return;
@@ -143,7 +136,8 @@ function CurrencyCard({
     if (
       actionType === ActionType.REMOVE &&
       type === 'collateral' &&
-      basePosition
+      basePosition &&
+      debt
     ) {
       // `mode` has to be precalculated because we set it based on inputs,
       // the mode will be set after the end of this function.
@@ -164,6 +158,8 @@ function CurrencyCard({
   };
 
   const handleInput = (val: string) => {
+    // TODO: borrow-refactor
+    if (!currency) return;
     const value = validAmount(val, currency.decimals);
     onInputChange(value);
   };
@@ -213,9 +209,12 @@ function CurrencyCard({
     }
   `;
 
-  const usdValue = isNaN(usdPrice * +value)
-    ? '$0'
-    : formatValue(usdPrice * +value, { style: 'currency' });
+  // TODO: borrow-refactor
+  const usdValue = usdPrice
+    ? isNaN(usdPrice * +value)
+      ? '$0'
+      : formatValue(usdPrice * +value, { style: 'currency' })
+    : 0;
 
   return (
     <Card
@@ -224,7 +223,8 @@ function CurrencyCard({
         borderColor:
           (actionType === ActionType.ADD
             ? AssetType.Collateral
-            : AssetType.Debt) === type && Number(assetChange.input) > balance
+            : AssetType.Debt) === type &&
+          Number(assetChange?.input || '') > balance
             ? palette.error.dark
             : focused
             ? palette.info.main
@@ -254,26 +254,30 @@ function CurrencyCard({
             },
           }}
         />
-        <ButtonBase
-          id={`select-${type}-button`}
-          disabled={isExecuting || (disabled && !shouldShowNativeWrappedPair)}
-          onClick={open}
-        >
-          {disabled && !shouldShowNativeWrappedPair ? (
-            <>
-              <CurrencyIcon currency={currency} height={24} width={24} />
-              <Typography ml={1} variant="h6">
-                {currency.symbol}
-              </Typography>
-            </>
-          ) : (
-            <CurrencyItem
-              currency={currency}
-              prepend={<KeyboardArrowDownIcon />}
-              sx={{ borderRadius: '2rem' }}
-            />
-          )}
-        </ButtonBase>
+        {/* TODO: borrow-refactor */}
+        {currency && (
+          <ButtonBase
+            id={`select-${type}-button`}
+            disabled={isExecuting || (disabled && !shouldShowNativeWrappedPair)}
+            onClick={open}
+          >
+            {disabled && !shouldShowNativeWrappedPair ? (
+              <>
+                <CurrencyIcon currency={currency} height={24} width={24} />
+                <Typography ml={1} variant="h6">
+                  {currency.symbol}
+                </Typography>
+              </>
+            ) : (
+              <CurrencyItem
+                currency={currency}
+                prepend={<KeyboardArrowDownIcon />}
+                sx={{ borderRadius: '2rem' }}
+              />
+            )}
+          </ButtonBase>
+        )}
+
         <Menu
           id={`${type}-currency`}
           anchorEl={anchorEl}
@@ -281,14 +285,17 @@ function CurrencyCard({
           onClose={close}
           TransitionComponent={Fade}
         >
-          {currencyList.map((currency) => (
-            <CurrencyItem
-              key={currency.name}
-              currency={currency}
-              balance={balances[currency.symbol]}
-              onClick={() => handleCurrencyChange(currency)}
-            />
-          ))}
+          {/* TODO: borrow-refactor */}
+          {currencyList &&
+            balances &&
+            currencyList.map((currency) => (
+              <CurrencyItem
+                key={currency.name}
+                currency={currency}
+                balance={balances[currency.symbol]}
+                onClick={() => handleCurrencyChange(currency)}
+              />
+            ))}
         </Menu>
       </div>
 
@@ -337,7 +344,7 @@ function CurrencyCard({
               ~{usdValue}
             </Typography>
 
-            {Number(recommended()) > 0 && (
+            {debt && Number(recommended()) > 0 && (
               <Typography
                 variant="smallDark"
                 sx={{
@@ -413,4 +420,5 @@ export default CurrencyCard;
 
 CurrencyCard.defaultProps = {
   disabled: false,
+  value: '',
 };
