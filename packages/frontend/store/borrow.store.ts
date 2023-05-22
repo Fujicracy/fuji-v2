@@ -114,21 +114,25 @@ type BorrowActions = {
     updateVault: boolean,
     currency?: Currency
   ) => void;
-  changeAssetCurrency: (type: AssetType, currency: Currency) => void;
+  changeAssetCurrency: (
+    type: AssetType,
+    currency: Currency,
+    updateVault: boolean
+  ) => void;
   changeAssetValue: (type: AssetType, value: string) => void;
   changeDebtChain: (
     chainId: ChainId,
     updateVault: boolean,
     currency?: Currency
   ) => void; // Convenience
-  changeDebtCurrency: (currency: Currency) => void; // Convenience
+  changeDebtCurrency: (currency: Currency, updateVault: boolean) => void; // Convenience
   changeDebtValue: (val: string) => void; // Convenience
   changeCollateralChain: (
     chainId: ChainId,
     updateVault: boolean,
     currency?: Currency
   ) => void; // Convenience
-  changeCollateralCurrency: (currency: Currency) => void; // Convenience
+  changeCollateralCurrency: (currency: Currency, updateVault: boolean) => void; // Convenience
   changeCollateralValue: (val: string) => void; // Convenience
   changeActiveVault: (v: VaultWithFinancials) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
@@ -330,7 +334,7 @@ export const useBorrow = create<BorrowStore>()(
           get().updateAllowance(type);
         },
 
-        changeAssetCurrency(type, currency) {
+        changeAssetCurrency(type, currency, updateVault) {
           set(
             produce((state: BorrowState) => {
               if (type === AssetType.Debt) {
@@ -341,7 +345,9 @@ export const useBorrow = create<BorrowStore>()(
             })
           );
           get().updateCurrencyPrice(type);
-          get().updateVault();
+          if (updateVault) {
+            get().updateVault();
+          }
           get().updateAllowance(type);
         },
 
@@ -369,8 +375,12 @@ export const useBorrow = create<BorrowStore>()(
           );
         },
 
-        changeCollateralCurrency(currency) {
-          get().changeAssetCurrency(AssetType.Collateral, currency);
+        changeCollateralCurrency(currency, updateVault) {
+          get().changeAssetCurrency(
+            AssetType.Collateral,
+            currency,
+            updateVault
+          );
         },
 
         changeCollateralValue(value) {
@@ -386,8 +396,8 @@ export const useBorrow = create<BorrowStore>()(
           );
         },
 
-        changeDebtCurrency(currency) {
-          get().changeAssetCurrency(AssetType.Debt, currency);
+        changeDebtCurrency(currency, updateVault) {
+          get().changeAssetCurrency(AssetType.Debt, currency, updateVault);
         },
 
         changeDebtValue(value) {

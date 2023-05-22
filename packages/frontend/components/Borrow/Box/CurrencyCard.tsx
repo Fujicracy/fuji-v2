@@ -32,6 +32,7 @@ import {
   recommendedLTV,
 } from '../../../helpers/assets';
 import {
+  isNativeAndWrappedPair,
   isNativeOrWrapped,
   nativeAndWrappedPair,
 } from '../../../helpers/currencies';
@@ -55,7 +56,7 @@ type SelectCurrencyCardProps = {
   value: string;
   showMax: boolean;
   maxAmount: number;
-  onCurrencyChange: (currency: Currency) => void;
+  onCurrencyChange: (currency: Currency, updateVault: boolean) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
@@ -163,7 +164,13 @@ function CurrencyCard({
   };
 
   const handleCurrencyChange = (currency: Currency) => {
-    onCurrencyChange(currency);
+    const updateVault =
+      !isEditing &&
+      !isNativeAndWrappedPair(
+        currency,
+        type === AssetType.Collateral ? collateral.currency : debt.currency
+      );
+    onCurrencyChange(currency, updateVault);
     close();
   };
 

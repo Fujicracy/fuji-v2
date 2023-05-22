@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
+import React from 'react';
 
 import {
   ActionType,
@@ -96,11 +97,11 @@ function BorrowBox({
         ltvMeta={ltvMeta}
         basePosition={basePosition}
         isFocusedByDefault={index === 0}
-        onCurrencyChange={(currency) =>
+        onCurrencyChange={(currency, updateVault) => {
           type === AssetType.Collateral
-            ? changeCollateralCurrency(currency)
-            : changeDebtCurrency(currency)
-        }
+            ? changeCollateralCurrency(currency, updateVault)
+            : changeDebtCurrency(currency, updateVault);
+        }}
         onInputChange={(value) =>
           type === AssetType.Collateral
             ? changeCollateralValue(value)
