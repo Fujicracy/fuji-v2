@@ -65,7 +65,7 @@ contract YieldVault is BaseVault {
       revert BaseVault__initializeVaultShares_lessThanMin();
     }
     _unpauseForceAllActions();
-    _deposit(msg.sender, chief.timelock(), minAmount, minAmount);
+    _deposit(msg.sender, chief.timelock(), assets, assets);
 
     initialized = true;
     emit VaultInitialized(msg.sender);
