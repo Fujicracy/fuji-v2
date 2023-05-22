@@ -1,6 +1,7 @@
 import { Stack, Typography } from '@mui/material';
 import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
+import Image from 'next/image';
 import React from 'react';
 
 import { chainName } from '../../helpers/chains';
@@ -12,7 +13,7 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
     (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
   );
 
-  function description(step: RoutingStepDetails) {
+  function textForStep(step: RoutingStepDetails) {
     if (step.lendingProvider) {
       const withToPrepositions = [RoutingStep.DEPOSIT, RoutingStep.PAYBACK];
       const preposition = withToPrepositions.includes(step.step)
@@ -23,17 +24,12 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
           style={{
             display: 'inline',
             gap: '0.25rem',
-            marginLeft: '0.25rem',
             alignItems: 'center',
           }}
         >
-          {`${preposition} ${step.lendingProvider.name} on `}
-          <NetworkIcon
-            network={chainName(step.chainId)}
-            height={14}
-            width={14}
-            style={{ margin: '0 0.25rem -0.15rem 0', alignSelf: 'center' }}
-          />
+          {`${camelize(step.step.toString())} ${preposition} ${
+            step.lendingProvider.name
+          } on ${chainName(step.chainId)}`}
         </span>
       );
     }
@@ -43,30 +39,11 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
           style={{
             display: 'inline',
             gap: '0.25rem',
-            marginLeft: '0.25rem',
             textAlign: 'center',
           }}
         >
-          from
-          <NetworkIcon
-            network={chainName(step.chainId)}
-            height={14}
-            width={14}
-            style={{
-              margin: '0 0.25rem -0.15rem 0.25rem',
-              alignSelf: 'center',
-            }}
-          />
-          to
-          <NetworkIcon
-            network={chainName(step.token?.chainId)}
-            height={14}
-            width={14}
-            style={{
-              margin: '0 0.25rem -0.15rem 0.25rem',
-              alignSelf: 'center',
-            }}
-          />
+          {camelize(step.step.toString())} from {chainName(step.chainId)} to{' '}
+          {chainName(step.token?.chainId)}
         </span>
       );
     }
@@ -74,27 +51,37 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
     return <></>;
   }
 
-  function textForStep({ step, amount, token }: RoutingStepDetails) {
+  function amountText({ step, amount, token }: RoutingStepDetails) {
+    const amountStr = `${toNotSoFixed(
+      formatUnits(amount ?? 0, token?.decimals || 18),
+      true
+    )} ${token?.symbol}`;
     switch (step) {
+      case RoutingStep.X_TRANSFER:
+        return `${amountStr} -> ${amountStr}`;
       case RoutingStep.DEPOSIT:
       case RoutingStep.BORROW:
       case RoutingStep.PAYBACK:
       case RoutingStep.WITHDRAW:
-        return camelize(
-          `${step.toString()} ${toNotSoFixed(
-            formatUnits(amount ?? 0, token?.decimals || 18),
-            true
-          )} ${token?.symbol}`
-        );
-      case RoutingStep.X_TRANSFER:
-        return camelize(
-          `${step.toString()} ${toNotSoFixed(
-            formatUnits(amount ?? 0, token?.decimals || 18)
-          )} ${token?.symbol}`
-        );
+        return amountStr;
       default:
-        return camelize(step);
+        return '0';
     }
+  }
+
+  function stepIcon({ step, chainId }: RoutingStepDetails) {
+    if (step === RoutingStep.X_TRANSFER) {
+      return (
+        <Image
+          src="/assets/images/logo/connext.svg"
+          height={18}
+          width={18}
+          alt="Connext icon"
+        />
+      );
+    }
+
+    return <NetworkIcon network={chainName(chainId)} height={18} width={18} />;
   }
 
   return (
@@ -104,26 +91,28 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
           <Stack
             key={index}
             direction="row"
-            alignItems="center"
             justifyContent="space-between"
             gap={2}
             mt={1}
           >
-            <Stack direction="row" alignItems="center">
-              <NetworkIcon
-                network={chainName(step.chainId)}
-                height={18}
-                width={18}
-              />
-              <Typography
-                variant="small"
+            <Stack direction="row" alignItems="start">
+              {stepIcon(step)}
+              <Stack
+                alignItems="start"
                 sx={{
                   ml: '0.5rem',
                 }}
               >
-                {textForStep(step)}
-                {description(step)}
-              </Typography>
+                <Typography variant="xsmall">{textForStep(step)}</Typography>
+                <Typography
+                  variant="xsmallDark"
+                  sx={{
+                    display: 'block',
+                  }}
+                >
+                  {amountText(step)}
+                </Typography>
+              </Stack>
             </Stack>
           </Stack>
         );
@@ -131,3 +120,5 @@ function RoutesJumper({ steps }: { steps: RoutingStepDetails[] }) {
     </>
   );
 }
+
+export default RoutesJumper;
