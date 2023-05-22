@@ -63,8 +63,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   uint256 initVaultShares;
   uint256 initVaultDebtShares;
 
-  uint256 initYieldVaultShares;
-
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
 
@@ -228,8 +226,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     initVaultShares =
       _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
 
-    initYieldVaultShares = minAmount;
-
     _initalizeVault(address(vault), address(this), initVaultShares, initVaultDebtShares);
   }
 
@@ -278,7 +274,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     initVaultShares =
       _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
 
-    initYieldVaultShares = minAmount;
+    initVaultShares = minAmount;
 
     _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
@@ -295,9 +291,8 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     address collatAsset_ = bVault.asset();
     address debtAsset_ = bVault.debtAsset();
 
-    //todo set collateral asset amount
-    deal(collatAsset_, initializer, assets, true);
-    deal(debtAsset_, initializer, debt, true);
+    deal(collatAsset_, initializer, assets /*,true*/ );
+    deal(debtAsset_, initializer, debt /*,true*/ );
 
     vm.startPrank(initializer);
     SafeERC20.safeIncreaseAllowance(IERC20(collatAsset_), vault_, assets);
