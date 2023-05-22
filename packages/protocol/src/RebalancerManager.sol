@@ -297,7 +297,7 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
       revert RebalancerManager__getFlashloan_flashloanFailed();
     }
 
-    debtAsset.safeApprove(address(vault), debt);
+    debtAsset.safeIncreaseAllowance(address(vault), debt);
 
     uint256 flashloanFee = flasher.computeFlashloanFee(address(debtAsset), debt);
 

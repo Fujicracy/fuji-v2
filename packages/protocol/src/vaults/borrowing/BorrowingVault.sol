@@ -179,9 +179,9 @@ contract BorrowingVault is BaseVault {
   }
 
   function _checkMaxLtv(uint256 assets, uint256 debt) internal view {
-    uint256 price = oracle.getPriceOf(debtAsset(), asset(), debtDecimals());
-    uint256 maxBorrow_ = (assets * maxLtv * price) / (1e18 * 10 ** decimals());
+    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
 
+    uint256 maxBorrow_ = (assets * maxLtv * price) / (1e18 * 10 ** decimals());
     if (debt > maxBorrow_) {
       revert BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
     }
