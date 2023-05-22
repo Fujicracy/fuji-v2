@@ -5,6 +5,8 @@ import BorrowWrapper from '../components/Borrow/Wrapper';
 import { useAuth } from '../store/auth.store';
 import { FormType, useBorrow } from '../store/borrow.store';
 
+const formType = FormType.Edit;
+
 const BorrowPage: NextPage = () => {
   const changeFormType = useBorrow((state) => state.changeFormType);
   const changeCollateralChain = useBorrow(
@@ -18,7 +20,7 @@ const BorrowPage: NextPage = () => {
   const [hasChain, setHasChain] = useState(false);
 
   useEffect(() => {
-    changeFormType(FormType.Create);
+    changeFormType(formType);
   }, [changeFormType]);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ const BorrowPage: NextPage = () => {
     changeDebtChain,
   ]);
 
-  return <BorrowWrapper />;
+  return <BorrowWrapper formType={formType} />;
 };
 
 export default BorrowPage;
