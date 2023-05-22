@@ -146,7 +146,7 @@ function BorrowButton({
   if (!address) {
     return regularButton('Connect wallet', onLoginClick, 'borrow-login');
   } else if (!position || !ltvMeta) {
-    return disabledButton('Please choose a debt chain'); // TODO:
+    return disabledButton('Please choose a debt chain'); // TODO: borrow-refactor
   } else if (
     collateral.allowance.status === AllowanceStatus.Approving ||
     debt.allowance.status === AllowanceStatus.Approving

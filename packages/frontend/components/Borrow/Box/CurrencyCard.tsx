@@ -58,8 +58,8 @@ type SelectCurrencyCardProps = {
   maxAmount: number;
   onCurrencyChange: (currency: Currency) => void;
   onInputChange: (value: string) => void;
-  ltvMeta: LtvMeta;
-  basePosition: BasePosition;
+  ltvMeta: LtvMeta | undefined;
+  basePosition: BasePosition | undefined;
   isEditing: boolean;
   isFocusedByDefault: boolean;
 };
@@ -117,11 +117,9 @@ function CurrencyCard({
     balances === undefined ||
     selectableCurrencies === undefined
   ) {
-    return <></>; // TODO:
+    return <></>; // TODO: borrow-refactor
   }
-  const balance = balances[currency.symbol];
-
-  const { ltv, ltvMax } = ltvMeta;
+  const balance = balances ? balances[currency.symbol] : 0;
 
   const isOpen = Boolean(anchorEl);
   const open = (event: MouseEvent<HTMLElement>) => {
@@ -142,7 +140,11 @@ function CurrencyCard({
     if (calculatingMax) return;
     setCalculatingMax(true);
     let maxCollateralAmount = maxAmount;
-    if (actionType === ActionType.REMOVE && type === 'collateral') {
+    if (
+      actionType === ActionType.REMOVE &&
+      type === 'collateral' &&
+      basePosition
+    ) {
       // `mode` has to be precalculated because we set it based on inputs,
       // the mode will be set after the end of this function.
       const precalculatedMode =
@@ -168,8 +170,10 @@ function CurrencyCard({
 
   const recommended = (): string => {
     if (
-      (ltv > recommendedLTV(ltvMax) && !value) ||
-      (!ltv && collateral.amount && !collateral.input)
+      !ltvMeta ||
+      !basePosition ||
+      (ltvMeta.ltv > recommendedLTV(ltvMeta.ltvMax) && !value) ||
+      (!ltvMeta.ltv && collateral.amount && !collateral.input)
     ) {
       return '0';
     }
@@ -181,14 +185,16 @@ function CurrencyCard({
       : Number(collateral.input);
 
     const recommended =
-      (recommendedLTV(ltvMax) * collateralValue * collateral.usdPrice) / 100 -
+      (recommendedLTV(ltvMeta.ltvMax) * collateralValue * collateral.usdPrice) /
+        100 -
       (isEditing ? basePosition.position.debt.amount : 0);
 
     return String(recommended);
   };
 
   const handleRecommended = () => {
-    if (Math.round(ltv) === recommendedLTV(ltvMax)) return;
+    if (!ltvMeta || Math.round(ltvMeta.ltv) === recommendedLTV(ltvMeta.ltvMax))
+      return;
 
     handleInput(recommended());
   };

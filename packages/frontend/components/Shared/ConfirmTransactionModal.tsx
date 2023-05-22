@@ -90,7 +90,7 @@ export function ConfirmTransactionModal({
   );
 
   if (!position || !dynamicLtvMeta) {
-    return <></>; // TODO:
+    return <></>; // TODO: borrow-refactor
   }
 
   return (
