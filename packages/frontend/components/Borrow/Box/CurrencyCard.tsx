@@ -23,13 +23,14 @@ import React, {
   useState,
 } from 'react';
 
-import { DUST_AMOUNT } from '../../../constants';
 import {
   ActionType,
   AssetChange,
   AssetType,
   LtvMeta,
+  Mode,
   recommendedLTV,
+  withdrawMaxAmount,
 } from '../../../helpers/assets';
 import {
   isNativeOrWrapped,
@@ -95,15 +96,20 @@ function CurrencyCard({
     undefined
   );
   const [focused, setFocused] = useState<boolean>(false);
+  const [calculatingMax, setCalculatingMax] = useState<boolean>(false);
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
   const handleRef = useCallback((node: HTMLInputElement) => {
     setTextInput(node);
   }, []);
+
   useEffect(() => {
     if (isFocusedByDefault) {
       textInput?.focus();
     }
   }, [isFocusedByDefault, textInput]);
+
   if (
     assetChange === undefined ||
     value === undefined ||
@@ -132,20 +138,27 @@ function CurrencyCard({
     ? nativeAndWrappedPair(selectableCurrencies)
     : selectableCurrencies;
 
-  const handleMax = () => {
-    // when we do max withdrawal, we have to deduct a small amount,
-    // otherwise the tx can fail due to some unaccounted dust leftovers
-    const deductedCollateral = Math.max(
-      0,
-      basePosition.position.collateral.amount - DUST_AMOUNT / 100
-    );
-    const amount =
-      actionType === ActionType.REMOVE && type === AssetType.Collateral
-        ? deductedCollateral -
-          (basePosition.position.debt.amount - Number(debt.input)) /
-            ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
-        : maxAmount;
-    handleInput(String(amount));
+  const handleMax = async () => {
+    if (calculatingMax) return;
+    setCalculatingMax(true);
+    let maxCollateralAmount = maxAmount;
+    if (actionType === ActionType.REMOVE && type === 'collateral') {
+      // `mode` has to be precalculated because we set it based on inputs,
+      // the mode will be set after the end of this function.
+      const precalculatedMode =
+        debt.input !== '' ? Mode.PAYBACK_AND_WITHDRAW : Mode.WITHDRAW;
+      const result = await withdrawMaxAmount(
+        precalculatedMode,
+        basePosition,
+        debt,
+        collateral
+      );
+      if (result.success) {
+        maxCollateralAmount = result.data;
+      }
+    }
+    setCalculatingMax(false);
+    handleInput(String(maxCollateralAmount));
   };
 
   const handleInput = (val: string) => {
