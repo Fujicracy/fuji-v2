@@ -16,7 +16,6 @@ pragma solidity 0.8.15;
  * Allowance and approvals for value extracting operations  is possible via
  * signed messages defined in {VaultPermissions}.
  * A rebalancing function is implemented to move vault's funds across providers.
- * A `depositCap` is defined to control risk and maximum TVL of this vault.
  */
 import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -71,7 +70,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   ILendingProvider public activeProvider;
 
   uint256 public minAmount;
-  uint256 public depositCap;
 
   /**
    * @notice Constructor of a new {BaseVault}.
@@ -84,7 +82,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @dev Requirements:
    * - Must assign `asset_` {ERC20-decimals} and `_decimals` equal.
    * - Must check initial `minAmount` is not < 1e6. Refer to https://rokinot.github.io/hatsfinance.
-   * - Must initialize `depositCap` as type(uint256).max.
    */
   constructor(
     address asset_,
@@ -101,7 +98,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     }
     _asset = IERC20Metadata(asset_);
     _decimals = IERC20Metadata(asset_).decimals();
-    depositCap = type(uint128).max;
     minAmount = 1e6;
   }
 
@@ -257,7 +253,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     if (paused(VaultActions.Deposit)) {
       return 0;
     }
-    return depositCap - totalAssets();
+    return type(uint256).max;
   }
 
   /// @inheritdoc IERC4626
@@ -265,7 +261,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     if (paused(VaultActions.Deposit)) {
       return 0;
     }
-    return convertToShares(maxDeposit(address(0)));
+    return type(uint256).max;
   }
 
   /// @inheritdoc IERC4626
@@ -884,15 +880,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   function setMinAmount(uint256 amount) external override onlyTimelock {
     minAmount = amount;
     emit MinAmountChanged(amount);
-  }
-
-  /// @inheritdoc IVault
-  function setDepositCap(uint256 newCap) external override onlyTimelock {
-    if (newCap == 0 || newCap <= minAmount) {
-      revert BaseVault__setter_invalidInput();
-    }
-    depositCap = newCap;
-    emit DepositCapChanged(newCap);
   }
 
   /// @inheritdoc PausableVault

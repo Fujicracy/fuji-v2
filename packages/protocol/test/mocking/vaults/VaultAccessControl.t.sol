@@ -29,18 +29,6 @@ contract VaultAccessControlUnitTests is MockingSetup {
     vault.setMinAmount(amount);
   }
 
-  function test_tryFoeSetDepositCap(address foe, uint256 amount) public {
-    vm.assume(
-      foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
-        && amount > 0
-    );
-    vm.expectRevert(
-      SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
-    );
-    vm.prank(foe);
-    vault.setDepositCap(amount);
-  }
-
   function test_tryFoeSetProviders(address foe) public {
     vm.assume(
       foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)

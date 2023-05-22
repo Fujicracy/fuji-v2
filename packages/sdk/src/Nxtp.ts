@@ -20,7 +20,7 @@ export class Nxtp {
 
     const chains: Record<string, { providers: string[] }> = {};
     Object.values(CHAIN)
-      .filter((c) => c.connextDomain)
+      .filter((c) => c.connextDomain && c.chainType === chainType)
       .forEach((c) => {
         if (c.connection) {
           chains[String(c.connextDomain)] = {
@@ -36,10 +36,13 @@ export class Nxtp {
       chains,
       logLevel: 'error',
     });
-    return {
+    const connextSdk = {
       base: sdkBase,
       pool: sdkPool,
       utils: sdkUtils,
     };
+    this._connextSdk = connextSdk;
+
+    return connextSdk;
   }
 }

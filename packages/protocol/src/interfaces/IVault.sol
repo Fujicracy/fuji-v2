@@ -481,14 +481,4 @@ interface IVault is IERC4626 {
    * @param amount to be as minimum.
    */
   function setMinAmount(uint256 amount) external;
-
-  /**
-   * @notice Sets the deposit cap amount of this vault.
-   *
-   * @param newCap amount to be set
-   *
-   * @dev Requirements:
-   * - Must be greater than zero.
-   */
-  function setDepositCap(uint256 newCap) external;
 }
