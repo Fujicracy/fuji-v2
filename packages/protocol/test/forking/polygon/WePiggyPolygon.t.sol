@@ -48,9 +48,12 @@ contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
     uint256 depositBalance = vault.totalAssets();
     uint256 borrowBalance = vault.totalDebt();
 
+    uint256 expecteDepositBal = DEPOSIT_AMOUNT + initVaultShares;
+    uint256 expecteBorrowBal = BORROW_AMOUNT + initVaultDebtShares;
+
     //account for rounding issue
-    assertApproxEqAbs(depositBalance, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);
-    assertApproxEqAbs(borrowBalance, BORROW_AMOUNT, BORROW_AMOUNT / 1000);
+    assertApproxEqAbs(depositBalance, expecteDepositBal, expecteDepositBal / 1000);
+    assertApproxEqAbs(borrowBalance, expecteBorrowBal, expecteBorrowBal / 1000);
   }
 
   function test_getInterestRates() public {
