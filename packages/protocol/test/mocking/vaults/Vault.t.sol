@@ -142,7 +142,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount + initializeVaultSharesDebtAmount);
+    assertEq(vault.totalDebt(), borrowAmount + initVaultDebtShares);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
@@ -157,7 +157,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_mintDebt(debtShares, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount + initializeVaultSharesDebtAmount);
+    assertEq(vault.totalDebt(), borrowAmount + initVaultDebtShares);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
