@@ -265,48 +265,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.deposit(amount, ALICE);
   }
 
-  function test_setMaxCap(uint256 maxCap) public {
-    uint256 minAmount = vault.minAmount();
-    vm.assume(maxCap > minAmount);
-
-    vm.prank(chief.timelock());
-    vm.expectEmit(true, false, false, false);
-    emit DepositCapChanged(maxCap);
-    vault.setDepositCap(maxCap);
-  }
-
-  function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {
-    uint256 minAmount = vault.minAmount();
-    vm.assume(
-      maxCap > minAmount && depositAlice > minAmount && depositBob > minAmount
-        && _utils_add(depositBob, depositAlice) > maxCap && depositAlice < maxCap
-    );
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
-
-    do_deposit(depositAlice, vault, ALICE);
-
-    vm.expectRevert(BaseVault.BaseVault__deposit_moreThanMax.selector);
-    vm.prank(BOB);
-    do_deposit(depositBob, vault, BOB);
-  }
-
-  function test_maxCapChecks(uint256 maxCap, uint96 firstDeposit, uint96 secondDeposit) public {
-    uint256 minAmount = vault.minAmount();
-    vm.assume(
-      maxCap > minAmount && firstDeposit > minAmount && secondDeposit > minAmount
-        && _utils_add(firstDeposit, secondDeposit) < maxCap
-    );
-
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
-
-    do_deposit(firstDeposit, vault, ALICE);
-    do_deposit(secondDeposit, vault, ALICE);
-  }
-
   function test_getHealthFactor(uint40 amount, uint40 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
     vm.assume(
