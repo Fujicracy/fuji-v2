@@ -46,7 +46,8 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
     collateral.usdPrice,
     ltvMax
   );
-  if (!debtInput) return <></>; // TODO: handle this case
+
+  if (debtInput === undefined) return <></>; // TODO: handle this case
   return (
     <Container isMobile={isMobile}>
       {!isMobile && <Title providers={allProviders} vault={vault} />}

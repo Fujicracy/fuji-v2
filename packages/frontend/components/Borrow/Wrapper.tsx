@@ -60,24 +60,21 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   useEffect(() => {
     let matchPosition: Position | undefined;
     let editedPosition: Position | undefined;
-    if (!baseDebt) {
-      return;
-    }
-    if (address && positions.length > 0 && query && baseDebt) {
+
+    if (address && positions.length > 0 && query) {
       matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       );
-      editedPosition = matchPosition
-        ? viewEditedPosition(baseCollateral, baseDebt, matchPosition, mode)
-        : undefined;
+      editedPosition =
+        matchPosition && baseDebt
+          ? viewEditedPosition(baseCollateral, baseDebt, matchPosition, mode)
+          : undefined;
     }
-    const basePosition = viewDynamicPosition(
-      !isEditing,
-      matchPosition,
-      editedPosition
-    );
+    const basePosition = baseDebt
+      ? viewDynamicPosition(!isEditing, matchPosition, editedPosition)
+      : undefined;
     setBasePosition(basePosition);
   }, [
     baseCollateral,
