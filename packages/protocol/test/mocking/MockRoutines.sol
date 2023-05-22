@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
@@ -32,7 +33,7 @@ contract MockRoutines is Test {
     dealMockERC20(asset, from, amount);
 
     vm.startPrank(from);
-    SafeERC20.safeApprove(IERC20(asset), address(v), amount);
+    SafeERC20.safeIncreaseAllowance(IERC20(asset), address(v), amount);
     v.deposit(amount, from);
     vm.stopPrank();
 
@@ -55,7 +56,7 @@ contract MockRoutines is Test {
     dealMockERC20(asset, from, assets);
 
     vm.startPrank(from);
-    SafeERC20.safeApprove(IERC20(asset), address(v), assets);
+    SafeERC20.safeIncreaseAllowance(IERC20(asset), address(v), assets);
     uint256 pulledAssets = v.mint(shares, from);
     vm.stopPrank();
 
@@ -128,7 +129,7 @@ contract MockRoutines is Test {
     uint256 prevDebtBal = v.balanceOfDebt(from);
 
     vm.startPrank(from);
-    SafeERC20.safeApprove(debtAsset_, address(v), amount);
+    SafeERC20.safeIncreaseAllowance(debtAsset_, address(v), amount);
     v.payback(amount, from);
     vm.stopPrank();
 
@@ -154,7 +155,7 @@ contract MockRoutines is Test {
     }
 
     vm.startPrank(from);
-    SafeERC20.safeApprove(debtAsset_, address(v), amountToPayback);
+    SafeERC20.safeIncreaseAllowance(debtAsset_, address(v), amountToPayback);
     v.burnDebt(shares, from);
     vm.stopPrank();
 
@@ -166,6 +167,7 @@ contract MockRoutines is Test {
   }
 
   function dealMockERC20(address mockerc20, address to, uint256 amount) internal {
-    MockERC20(mockerc20).mint(to, amount);
+    // MockERC20(mockerc20).mint(to, amount);
+    deal(mockerc20, to, amount, true);
   }
 }

@@ -140,10 +140,9 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
 
-    assertEq(vault.totalDebt(), 0);
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount);
+    assertEq(vault.totalDebt(), borrowAmount + initVaultDebtShares);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
@@ -153,14 +152,12 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
 
-    assertEq(vault.totalDebt(), 0);
-
     do_deposit(amount, vault, ALICE);
     uint256 debtShares = vault.previewBorrow(borrowAmount);
 
     do_mintDebt(debtShares, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount);
+    assertEq(vault.totalDebt(), borrowAmount + initVaultDebtShares);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
@@ -292,7 +289,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(BaseVault.BaseVault__deposit_moreThanMax.selector);
     vm.prank(BOB);
-    vault.deposit(depositBob, BOB);
+    do_deposit(depositBob, vault, BOB);
   }
 
   function test_maxCapChecks(uint256 maxCap, uint96 firstDeposit, uint96 secondDeposit) public {
