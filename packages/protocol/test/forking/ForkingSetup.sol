@@ -226,7 +226,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     initVaultShares =
       _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
 
-    _initalizeVault(address(vault), address(this), initVaultShares, initVaultDebtShares);
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
   function deployVault(
@@ -273,8 +273,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     initVaultDebtShares = minAmount;
     initVaultShares =
       _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
-
-    initVaultShares = minAmount;
 
     _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
