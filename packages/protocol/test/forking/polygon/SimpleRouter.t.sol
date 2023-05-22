@@ -79,6 +79,8 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     bytes memory executionCall =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault2), true);
     _callWithTimelock(address(chief), executionCall);
+
+    _initalizeVault(address(vault2), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
   function test_closePositionWithFlashloan() public {

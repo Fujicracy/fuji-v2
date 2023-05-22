@@ -43,8 +43,8 @@ contract AgaveGnosisForkingTest is Routines, ForkingSetup {
   function test_getBalances() public {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    uint256 depositBalance = vault.totalAssets();
-    uint256 borrowBalance = vault.totalDebt();
+    uint256 depositBalance = vault.totalAssets() - initVaultShares;
+    uint256 borrowBalance = vault.totalDebt() - initVaultDebtShares;
 
     //account for rounding issue
     assertApproxEqAbs(depositBalance, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);

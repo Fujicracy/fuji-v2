@@ -26,7 +26,7 @@ interface IFujiOracle {
    * @param commodityAsset to be used, zero-address for USD
    * @param decimals  of the desired price output
    *
-   * @dev Price format is defined as: (currencyAsset per unit of commodityAsset Exchange Rate).
+   * @dev Price format is defined as: (amount of currencyAsset per unit of commodityAsset Exchange Rate).
    * Requirements:
    * - Must check that both `currencyAsset` and `commodityAsset` are set in
    *   usdPriceFeeds, otherwise return zero.
