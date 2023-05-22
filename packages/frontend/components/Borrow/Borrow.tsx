@@ -56,7 +56,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const isSigning = useBorrow((state) => state.isSigning);
   const isExecuting = useBorrow((state) => state.isExecuting);
   const transactionMeta = useBorrow((state) => state.transactionMeta);
-  const metaStatus = useBorrow((state) => state.transactionMeta.status);
   const availableVaultStatus = useBorrow(
     (state) => state.availableVaultsStatus
   );
@@ -76,6 +75,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const { position, editedPosition } = basePosition;
 
+  const metaStatus = transactionMeta.status;
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
     ltvMax: position.ltvMax,
