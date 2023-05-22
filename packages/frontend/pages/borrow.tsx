@@ -1,11 +1,11 @@
 import { NextPage } from 'next';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import BorrowWrapper from '../components/Borrow/Wrapper';
 import { useAuth } from '../store/auth.store';
 import { FormType, useBorrow } from '../store/borrow.store';
 
-const formType = FormType.Edit;
+const formType = FormType.Create;
 
 const BorrowPage: NextPage = () => {
   const changeFormType = useBorrow((state) => state.changeFormType);
