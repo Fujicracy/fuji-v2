@@ -32,6 +32,29 @@ contract ConnextHandler {
   }
 
   /**
+   * @dev Emitted when a failed transaction is recorded.
+   *
+   * @param transferId  unique id of the cross-chain txn
+   * @param amount transferred
+   * @param asset being transferred
+   * @param originSender of the cross-chain txn
+   * @param originDomain of the cross-chain txn
+   * @param actions to be called in xBundle
+   * @param args to be called for each action in xBundle
+   * @param nonce of failed txn
+   */
+  event FailedTxnRecorded(
+    bytes32 transferId,
+    uint256 amount,
+    address asset,
+    address originSender,
+    uint32 originDomain,
+    IRouter.Action[] actions,
+    bytes[] args,
+    uint256 nonce
+  );
+
+  /**
    * @dev Emitted when a failed transaction gets retried.
    *
    * @param transferId the unique identifier of the cross-chain txn
@@ -153,6 +176,10 @@ contract ConnextHandler {
     uint256 nextNonce = getFailedTxnNextNonce(transferId);
     _failedTxns[transferId][nextNonce] =
       FailedTxn(transferId, amount, asset, originSender, originDomain, actions, args, nextNonce);
+
+    emit FailedTxnRecorded(
+      transferId, amount, asset, originSender, originDomain, actions, args, nextNonce
+    );
   }
 
   /**
