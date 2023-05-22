@@ -22,7 +22,7 @@ import {
   FujiResultSuccess,
 } from './entities/FujiError';
 import { ChainId, ChainType, ConnextTxStatus, RouterAction } from './enums';
-import { batchLoad, encodeActionArgs } from './functions';
+import { batchLoad, encodeActionArgs, waitForTransaction } from './functions';
 import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
 import {
@@ -406,13 +406,13 @@ export class Sdk {
     transactionHash: string
   ): FujiResultPromise<string | undefined> {
     const { rpcProvider } = this.getConnectionFor(chainId);
-    const receipt = await rpcProvider.waitForTransaction(transactionHash);
-    if (!receipt) {
+    const receipt = await waitForTransaction(rpcProvider, transactionHash);
+    if (!receipt.success) {
       return new FujiResultError(
         `Receipt not valid from tx with hash ${transactionHash}`
       );
     }
-    const blockHash = receipt.blockHash;
+    const blockHash = receipt.data.blockHash;
     const srcContract = ConnextRouter__factory.connect(
       CONNEXT_ROUTER_ADDRESS[chainId].value,
       rpcProvider
@@ -524,8 +524,8 @@ export class Sdk {
     // check if XReceived was successful
     const destChainId: ChainId = Number(connextTx.destination_chain);
     const { rpcProvider } = this.getConnectionFor(destChainId);
-    const receipt = await rpcProvider.waitForTransaction(destTxHash);
-    if (!receipt)
+    const receipt = await waitForTransaction(rpcProvider, destTxHash);
+    if (!receipt.success)
       return new FujiResultError('Receipt not valid', FujiErrorCode.TX, {
         destTxHash,
         connextTransferId,
@@ -534,7 +534,7 @@ export class Sdk {
     // do operations (deposit, borrow, etc) on src chain and only transfer to dest chain
     // in which case there's no calldata
     if (connextTx.call_data === '0x') {
-      if (receipt.status === 1)
+      if (receipt.data.status === 1)
         return new FujiResultSuccess({
           status: ConnextTxStatus.EXECUTED,
           connextTransferId,
@@ -555,7 +555,7 @@ export class Sdk {
     );
     const events = await srcContract.queryFilter(
       srcContract.filters.XReceived(),
-      receipt.blockHash
+      receipt.data.blockHash
     );
     const e = events.find((e) => e.transactionHash == destTxHash);
 
