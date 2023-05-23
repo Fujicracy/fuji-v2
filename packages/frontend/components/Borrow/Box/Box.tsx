@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
+import React from 'react';
 
 import {
   ActionType,
@@ -41,18 +42,9 @@ function BorrowBox({
   basePosition,
   index,
 }: BorrowBoxProps) {
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  );
-  const changeCollateralCurrency = useBorrow(
-    (state) => state.changeCollateralCurrency
-  );
-  const changeCollateralValue = useBorrow(
-    (state) => state.changeCollateralValue
-  );
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
-  const changeDebtCurrency = useBorrow((state) => state.changeDebtCurrency);
-  const changeDebtValue = useBorrow((state) => state.changeDebtValue);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
+  const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
+  const changeAssetValue = useBorrow((state) => state.changeAssetValue);
 
   return (
     <Box
@@ -78,11 +70,8 @@ function BorrowBox({
         value={chainId}
         disabled={isExecuting}
         onChange={(chainId) => {
-          console.log(chainId);
           if (!assetChange) return;
-          type === AssetType.Collateral
-            ? changeCollateralChain(chainId, !isEditing, assetChange.currency)
-            : changeDebtChain(chainId, !isEditing, assetChange.currency);
+          changeAssetChain(type, chainId, !isEditing, assetChange.currency);
         }}
       />
       <CurrencyCard
@@ -98,16 +87,10 @@ function BorrowBox({
         ltvMeta={ltvMeta}
         basePosition={basePosition}
         isFocusedByDefault={index === 0}
-        onCurrencyChange={(currency) =>
-          type === AssetType.Collateral
-            ? changeCollateralCurrency(currency)
-            : changeDebtCurrency(currency)
-        }
-        onInputChange={(value) =>
-          type === AssetType.Collateral
-            ? changeCollateralValue(value)
-            : changeDebtValue(value)
-        }
+        onCurrencyChange={(currency, updateVault) => {
+          changeAssetCurrency(type, currency, updateVault);
+        }}
+        onInputChange={(value) => changeAssetValue(type, value)}
       />
     </Box>
   );

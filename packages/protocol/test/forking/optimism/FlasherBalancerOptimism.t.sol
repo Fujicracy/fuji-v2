@@ -14,7 +14,7 @@ import {IFlashLoanRecipient} from "../../../src/interfaces/balancer/IFlashLoanRe
 import {IronBankOptimism} from "../../../src/providers/optimism/IronBankOptimism.sol";
 import {AaveV3Optimism} from "../../../src/providers/optimism/AaveV3Optimism.sol";
 
-contract FlasherBalancerOptimismForkingTest is Routines, ForkingSetup, IFlashLoanRecipient {
+contract FlasherBalancerOptimismForkingTests is Routines, ForkingSetup, IFlashLoanRecipient {
   ILendingProvider public ironBank;
   ILendingProvider public aaveV3;
 

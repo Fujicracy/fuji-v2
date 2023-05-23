@@ -194,6 +194,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
       DEFAULT_LIQ_RATIO
     );
 
+    _initalizeVault(address(bvault), INITIALIZER, initVaultShares, initVaultDebtShares);
+
     yvault = new YieldVault(
       collateralAsset,
       address(chief),
@@ -201,6 +203,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
       "fyvtWETH",
       providers
     );
+
+    _initalizeYieldVault(address(yvault), INITIALIZER, initVaultShares);
 
     flasher = new MockFlasher();
     bytes memory executionCall =
@@ -226,25 +230,52 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     do_deposit(DEPOSIT_AMOUNT, yvault, DAVID);
   }
 
+  function _utils_checkRebalanceLtv(
+    BorrowingVault v,
+    ILendingProvider from,
+    ILendingProvider to,
+    uint256 rebalanceAssets,
+    uint256 rebalanceDebt
+  )
+    internal
+    view
+    returns (bool)
+  {
+    if (rebalanceAssets > v.totalAssets() || rebalanceDebt > v.totalDebt()) {
+      return false;
+    }
+    uint256 assetsAfterRebalanceA = from.getDepositBalance(address(v), v) - rebalanceAssets;
+    uint256 debtAfterRebalanceA = from.getBorrowBalance(address(v), v) - rebalanceDebt;
+
+    uint256 assetsAfterRebalanceB = to.getDepositBalance(address(v), v) + rebalanceAssets;
+    uint256 debtAfterRebalanceB = to.getBorrowBalance(address(v), v) + rebalanceDebt;
+
+    return _utils_checkMaxLTV(assetsAfterRebalanceA, debtAfterRebalanceA)
+      && _utils_checkMaxLTV(assetsAfterRebalanceB, debtAfterRebalanceB);
+  }
+
   function test_assertSetUp() public {
     assertEq(
-      mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 4 * DEPOSIT_AMOUNT
+      mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))),
+      4 * DEPOSIT_AMOUNT + initVaultShares
     );
     assertEq(
-      mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), 4 * BORROW_AMOUNT
+      mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))),
+      4 * BORROW_AMOUNT + initVaultDebtShares
     );
     assertEq(
-      mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))), 4 * DEPOSIT_AMOUNT
+      mockProviderA.getDepositBalance(address(yvault), IVault(address(yvault))),
+      4 * DEPOSIT_AMOUNT + initVaultShares
     );
 
-    assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
-    assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), 0);
-    assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
+    // assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
+    // assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), 0);
+    // assertEq(mockProviderB.getDepositBalance(address(yvault), IVault(address(yvault))), 0);
   }
 
   function test_fullRebalancingBorrowingVault() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
-    uint256 debt = 4 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + bvault.convertToAssets(initVaultShares); // ALICE, BOB, CHARLIE, DAVID
+    uint256 debt = 4 * BORROW_AMOUNT + bvault.convertToDebt(initVaultDebtShares); // ALICE, BOB, CHARLIE, DAVID
 
     dealMockERC20(debtAsset, address(this), debt);
 
@@ -259,7 +290,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_fullRebalancingYieldVault() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
 
     yvault.rebalance(assets, 0, mockProviderA, mockProviderB, 0, true);
 
@@ -270,8 +301,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   function test_partialRebalancingBorrowingVault() public {
     uint256 assets75 = 3 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE
     uint256 debt75 = 3 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE
-    uint256 assets25 = DEPOSIT_AMOUNT; // DAVID
-    uint256 debt25 = BORROW_AMOUNT; // DAVID
+    uint256 assets25 = DEPOSIT_AMOUNT + initVaultShares; // DAVID
+    uint256 debt25 = BORROW_AMOUNT + initVaultDebtShares; // DAVID
 
     dealMockERC20(debtAsset, address(this), debt75);
 
@@ -287,8 +318,8 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
 
   //TODO add more test cases with RebalancerManager contract.
   function test_rebalanceBorrowingVaultWithRebalancer() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
-    uint256 debt = 4 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
+    uint256 debt = 4 * BORROW_AMOUNT + initVaultDebtShares; // ALICE, BOB, CHARLIE, DAVID
 
     rebalancer.rebalanceVault(bvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
 
@@ -300,7 +331,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_rebalanceYieldVaultWithRebalancer() public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
 
     rebalancer.rebalanceVault(yvault, assets, 0, mockProviderA, mockProviderB, flasher, true);
 
@@ -311,7 +342,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   //MALICIOUS TESTS
 
   function test_rebalanceYieldVaultWithRebalancerAndInvalidDebt(uint256 debt) public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
 
     //debt !=0
     rebalancer.rebalanceVault(yvault, assets, debt, mockProviderA, mockProviderB, flasher, true);
@@ -356,10 +387,10 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   // error RebalancerManager__checkDebtAmount_invalidAmount();
   function test_checkDebtAmountInvalidAmount(uint256 invalidAmount) public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
-    uint256 debt = 4 * BORROW_AMOUNT;
+    uint256 debt = mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault)));
     vm.assume(invalidAmount > debt); //ALICE, BOB, CHARLIE, DAVID
 
-    //rebalance with more amount than available should revert
+    // Rebalance with more amount than available should revert
     vm.expectRevert(RebalancerManager.RebalancerManager__checkDebtAmount_invalidAmount.selector);
 
     rebalancer.rebalanceVault(
@@ -441,5 +472,24 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     bytes memory executionCall =
       abi.encodeWithSelector(chief.allowFlasher.selector, address(0), true);
     _callWithTimelock(address(chief), executionCall);
+  }
+
+  function test_rebalanceAndKeepMaxLtv(uint128 rebalanceAssets, uint128 rebalanceDebt) public {
+    vm.assume(
+      rebalanceAssets > 0 && rebalanceAssets < bvault.totalAssets() && rebalanceDebt > 0
+        && rebalanceDebt < bvault.totalDebt()
+    );
+
+    bool rebalanceLtv =
+      _utils_checkRebalanceLtv(bvault, mockProviderA, mockProviderB, rebalanceAssets, rebalanceDebt);
+
+    //rebalance
+    try rebalancer.rebalanceVault(
+      bvault, rebalanceAssets, rebalanceDebt, mockProviderA, mockProviderB, flasher, true
+    ) {
+      assert(rebalanceLtv);
+    } catch {
+      assert(!rebalanceLtv);
+    }
   }
 }

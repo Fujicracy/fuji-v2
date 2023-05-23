@@ -9,7 +9,7 @@ import {DForcePolygon} from "../../../src/providers/polygon/DForcePolygon.sol";
 import {IGenIToken} from "../../../src/interfaces/dforce/IGenIToken.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 
-contract DForcePolygonForkingTest is Routines, ForkingSetup {
+contract DForcePolygonForkingTests is Routines, ForkingSetup {
   ILendingProvider public dForce;
 
   uint256 public constant DEPOSIT_AMOUNT = 1000e18;
@@ -51,8 +51,8 @@ contract DForcePolygonForkingTest is Routines, ForkingSetup {
     uint256 borrowBalance = vault.totalDebt();
 
     //account for rounding issue
-    assertApproxEqAbs(depositBalance, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);
-    assertApproxEqAbs(borrowBalance, BORROW_AMOUNT, BORROW_AMOUNT / 1000);
+    assertApproxEqAbs(depositBalance - initVaultShares, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);
+    assertApproxEqAbs(borrowBalance - initVaultDebtShares, BORROW_AMOUNT, BORROW_AMOUNT / 1000);
   }
 
   function test_getBalancesAcrobatic(uint256 nBlocks) public {

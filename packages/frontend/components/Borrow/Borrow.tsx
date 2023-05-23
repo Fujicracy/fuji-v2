@@ -8,7 +8,6 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Address } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -61,14 +60,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const availableVaultStatus = useBorrow(
     (state) => state.availableVaultsStatus
   );
+  const availableVaults = useBorrow((state) => state.availableVaults);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
   const vault = useBorrow((state) => state.activeVault);
   const mode = useBorrow((state) => state.mode);
   const changeMode = useBorrow((state) => state.changeMode);
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  );
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
   const changeInputValues = useBorrow((state) => state.changeInputValues);
   const updateBalances = useBorrow((state) => state.updateBalances);
   const updateVault = useBorrow((state) => state.updateVault);
@@ -141,8 +138,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             walletChainId !== collateral.chainId &&
             isSupported(walletChainId)
           ) {
-            changeCollateralChain(walletChainId, true);
-            changeDebtChain(walletChainId, false);
+            changeAssetChain(AssetType.Collateral, walletChainId, true);
+            changeAssetChain(AssetType.Debt, walletChainId, false);
           } else {
             updateBalances(AssetType.Collateral);
             updateBalances(AssetType.Debt);
@@ -158,8 +155,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     collateral,
     walletChainId,
     vault,
-    changeCollateralChain,
-    changeDebtChain,
+    changeAssetChain,
     updateBalances,
     updateAllowance,
     updateVault,
@@ -178,20 +174,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [actionType, changeInputValues]);
 
   useEffect(() => {
-    (async () => {
-      if (address && vault) {
-        const balance = await vault.getBalances(Address.from(address));
-        const currentActiveVault = useBorrow.getState().activeVault;
-        if (
-          currentActiveVault &&
-          currentActiveVault.address.value === vault.address.value
-        ) {
-          const hasBalance = balance.deposit.gt(DUST_AMOUNT_IN_WEI);
-          setHasBalanceInVault(hasBalance);
-        }
+    if (address && vault) {
+      const current = availableVaults.find((v) =>
+        v.vault.address.equals(vault.address)
+      );
+      if (current) {
+        setHasBalanceInVault(current.depositBalance.gt(DUST_AMOUNT_IN_WEI));
       }
-    })();
-  }, [address, vault]);
+    }
+  }, [address, vault, availableVaults]);
 
   useEffect(() => {
     const mode = modeForContext(

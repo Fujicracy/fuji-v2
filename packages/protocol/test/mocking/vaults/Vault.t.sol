@@ -30,14 +30,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     );
   }
 
-  function _utils_checkMaxLTV(uint96 amount, uint96 borrowAmount) internal view returns (bool) {
-    uint256 maxLtv = DEFAULT_MAX_LTV;
-
-    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
-    uint256 maxBorrow = (amount * maxLtv * price) / (1e18 * 10 ** ASSET_DECIMALS);
-    return borrowAmount < maxBorrow;
-  }
-
   function _utils_getHealthFactor(
     uint96 amount,
     uint96 borrowAmount
@@ -124,11 +116,22 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     assertEq(vault.balanceOf(ALICE), amount);
   }
 
+  function test_mint(uint128 shares) public {
+    vm.assume(shares > vault.minAmount());
+    do_mint(shares, vault, ALICE);
+    assertEq(vault.balanceOf(ALICE), shares);
+  }
+
   function test_withdraw(uint96 amount) public {
     vm.assume(amount > vault.minAmount());
     do_deposit(amount, vault, ALICE);
-
     do_withdraw(amount, vault, ALICE);
+  }
+
+  function test_redeem(uint128 shares) public {
+    vm.assume(shares > vault.minAmount());
+    do_mint(shares, vault, ALICE);
+    do_redeem(shares, vault, ALICE);
   }
 
   function test_depositAndBorrow(uint96 amount, uint96 borrowAmount) public {
@@ -137,10 +140,24 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
       amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
     );
 
-    assertEq(vault.totalDebt(), 0);
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount);
+    assertEq(vault.totalDebt(), borrowAmount + initVaultDebtShares);
+    assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
+  }
+
+  function test_depositThenMintDebt(uint96 amount, uint96 borrowAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
+
+    do_deposit(amount, vault, ALICE);
+    uint256 debtShares = vault.previewBorrow(borrowAmount);
+
+    do_mintDebt(debtShares, vault, ALICE);
+
+    assertEq(vault.totalDebt(), borrowAmount + initVaultDebtShares);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
@@ -152,14 +169,27 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    vm.startPrank(ALICE);
-    IERC20(debtAsset).approve(address(vault), borrowAmount);
-    assertEq(vault.totalDebt(), borrowAmount);
-    vault.payback(borrowAmount, ALICE);
-    assertEq(vault.totalDebt(), 0);
-    vault.withdraw(amount, ALICE, ALICE);
-    vm.stopPrank();
+    do_payback(borrowAmount, vault, ALICE);
+    do_withdraw(amount, vault, ALICE);
 
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+    assertEq(vault.balanceOf(ALICE), 0);
+  }
+
+  function test_burnDebtThenWithdraw(uint96 amount, uint96 borrowAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(
+      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
+    );
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    uint256 debtShares = vault.balanceOfDebtShares(ALICE);
+
+    do_burnDebt(debtShares, vault, ALICE);
+    do_withdraw(amount, vault, ALICE);
+
+    assertEq(vault.balanceOfDebt(ALICE), 0);
     assertEq(vault.balanceOf(ALICE), 0);
   }
 
@@ -219,50 +249,20 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_setMinAmount(uint256 min) public {
+    vm.prank(chief.timelock());
     vm.expectEmit(true, false, false, false);
     emit MinAmountChanged(min);
-    bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, min);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
+    vault.setMinAmount(min);
   }
 
   function test_tryLessThanMinAmount(uint128 min, uint128 amount) public {
-    vm.assume(amount < min);
+    vm.assume(min > 0 && amount > 0 && amount < min);
     bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, min);
     _callWithTimelock(address(vault), encodedWithSelectorData);
 
     vm.expectRevert(BaseVault.BaseVault__deposit_lessThanMin.selector);
     vm.prank(ALICE);
     vault.deposit(amount, ALICE);
-  }
-
-  function test_setMaxCap(uint256 maxCap) public {
-    uint256 minAmount = vault.minAmount();
-    vm.assume(maxCap > minAmount);
-    vm.expectEmit(true, false, false, false);
-    emit DepositCapChanged(maxCap);
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
-  }
-
-  function test_tryMaxCap(uint256 maxCap, uint96 depositAlice, uint96 depositBob) public {
-    uint256 minAmount = vault.minAmount();
-    vm.assume(
-      maxCap > minAmount && depositAlice > minAmount && depositBob > minAmount
-        && _utils_add(depositBob, depositAlice) > maxCap && depositAlice < maxCap
-    );
-    bytes memory encodedWithSelectorData =
-      abi.encodeWithSelector(vault.setDepositCap.selector, maxCap);
-    _callWithTimelock(address(vault), encodedWithSelectorData);
-
-    vm.prank(address(timelock));
-    vault.setDepositCap(maxCap);
-
-    do_deposit(depositAlice, vault, ALICE);
-
-    vm.expectRevert(BaseVault.BaseVault__deposit_moreThanMax.selector);
-    vm.prank(BOB);
-    vault.deposit(depositBob, BOB);
   }
 
   function test_getHealthFactor(uint40 amount, uint40 borrowAmount) public {

@@ -42,6 +42,14 @@ interface IVault is IERC4626 {
   event Payback(address indexed sender, address indexed owner, uint256 debt, uint256 shares);
 
   /**
+   * @dev Emit when the vault is initialized
+   *
+   * @param initializer of this vault
+   *
+   */
+  event VaultInitialized(address initializer);
+
+  /**
    * @dev Emit when the oracle address is changed.
    *
    * @param newOracle the new oracle address
@@ -204,7 +212,7 @@ interface IVault is IERC4626 {
 
   /**
    * @notice Returns the maximum amount of the debt asset that can be borrowed for the `owner`,
-   * through a borrow call. Based on {IERC4626-maxDeposit}.
+   * through a borrow call.
    *
    * @param owner to check
    *
@@ -213,7 +221,79 @@ interface IVault is IERC4626 {
    * - Must return 2 ** 256 - 1 if there is no limit on the maximum amount of assets that may be borrowed.
    * - Must not revert.
    */
-  function maxBorrow(address owner) external view returns (uint256);
+  function maxBorrow(address owner) external view returns (uint256 debt);
+
+  /**
+   * @notice Returns the maximum amount of debt that can be payback by the `borrower`.
+   *
+   * @param owner to check
+   *
+   * @dev Requirements:
+   * - Must not revert.
+   */
+  function maxPayback(address owner) external view returns (uint256 debt);
+
+  /**
+   * @notice Returns the maximum amount of debt shares that can be "minted-for-borrowing" by the `borrower`.
+   *
+   * @param owner to check
+   *
+   * @dev Requirements:
+   * - Must not revert.
+   */
+  function maxMintDebt(address owner) external view returns (uint256 shares);
+
+  /**
+   * @notice Returns the maximum amount of debt shares that can be "burned-for-payback" by the `borrower`.
+   *
+   * @param owner to check
+   *
+   * @dev Requirements:
+   * - Must not revert.
+   */
+  function maxBurnDebt(address owner) external view returns (uint256 shares);
+
+  /**
+   * @notice Returns the amount of `debtShares` that borrowing `debt` amount will generate.
+   *
+   * @param debt amount to check
+   *
+   * @dev Requirements:
+   * - Must not revert.
+   */
+  function previewBorrow(uint256 debt) external view returns (uint256 shares);
+
+  /**
+   * @notice Returns the amount of debt that borrowing `debtShares` amount will generate.
+   *
+   * @param shares of debt to check
+   *
+   * @dev Requirements:
+   * - Must not revert.
+   */
+  function previewMintDebt(uint256 shares) external view returns (uint256 debt);
+
+  /**
+   * @notice Returns the amount of `debtShares` that will be burned by paying back
+   * `debt` amount.
+   *
+   * @param debt to check
+   *
+   * @dev Requirements:
+   * - Must not revert.
+   */
+  function previewPayback(uint256 debt) external view returns (uint256 shares);
+
+  /**
+   * @notice Returns the amount of debt asset that will be pulled from user, if `debtShares` are
+   * burned to payback.
+   *
+   * @param debt to check
+   *
+   * @dev Requirements:
+   * - Must not revert.
+   */
+  function previewBurnDebt(uint256 shares) external view returns (uint256 debt);
 
   /**
    * @notice Perform a borrow action. Function inspired on {IERC4626-deposit}.
@@ -228,7 +308,28 @@ interface IVault is IERC4626 {
    * - Must revert if owner does not own sufficient collateral to back debt.
    * - Must revert if caller is not owner or permissioned operator to act on owner behalf.
    */
-  function borrow(uint256 debt, address receiver, address owner) external returns (uint256);
+  function borrow(uint256 debt, address receiver, address owner) external returns (uint256 shares);
+
+  /**
+   * @notice Perform a borrow action by minting `debtShares`.
+   *
+   * @param shares of debt to mint
+   * @param receiver of the borrowed amount
+   * @param owner who will incur the `debt` and whom `debtShares` will be accounted
+   *
+   * * @dev Mints `debtShares` to `owner`.
+   * Requirements:
+   * - Must emit the Borrow event.
+   * - Must revert if owner does not own sufficient collateral to back debt.
+   * - Must revert if caller is not owner or permissioned operator to act on owner behalf.
+   */
+  function mintDebt(
+    uint256 shares,
+    address receiver,
+    address owner
+  )
+    external
+    returns (uint256 debt);
 
   /**
    * @notice Burns `debtShares` to `receiver` by paying back loan with exact amount of underlying tokens.
@@ -236,11 +337,23 @@ interface IVault is IERC4626 {
    * @param debt amount to payback
    * @param receiver to whom debt amount is being paid back
    *
-   * @dev Implementations will require pre-erc20-approval of the underlying asset token.
+   * @dev Implementations will require pre-erc20-approval of the underlying debt token.
    * Requirements:
    * - Must emit a Payback event.
    */
-  function payback(uint256 debt, address receiver) external returns (uint256);
+  function payback(uint256 debt, address receiver) external returns (uint256 shares);
+
+  /**
+   * @notice Burns `debtShares` to `owner` by paying back loan by specifying debt shares.
+   *
+   * @param shares of debt to payback
+   * @param owner to whom debt amount is being paid back
+   *
+   * @dev Implementations will require pre-erc20-approval of the underlying debt token.
+   * Requirements:
+   * - Must emit a Payback event.
+   */
+  function burnDebt(uint256 shares, address owner) external returns (uint256 debt);
 
   /*///////////////////
     General functions
@@ -368,14 +481,4 @@ interface IVault is IERC4626 {
    * @param amount to be as minimum.
    */
   function setMinAmount(uint256 amount) external;
-
-  /**
-   * @notice Sets the deposit cap amount of this vault.
-   *
-   * @param newCap amount to be set
-   *
-   * @dev Requirements:
-   * - Must be greater than zero.
-   */
-  function setDepositCap(uint256 newCap) external;
 }

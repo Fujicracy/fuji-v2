@@ -117,22 +117,12 @@ type BorrowActions = {
     updateVault: boolean,
     currency?: Currency
   ) => void;
-  changeAssetCurrency: (type: AssetType, currency: Currency) => void;
+  changeAssetCurrency: (
+    type: AssetType,
+    currency: Currency,
+    updateVault: boolean
+  ) => void;
   changeAssetValue: (type: AssetType, value: string) => void;
-  changeDebtChain: (
-    chainId: ChainId,
-    updateVault: boolean,
-    currency?: Currency
-  ) => void; // Convenience
-  changeDebtCurrency: (currency: Currency) => void; // Convenience
-  changeDebtValue: (val: string) => void; // Convenience
-  changeCollateralChain: (
-    chainId: ChainId,
-    updateVault: boolean,
-    currency?: Currency
-  ) => void; // Convenience
-  changeCollateralCurrency: (currency: Currency) => void; // Convenience
-  changeCollateralValue: (val: string) => void; // Convenience
   changeActiveVault: (v: VaultWithFinancials) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
   changeSlippageValue: (slippage: number) => void;
@@ -293,8 +283,8 @@ export const useBorrow = create<BorrowStore>()(
 
         async changeInputValues(collateral, debt) {
           await Promise.all([
-            get().changeCollateralValue(collateral),
-            get().changeDebtValue(debt),
+            get().changeAssetValue(AssetType.Collateral, collateral),
+            get().changeAssetValue(AssetType.Debt, debt),
           ]);
         },
 
@@ -350,7 +340,7 @@ export const useBorrow = create<BorrowStore>()(
           get().updateAllowance(type);
         },
 
-        changeAssetCurrency(type, currency) {
+        changeAssetCurrency(type, currency, updateVault) {
           set(
             produce((state: BorrowState) => {
               if (type === AssetType.Collateral) {
@@ -361,7 +351,9 @@ export const useBorrow = create<BorrowStore>()(
             })
           );
           get().updateCurrencyPrice(type);
-          get().updateVault();
+          if (updateVault) {
+            get().updateVault();
+          }
           get().updateAllowance(type);
         },
 
@@ -378,40 +370,6 @@ export const useBorrow = create<BorrowStore>()(
           get().updateTransactionMetaDebounced();
           get().updateLtv();
           get().updateLiquidation();
-        },
-
-        changeCollateralChain(chainId, updateVault, currency) {
-          get().changeAssetChain(
-            AssetType.Collateral,
-            chainId,
-            updateVault,
-            currency
-          );
-        },
-
-        changeCollateralCurrency(currency) {
-          get().changeAssetCurrency(AssetType.Collateral, currency);
-        },
-
-        changeCollateralValue(value) {
-          get().changeAssetValue(AssetType.Collateral, value);
-        },
-
-        changeDebtChain(chainId, updateVault, currency) {
-          get().changeAssetChain(
-            AssetType.Debt,
-            chainId,
-            updateVault,
-            currency
-          );
-        },
-
-        changeDebtCurrency(currency) {
-          get().changeAssetCurrency(AssetType.Debt, currency);
-        },
-
-        changeDebtValue(value) {
-          get().changeAssetValue(AssetType.Debt, value);
         },
 
         changeSlippageValue(slippage) {

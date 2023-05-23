@@ -29,13 +29,14 @@ import Header from '../Shared/Header/Header';
 import Overview from './Overview/Overview';
 
 type BorrowWrapperProps = {
+  formType: FormType;
   query?: {
     address: string;
     chain: string;
   };
 };
 
-function BorrowWrapper({ query }: BorrowWrapperProps) {
+function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const { breakpoints, palette } = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
@@ -46,7 +47,6 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   const baseDebt = useBorrow((state) => state.debt);
   const baseLtv = useBorrow((state) => state.ltv);
   const mode = useBorrow((state) => state.mode);
-  const formType = useBorrow((state) => state.formType);
 
   const isEditing = formType !== FormType.Create;
 
@@ -166,7 +166,7 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
             direction="column"
             alignItems="center"
             justifyContent="center"
-            style={{ minHeight: '100vh' }}
+            style={{ minHeight: '75vh' }}
           >
             <CircularProgress size={32} />
           </Grid>

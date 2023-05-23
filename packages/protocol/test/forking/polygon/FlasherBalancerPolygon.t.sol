@@ -15,7 +15,7 @@ import {IFlashLoanRecipient} from "../../../src/interfaces/balancer/IFlashLoanRe
 import {WePiggyPolygon} from "../../../src/providers/polygon/WePiggyPolygon.sol";
 import {DForcePolygon} from "../../../src/providers/polygon/DForcePolygon.sol";
 
-contract FlasherBalancerPolygonForkingTest is Routines, ForkingSetup, IFlashLoanRecipient {
+contract FlasherBalancerPolygonForkingTests is Routines, ForkingSetup, IFlashLoanRecipient {
   ILendingProvider public dForce;
   ILendingProvider public wePiggy;
 

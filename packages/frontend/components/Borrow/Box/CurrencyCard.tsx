@@ -33,6 +33,7 @@ import {
   withdrawMaxAmount,
 } from '../../../helpers/assets';
 import {
+  isNativeAndWrappedPair,
   isNativeOrWrapped,
   nativeAndWrappedPair,
 } from '../../../helpers/currencies';
@@ -56,7 +57,7 @@ type SelectCurrencyCardProps = {
   value: string;
   showMax: boolean;
   maxAmount: number;
-  onCurrencyChange: (currency: Currency) => void;
+  onCurrencyChange: (currency: Currency, updateVault: boolean) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta | undefined;
   basePosition: BasePosition | undefined;
@@ -137,7 +138,7 @@ function CurrencyCard({
     let maxCollateralAmount = maxAmount;
     if (
       actionType === ActionType.REMOVE &&
-      type === 'collateral' &&
+      type === AssetType.Collateral &&
       basePosition &&
       debt
     ) {
@@ -198,7 +199,14 @@ function CurrencyCard({
   };
 
   const handleCurrencyChange = (currency: Currency) => {
-    onCurrencyChange(currency);
+    if (!debt) return;
+    const updateVault =
+      !isEditing &&
+      !isNativeAndWrappedPair(
+        currency,
+        type === AssetType.Collateral ? collateral.currency : debt.currency
+      );
+    onCurrencyChange(currency, updateVault);
     close();
   };
 
