@@ -9,7 +9,7 @@ export const URLS = {
   // DefiLlama
   DEFILLAMA_LEND_BORROW: 'https://yields.llama.fi/lendBorrow',
   DEFILLAMA_POOLS: 'https://yields.llama.fi/pools',
-  DEFILLAMA_CHART: 'https://yields.llama.fi/chart',
+  DEFILLAMA_CHART: 'https://yields.llama.fi/chartLendBorrow',
 };
 
 export const CONNEXT_URL = (chain: string, transfer: string): string =>
