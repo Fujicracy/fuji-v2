@@ -78,6 +78,7 @@ function BorrowBox({
         value={chainId}
         disabled={isExecuting}
         onChange={(chainId) => {
+          console.log(chainId);
           if (!assetChange) return;
           type === AssetType.Collateral
             ? changeCollateralChain(chainId, !isEditing, assetChange.currency)

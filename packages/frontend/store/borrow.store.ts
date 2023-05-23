@@ -299,6 +299,7 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         changeAssetChain(type, chainId, updateVault, currency) {
+          console.log('changeAssetChain', type, chainId, updateVault, currency);
           if (!isSupported(chainId)) return;
 
           const currencies =

@@ -114,6 +114,8 @@ function CurrencyCard({
 
   const isOpen = Boolean(anchorEl);
   const open = (event: MouseEvent<HTMLElement>) => {
+    // TODO: borrow-refactor -how do we deal with this? no tokens until selecting a chain
+    if (currencyList.length === 0) return;
     setAnchorEl(event.currentTarget);
   };
   const close = () => setAnchorEl(null);
@@ -237,7 +239,7 @@ function CurrencyCard({
           placeholder="0"
           inputRef={handleRef}
           value={value}
-          disabled={isExecuting}
+          disabled={isExecuting || (type === AssetType.Debt && !debt)}
           onChange={(e) => handleInput(e.target.value)}
           variant="standard"
           InputProps={{
@@ -252,14 +254,13 @@ function CurrencyCard({
             },
           }}
         />
-        {/* TODO: borrow-refactor */}
         {currency && (
           <ButtonBase
             id={`select-${type}-button`}
             disabled={isExecuting || (disabled && !shouldShowNativeWrappedPair)}
             onClick={open}
           >
-            {disabled && !shouldShowNativeWrappedPair ? (
+            {disabled && !shouldShowNativeWrappedPair && currency ? (
               <>
                 <CurrencyIcon currency={currency} height={24} width={24} />
                 <Typography ml={1} variant="h6">
@@ -339,7 +340,7 @@ function CurrencyCard({
               ~{usdValue}
             </Typography>
 
-            {debt && Number(recommended()) > 0 && (
+            {Number(recommended()) > 0 && (
               <Typography
                 variant="smallDark"
                 sx={{
@@ -362,7 +363,7 @@ function CurrencyCard({
                     cursor: 'pointer',
                   }}
                 >
-                  {toNotSoFixed(recommended(), true)} {debt.currency.symbol}
+                  {toNotSoFixed(recommended(), true)} {debt?.currency.symbol}
                 </Typography>
               </Typography>
             )}
@@ -374,7 +375,7 @@ function CurrencyCard({
 }
 
 type CurrencyItem = {
-  currency: Currency;
+  currency?: Currency;
   balance?: number;
   prepend?: ReactElement;
   sx?: SxProps<Theme>;
@@ -387,6 +388,15 @@ const CurrencyItem = ({
   sx,
   onClick,
 }: CurrencyItem) => {
+  if (!currency) {
+    return (
+      <>
+        <Typography variant="smallDark">Select a token</Typography>
+        {prepend}
+      </>
+    );
+  }
+
   return (
     <MenuItem
       data-cy="currency-select"
