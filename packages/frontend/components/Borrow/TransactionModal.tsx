@@ -54,7 +54,7 @@ function TransactionModal({
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const activeChainId = useAuth((state) => parseInt(state.chain?.id || ''));
+  const activeChainId = useAuth((state) => state.chainId);
 
   const closeModal = useHistory((state) => state.closeModal);
 
@@ -321,7 +321,7 @@ function TransactionModal({
             >
               View Position
             </Button>
-            {action?.token?.chainId === activeChainId && (
+            {action?.token && action?.token?.chainId === activeChainId && (
               <Box textAlign="center">
                 <AddTokenButton token={action.token} />
               </Box>

@@ -10,7 +10,7 @@ import {
 import { formatUnits } from 'ethers/lib/utils';
 
 import { sdk } from '../services/sdk';
-import { FetchStatus } from '../store/borrow.store';
+import { FetchStatus } from './assets';
 import { chainName, transactionUrl } from './chains';
 import { stringifyError } from './errors';
 import {

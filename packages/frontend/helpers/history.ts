@@ -6,6 +6,7 @@ import {
 } from '@x-fuji/sdk';
 
 import { useBorrow } from '../store/borrow.store';
+import { AssetType } from './assets';
 import { updateNativeBalance } from './balances';
 
 export type HistoryTransaction = {
@@ -28,6 +29,7 @@ export type SerializableToken = {
   decimals: number;
   symbol: string;
   name?: string;
+  isNative: boolean;
 };
 
 export type HistoryEntryChain = {
@@ -87,6 +89,7 @@ export const toHistoryRoutingStep = (
             decimals: s.token.decimals,
             symbol: s.token.symbol,
             name: s.token.name,
+            isNative: s.token.isNative,
           }
         : undefined,
     };
@@ -111,15 +114,15 @@ export const triggerUpdatesFromSteps = (steps: HistoryRoutingStep[]) => {
     steps.find((s) => s.step === RoutingStep.BORROW) || hasPaybackStep;
 
   if (hasCollateralStep) {
-    useBorrow.getState().updateBalances('collateral');
+    useBorrow.getState().updateBalances(AssetType.Collateral);
   }
   if (hasDebtStep) {
-    useBorrow.getState().updateBalances('debt');
+    useBorrow.getState().updateBalances(AssetType.Debt);
   }
   if (hasDepositStep) {
-    useBorrow.getState().updateAllowance('collateral');
+    useBorrow.getState().updateAllowance(AssetType.Collateral);
   } else if (hasPaybackStep) {
-    useBorrow.getState().updateAllowance('debt');
+    useBorrow.getState().updateAllowance(AssetType.Debt);
   }
   updateNativeBalance();
 };

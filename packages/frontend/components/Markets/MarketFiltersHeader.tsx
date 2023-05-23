@@ -5,7 +5,7 @@ import Image from 'next/image';
 import React, { ReactNode, useMemo } from 'react';
 
 import { chains } from '../../helpers/chains';
-import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
+import { TooltipWrapper } from '../Shared/Tooltips';
 
 export type MarketFilters = {
   searchQuery: string;

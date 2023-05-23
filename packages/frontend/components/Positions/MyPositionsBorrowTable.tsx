@@ -24,9 +24,11 @@ import {
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
-import { NetworkIcon, TokenIcon } from '../Shared/Icons';
+import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
-import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import IntegratedProviders from '../Shared/Table/IntegratedProviders';
+import SafetyRating from '../Shared/Table/SafetyRating';
+import { InfoTooltip, RebalanceTooltip } from '../Shared/Tooltips';
 import EmptyState from './EmptyState';
 import LiquidationBox from './LiquidationBox';
 
@@ -59,7 +61,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     return (
       <MyPositionsBorrowTableContainer>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(7).fill('').map((_, index) => (
+          {new Array(8).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
@@ -71,7 +73,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
 
   function handleClick(row: PositionRow) {
     const entity = vaultFromAddress(row.address);
-    showPosition(router, String(entity?.chainId), entity);
+    showPosition(router, entity?.chainId, entity);
   }
 
   return (
@@ -102,7 +104,11 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
               </TableCell>
               <TableCell>
                 <Stack direction="row" alignItems="center">
-                  <TokenIcon token={row.debt.symbol} width={24} height={24} />
+                  <CurrencyIcon
+                    currency={row.debt.symbol}
+                    width={24}
+                    height={24}
+                  />
                   <Typography variant="small" fontWeight={500} ml="0.5rem">
                     {formatValue(row.debt.amount)} {row.debt.symbol}
                   </Typography>
@@ -118,8 +124,8 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
               </TableCell>
               <TableCell>
                 <Stack direction="row" alignItems="center">
-                  <TokenIcon
-                    token={row.collateral.symbol}
+                  <CurrencyIcon
+                    currency={row.collateral.symbol}
                     width={24}
                     height={24}
                   />
@@ -140,6 +146,17 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                 <Typography variant="small" color={palette.warning.main}>
                   {row.apr}%
                 </Typography>
+              </TableCell>
+              <TableCell align="right">
+                <IntegratedProviders
+                  providers={{
+                    status: 0,
+                    value: row.activeProvidersNames || [],
+                  }}
+                />
+              </TableCell>
+              <TableCell align="center">
+                <SafetyRating rating={row.safetyRating} />
               </TableCell>
               <TableCell align="center">
                 {formatValue(row.oraclePrice, {
@@ -178,6 +195,23 @@ function MyPositionsBorrowTableHeader() {
         <TableCell>Borrow Amount</TableCell>
         <TableCell>Collateral Amount</TableCell>
         <TableCell align="center">Borrow APR</TableCell>
+        <TableCell align="right">
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            <RebalanceTooltip />
+            Protocols
+          </Stack>
+        </TableCell>
+        <TableCell align="right">
+          <Stack direction="row" alignItems="center" justifyContent="right">
+            <InfoTooltip
+              title={
+                'We are in the process of developing a general risk framework that will consider various factors in the different money markets and will provide a comprehensive safety score for each Fuji vault.'
+              }
+              isLeft
+            />
+            Rating
+          </Stack>
+        </TableCell>
         <TableCell align="center">Oracle price</TableCell>
         <TableCell align="right">
           <Stack direction="row" alignItems="center" justifyContent="right">

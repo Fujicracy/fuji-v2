@@ -1,20 +1,21 @@
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Button } from '@mui/material';
-import { ConnectedChain } from '@web3-onboard/core';
-import { ChainId } from '@x-fuji/sdk';
+import { ChainId, RoutingStep } from '@x-fuji/sdk';
 import React from 'react';
 
 import { MINIMUM_DEBT_AMOUNT } from '../../constants';
 import {
+  AllowanceStatus,
   AssetChange,
   AssetType,
+  FetchStatus,
   LtvMeta,
   Mode,
   needsAllowance,
 } from '../../helpers/assets';
-import { chainName, hexToChainId } from '../../helpers/chains';
+import { chainName } from '../../helpers/chains';
+import { isBridgeable } from '../../helpers/currencies';
 import { TransactionMeta } from '../../helpers/transactions';
-import { FetchStatus } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 
 type BorrowButtonProps = {
@@ -22,7 +23,7 @@ type BorrowButtonProps = {
   collateral: AssetChange;
   debt: AssetChange;
   position: Position;
-  walletChain: ConnectedChain | undefined;
+  walletChainId: ChainId | undefined;
   ltvMeta: LtvMeta;
   metaStatus: FetchStatus;
   needsSignature: boolean;
@@ -46,7 +47,7 @@ function BorrowButton({
   collateral,
   debt,
   position,
-  walletChain,
+  walletChainId,
   ltvMeta,
   metaStatus,
   needsSignature,
@@ -66,8 +67,8 @@ function BorrowButton({
 }: BorrowButtonProps) {
   const collateralAmount = parseFloat(collateral.input);
   const debtAmount = parseFloat(debt.input);
-  const collateralBalance = collateral.balances[collateral.token.symbol];
-  const debtBalance = debt.balances[debt.token.symbol];
+  const collateralBalance = collateral.balances[collateral.currency.symbol];
+  const debtBalance = debt.balances[debt.currency.symbol];
 
   const executionStep = needsSignature ? 2 : 1;
   const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
@@ -85,8 +86,9 @@ function BorrowButton({
   }`;
 
   const loadingButtonTitle =
-    (collateral.allowance.status === 'allowing' && 'Approving...') ||
-    (debt.allowance.status === 'allowing' && 'Approving...') ||
+    (collateral.allowance.status === AllowanceStatus.Approving &&
+      'Approving...') ||
+    (debt.allowance.status === AllowanceStatus.Approving && 'Approving...') ||
     (isSigning && '(1/2) Signing...') ||
     (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
     actionTitle;
@@ -135,32 +137,32 @@ function BorrowButton({
   );
 
   const firstStep = transactionMeta.steps[0];
+  const bridgeStep = transactionMeta.steps.find(
+    (s) => s.step === RoutingStep.X_TRANSFER
+  );
   if (!address) {
     return regularButton('Connect wallet', onLoginClick, 'borrow-login');
   } else if (
-    collateral.allowance.status === 'allowing' ||
-    debt.allowance.status === 'allowing'
+    collateral.allowance.status === AllowanceStatus.Approving ||
+    debt.allowance.status === AllowanceStatus.Approving
   ) {
     return loadingButton(false, true);
-  } else if (availableVaultStatus === 'error') {
+  } else if (availableVaultStatus === FetchStatus.Error) {
     return disabledButton('Unsupported pair');
-  } else if (
-    collateral.token.chainId !== collateral.chainId &&
-    collateral.token.symbol === 'MaticX'
-  ) {
-    return disabledButton('MaticX: not supported cross-chain');
+  } else if (bridgeStep?.token && !isBridgeable(bridgeStep.token)) {
+    return disabledButton(
+      `${bridgeStep.token.symbol}: not supported cross-chain`
+    );
   } else if (
     !isEditing &&
     hasBalanceInVault &&
-    transactionMeta.status === 'ready'
+    availableVaultStatus === FetchStatus.Ready &&
+    transactionMeta.status === FetchStatus.Ready
   ) {
     return regularButton('Manage position', () => {
       onRedirectClick(false);
     });
-  } else if (
-    firstStep &&
-    firstStep?.chainId !== hexToChainId(walletChain?.id)
-  ) {
+  } else if (firstStep && firstStep?.chainId !== walletChainId) {
     return regularButton(
       `Switch to ${chainName(firstStep?.chainId)} Network`,
       () => onChainChangeClick(firstStep?.chainId)
@@ -176,13 +178,13 @@ function BorrowButton({
     collateralAmount > 0 &&
     collateralAmount > collateralBalance
   ) {
-    return disabledButton(`Insufficient ${collateral.token.symbol} balance`);
+    return disabledButton(`Insufficient ${collateral.currency.symbol} balance`);
   } else if (
     (mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     debtAmount > 0 &&
     debtAmount > debtBalance
   ) {
-    return disabledButton(`Insufficient ${debt.token.symbol} balance`);
+    return disabledButton(`Insufficient ${debt.currency.symbol} balance`);
   } else if (ltvMeta.ltv > ltvMeta.ltvMax) {
     return disabledButton('Not enough collateral');
   } else if (
@@ -201,14 +203,16 @@ function BorrowButton({
     collateralAmount > position.collateral.amount
   ) {
     return disabledButton('Withdraw more than allowed');
-  } else if (needsAllowance(mode, 'collateral', collateral, collateralAmount)) {
-    return regularButton('Approve', () => onApproveClick('collateral'));
-  } else if (needsAllowance(mode, 'debt', debt, debtAmount)) {
-    return regularButton('Approve', () => onApproveClick('debt'));
+  } else if (
+    needsAllowance(mode, AssetType.Collateral, collateral, collateralAmount)
+  ) {
+    return regularButton('Approve', () => onApproveClick(AssetType.Collateral));
+  } else if (needsAllowance(mode, AssetType.Debt, debt, debtAmount)) {
+    return regularButton('Approve', () => onApproveClick(AssetType.Debt));
   } else {
     return loadingButton(
       !(
-        (metaStatus === 'ready' &&
+        (metaStatus === FetchStatus.Ready &&
           (mode === Mode.DEPOSIT_AND_BORROW ||
             mode === Mode.PAYBACK_AND_WITHDRAW) &&
           collateralAmount > 0 &&
@@ -217,7 +221,7 @@ function BorrowButton({
           collateralAmount > 0) ||
         ((mode === Mode.BORROW || mode === Mode.PAYBACK) && debtAmount > 0)
       ),
-      isSigning || isExecuting || availableVaultStatus === 'fetching'
+      isSigning || isExecuting || availableVaultStatus === FetchStatus.Loading
     );
   }
 }
