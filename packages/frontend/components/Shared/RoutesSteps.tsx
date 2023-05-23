@@ -70,21 +70,6 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
     }
   }
 
-  function stepIcon({ step, chainId }: RoutingStepDetails) {
-    if (step === RoutingStep.X_TRANSFER) {
-      return (
-        <Image
-          src="/assets/images/logo/connext.svg"
-          height={16}
-          width={16}
-          alt="Connext icon"
-        />
-      );
-    }
-
-    return <NetworkIcon network={chainName(chainId)} height={16} width={16} />;
-  }
-
   return (
     <>
       {stepsToShow.map((step, index) => {
@@ -148,6 +133,21 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
       })}
     </>
   );
+}
+
+export function stepIcon({ step, chainId }: RoutingStepDetails) {
+  if (step === RoutingStep.X_TRANSFER) {
+    return (
+      <Image
+        src="/assets/images/logo/connext.svg"
+        height={16}
+        width={16}
+        alt="Connext icon"
+      />
+    );
+  }
+
+  return <NetworkIcon network={chainName(chainId)} height={16} width={16} />;
 }
 
 export default RoutesSteps;

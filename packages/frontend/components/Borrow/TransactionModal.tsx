@@ -21,7 +21,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import { MouseEvent, useEffect, useState } from 'react';
+import React, { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
 import {
@@ -35,8 +35,8 @@ import { transactionSteps } from '../../helpers/transactions';
 import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
-import { NetworkIcon } from '../Shared/Icons';
 import LinkIcon from '../Shared/Icons/LinkIcon';
+import { stepIcon } from '../Shared/RoutesSteps';
 import WarningInfo from '../Shared/WarningInfo';
 
 type TransactionModalProps = {
@@ -209,36 +209,55 @@ function TransactionModal({
             {steps?.map((step) => {
               return (
                 <Stack
-                  key={step.label}
+                  key={step.label.text}
                   direction="row"
-                  alignItems="center"
+                  alignItems="start"
                   justifyContent="space-between"
                   gap={2}
                   mt={1}
                 >
-                  <Stack direction="row" alignItems="center">
-                    <NetworkIcon network={step.chain} height={18} width={18} />
+                  <Stack direction="row" alignItems="start">
+                    <Stack
+                      alignItems="center"
+                      justifyContent="center"
+                      width={20}
+                      height={20}
+                      sx={{ backgroundColor: '#47494C', borderRadius: '100px' }}
+                    >
+                      {stepIcon(step)}
+                    </Stack>
                     <Typography
                       variant="small"
                       sx={{
                         ml: '0.5rem',
                       }}
                     >
-                      {step.label}
-                      {step.txHash && step.link && (
-                        <Link
-                          href={step.link}
-                          target="_blank"
-                          variant="smallDark"
-                          fontSize="0.75rem"
-                          color={theme.palette.info.dark}
-                          sx={{
-                            ml: '0.25rem',
-                          }}
-                        >
-                          <LinkIcon />
-                        </Link>
-                      )}
+                      <Typography variant="xsmall">
+                        {step.label.text}
+                        {step.txHash && step.link && (
+                          <Link
+                            href={step.link}
+                            target="_blank"
+                            variant="smallDark"
+                            fontSize="0.75rem"
+                            color={theme.palette.info.dark}
+                            sx={{
+                              ml: '0.25rem',
+                            }}
+                          >
+                            <LinkIcon />
+                          </Link>
+                        )}
+                      </Typography>
+                      <Typography
+                        variant="xsmallDark"
+                        color={theme.palette.info.main}
+                        sx={{
+                          display: 'block',
+                        }}
+                      >
+                        {step.label.amount}
+                      </Typography>
                     </Typography>
                   </Stack>
                   <Box>

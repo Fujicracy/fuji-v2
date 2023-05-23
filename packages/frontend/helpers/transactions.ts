@@ -31,7 +31,8 @@ export type TransactionMeta = {
 };
 
 export type TransactionStep = {
-  label: string;
+  step: RoutingStep;
+  label: { text: string; amount: string };
   description: string;
   chainId: number;
   chain: string;
@@ -98,7 +99,9 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
 
     const link = txHash && transactionUrl(chainId, txHash);
 
-    const labelify = (step: HistoryRoutingStep): string => {
+    const labelify = (
+      step: HistoryRoutingStep
+    ): { text: string; amount: string } => {
       const amount =
         step.token &&
         toNotSoFixed(formatUnits(step.amount ?? 0, step.token.decimals), true);
@@ -116,19 +119,18 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
 
       const name = step.lendingProvider?.name;
 
-      const label = camelize(
-        `${action} ${amount} ${step.token?.symbol} ${name ? preposition : ''} ${
-          name ?? ''
-        }`
-      );
-      return label;
+      return {
+        text: camelize(`${action} ${name ? preposition : ''} ${name ?? ''}`),
+        amount: `${amount} ${step.token?.symbol}`,
+      };
     };
 
     let label = labelify(s);
 
     const s2 = array[1];
     if (s2) {
-      label += ` and ${labelify(s2)}`;
+      label.text += ` and ${labelify(s2).text}`;
+      label.amount += ` -> ${labelify(s2).amount}`;
     }
 
     const description = `${chain} Network`;
@@ -141,6 +143,7 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
       description,
       chain,
       chainId,
+      step: array[0].step,
     };
   });
 };
