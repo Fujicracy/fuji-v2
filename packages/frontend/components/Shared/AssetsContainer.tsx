@@ -46,7 +46,7 @@ function AssetBox({
   step: RoutingStepDetails;
   steps: RoutingStepDetails[];
 }) {
-  const chainId = [RoutingStep.BORROW, RoutingStep.PAYBACK].includes(step.step)
+  const chainId = [RoutingStep.BORROW, RoutingStep.WITHDRAW].includes(step.step)
     ? steps[steps.length - 1].chainId
     : step.chainId;
 
