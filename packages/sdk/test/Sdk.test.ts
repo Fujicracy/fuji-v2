@@ -222,6 +222,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -249,6 +250,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -266,6 +268,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -282,6 +285,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -298,6 +302,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -315,6 +320,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
