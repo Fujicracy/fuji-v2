@@ -1,4 +1,9 @@
-import { ChainId, ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
+import {
+  ChainId,
+  ConnextTxStatus,
+  FujiError,
+  RoutingStepDetails,
+} from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -11,6 +16,7 @@ import {
 } from '../constants';
 import { chainName } from '../helpers/chains';
 import {
+  chainCompleted,
   HistoryEntry,
   HistoryEntryStatus,
   HistoryTransaction,
@@ -29,6 +35,7 @@ import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { usePositions } from './positions.store';
+import { sendToSentry } from '../helpers/errors';
 
 export type HistoryStore = HistoryState & HistoryActions;
 
@@ -167,7 +174,8 @@ export const useHistory = create<HistoryStore>()(
             return;
           }
 
-          const finish = (success: boolean) => {
+          const finish = (error?: unknown) => {
+            const success = error === undefined;
             const address = useAuth.getState().address;
             if (address === entry.address) {
               triggerUpdatesFromSteps(entry.steps);
@@ -183,11 +191,26 @@ export const useHistory = create<HistoryStore>()(
                 const entry = s.entries[hash];
                 entry.status = status;
                 if (!success) {
-                  if (currentStep === 0) {
+                  entry.error =
+                    error instanceof FujiError
+                      ? error.info
+                        ? String(error.info.message)
+                        : error.message
+                      : error instanceof Error
+                      ? error.message
+                      : String(error);
+
+                  if (!chainCompleted(entry.sourceChain)) {
                     entry.sourceChain.status = HistoryEntryStatus.FAILURE;
-                  } else if (entry.secondChain && currentStep === 1) {
+                  } else if (
+                    entry.secondChain &&
+                    !chainCompleted(entry.secondChain)
+                  ) {
                     entry.secondChain.status = HistoryEntryStatus.FAILURE;
-                  } else if (entry.thirdChain && currentStep === 2) {
+                  } else if (
+                    entry.thirdChain &&
+                    !chainCompleted(entry.thirdChain)
+                  ) {
                     entry.thirdChain.status = HistoryEntryStatus.FAILURE;
                   }
                 }
@@ -278,6 +301,7 @@ export const useHistory = create<HistoryStore>()(
                   txHash
                 );
                 if (!crosschainResult.success) {
+                  sendToSentry(crosschainResult.error); // TODO: let's add smth to reconize it
                   throw crosschainResult.error;
                 }
                 if (crosschainResult.data.status === ConnextTxStatus.EXECUTED) {
@@ -349,7 +373,7 @@ export const useHistory = create<HistoryStore>()(
               })
             );
             if (entry.chainCount === 1 || !entry.secondChain) {
-              finish(true);
+              finish();
               return;
             }
 
@@ -369,7 +393,7 @@ export const useHistory = create<HistoryStore>()(
               );
             }
             if (!entry.thirdChain) {
-              finish(true);
+              finish();
               return;
             }
 
@@ -386,10 +410,10 @@ export const useHistory = create<HistoryStore>()(
             );
 
             await crossChainWatch(secondChain.chainId, secondChain.hash, false);
-            finish(true);
+            finish();
           } catch (e) {
             console.error(e);
-            finish(false);
+            finish(e);
           } finally {
             remove();
           }
