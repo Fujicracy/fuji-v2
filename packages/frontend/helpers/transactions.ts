@@ -16,7 +16,7 @@ import {
   HistoryEntry,
   HistoryEntryStatus,
   HistoryRoutingStep,
-  validSteps,
+  isValidStep,
 } from './history';
 import { BridgeFee } from './routing';
 import { camelize, toNotSoFixed } from './values';
@@ -60,21 +60,29 @@ export const watchTransaction = async (
 
 export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
   // group steps by chain flow: [[X_TRANSFER], [DEPOSIT, BORROW], [X_TRANSFER]]
-  const source = validSteps(entry.steps).reduce(
-    (acc: Array<Array<HistoryRoutingStep>>, currentValue) => {
-      if (currentValue.step !== RoutingStep.X_TRANSFER) {
-        const index = acc.findIndex(
-          (item) =>
-            item[0].chainId === currentValue.chainId &&
-            item[0].step !== RoutingStep.X_TRANSFER
-        );
-        if (index !== -1) {
-          acc[index].push(currentValue);
+
+  const source = entry.steps.reduce(
+    (acc: Array<Array<HistoryRoutingStep>>, currentValue, index) => {
+      if (isValidStep(currentValue)) {
+        if (currentValue.step !== RoutingStep.X_TRANSFER) {
+          const index = acc.findIndex(
+            (item) =>
+              item[0].chainId === currentValue.chainId &&
+              item[0].step !== RoutingStep.X_TRANSFER
+          );
+          if (index !== -1) {
+            acc[index].push(currentValue);
+          } else {
+            acc.push([currentValue]);
+          }
         } else {
-          acc.push([currentValue]);
+          acc.push([
+            {
+              ...currentValue,
+              destinationChainId: entry.steps[index + 1]?.token?.chainId,
+            },
+          ]);
         }
-      } else {
-        acc.push([currentValue]);
       }
       return acc;
     },
@@ -106,22 +114,30 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
         step.token &&
         toNotSoFixed(formatUnits(step.amount ?? 0, step.token.decimals), true);
       const action = step.step.toString();
-      const preposition =
-        step.step === RoutingStep.DEPOSIT
-          ? 'on'
-          : [
-              RoutingStep.X_TRANSFER,
-              RoutingStep.BORROW,
-              RoutingStep.PAYBACK,
-            ].includes(step.step)
-          ? 'to'
-          : 'from';
+      const withToPrepositions = [RoutingStep.DEPOSIT, RoutingStep.PAYBACK];
+      const preposition = withToPrepositions.includes(step.step)
+        ? 'to'
+        : 'from';
 
       const name = step.lendingProvider?.name;
 
+      const text =
+        step.step === RoutingStep.X_TRANSFER
+          ? `${camelize(step.step.toString())} from ${chainName(
+              step.chainId
+            )} to ${' '}
+        ${chainName(step.destinationChainId || step.token?.chainId)}`
+          : camelize(`${action} ${name ? preposition : ''} ${name ?? ''}`);
+
+      const singleAmount = `${amount} ${step.token?.symbol}`;
+      const amountLabel =
+        step.step === RoutingStep.X_TRANSFER
+          ? `${singleAmount} -> ${singleAmount}`
+          : singleAmount;
+
       return {
-        text: camelize(`${action} ${name ? preposition : ''} ${name ?? ''}`),
-        amount: `${amount} ${step.token?.symbol}`,
+        text,
+        amount: amountLabel,
       };
     };
 
