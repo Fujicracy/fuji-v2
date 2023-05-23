@@ -1,6 +1,6 @@
 import { Box, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
 import APYChart from '../../Shared/Charts/APYChart';
@@ -26,11 +26,25 @@ function AnalyticsTab() {
   const { palette } = useTheme();
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
+  const vault = useBorrow((state) => state.activeVault);
 
   const [selectedTab, setSelectedTab] = useState(ChartTab.BORROW);
   const [selectedPeriod, setSelectedPeriod] = useState(1);
   const [data, setData] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+
+  const token = collateral.currency.wrapped;
+
+  useEffect(() => {
+    if (vault) {
+      (async () => {
+        setLoading(true);
+        const data = await vault.getProvidersStatsFor(token);
+        console.log(data);
+        setLoading(false);
+      })();
+    }
+  }, [token, vault]);
 
   return (
     <>
