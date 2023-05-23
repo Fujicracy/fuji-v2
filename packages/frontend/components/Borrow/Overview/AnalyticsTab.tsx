@@ -1,5 +1,6 @@
 import { Box, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
@@ -100,7 +101,7 @@ function AnalyticsTab() {
             fontSize="0.875rem"
             lineHeight="1.4rem"
           >
-            {'Mar 15, 2023'}
+            {moment().format('MMM D, YYYY')}
           </Typography>
 
           <APYChart />
