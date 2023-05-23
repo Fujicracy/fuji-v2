@@ -2,6 +2,7 @@ import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { linearGradientDef } from '@nivo/core';
 import { LineSvgProps, ResponsiveLine } from '@nivo/line';
+import { AprResult } from '@x-fuji/sdk';
 import React from 'react';
 
 import APYChartTooltip from '../../Borrow/Analytics/APYChartTooltip';
@@ -53,8 +54,13 @@ const testData = [
   },
 ];
 
-function APYChart() {
+type APYChartProps = {
+  data: AprResult[];
+};
+
+function APYChart({ data }: APYChartProps) {
   const { palette } = useTheme();
+  console.log(data);
 
   const config: LineSvgProps = {
     data: testData,

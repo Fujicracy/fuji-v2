@@ -1,5 +1,6 @@
 import { Box, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { AprResult } from '@x-fuji/sdk';
 import moment from 'moment';
 import React, { useEffect, useState } from 'react';
 
@@ -18,7 +19,7 @@ enum ChartTab {
   DEPOSIT = 1,
 }
 
-const chartTabs = [
+const chartOptions = [
   { value: ChartTab.BORROW, label: 'Borrow APR' },
   { value: ChartTab.DEPOSIT, label: 'Deposits' },
 ];
@@ -31,8 +32,8 @@ function AnalyticsTab() {
 
   const [selectedTab, setSelectedTab] = useState(ChartTab.BORROW);
   const [selectedPeriod, setSelectedPeriod] = useState(1);
-  const [data, setData] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [data, setData] = useState<AprResult[] | undefined>(undefined);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const token = collateral.currency.wrapped;
 
@@ -40,12 +41,40 @@ function AnalyticsTab() {
     if (vault) {
       (async () => {
         setLoading(true);
-        const data = await vault.getProvidersStatsFor(token);
-        console.log(data);
+        const result = await vault.getProvidersStatsFor(token);
+        if (result.success) {
+          setData(result.data);
+        }
         setLoading(false);
       })();
     }
   }, [token, vault]);
+
+  const loadingSkeleton = (
+    <>
+      <Skeleton
+        sx={{
+          width: '3.5rem',
+          height: '3rem',
+          m: '-1rem 0',
+        }}
+      />
+      <Skeleton
+        sx={{
+          width: '5.5rem',
+          height: '3rem',
+          m: '-1rem 0',
+        }}
+      />
+      <Skeleton
+        sx={{
+          width: '100%',
+          height: '38rem',
+          m: '-8rem 0 -6rem 0',
+        }}
+      />
+    </>
+  );
 
   return (
     <>
@@ -53,7 +82,7 @@ function AnalyticsTab() {
 
       <Stack flexDirection="row" justifyContent="space-between">
         <TabSwitch
-          actions={chartTabs}
+          options={chartOptions}
           selected={selectedTab}
           onChange={setSelectedTab}
           width="13.6rem"
@@ -62,31 +91,8 @@ function AnalyticsTab() {
       </Stack>
 
       {loading ? (
-        <>
-          <Skeleton
-            sx={{
-              width: '3.5rem',
-              height: '3rem',
-              m: '-1rem 0',
-            }}
-          />
-          <Skeleton
-            sx={{
-              width: '5.5rem',
-              height: '3rem',
-              m: '-1rem 0',
-            }}
-          />
-
-          <Skeleton
-            sx={{
-              width: '100%',
-              height: '38rem',
-              m: '-8rem 0 -6rem 0',
-            }}
-          />
-        </>
-      ) : !data ? (
+        loadingSkeleton
+      ) : data ? (
         <>
           <Typography
             variant="body2"
@@ -104,53 +110,59 @@ function AnalyticsTab() {
             {moment().format('MMM D, YYYY')}
           </Typography>
 
-          <APYChart />
+          <APYChart data={data} />
         </>
       ) : (
         <EmptyChartState />
       )}
 
-      <Grid container spacing={2} mt="2rem">
-        <Grid item xs={12} sm={6} lg={3}>
-          <InfoBlock
-            tooltip="test"
-            label="Active Provider"
-            loading={loading}
-            value={
-              <Stack flexDirection="row" alignItems="center" gap="0.25rem">
-                <ProviderIcon provider={'test'} height={24} width={24} />
-                Aave
-              </Stack>
-            }
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <InfoBlock
-            loading={loading}
-            tooltip="test"
-            label="Borrow APR"
-            value={<Typography color={palette.warning.main}>2.55%</Typography>}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <InfoBlock
-            label="Total Borrow Amount"
-            value={'$820.1K'}
-            loading={loading}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} lg={3}>
-          <InfoBlock
-            label="Available Liquidity"
-            value={'$250.0K'}
-            loading={loading}
-          />
-        </Grid>
-      </Grid>
+      {data && (
+        <>
+          <Grid container spacing={2} mt="2rem">
+            <Grid item xs={12} sm={6} lg={3}>
+              <InfoBlock
+                tooltip="test"
+                label="Active Provider"
+                loading={loading}
+                value={
+                  <Stack flexDirection="row" alignItems="center" gap="0.25rem">
+                    <ProviderIcon provider={'test'} height={24} width={24} />
+                    Aave
+                  </Stack>
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <InfoBlock
+                loading={loading}
+                tooltip="test"
+                label="Borrow APR"
+                value={
+                  <Typography color={palette.warning.main}>2.55%</Typography>
+                }
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <InfoBlock
+                label="Total Borrow Amount"
+                value={'$820.1K'}
+                loading={loading}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} lg={3}>
+              <InfoBlock
+                label="Available Liquidity"
+                value={'$250.0K'}
+                loading={loading}
+              />
+            </Grid>
+          </Grid>
 
-      <Box sx={{ mt: '2.5rem' }}>
-        <PoolInfo />
-      </Box>
+          <Box sx={{ mt: '2.5rem' }}>
+            <PoolInfo />
+          </Box>
+        </>
+      )}
     </>
   );
 }

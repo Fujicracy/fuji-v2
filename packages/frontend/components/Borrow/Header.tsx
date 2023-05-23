@@ -1,5 +1,6 @@
 import { Box, Divider, Stack, Typography } from '@mui/material';
 
+import { TabOption } from '../../constants';
 import { ActionType } from '../../helpers/assets';
 import { wrappedSymbol } from '../../helpers/currencies';
 import { useBorrow } from '../../store/borrow.store';
@@ -15,6 +16,11 @@ type BorrowHeaderProps = {
   onActionTypeChange: (action: ActionType) => void;
   isCrossChainOperation: boolean;
 };
+
+const actionOptions: TabOption[] = [
+  { value: ActionType.ADD, label: 'Deposit / Borrow' },
+  { value: ActionType.REMOVE, label: 'Withdraw / Payback' },
+];
 
 function BorrowHeader({
   isEditing,
@@ -111,10 +117,7 @@ function BorrowHeader({
       {isEditing && (
         <TabSwitch
           size="large"
-          actions={[
-            { value: ActionType.ADD, label: 'Deposit / Borrow' },
-            { value: ActionType.REMOVE, label: 'Withdraw / Payback' },
-          ]}
+          options={actionOptions}
           selected={actionType}
           onChange={onActionTypeChange}
         />

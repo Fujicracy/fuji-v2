@@ -1,10 +1,11 @@
 import { Stack } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 
+import { TabOption } from '../../constants';
 import TabChip from '../Shared/TabChip';
 
 type TabSwitchProps = {
-  actions: { value: number; label: string }[];
+  options: TabOption[];
   selected: number;
   onChange: (value: number) => void;
   size?: 'large' | 'default';
@@ -12,7 +13,7 @@ type TabSwitchProps = {
 };
 
 function TabSwitch({
-  actions,
+  options,
   selected,
   onChange,
   size = 'default',
@@ -37,7 +38,7 @@ function TabSwitch({
         width,
       }}
     >
-      {actions.map((p) => (
+      {options.map((p) => (
         <TabChip
           key={`${p.label}`}
           selected={selected === p.value}
