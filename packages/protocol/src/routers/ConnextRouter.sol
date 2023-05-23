@@ -238,6 +238,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         beforeSlipped = amount;
         newArgs = abi.encode(vault, receivedAmount, receiver, sender);
       }
+    } else if (action == Action.WithdrawETH) {
+      // For WithdrawETH
+      (uint256 amount, address receiver) = abi.decode(args, (uint256, address));
+      if (amount != receivedAmount) {
+        beforeSlipped = amount;
+        newArgs = abi.encode(receivedAmount, receiver);
+      }
     }
   }
 
