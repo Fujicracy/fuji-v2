@@ -4,7 +4,6 @@ import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import React from 'react';
 
-import { AssetType } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { toNotSoFixed } from '../../helpers/values';
 import { CurrencyIcon, NetworkIcon } from './Icons';
@@ -15,6 +14,13 @@ const routingSteps = [
   RoutingStep.BORROW,
   RoutingStep.PAYBACK,
 ];
+
+const labels = {
+  [RoutingStep.DEPOSIT]: 'From',
+  [RoutingStep.WITHDRAW]: 'From',
+  [RoutingStep.BORROW]: 'Receive on',
+  [RoutingStep.PAYBACK]: 'From',
+};
 
 function AssetsContainer({ steps }: { steps: RoutingStepDetails[] }) {
   return (
@@ -43,11 +49,10 @@ function AssetBox({
   const chainId = [RoutingStep.BORROW, RoutingStep.PAYBACK].includes(step.step)
     ? steps[steps.length - 1].chainId
     : step.chainId;
-  const type = [RoutingStep.DEPOSIT, RoutingStep.WITHDRAW].includes(step.step)
-    ? AssetType.Collateral
-    : AssetType.Debt;
 
-  const label = type === AssetType.Collateral ? 'From' : 'Receive on';
+  const label = [RoutingStep.DEPOSIT, RoutingStep.PAYBACK].includes(step.step)
+    ? 'From'
+    : 'Receive on';
 
   return (
     <Stack
