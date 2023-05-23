@@ -4,15 +4,24 @@ import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
+import axios from 'axios';
 import { TypedDataDomain, TypedDataField, utils } from 'ethers';
 import invariant from 'tiny-invariant';
 
-import { CHAIN, CHIEF_ADDRESS, CONNEXT_ROUTER_ADDRESS } from '../constants';
+import {
+  CHAIN,
+  CHIEF_ADDRESS,
+  CONNEXT_ROUTER_ADDRESS,
+  FujiErrorCode,
+  URLS,
+} from '../constants';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import { ChainId, RouterAction } from '../enums';
 import {
+  AprStat,
   ChainConfig,
   ChainConnectionDetails,
+  FujiResultPromise,
   LendingProviderWithFinancials,
   PermitParams,
 } from '../types';
@@ -23,8 +32,14 @@ import {
   ILendingProvider__factory,
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
+import {
+  GetLlamaAssetPoolsResponse,
+  GetLlamaPoolStatsResponse,
+  LlamaAssetPool,
+} from '../types/LlamaResponses';
 import { Address } from './Address';
 import { Chain } from './Chain';
+import { FujiResultError, FujiResultSuccess } from './FujiError';
 import { Token } from './Token';
 
 type AccountBalances = {
@@ -152,6 +167,8 @@ export class BorrowingVault {
    */
   multicallRpcProvider?: IMulticallProvider;
 
+  private _configParams?: ChainConfig;
+
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
@@ -170,6 +187,8 @@ export class BorrowingVault {
    */
   setConnection(configParams: ChainConfig): BorrowingVault {
     if (this.rpcProvider) return this;
+
+    this._configParams = configParams;
 
     const connection = CHAIN[this.chainId].setConnection(configParams)
       .connection as ChainConnectionDetails;
@@ -319,6 +338,81 @@ export class BorrowingVault {
           borrowAprBase: rateToFloat(rates[i + splitIndex]),
         };
       });
+  }
+
+  /**
+   * Returns a historical data of deposit or borrow rates for all providers.
+   *
+   * @param token - the collateral or the debt token of the vault {@link Token}
+   */
+  async getProvidersStatsFor(
+    token: Token
+  ): FujiResultPromise<{ name: string; aprStats: AprStat[] }[]> {
+    if (token.equals(this.collateral) || token.equals(this.debt))
+      return new FujiResultError('Wrong token');
+
+    if (!this.allProviders) {
+      await this.preLoad();
+    }
+    if (!this.allProviders || !this._configParams)
+      return new FujiResultError('Connection not set');
+
+    const { defillamaproxy } = this._configParams;
+    const uri = {
+      pools: defillamaproxy ? defillamaproxy + 'pools' : URLS.DEFILLAMA_POOLS,
+      chart: defillamaproxy
+        ? defillamaproxy + 'chartLendBorrow'
+        : URLS.DEFILLAMA_CHART,
+    };
+    try {
+      const pools = await axios
+        .get<GetLlamaAssetPoolsResponse>(uri.pools)
+        .then(({ data }) => data.data);
+
+      const getPoolId = (providerAddr: string) => {
+        const provider = LENDING_PROVIDERS[this.chainId][providerAddr];
+
+        return pools.find(
+          (p: LlamaAssetPool) =>
+            p.chain === this.chain.llamaKey &&
+            p.project === provider.llamaKey &&
+            p.symbol === token.symbol
+        )?.pool;
+      };
+
+      const llamaResult = await Promise.all(
+        this.allProviders.map((addr) =>
+          axios
+            .get<GetLlamaPoolStatsResponse>(uri.chart + `/${getPoolId(addr)}`)
+            .then(({ data }) => data.data)
+        )
+      );
+
+      const data = this.allProviders.map((addr, i) => ({
+        name: LENDING_PROVIDERS[this.chainId][addr].name,
+        aprStats: llamaResult[i].map(
+          ({
+            timestamp,
+            apyBase,
+            apyReward,
+            apyBaseBorrow,
+            apyRewardBorrow,
+          }) => ({
+            timestamp,
+            aprBase: token.equals(this.debt) ? apyBaseBorrow : apyBase,
+            aprReward: token.equals(this.debt) ? apyRewardBorrow : apyReward,
+          })
+        ),
+      }));
+
+      return new FujiResultSuccess(data);
+    } catch (e) {
+      const message = axios.isAxiosError(e)
+        ? `DefiLlama API call failed with a message: ${e.message}`
+        : 'DefiLlama API call failed with an unexpected error!';
+      console.error(message);
+      return new FujiResultError(message, FujiErrorCode.LLAMA);
+    }
   }
 
   /**

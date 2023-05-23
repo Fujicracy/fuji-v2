@@ -1,3 +1,9 @@
+export type AprStat = {
+  timestamp: string;
+  aprBase: number;
+  aprReward: number;
+};
+
 export type LendingProviderBase = {
   name: string;
   llamaKey: string;
