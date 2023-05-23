@@ -1,0 +1,83 @@
+import { Stack, Typography } from '@mui/material';
+import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { BigNumber } from 'ethers';
+import { formatUnits } from 'ethers/lib/utils';
+import React from 'react';
+
+import { AssetType } from '../../helpers/assets';
+import { chainName } from '../../helpers/chains';
+import { toNotSoFixed } from '../../helpers/values';
+import { CurrencyIcon, NetworkIcon } from './Icons';
+
+const routingSteps = [
+  RoutingStep.DEPOSIT,
+  RoutingStep.WITHDRAW,
+  RoutingStep.BORROW,
+  RoutingStep.PAYBACK,
+];
+
+function AssetsContainer({ steps }: { steps: RoutingStepDetails[] }) {
+  return (
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      alignItems={{ xs: 'start', sm: 'center' }}
+      justifyContent="space-between"
+      width="100%"
+    >
+      {steps
+        .filter((step) => routingSteps.includes(step.step))
+        .map((step) => (
+          <AssetBox key={step.step} step={step} />
+        ))}
+    </Stack>
+  );
+}
+
+function AssetBox({ step }: { step: RoutingStepDetails }) {
+  const type = [RoutingStep.DEPOSIT, RoutingStep.WITHDRAW].includes(step.step)
+    ? AssetType.Collateral
+    : AssetType.Debt;
+
+  const label = type === AssetType.Collateral ? 'From' : 'Receive on';
+
+  return (
+    <Stack
+      width={{ xs: '100%', sm: '50%' }}
+      flexDirection="row"
+      alignItems="start"
+      justifyContent="start"
+      gap={0}
+      mb={2}
+    >
+      <CurrencyIcon currency={step.token || ''} height={32} width={32} />
+      <Stack
+        flexDirection="column"
+        alignItems="start"
+        justifyContent="start"
+        ml={1}
+        gap={0.75}
+      >
+        <Typography variant="h5">
+          {`${toNotSoFixed(
+            formatUnits(
+              step.amount ?? BigNumber.from('0'),
+              step.token?.decimals ?? 18
+            ),
+            true
+          )} ${step.token?.symbol}`}
+        </Typography>
+        <Stack flexDirection="row" alignItems="center">
+          <Typography variant="xsmallDark" mr={0.5}>
+            {label}
+          </Typography>
+          <NetworkIcon network={step.chainId} height={16} width={16} />
+          <Typography variant="xsmall" ml={0.5}>
+            {chainName(step.chainId)}
+          </Typography>
+        </Stack>
+      </Stack>
+    </Stack>
+  );
+}
+
+export default AssetsContainer;
