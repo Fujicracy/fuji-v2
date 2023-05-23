@@ -18,7 +18,7 @@ import {
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import { ChainId, RouterAction } from '../enums';
 import {
-  AprStat,
+  AprResult,
   ChainConfig,
   ChainConnectionDetails,
   FujiResultPromise,
@@ -345,9 +345,7 @@ export class BorrowingVault {
    *
    * @param token - the collateral or the debt token of the vault {@link Token}
    */
-  async getProvidersStatsFor(
-    token: Token
-  ): FujiResultPromise<{ name: string; aprStats: AprStat[] }[]> {
+  async getProvidersStatsFor(token: Token): FujiResultPromise<AprResult[]> {
     if (token.equals(this.collateral) || token.equals(this.debt))
       return new FujiResultError('Wrong token');
 

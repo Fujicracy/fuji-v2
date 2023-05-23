@@ -4,6 +4,8 @@ export type AprStat = {
   aprReward: number;
 };
 
+export type AprResult = { name: string; aprStats: AprStat[] };
+
 export type LendingProviderBase = {
   name: string;
   llamaKey: string;
