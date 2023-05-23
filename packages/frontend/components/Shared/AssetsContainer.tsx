@@ -27,13 +27,22 @@ function AssetsContainer({ steps }: { steps: RoutingStepDetails[] }) {
       {steps
         .filter((step) => routingSteps.includes(step.step))
         .map((step) => (
-          <AssetBox key={step.step} step={step} />
+          <AssetBox key={step.step} step={step} steps={steps} />
         ))}
     </Stack>
   );
 }
 
-function AssetBox({ step }: { step: RoutingStepDetails }) {
+function AssetBox({
+  step,
+  steps,
+}: {
+  step: RoutingStepDetails;
+  steps: RoutingStepDetails[];
+}) {
+  const chainId = [RoutingStep.BORROW, RoutingStep.PAYBACK].includes(step.step)
+    ? steps[steps.length - 1].chainId
+    : step.chainId;
   const type = [RoutingStep.DEPOSIT, RoutingStep.WITHDRAW].includes(step.step)
     ? AssetType.Collateral
     : AssetType.Debt;
@@ -70,9 +79,9 @@ function AssetBox({ step }: { step: RoutingStepDetails }) {
           <Typography variant="xsmallDark" mr={0.5}>
             {label}
           </Typography>
-          <NetworkIcon network={step.chainId} height={16} width={16} />
+          <NetworkIcon network={chainId} height={16} width={16} />
           <Typography variant="xsmall" ml={0.5}>
-            {chainName(step.chainId)}
+            {chainName(chainId)}
           </Typography>
         </Stack>
       </Stack>
