@@ -39,6 +39,7 @@ export type TransactionStep = {
   status: HistoryEntryStatus;
   txHash?: string;
   link?: string;
+  connextLink?: string;
 };
 
 export const watchTransaction = async (
@@ -58,8 +59,12 @@ export const watchTransaction = async (
   }
 };
 
-export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
+export const transactionSteps = (
+  entry: HistoryEntry,
+  connextScanLinks?: string[]
+): TransactionStep[] => {
   // group steps by chain flow: [[X_TRANSFER], [DEPOSIT, BORROW], [X_TRANSFER]]
+  let bridgeStepId = 0;
 
   const source = entry.steps.reduce(
     (acc: Array<Array<HistoryRoutingStep>>, currentValue, index) => {
@@ -80,8 +85,10 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
             {
               ...currentValue,
               destinationChainId: entry.steps[index + 1]?.token?.chainId,
+              connextLink: connextScanLinks && connextScanLinks[bridgeStepId],
             },
           ]);
+          bridgeStepId++;
         }
       }
       return acc;
@@ -160,6 +167,7 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
       chain,
       chainId,
       step: array[0].step,
+      connextLink: array[0].connextLink,
     };
   });
 };

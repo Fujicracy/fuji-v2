@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import React, { MouseEvent, useEffect, useState } from 'react';
 
@@ -87,7 +88,7 @@ function TransactionModal({
     entry.steps.find((s) => s.step === RoutingStep.WITHDRAW);
 
   const connextScanLinks = connextLinksForEntry(entry);
-  const steps = transactionSteps(entry);
+  const steps = transactionSteps(entry, connextScanLinks);
 
   const onClick = async () => {
     // If the user is editing a position, we just need to close the modal
@@ -128,6 +129,8 @@ function TransactionModal({
   const commonStatusStyle = {
     marginTop: '0.2rem',
   };
+
+  console.log(steps);
 
   return (
     <Dialog
@@ -238,14 +241,37 @@ function TransactionModal({
                           <Link
                             href={step.link}
                             target="_blank"
-                            variant="smallDark"
-                            fontSize="0.75rem"
-                            color={theme.palette.info.dark}
                             sx={{
-                              ml: '0.25rem',
+                              ml: '0.35rem',
+                              '& svg': {
+                                mb: '-0.1rem',
+                              },
                             }}
                           >
                             <LinkIcon />
+                          </Link>
+                        )}
+                        {step.connextLink && (
+                          <Link
+                            href={step.connextLink}
+                            target="_blank"
+                            sx={{
+                              ml: '0.3rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '1rem',
+                              height: '1rem',
+                              backgroundColor: '#303235',
+                              borderRadius: '100px',
+                            }}
+                          >
+                            <Image
+                              src="/assets/images/logo/connext.svg"
+                              height={10}
+                              width={10}
+                              alt="Connext icon"
+                            />
                           </Link>
                         )}
                       </Typography>
@@ -315,21 +341,6 @@ function TransactionModal({
               )}
           </>
         )}
-        {connextScanLinks?.map((link, index) => (
-          <Stack key={link} sx={{ mt: '1rem' }} spacing={1}>
-            <Link href={link} target="_blank" variant="inherit">
-              <Button size="medium" fullWidth variant="secondary">
-                {`View ${
-                  index === 0 && entry.chainCount > 2
-                    ? 'first '
-                    : index === 1
-                    ? 'second '
-                    : ''
-                }transaction on ConnextScan`}
-              </Button>
-            </Link>
-          </Stack>
-        ))}
         {entry.status === HistoryEntryStatus.SUCCESS && (
           <Stack sx={{ mt: '1rem' }} spacing={1}>
             <Button

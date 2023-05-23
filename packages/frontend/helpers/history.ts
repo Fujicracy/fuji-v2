@@ -57,6 +57,7 @@ export type HistoryEntry = {
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
   token?: SerializableToken;
   destinationChainId?: number;
+  connextLink?: string;
 };
 
 export const isValidStep = (step: HistoryRoutingStep): boolean => {
