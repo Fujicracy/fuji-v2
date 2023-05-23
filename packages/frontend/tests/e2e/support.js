@@ -9,5 +9,5 @@ Cypress.Commands.add('dismissDisclaimer', () => {
 });
 
 Cypress.Commands.add('login', () => {
-    cy.get('[data-cy="header-login"]').click({ force: true });
+  cy.get('[data-cy="header-login"]').click({ force: true });
 });
