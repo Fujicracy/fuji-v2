@@ -95,12 +95,13 @@ export function encodeActionArgs(
       [innerActions, innerArgs, params.slippage]
     );
     result = defaultAbiCoder.encode(
-      ['uint256', 'uint256', 'address', 'uint256', 'bytes'],
+      ['uint256', 'uint256', 'address', 'uint256', 'address', 'bytes'],
       [
         params.destDomain,
         params.slippage,
         params.asset.isZero ? AddressZero : params.asset.value,
         params.amount.toString(),
+        params.sender.value,
         callData,
       ]
     );
