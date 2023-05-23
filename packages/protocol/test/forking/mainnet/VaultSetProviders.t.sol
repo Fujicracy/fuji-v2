@@ -18,7 +18,7 @@ import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {AaveV3} from "../../../src/providers/mainnet/AaveV3.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 
-contract VaultSetProvidersForkingTest is Routines, ForkingSetup {
+contract VaultSetProvidersForkingTests is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
   ILendingProvider public aaveV3;
   IRouter public router;

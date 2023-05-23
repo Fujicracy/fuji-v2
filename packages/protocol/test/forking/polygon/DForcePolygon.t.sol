@@ -9,7 +9,7 @@ import {DForcePolygon} from "../../../src/providers/polygon/DForcePolygon.sol";
 import {IGenIToken} from "../../../src/interfaces/dforce/IGenIToken.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 
-contract DForcePolygonForkingTest is Routines, ForkingSetup {
+contract DForcePolygonForkingTests is Routines, ForkingSetup {
   ILendingProvider public dForce;
 
   uint256 public constant DEPOSIT_AMOUNT = 1000e18;

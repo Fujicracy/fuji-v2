@@ -58,7 +58,7 @@ contract MockTestFlasher is Routines, IFlasher {
   }
 }
 
-contract ConnextRouterForkingTest is Routines, ForkingSetup {
+contract ConnextRouterForkingTests is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Borrow(

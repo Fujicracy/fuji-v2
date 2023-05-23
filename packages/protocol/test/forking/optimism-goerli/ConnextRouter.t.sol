@@ -17,7 +17,7 @@ import {ConnextHandler} from "../../../src/routers/ConnextHandler.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 
-contract ConnextRouterForkingTest is Routines, ForkingSetup {
+contract ConnextRouterForkingTests is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Borrow(

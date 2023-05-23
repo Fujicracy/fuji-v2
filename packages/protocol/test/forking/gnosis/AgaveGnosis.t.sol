@@ -7,7 +7,7 @@ import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {AgaveGnosis} from "../../../src/providers/gnosis/AgaveGnosis.sol";
 
-contract AgaveGnosisForkingTest is Routines, ForkingSetup {
+contract AgaveGnosisForkingTests is Routines, ForkingSetup {
   ILendingProvider public agave;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

@@ -8,7 +8,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {WePiggyArbitrum} from "../../../src/providers/arbitrum/WePiggyArbitrum.sol";
 
-contract WePiggyArbitrumForkingTest is Routines, ForkingSetup {
+contract WePiggyArbitrumForkingTests is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
