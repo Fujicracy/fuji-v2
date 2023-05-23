@@ -289,7 +289,6 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         changeAssetChain(type, chainId, updateVault, currency) {
-          console.log('changeAssetChain', type, chainId, updateVault, currency);
           if (!isSupported(chainId)) return;
 
           const currencies =
@@ -312,13 +311,18 @@ export const useBorrow = create<BorrowStore>()(
           set(
             produce((state: BorrowState) => {
               let t = type === AssetType.Debt ? state.debt : state.collateral;
-              if (!t)
+              if (!t) {
                 t = assetForData(
                   chainId,
                   currencies,
                   defaultCurrency(currencies)
                 );
-              else {
+                if (type === AssetType.Debt) {
+                  state.debt = t;
+                } else {
+                  state.collateral = t;
+                }
+              } else {
                 t.chainId = chainId;
                 t.selectableCurrencies = currencies;
                 const found = foundCurrency(t.selectableCurrencies, t.currency);
@@ -326,6 +330,7 @@ export const useBorrow = create<BorrowStore>()(
                 else if (state.formType === FormType.Create)
                   t.currency = currencies[0];
               }
+              console.log(t);
             })
           );
           get().updateCurrencyPrice(type);

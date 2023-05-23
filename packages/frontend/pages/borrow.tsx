@@ -31,7 +31,6 @@ const BorrowPage: NextPage = () => {
       setHasChain(true);
       if (!allowChainOverride || !chainId) return;
       changeAssetChain(AssetType.Collateral, chainId, false);
-      changeAssetChain(AssetType.Debt, chainId, true);
     }
   }, [allowChainOverride, hasChain, chainId, changeAssetChain]);
 

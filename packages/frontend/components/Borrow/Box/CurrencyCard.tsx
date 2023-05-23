@@ -115,7 +115,6 @@ function CurrencyCard({
 
   const isOpen = Boolean(anchorEl);
   const open = (event: MouseEvent<HTMLElement>) => {
-    // TODO: borrow-refactor -how do we deal with this? no tokens until selecting a chain
     if (currencyList.length === 0) return;
     setAnchorEl(event.currentTarget);
   };

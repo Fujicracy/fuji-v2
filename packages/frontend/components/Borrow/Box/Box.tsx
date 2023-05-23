@@ -70,8 +70,7 @@ function BorrowBox({
         value={chainId}
         disabled={isExecuting}
         onChange={(chainId) => {
-          if (!assetChange) return;
-          changeAssetChain(type, chainId, !isEditing, assetChange.currency);
+          changeAssetChain(type, chainId, !isEditing, assetChange?.currency);
         }}
       />
       <CurrencyCard
