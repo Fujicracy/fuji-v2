@@ -7,7 +7,7 @@ import {ForkingSetup} from "../ForkingSetup.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {AgaveGnosis} from "../../../src/providers/gnosis/AgaveGnosis.sol";
 
-contract AgaveGnosisForkingTest is Routines, ForkingSetup {
+contract AgaveGnosisForkingTests is Routines, ForkingSetup {
   ILendingProvider public agave;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -43,8 +43,8 @@ contract AgaveGnosisForkingTest is Routines, ForkingSetup {
   function test_getBalances() public {
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    uint256 depositBalance = vault.totalAssets();
-    uint256 borrowBalance = vault.totalDebt();
+    uint256 depositBalance = vault.totalAssets() - initVaultShares;
+    uint256 borrowBalance = vault.totalDebt() - initVaultDebtShares;
 
     //account for rounding issue
     assertApproxEqAbs(depositBalance, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);

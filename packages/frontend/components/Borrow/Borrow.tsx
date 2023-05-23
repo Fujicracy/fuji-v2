@@ -8,13 +8,17 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Address } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
-import { ActionType, needsAllowance } from '../../helpers/assets';
+import {
+  ActionType,
+  AssetType,
+  FetchStatus,
+  needsAllowance,
+} from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
 import { chainName, isSupported } from '../../helpers/chains';
 import { showBorrow, showPosition } from '../../helpers/navigation';
@@ -23,7 +27,7 @@ import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import ConfirmTransactionModal from '../Shared/ConfirmTransactionModal';
-import SignTooltip from '../Shared/Tooltips/SignTooltip';
+import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 import BorrowBox from './Box/Box';
 import BorrowButton from './Button';
@@ -52,18 +56,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const isSigning = useBorrow((state) => state.isSigning);
   const isExecuting = useBorrow((state) => state.isExecuting);
   const transactionMeta = useBorrow((state) => state.transactionMeta);
-  const metaStatus = useBorrow((state) => state.transactionMeta.status);
   const availableVaultStatus = useBorrow(
     (state) => state.availableVaultsStatus
   );
+  const availableVaults = useBorrow((state) => state.availableVaults);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
   const vault = useBorrow((state) => state.activeVault);
   const mode = useBorrow((state) => state.mode);
   const changeMode = useBorrow((state) => state.changeMode);
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  );
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
   const changeInputValues = useBorrow((state) => state.changeInputValues);
   const updateBalances = useBorrow((state) => state.updateBalances);
   const updateVault = useBorrow((state) => state.updateVault);
@@ -74,6 +75,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const { position, editedPosition } = basePosition;
 
+  const metaStatus = transactionMeta.status;
   const dynamicLtvMeta = {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
     ltvMax: position.ltvMax,
@@ -100,17 +102,22 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     const debtAmount = parseFloat(debt.input);
     const collateralAllowance = needsAllowance(
       mode,
-      'collateral',
+      AssetType.Collateral,
       collateral,
       collateralAmount
     );
-    const debtNeedsAllowance = needsAllowance(mode, 'debt', debt, debtAmount);
+    const debtNeedsAllowance = needsAllowance(
+      mode,
+      AssetType.Debt,
+      debt,
+      debtAmount
+    );
 
     const startChainId = transactionMeta.steps[0]?.chainId;
     return (
       (collateralAmount || debtAmount) &&
       !(collateralAllowance || debtNeedsAllowance) &&
-      availableVaultStatus === 'ready' &&
+      availableVaultStatus === FetchStatus.Ready &&
       !(!isEditing && hasBalanceInVault) &&
       startChainId === walletChainId &&
       needsSignature
@@ -136,13 +143,13 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             walletChainId !== collateral.chainId &&
             isSupported(walletChainId)
           ) {
-            changeCollateralChain(walletChainId, true);
-            changeDebtChain(walletChainId, false);
+            changeAssetChain(AssetType.Collateral, walletChainId, true);
+            changeAssetChain(AssetType.Debt, walletChainId, false);
           } else {
-            updateBalances('collateral');
-            updateBalances('debt');
-            updateAllowance('collateral');
-            updateAllowance('debt');
+            updateBalances(AssetType.Collateral);
+            updateBalances(AssetType.Debt);
+            updateAllowance(AssetType.Collateral);
+            updateAllowance(AssetType.Debt);
             updateVault();
           }
         }, 500);
@@ -153,16 +160,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     collateral,
     walletChainId,
     vault,
-    changeCollateralChain,
-    changeDebtChain,
+    changeAssetChain,
     updateBalances,
     updateAllowance,
     updateVault,
   ]);
 
   useEffect(() => {
-    updateCurrencyPrice('collateral');
-    updateCurrencyPrice('debt');
+    updateCurrencyPrice(AssetType.Collateral);
+    updateCurrencyPrice(AssetType.Debt);
   }, [updateCurrencyPrice]);
 
   useEffect(() => {
@@ -173,20 +179,15 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [actionType, changeInputValues]);
 
   useEffect(() => {
-    (async () => {
-      if (address && vault) {
-        const balance = await vault.getBalances(Address.from(address));
-        const currentActiveVault = useBorrow.getState().activeVault;
-        if (
-          currentActiveVault &&
-          currentActiveVault.address.value === vault.address.value
-        ) {
-          const hasBalance = balance.deposit.gt(DUST_AMOUNT_IN_WEI);
-          setHasBalanceInVault(hasBalance);
-        }
+    if (address && vault) {
+      const current = availableVaults.find((v) =>
+        v.vault.address.equals(vault.address)
+      );
+      if (current) {
+        setHasBalanceInVault(current.depositBalance.gt(DUST_AMOUNT_IN_WEI));
       }
-    })();
-  }, [address, vault]);
+    }
+  }, [address, vault, availableVaults]);
 
   useEffect(() => {
     const mode = modeForContext(
@@ -240,8 +241,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   const shouldWarningBeDisplayed =
     !isEditing &&
-    availableVaultStatus === 'ready' &&
-    transactionMeta.status === 'ready' &&
+    availableVaultStatus === FetchStatus.Ready &&
+    transactionMeta.status === FetchStatus.Ready &&
     hasBalanceInVault;
 
   return (
@@ -260,14 +261,16 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             : [debt, collateral]
           ).map((assetChange, index) => {
             const collateralIndex = actionType === ActionType.ADD ? 0 : 1;
-            const type = index === collateralIndex ? 'collateral' : 'debt';
+            const type =
+              index === collateralIndex ? AssetType.Collateral : AssetType.Debt;
             const balance = assetChange.balances[assetChange.currency.symbol];
             const debtAmount = position.debt.amount;
             const maxAmount =
-              type === 'debt' && debtAmount && debtAmount < balance
+              type === AssetType.Debt && debtAmount && debtAmount < balance
                 ? debtAmount
                 : balance;
-            const showLtv = type === 'debt' && actionType === ActionType.ADD;
+            const showLtv =
+              type === AssetType.Debt && actionType === ActionType.ADD;
             return (
               <BorrowBox
                 key={type}

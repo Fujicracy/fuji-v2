@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import { ReactNode, useState } from 'react';
 
+import { FetchStatus } from '../../helpers/assets';
 import { stringifiedBridgeFeeSum } from '../../helpers/transactions';
 import { useBorrow } from '../../store/borrow.store';
 
@@ -20,12 +21,13 @@ function Fees() {
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
-  const show = showTransactionDetails && transactionMeta.status === 'ready';
+  const show =
+    showTransactionDetails && transactionMeta.status === FetchStatus.Ready;
 
   const crossChainTx = collateral.chainId !== debt.chainId;
 
   const handleClick = () => {
-    if (transactionMeta.status === 'ready') {
+    if (transactionMeta.status === FetchStatus.Ready) {
       setShowTransactionDetails(!showTransactionDetails);
     }
   };
@@ -57,7 +59,7 @@ function Fees() {
         <Typography variant="small" display="block">
           Estimated Cost
         </Typography>
-        {transactionMeta.status === 'ready' && (
+        {transactionMeta.status === FetchStatus.Ready && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">
               {`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`}
@@ -65,13 +67,13 @@ function Fees() {
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
         )}
-        {transactionMeta.status === 'fetching' && (
+        {transactionMeta.status === FetchStatus.Loading && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <CircularProgress size="0.875rem" />
           </Stack>
         )}
-        {(transactionMeta.status === 'error' ||
-          transactionMeta.status === 'initial') && (
+        {(transactionMeta.status === FetchStatus.Error ||
+          transactionMeta.status === FetchStatus.Initial) && (
           <Typography variant="small" display="block">
             n/a
           </Typography>

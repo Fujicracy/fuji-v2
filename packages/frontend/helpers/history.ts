@@ -1,6 +1,12 @@
-import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import {
+  ChainId,
+  FujiError,
+  RoutingStep,
+  RoutingStepDetails,
+} from '@x-fuji/sdk';
 
 import { useBorrow } from '../store/borrow.store';
+import { AssetType } from './assets';
 import { updateNativeBalance } from './balances';
 
 export type HistoryTransaction = {
@@ -51,6 +57,7 @@ export type HistoryEntry = {
   secondChain?: HistoryEntryChain | undefined;
   thirdChain?: HistoryEntryChain | undefined;
   chainCount: number;
+  error?: string;
 };
 
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
@@ -107,15 +114,15 @@ export const triggerUpdatesFromSteps = (steps: HistoryRoutingStep[]) => {
     steps.find((s) => s.step === RoutingStep.BORROW) || hasPaybackStep;
 
   if (hasCollateralStep) {
-    useBorrow.getState().updateBalances('collateral');
+    useBorrow.getState().updateBalances(AssetType.Collateral);
   }
   if (hasDebtStep) {
-    useBorrow.getState().updateBalances('debt');
+    useBorrow.getState().updateBalances(AssetType.Debt);
   }
   if (hasDepositStep) {
-    useBorrow.getState().updateAllowance('collateral');
+    useBorrow.getState().updateAllowance(AssetType.Collateral);
   } else if (hasPaybackStep) {
-    useBorrow.getState().updateAllowance('debt');
+    useBorrow.getState().updateAllowance(AssetType.Debt);
   }
   updateNativeBalance();
 };
@@ -128,17 +135,16 @@ export const chainCompleted = (chain: HistoryEntryChain) => {
 };
 
 export const stepForFinishing = (entry: HistoryEntry) => {
-  if (entry.chainCount === 2 && entry.secondChain) {
+  if (entry.chainCount === 3 && entry.secondChain) {
     return chainCompleted(entry.secondChain)
       ? 2
       : chainCompleted(entry.sourceChain)
       ? 1
       : 0;
-  } else if (entry.chainCount === 1) {
+  } else if (entry.chainCount === 2) {
     return chainCompleted(entry.sourceChain) ? 1 : 0;
-  } else {
-    return 0;
   }
+  return 0;
 };
 
 const connextLinkify = (id: string) => `https://amarok.connextscan.io/tx/${id}`;

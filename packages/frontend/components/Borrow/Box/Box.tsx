@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
+import React from 'react';
 
 import {
   ActionType,
@@ -41,32 +42,23 @@ function BorrowBox({
   basePosition,
   index,
 }: BorrowBoxProps) {
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  );
-  const changeCollateralCurrency = useBorrow(
-    (state) => state.changeCollateralCurrency
-  );
-  const changeCollateralValue = useBorrow(
-    (state) => state.changeCollateralValue
-  );
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
-  const changeDebtCurrency = useBorrow((state) => state.changeDebtCurrency);
-  const changeDebtValue = useBorrow((state) => state.changeDebtValue);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
+  const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
+  const changeAssetValue = useBorrow((state) => state.changeAssetValue);
 
   return (
     <Box
       mb={
         (isEditing && actionType === ActionType.REMOVE
-          ? 'debt'
-          : 'collateral') === type
+          ? AssetType.Debt
+          : AssetType.Collateral) === type
           ? '1rem'
           : undefined
       }
     >
       <ChainSelect
         label={
-          type === 'collateral'
+          type === AssetType.Collateral
             ? actionType === ActionType.ADD
               ? 'Collateral from'
               : 'Withdraw to'
@@ -78,13 +70,7 @@ function BorrowBox({
         value={chainId}
         disabled={isExecuting}
         onChange={(chainId) =>
-          type === 'collateral'
-            ? changeCollateralChain(
-                chainId,
-                !isEditing,
-                assetChange.currency.symbol
-              )
-            : changeDebtChain(chainId, !isEditing, assetChange.currency.symbol)
+          changeAssetChain(type, chainId, !isEditing, assetChange.currency)
         }
       />
       <CurrencyCard
@@ -100,16 +86,10 @@ function BorrowBox({
         ltvMeta={ltvMeta}
         basePosition={basePosition}
         isFocusedByDefault={index === 0}
-        onCurrencyChange={(currency) =>
-          type === 'collateral'
-            ? changeCollateralCurrency(currency)
-            : changeDebtCurrency(currency)
-        }
-        onInputChange={(value) =>
-          type === 'collateral'
-            ? changeCollateralValue(value)
-            : changeDebtValue(value)
-        }
+        onCurrencyChange={(currency, updateVault) => {
+          changeAssetCurrency(type, currency, updateVault);
+        }}
+        onInputChange={(value) => changeAssetValue(type, value)}
       />
     </Box>
   );

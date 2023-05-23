@@ -1,4 +1,8 @@
-import { BorrowingVault, Currency, LendingProviderDetails } from '@x-fuji/sdk';
+import {
+  BorrowingVault,
+  Currency,
+  LendingProviderWithFinancials,
+} from '@x-fuji/sdk';
 
 /**
  * @remarks
@@ -16,7 +20,7 @@ export type AssetMeta = {
  * Type representing an open position at a Fuji-V2 vault.
  */
 export type Position = {
-  vault?: BorrowingVault /*| LendingVault // Contain chainId */;
+  vault?: BorrowingVault;
 
   collateral: AssetMeta;
   debt: AssetMeta;
@@ -28,6 +32,6 @@ export type Position = {
   liquidationPrice: number;
   liquidationDiff: number;
 
-  activeProvider?: LendingProviderDetails;
-  providers?: LendingProviderDetails[];
+  activeProvider?: LendingProviderWithFinancials;
+  activeProvidersNames: string[];
 };

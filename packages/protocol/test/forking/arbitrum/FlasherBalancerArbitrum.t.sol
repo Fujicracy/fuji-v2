@@ -15,7 +15,7 @@ import {IFlashLoanRecipient} from "../../../src/interfaces/balancer/IFlashLoanRe
 import {WePiggyArbitrum} from "../../../src/providers/arbitrum/WePiggyArbitrum.sol";
 import {DForceArbitrum} from "../../../src/providers/arbitrum/DForceArbitrum.sol";
 
-contract FlasherBalancerArbitrumForkingTest is Routines, ForkingSetup, IFlashLoanRecipient {
+contract FlasherBalancerArbitrumForkingTests is Routines, ForkingSetup, IFlashLoanRecipient {
   ILendingProvider public dForce;
   ILendingProvider public wePiggy;
 

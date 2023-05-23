@@ -128,45 +128,37 @@ function _permit(
 }
 
 function _xTransfer(
-  srcChainId: ChainId,
   destChainId: ChainId,
   currency: Currency,
   amount: BigNumber,
   receiver: Address,
   sender: Address,
-  wrap: boolean,
+  unwrap: boolean,
   slippage?: number
-): (XTransferParams | WrapNativeParams)[] {
+): XTransferParams | XTransferWithCallParams {
   const destDomain = CHAIN[destChainId].connextDomain as ConnextDomain;
-  if (wrap) {
-    invariant(currency.isNative, 'Cannot wrap non-native assets!');
-    return [
-      _wrapNative(amount),
-      {
-        action: RouterAction.X_TRANSFER,
-        destDomain,
-        slippage: slippage ?? DEFAULT_SLIPPAGE,
-        amount,
-        asset: currency.wrapped.address,
-        receiver: receiver,
-        // when wrapping, we need to change sender to be the router address
-        // because the wrapped asset is already in the router
-        // so we don't need to pull it from msg.sender
-        sender: CONNEXT_ROUTER_ADDRESS[srcChainId],
-      },
-    ];
-  }
-  return [
-    {
-      action: RouterAction.X_TRANSFER,
+  // unwrap on destination
+  if (unwrap) {
+    invariant(currency.isToken, 'Cannot unwrap native assets!');
+    return {
+      action: RouterAction.X_TRANSFER_WITH_CALL,
       destDomain,
-      slippage: slippage ?? DEFAULT_SLIPPAGE,
       amount,
       asset: currency.address,
-      receiver: receiver,
+      slippage: slippage ?? DEFAULT_SLIPPAGE,
       sender,
-    },
-  ];
+      innerActions: [_unwrapNative(amount, receiver)],
+    };
+  }
+  return {
+    action: RouterAction.X_TRANSFER,
+    destDomain,
+    slippage: slippage ?? DEFAULT_SLIPPAGE,
+    amount,
+    asset: currency.address,
+    receiver,
+    sender,
+  };
 }
 
 function _xTransferWithCall(
@@ -174,12 +166,11 @@ function _xTransferWithCall(
   destChainId: ChainId,
   currency: Currency | undefined,
   amount: BigNumber,
+  sender: Address,
   innerActions: RouterActionParams[],
   wrap: boolean,
   slippage?: number
 ): (XTransferWithCallParams | WrapNativeParams)[] {
-  // TODO: uncomment sender when the router contract gets redeployed
-  srcChainId;
   const destDomain = CHAIN[destChainId].connextDomain as ConnextDomain;
   if (wrap) {
     invariant(currency?.isNative, 'Cannot wrap non-native assets!');
@@ -194,7 +185,7 @@ function _xTransferWithCall(
         // when wrapping, we need to change sender to be the router address
         // because the wrapped asset is already in the router
         // so we don't need to pull it from msg.sender
-        //sender: CONNEXT_ROUTER_ADDRESS[srcChainId],
+        sender: CONNEXT_ROUTER_ADDRESS[srcChainId],
         innerActions,
       },
     ];
@@ -206,6 +197,7 @@ function _xTransferWithCall(
       amount,
       asset: currency ? currency.address : Address.from(AddressZero),
       slippage: slippage ?? DEFAULT_SLIPPAGE,
+      sender,
       innerActions,
     },
   ];
@@ -251,6 +243,7 @@ function depositOrPayback(
         vault.chainId,
         tokenIn,
         amountIn,
+        account,
         [
           ..._depositOrPayback(
             action,
@@ -304,14 +297,13 @@ function borrowOrWithdraw(
         account,
         false
       ),
-      ..._xTransfer(
-        vault.chainId,
+      _xTransfer(
         tokenOut.chainId,
         vault.debt,
         amountOut,
         account,
         connextRouter,
-        false,
+        unwrap,
         slippage
       ),
     ];
@@ -335,6 +327,7 @@ function borrowOrWithdraw(
         vault.chainId,
         undefined,
         BN_ZERO,
+        account,
         innerActions,
         false,
         0
@@ -353,14 +346,13 @@ function borrowOrWithdraw(
         account,
         false
       ),
-      ..._xTransfer(
-        vault.chainId,
+      _xTransfer(
         tokenOut.chainId,
         vault.debt,
         amountOut,
         account,
         connextRouter,
-        false,
+        unwrap,
         slippage
       ),
     ];
@@ -370,6 +362,7 @@ function borrowOrWithdraw(
         vault.chainId,
         undefined,
         BN_ZERO,
+        connextRouter,
         innerActions,
         false,
         0
@@ -423,14 +416,13 @@ function depositAndBorrow(
         account,
         false
       ),
-      ..._xTransfer(
-        srcChainId,
+      _xTransfer(
         destChainId,
         vault.debt,
         amountOut,
         account,
         connextRouter,
-        false,
+        unwrap,
         slippage
       ),
     ];
@@ -455,6 +447,7 @@ function depositAndBorrow(
         destChainId,
         tokenIn,
         amountIn,
+        account,
         innerActions,
         wrap,
         slippage
@@ -480,14 +473,13 @@ function depositAndBorrow(
         account,
         false
       ),
-      ..._xTransfer(
-        vault.chainId,
+      _xTransfer(
         destChainId,
         vault.debt,
         amountOut,
         account,
         connextRouter,
-        false,
+        unwrap,
         slippage
       ),
     ];
@@ -497,6 +489,7 @@ function depositAndBorrow(
         vault.chainId,
         tokenIn,
         amountIn,
+        account,
         innerActions,
         wrap,
         slippage
@@ -555,14 +548,13 @@ function paybackAndWithdraw(
         account,
         false
       ),
-      ..._xTransfer(
-        srcChainId,
+      _xTransfer(
         destChainId,
         vault.collateral,
         amountOut,
         account,
         connextRouter,
-        false,
+        unwrap,
         slippage
       ),
     ];
@@ -594,6 +586,7 @@ function paybackAndWithdraw(
         destChainId,
         tokenIn,
         amountIn,
+        account,
         innerActions,
         wrap,
         slippage
@@ -619,14 +612,13 @@ function paybackAndWithdraw(
         account,
         false
       ),
-      ..._xTransfer(
-        vault.chainId,
+      _xTransfer(
         destChainId,
         vault.collateral,
         amountOut,
         account,
         connextRouter,
-        false,
+        unwrap,
         slippage
       ),
     ];
@@ -636,6 +628,7 @@ function paybackAndWithdraw(
         vault.chainId,
         tokenIn,
         amountIn,
+        account,
         innerActions,
         wrap,
         slippage

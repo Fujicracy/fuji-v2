@@ -24,15 +24,17 @@ import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
+import { dismissBanner, getBannerVisibility } from '../../../helpers/auth';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
-import { useAuth } from '../../../store/auth.store';
+import { AuthStatus, useAuth } from '../../../store/auth.store';
 import styles from '../../../styles/components/Header.module.css';
 import AccountModal from '../AccountModal/AccountModal';
 import ChainSelect from '../ChainSelect';
 import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
 import Parameters from '../Parameters';
+import AddressAddon from './AddressAddon';
 import BalanceAddon from './BalanceAddon';
 import Banner, { BannerConfig } from './Banner';
 
@@ -49,15 +51,13 @@ const Header = () => {
   const router = useRouter();
   const [banners, setBanners] = useState<BannerConfig[]>([]);
 
-  const getBannerVisibility = useAuth((state) => state.getBannerVisibility);
-  const dismissBanner = useAuth((state) => state.dismissBanner);
-
-  const { address, ens, status, balance, login } = useAuth(
+  const { address, ens, status, balance, started, login } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
       balance: state.balance,
+      started: state.started,
       login: state.login,
     }),
     shallow
@@ -73,7 +73,7 @@ const Header = () => {
     );
 
     setBanners(filteredBanners);
-  }, [getBannerVisibility]);
+  }, []);
 
   const isPageActive = useCallback(
     (path: string) => {
@@ -174,7 +174,7 @@ const Header = () => {
                   alignItems: 'center',
                 }}
               >
-                {status === 'disconnected' && (
+                {status === AuthStatus.Disconnected && (
                   <>
                     <Chip
                       data-cy="header-login"
@@ -190,7 +190,7 @@ const Header = () => {
                     />
                   </>
                 )}
-                {status === 'connected' && <ChainSelect />}
+                {status === AuthStatus.Connected && <ChainSelect />}
 
                 <IconButton
                   aria-label="account of current user"
@@ -312,7 +312,7 @@ const Header = () => {
             alignItems="center"
             sx={{ display: { xs: 'none', md: 'flex' } }}
           >
-            {status === 'disconnected' && (
+            {status === AuthStatus.Disconnected && (
               <>
                 <Chip
                   label="Connect wallet"
@@ -327,7 +327,7 @@ const Header = () => {
                 />
               </>
             )}
-            {status === 'connected' && address && (
+            {status === AuthStatus.Connected && address && (
               <>
                 <Grid item>
                   <ChainSelect />
@@ -356,6 +356,7 @@ const Header = () => {
           address={address}
         />
       )}
+      {started && <AddressAddon />}
     </AppBar>
   );
 };

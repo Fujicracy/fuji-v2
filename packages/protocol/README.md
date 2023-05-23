@@ -23,6 +23,25 @@ yarn build
 yarn test
 ```
 
+## Git Submodules used in Foundry
+
+This package works with git submodules (due to Foundry)
+
+From time to time you may require to refresh/update your submodudles.
+Follow this steps:
+
+1. Clean the `lib` folder where foundry keeps git submodules, from the project root directory:
+
+```
+sudo rm -r ~/packages/protocol/lib/*
+```
+
+2. Run the command to update the submodule files:
+
+```
+git submodules update --recursive
+```
+
 ## Slither
 Slither is a Solidity static analyzer. It helps identify potential security issues.
 

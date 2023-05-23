@@ -9,7 +9,13 @@ import {HundredGnosis} from "../../../src/providers/gnosis/HundredGnosis.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
 
-contract HundredGnosisForkingTest is Routines, ForkingSetup {
+/**
+ * @custom:disabled hundred finance was exploited on April 15th, 2023.
+ * Mint is paused for their hTokens.
+ * The tests in this suite are disabled until further notice.
+ */
+// contract HundredGnosisForkingTests is Routines, ForkingSetup {
+contract HundredGnosisDisabledTest is Routines, ForkingSetup {
   ILendingProvider public hundred;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

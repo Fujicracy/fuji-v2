@@ -23,15 +23,17 @@ import React, {
   useState,
 } from 'react';
 
-import { DUST_AMOUNT } from '../../../constants';
 import {
   ActionType,
   AssetChange,
   AssetType,
   LtvMeta,
+  Mode,
   recommendedLTV,
+  withdrawMaxAmount,
 } from '../../../helpers/assets';
 import {
+  isNativeAndWrappedPair,
   isNativeOrWrapped,
   nativeAndWrappedPair,
 } from '../../../helpers/currencies';
@@ -55,7 +57,7 @@ type SelectCurrencyCardProps = {
   value: string;
   showMax: boolean;
   maxAmount: number;
-  onCurrencyChange: (currency: Currency) => void;
+  onCurrencyChange: (currency: Currency, updateVault: boolean) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
@@ -100,10 +102,11 @@ function CurrencyCard({
     undefined
   );
   const [focused, setFocused] = useState<boolean>(false);
+  const [calculatingMax, setCalculatingMax] = useState<boolean>(false);
 
   const shouldShowNativeWrappedPair =
     isEditing &&
-    type === 'collateral' &&
+    type === AssetType.Collateral &&
     isNativeOrWrapped(currency, selectableCurrencies);
 
   const currencyList = shouldShowNativeWrappedPair
@@ -114,20 +117,27 @@ function CurrencyCard({
     setTextInput(node);
   }, []);
 
-  const handleMax = () => {
-    // when we do max withdrawal, we have to deduct a small amount,
-    // otherwise the tx can fail due to some unaccounted dust leftovers
-    const deductedCollateral = Math.max(
-      0,
-      basePosition.position.collateral.amount - DUST_AMOUNT / 100
-    );
-    const amount =
-      actionType === ActionType.REMOVE && type === 'collateral'
-        ? deductedCollateral -
-          (basePosition.position.debt.amount - Number(debt.input)) /
-            ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
-        : maxAmount;
-    handleInput(String(amount));
+  const handleMax = async () => {
+    if (calculatingMax) return;
+    setCalculatingMax(true);
+    let maxCollateralAmount = maxAmount;
+    if (actionType === ActionType.REMOVE && type === AssetType.Collateral) {
+      // `mode` has to be precalculated because we set it based on inputs,
+      // the mode will be set after the end of this function.
+      const precalculatedMode =
+        debt.input !== '' ? Mode.PAYBACK_AND_WITHDRAW : Mode.WITHDRAW;
+      const result = await withdrawMaxAmount(
+        precalculatedMode,
+        basePosition,
+        debt,
+        collateral
+      );
+      if (result.success) {
+        maxCollateralAmount = result.data;
+      }
+    }
+    setCalculatingMax(false);
+    handleInput(String(maxCollateralAmount));
   };
 
   const handleInput = (val: string) => {
@@ -163,7 +173,13 @@ function CurrencyCard({
   };
 
   const handleCurrencyChange = (currency: Currency) => {
-    onCurrencyChange(currency);
+    const updateVault =
+      !isEditing &&
+      !isNativeAndWrappedPair(
+        currency,
+        type === AssetType.Collateral ? collateral.currency : debt.currency
+      );
+    onCurrencyChange(currency, updateVault);
     close();
   };
 
@@ -192,8 +208,9 @@ function CurrencyCard({
       variant="outlined"
       sx={{
         borderColor:
-          (actionType === ActionType.ADD ? 'collateral' : 'debt') === type &&
-          Number(assetChange.input) > balance
+          (actionType === ActionType.ADD
+            ? AssetType.Collateral
+            : AssetType.Debt) === type && Number(assetChange.input) > balance
             ? palette.error.dark
             : focused
             ? palette.info.main

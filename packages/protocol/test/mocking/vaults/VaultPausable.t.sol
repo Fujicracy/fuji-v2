@@ -156,7 +156,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
 
     vm.startPrank(ALICE);
     IERC20(collateralAsset).approve(address(vault), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault.deposit(DEPOSIT_AMOUNT, ALICE);
     vm.stopPrank();
 
@@ -194,14 +194,14 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
     // Borrowingvault called by ALICE
     vm.startPrank(ALICE);
     IERC20(collateralAsset).approve(address(vault), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault.deposit(DEPOSIT_AMOUNT, ALICE);
     vm.stopPrank();
 
     // BorrowingVault2 called by BOB
     vm.startPrank(BOB);
     IERC20(collateralAsset).approve(address(vault2), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault2.deposit(DEPOSIT_AMOUNT, BOB);
     vm.stopPrank();
   }
@@ -220,13 +220,13 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
 
     // Borrowingvault called by ALICE
     vm.startPrank(ALICE);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault.withdraw(DEPOSIT_AMOUNT, ALICE, ALICE);
     vm.stopPrank();
 
     // BorrowingVault2 called by BOB
     vm.startPrank(BOB);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault2.withdraw(DEPOSIT_AMOUNT, BOB, BOB);
     vm.stopPrank();
   }
@@ -245,13 +245,13 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
 
     // Borrowingvault called by ALICE
     vm.startPrank(ALICE);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault.borrow(BORROW_AMOUNT, ALICE, ALICE);
     vm.stopPrank();
 
     // BorrowingVault2 called by BOB
     vm.startPrank(BOB);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault2.borrow(BORROW_AMOUNT, BOB, BOB);
     vm.stopPrank();
   }

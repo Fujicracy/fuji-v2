@@ -8,7 +8,7 @@ import {CompoundV2} from "../../../src/providers/mainnet/CompoundV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract CompoundV2ForkingTest is Routines, ForkingSetup {
+contract CompoundV2ForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV2;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
