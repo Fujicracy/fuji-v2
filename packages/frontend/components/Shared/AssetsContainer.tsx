@@ -15,13 +15,6 @@ const routingSteps = [
   RoutingStep.PAYBACK,
 ];
 
-const labels = {
-  [RoutingStep.DEPOSIT]: 'From',
-  [RoutingStep.WITHDRAW]: 'From',
-  [RoutingStep.BORROW]: 'Receive on',
-  [RoutingStep.PAYBACK]: 'From',
-};
-
 function AssetsContainer({ steps }: { steps: RoutingStepDetails[] }) {
   return (
     <Stack
