@@ -240,7 +240,7 @@ export function viewDynamicPosition(
   editedPosition: Position | undefined = undefined
 ): BasePosition | undefined {
   const baseCollateral = useBorrow.getState().collateral;
-  const baseDebt = useBorrow.getState().debt; // TODO: not this ofc, but this won't be null atp;
+  const baseDebt = useBorrow.getState().debt;
   if (!baseDebt) {
     return undefined;
   }

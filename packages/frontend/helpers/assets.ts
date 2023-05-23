@@ -172,8 +172,7 @@ export const remainingBorrowLimit = (
 export const ltvMeta = (
   basePosition: BasePosition | undefined
 ): LtvMeta | undefined => {
-  if (!basePosition?.position || !basePosition?.editedPosition)
-    return undefined;
+  if (!basePosition?.position) return undefined;
   const { position, editedPosition } = basePosition;
   return {
     ltv: editedPosition ? editedPosition.ltv : position.ltv,
