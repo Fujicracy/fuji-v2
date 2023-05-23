@@ -4,24 +4,13 @@ import {
   ButtonBase,
   Card,
   Fade,
-  ListItemIcon,
-  ListItemText,
   Menu,
-  MenuItem,
-  SxProps,
   TextField,
-  Theme,
   Typography,
   useTheme,
 } from '@mui/material';
 import { Currency } from '@x-fuji/sdk';
-import React, {
-  MouseEvent,
-  ReactElement,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import React, { MouseEvent, useCallback, useEffect, useState } from 'react';
 
 import {
   ActionType,
@@ -47,6 +36,7 @@ import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
 import { CurrencyIcon } from '../../Shared/Icons';
+import CurrencyItem from './CurrencyItem';
 
 type SelectCurrencyCardProps = {
   type: AssetType;
@@ -380,53 +370,6 @@ function CurrencyCard({
     </Card>
   );
 }
-
-type CurrencyItem = {
-  currency?: Currency;
-  balance?: number;
-  prepend?: ReactElement;
-  sx?: SxProps<Theme>;
-  onClick?: (currency: Currency) => void;
-};
-const CurrencyItem = ({
-  currency,
-  balance,
-  prepend,
-  sx,
-  onClick,
-}: CurrencyItem) => {
-  if (!currency) {
-    return (
-      <>
-        <Typography variant="smallDark">Select a token</Typography>
-        {prepend}
-      </>
-    );
-  }
-
-  return (
-    <MenuItem
-      data-cy="currency-select"
-      key={currency.name}
-      value={currency.symbol}
-      onClick={() => onClick && onClick(currency)}
-      sx={sx}
-    >
-      <ListItemIcon>
-        <CurrencyIcon currency={currency} height={24} width={24} />
-      </ListItemIcon>
-      <ListItemText>
-        <Typography variant="h6">{currency.symbol}</Typography>
-      </ListItemText>
-      {typeof balance === 'number' && (
-        <Typography variant="smallDark" ml="3rem">
-          <Balance balance={balance} />
-        </Typography>
-      )}
-      {prepend}
-    </MenuItem>
-  );
-};
 
 export default CurrencyCard;
 
