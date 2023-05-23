@@ -29,10 +29,9 @@ function OverviewTab({ basePosition, isEditing }: OverviewProps) {
     liquidationPrice,
   } = position;
 
-  const allProviders = useBorrow((state) => state.allProviders);
+  const providers = useBorrow((state) => state.allProviders);
+  const activeProvider = useBorrow((state) => state.activeProvider);
   const vault = useBorrow((state) => state.activeVault);
-  const providers =
-    allProviders && vault ? allProviders[vault.address.value] : [];
 
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt.input);
@@ -73,6 +72,7 @@ function OverviewTab({ basePosition, isEditing }: OverviewProps) {
         ltv={ltv}
         ltvThreshold={ltvThreshold}
         providers={providers}
+        activeProvider={activeProvider}
         vault={vault}
         isMobile={isMobile}
         isEditing={isEditing}

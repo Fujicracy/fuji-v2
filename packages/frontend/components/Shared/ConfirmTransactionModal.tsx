@@ -7,6 +7,7 @@ import React, { useMemo } from 'react';
 
 import {
   ActionType,
+  FetchStatus,
   recommendedLTV,
   remainingBorrowLimit,
 } from '../../helpers/assets';
@@ -62,7 +63,7 @@ export function ConfirmTransactionModal({
   };
 
   const estCost =
-    transactionMeta.status === 'ready' && transactionMeta.bridgeFees
+    transactionMeta.status === FetchStatus.Ready && transactionMeta.bridgeFees
       ? `~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`
       : 'n/a';
 

@@ -724,12 +724,12 @@
     secp256k1 "4.0.3"
     sinon-chai "3.7.0"
 
-"@connext/nxtp-utils@2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@connext/nxtp-utils/-/nxtp-utils-2.0.1.tgz#03b7e08aea784f6e269d6538fa3884f28aed0022"
-  integrity sha512-pBIh4674tezNHu7FT/j5AvtDbAECxkERdUg63EG//gcY3SrG5c29UPQhf6g7porqTuFdqYPxVloQ+VgWMaegeA==
+"@connext/nxtp-utils@2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@connext/nxtp-utils/-/nxtp-utils-2.0.3.tgz#fac7637b0c8ea4bfb7ad6e24ce4234ca28e20e16"
+  integrity sha512-oDvBxnRyv4wa0FYybnj6kyWT1Esam/F+z1A4FX9TLgRI2J3hPlD8MIkqQ54HXL+H5YD7UG23vq5t8R8Lp7uCWg==
   dependencies:
-    "@maticnetwork/maticjs" "3.6.0-beta.6"
+    "@maticnetwork/maticjs" "3.6.0-beta.11"
     "@maticnetwork/maticjs-web3" "1.0.4"
     "@sinclair/typebox" "0.25.21"
     ajv "8.12.0"
@@ -745,13 +745,13 @@
     secp256k1 "4.0.3"
     sinon-chai "3.7.0"
 
-"@connext/sdk@^2.0.3-alpha.0":
-  version "2.0.3-alpha.0"
-  resolved "https://registry.yarnpkg.com/@connext/sdk/-/sdk-2.0.3-alpha.0.tgz#cce384240a75dd56e78bef3f273cf06c7a00deb6"
-  integrity sha512-Rx8CfSH7r2cvaaiTTpOLaLoN1oNzGrB655az4bM1qi0zV6mo7DHDgRxqbQ5xKwPnJFqye5fLCpXvyT70IYvWhA==
+"@connext/sdk@^2.0.4-alpha.2":
+  version "2.0.4-alpha.2"
+  resolved "https://registry.yarnpkg.com/@connext/sdk/-/sdk-2.0.4-alpha.2.tgz#4058563cdc5e152dc773561b581ea863bde0b55c"
+  integrity sha512-FP8IBRVIAnhRouY+O+inTcIhsk18rWAexW2eLMMztgO3iJ7c7Oi7Nng+Nfbp+l8ls9+3tyX2DrEw2LHKGIE3jQ==
   dependencies:
     "@connext/nxtp-txservice" "2.0.0-alpha.1"
-    "@connext/nxtp-utils" "2.0.1"
+    "@connext/nxtp-utils" "2.0.3"
     "@sinclair/typebox" "0.25.21"
     ethers "5.7.2"
     isomorphic-fetch "^3.0.0"
@@ -2433,6 +2433,16 @@
   integrity sha512-cMnp42jjGNfVZRL80yUYfD9abcyUC2VpKvjFQtU44A3A0M9sbCtOOMMkE4k8FWoccxIPi891rtc+nowdNahKxg==
   dependencies:
     web3 "^1.8.0"
+
+"@maticnetwork/maticjs@3.6.0-beta.11":
+  version "3.6.0-beta.11"
+  resolved "https://registry.yarnpkg.com/@maticnetwork/maticjs/-/maticjs-3.6.0-beta.11.tgz#a2ce168116ce54f9625a38b60ce289ffe708a816"
+  integrity sha512-bwlTaW95wTQaM1/9vbUbhOR/JB4KsoozaTJTgknITZa3N94L4YP2LTnrbBa3ie76QDtbQ8j4uZ1BDqtCm0k1aQ==
+  dependencies:
+    "@ethereumjs/block" "^3.6.2"
+    ethereumjs-util "^7.1.4"
+    merkle-patricia-tree "^4.2.4"
+    node-fetch "^2.6.1"
 
 "@maticnetwork/maticjs@3.6.0-beta.6":
   version "3.6.0-beta.6"

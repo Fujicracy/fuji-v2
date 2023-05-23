@@ -20,7 +20,7 @@ import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 
-contract SimpleRouterForkingTest is Routines, ForkingSetup {
+contract SimpleRouterForkingTests is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
   ILendingProvider public aaveV3;
 
@@ -79,6 +79,8 @@ contract SimpleRouterForkingTest is Routines, ForkingSetup {
     bytes memory executionCall =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault2), true);
     _callWithTimelock(address(chief), executionCall);
+
+    _initalizeVault(address(vault2), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
   function test_closePositionWithFlashloan() public {

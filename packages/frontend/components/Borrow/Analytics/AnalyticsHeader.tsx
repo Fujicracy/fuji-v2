@@ -3,7 +3,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import React from 'react';
 
 import { AssetMeta } from '../../../store/models/Position';
-import { TokenIcon } from '../../Shared/Icons';
+import { CurrencyIcon } from '../../Shared/Icons';
 import LinkIcon from '../../Shared/Icons/LinkIcon';
 
 type AnalyticsHeaderProps = {
@@ -18,9 +18,9 @@ function AnalyticsHeader({ collateral, debt, loading }: AnalyticsHeaderProps) {
   return (
     <Stack flexDirection="row" alignItems="center" gap="0.75rem">
       <Box sx={{ position: 'relative', zIndex: 1 }}>
-        <TokenIcon token={debt.token} height={40} width={40} />
-        <TokenIcon
-          token={collateral.token}
+        <CurrencyIcon currency={debt.currency} height={40} width={40} />
+        <CurrencyIcon
+          currency={collateral.currency}
           height={24}
           width={24}
           sx={{
@@ -38,11 +38,11 @@ function AnalyticsHeader({ collateral, debt, loading }: AnalyticsHeaderProps) {
           fontWeight={400}
           color={palette.info.main}
         >
-          Collateral: {collateral.token.symbol}
+          Collateral: {collateral.currency.symbol}
         </Typography>
         <Stack flexDirection="row" alignItems="center">
           <Typography fontSize="1.125rem" lineHeight="160%" fontWeight={700}>
-            Borrow: {debt.token.symbol}
+            Borrow: {debt.currency.symbol}
           </Typography>
           <Box
             sx={{

@@ -15,7 +15,12 @@ import {IFlashLoanRecipient} from "../../../src/interfaces/balancer/IFlashLoanRe
 import {AgaveGnosis} from "../../../src/providers/gnosis/AgaveGnosis.sol";
 import {HundredGnosis} from "../../../src/providers/gnosis/HundredGnosis.sol";
 
-contract FlasherBalancerGnosisForkingTest is Routines, ForkingSetup, IFlashLoanRecipient {
+/**
+ * @custom:disabled Balancer on gnosis chain has no liquidity
+ * The tests in this suite are disabled until further notice.
+ */
+// contract FlasherBalancerGnosisForkingTests is Routines, ForkingSetup, IFlashLoanRecipient {
+contract FlasherBalancerGnosisDisabledTest is Routines, ForkingSetup, IFlashLoanRecipient {
   ILendingProvider public agave;
   ILendingProvider public hundred;
 

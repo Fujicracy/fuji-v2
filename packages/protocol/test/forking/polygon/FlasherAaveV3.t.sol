@@ -16,7 +16,7 @@ import {IFlashLoanSimpleReceiver} from "../../../src/interfaces/aaveV3/IFlashLoa
 import {WePiggyPolygon} from "../../../src/providers/polygon/WePiggyPolygon.sol";
 import {DForcePolygon} from "../../../src/providers/polygon/DForcePolygon.sol";
 
-contract FlasherAaveV3ForkingTest is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
+contract FlasherAaveV3ForkingTests is Routines, ForkingSetup, IFlashLoanSimpleReceiver {
   ILendingProvider public dForce;
   ILendingProvider public wePiggy;
 

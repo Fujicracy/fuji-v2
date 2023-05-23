@@ -106,7 +106,6 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   BorrowingVault public newVault;
 
   function setUp() public {
-    oracle = new MockOracle();
     flasher = new MockFlasher();
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
@@ -135,12 +134,6 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
 
     // Replace permit action arguments, now with the signature values.
     args[1] = abi.encode(address(vault_), ALICE, ALICE, debt, deadline, v, r, s);
-
-    vm.expectEmit(true, true, true, true);
-    emit Deposit(address(simpleRouter), ALICE, deposit, deposit);
-
-    vm.expectEmit(true, true, true, true);
-    emit Borrow(address(simpleRouter), ALICE, ALICE, debt, debt);
 
     _dealMockERC20(vault_.asset(), ALICE, deposit);
 
@@ -174,16 +167,15 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     // Replace permit action arguments, now with the signature values.
     args[1] = abi.encode(address(vault), ALICE, ALICE, borrowAmount, deadline, v, r, s);
 
-    vm.expectEmit(true, true, true, true);
-    emit Deposit(address(simpleRouter), ALICE, amount, amount);
-
-    vm.expectEmit(true, true, true, true);
-    emit Borrow(address(simpleRouter), ALICE, ALICE, borrowAmount, borrowAmount);
-
     _dealMockERC20(collateralAsset, ALICE, amount);
 
     vm.startPrank(ALICE);
     SafeERC20.safeApprove(IERC20(collateralAsset), address(simpleRouter), amount);
+
+    vm.expectEmit(true, true, false, true);
+    emit Deposit(address(simpleRouter), ALICE, amount, amount);
+    vm.expectEmit(true, true, false, true);
+    emit Borrow(address(simpleRouter), ALICE, ALICE, borrowAmount, borrowAmount);
 
     simpleRouter.xBundle(actions, args);
     vm.stopPrank();
@@ -217,14 +209,13 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     // Replace permit action arguments, now with the signature values.
     args[1] = abi.encode(address(vault), ALICE, ALICE, amount, deadline, v, r, s);
 
-    vm.expectEmit(true, true, true, true);
-    emit Payback(address(simpleRouter), ALICE, borrowAmount, borrowAmount);
-
-    vm.expectEmit(true, true, true, true);
-    emit Withdraw(address(simpleRouter), ALICE, ALICE, amount, amount);
-
     vm.startPrank(ALICE);
     SafeERC20.safeApprove(IERC20(debtAsset), address(simpleRouter), borrowAmount);
+
+    vm.expectEmit(true, true, true, true);
+    emit Payback(address(simpleRouter), ALICE, borrowAmount, borrowAmount);
+    vm.expectEmit(true, true, true, true);
+    emit Withdraw(address(simpleRouter), ALICE, ALICE, amount, amount);
 
     simpleRouter.xBundle(actions, args);
     vm.stopPrank();
@@ -263,7 +254,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     vm.expectEmit(true, true, true, true);
     emit Borrow(address(simpleRouter), ALICE, ALICE, borrowAmount, borrowAmount);
 
-    vm.deal(ALICE, amount);
+    deal(ALICE, amount);
 
     vm.prank(ALICE);
     simpleRouter.xBundle{value: amount}(actions, args);
@@ -359,7 +350,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
   }
 
   function test_tryFoeSweepToken(address foe) public {
-    vm.assume(foe != address(chief));
+    vm.assume(foe != address(chief) && foe != address(simpleRouter) && foe != address(this));
     vm.expectRevert(
       SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector
     );
@@ -544,6 +535,8 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     bytes memory data =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(newVault), true);
     _callWithTimelock(address(chief), data);
+
+    _initalizeVault(address(newVault), INITIALIZER, 10000 ether, 1 ether);
 
     _dealMockERC20(collateralAsset, ALICE, amount);
 

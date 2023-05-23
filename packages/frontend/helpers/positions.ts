@@ -29,7 +29,7 @@ export const getPositionsWithBalance = async (
   const result = await getAllBorrowingVaultFinancials(account);
 
   if (result.errors.length > 0) {
-    // Should we keep going with the returnd vaults? Don't think so
+    // Should we keep going with the returned vaults? Don't think so
     const firstError = result.errors[0];
     return new FujiResultError(
       firstError.message,
@@ -48,7 +48,7 @@ export const getPositionsWithBalance = async (
     p.vault = v.vault;
     p.collateral = {
       amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
-      token: v.vault.collateral,
+      currency: v.vault.collateral,
       usdPrice: bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals),
       get baseAPR() {
         return v.activeProvider.depositAprBase;
@@ -56,7 +56,7 @@ export const getPositionsWithBalance = async (
     };
     p.debt = {
       amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
-      token: v.vault.debt,
+      currency: v.vault.debt,
       usdPrice: bigToFloat(v.debtPriceUSD, v.vault.debt.decimals),
       get baseAPR() {
         return v.activeProvider.borrowAprBase;
@@ -76,6 +76,7 @@ export const getPositionsWithBalance = async (
       p.liquidationPrice === 0
         ? 0
         : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
+    p.activeProvidersNames = v.allProviders.map((provider) => provider.name);
     return p;
   });
 
@@ -85,10 +86,10 @@ export const getPositionsWithBalance = async (
 export const getAccrual = (
   usdBalance: number,
   baseAPR: number | undefined,
-  param: 'collateral' | 'debt'
+  type: AssetType
 ): number => {
-  const factor = param === 'debt' ? -1 : 1;
-  // `baseAPR` returned bu SDK is formated in %, therefore to get decimal we divide by 100.
+  const factor = type === AssetType.Debt ? -1 : 1;
+  // `baseAPR` returned bu SDK is formatted in %, therefore to get decimal we divide by 100.
   const aprDecimal = baseAPR ? baseAPR / 100 : 0;
   // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
   const apyDecimal = (1 + aprDecimal / 365) ** 365 - 1;
@@ -126,6 +127,8 @@ export type PositionRow = {
   address: string | undefined;
   ltv: number | 0;
   ltvMax: number | 0;
+  safetyRating: number | 0;
+  activeProvidersNames: string[];
 };
 
 export function getRows(positions: Position[]): PositionRow[] {
@@ -133,6 +136,7 @@ export function getRows(positions: Position[]): PositionRow[] {
     return [];
   } else {
     return positions.map((pos: Position) => ({
+      safetyRating: Number(pos.vault?.safetyRating?.toString()) ?? 0,
       address: pos.vault?.address.value,
       chainId: pos.vault?.chainId,
       debt: {
@@ -153,6 +157,7 @@ export function getRows(positions: Position[]): PositionRow[] {
       percentPriceDiff: pos.liquidationDiff,
       ltv: pos.ltv * 100,
       ltvMax: pos.ltvMax * 100,
+      activeProvidersNames: pos.activeProvidersNames,
     }));
   }
 }
@@ -170,7 +175,7 @@ function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
  *
  * @param collateral input changes as `AssetChange`
  * @param debt input changes as `AssetChange`
- * @param position
+ * @param current
  * @param mode
  */
 export function viewEditedPosition(
@@ -212,7 +217,6 @@ export function viewEditedPosition(
   const debtUsdValue = future.debt.amount * future.debt.usdPrice;
   const collatUsdValue = future.collateral.amount * future.collateral.usdPrice;
 
-  future.ltvMax = future.ltvMax;
   future.ltv = (debtUsdValue / collatUsdValue) * 100;
 
   future.liquidationPrice =
@@ -259,6 +263,7 @@ export function viewDynamicPosition(
       liquidationPrice: position
         ? position.liquidationPrice
         : baseLiquidation.liquidationPrice,
+      activeProvidersNames: position?.activeProvidersNames || [],
     },
     editedPosition,
   };
@@ -273,7 +278,7 @@ export function dynamicPositionMeta(
   return {
     amount: dynamic ? Number(source.input) : source.amount,
     usdPrice: source.usdPrice,
-    token: source.token,
+    currency: source.currency,
   };
 }
 

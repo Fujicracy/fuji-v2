@@ -1,22 +1,21 @@
-import { Divider, Stack, Typography } from '@mui/material';
-import { BorrowingVault, LendingProviderDetails } from '@x-fuji/sdk';
+import { Box, Chip, Divider, Stack, Typography } from '@mui/material';
+import { BorrowingVault, LendingProviderWithFinancials } from '@x-fuji/sdk';
 
+import { ratingToNote } from '../../../helpers/ratings';
+import { ProviderIcon } from '../../Shared/Icons';
 import { DocsTooltip } from '../../Shared/Tooltips';
-import VaultsMenu from './VaultsMenu';
 
 type TitleProps = {
   selectedTab: number;
   onTabClick: (tab: number) => void;
-  providers?: LendingProviderDetails[];
+  providers?: LendingProviderWithFinancials[];
   vault?: BorrowingVault;
 };
 
 function Title({ providers, vault, selectedTab, onTabClick }: TitleProps) {
-  const tabs = [
-    'Overview',
-    // 'Analytics', TODO: remove comment to enable
-  ];
+  const tabs = ['Overview', 'Analytics'];
 
+  const safetyRating = Number(vault?.safetyRating?.toString());
   return (
     <>
       <Stack
@@ -56,10 +55,24 @@ function Title({ providers, vault, selectedTab, onTabClick }: TitleProps) {
             <Typography variant="smallDark" ml={0.5} mr={1}>
               Safety rating:
             </Typography>
-            <VaultsMenu
-              providers={providers}
-              safetyRating={Number(vault?.safetyRating?.toString())}
-            />
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <Chip
+                variant={safetyRating > 75 ? 'success' : 'warning'}
+                label={ratingToNote(safetyRating)}
+                sx={{ '& .MuiChip-label': { p: '0.25rem 0.5rem' } }}
+              />
+              <Box display="flex" alignItems="center">
+                {providers &&
+                  providers.map((p, index) => (
+                    <ProviderIcon
+                      key={index}
+                      provider={p.name}
+                      height={16}
+                      width={16}
+                    />
+                  ))}
+              </Box>
+            </Stack>
           </Stack>
         )}
       </Stack>

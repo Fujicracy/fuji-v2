@@ -57,13 +57,23 @@ export type XTransferParams = BaseRouterActionParams & {
   sender: Address;
 };
 
-//(uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData)
+//(uint256 destDomain, uint256 slippage, address asset, address sender, uint256 amount, bytes memory callData)
 export type XTransferWithCallParams = BaseRouterActionParams & {
   action: RouterAction.X_TRANSFER_WITH_CALL;
   destDomain: number;
   asset: Address;
+  sender: Address;
   slippage: number;
   innerActions: RouterActionParams[];
+};
+
+export type WrapNativeParams = BaseRouterActionParams & {
+  action: RouterAction.DEPOSIT_ETH;
+};
+
+export type UnwrapNativeParams = BaseRouterActionParams & {
+  action: RouterAction.WITHDRAW_ETH;
+  receiver: Address;
 };
 
 export type RouterActionParams =
@@ -73,4 +83,6 @@ export type RouterActionParams =
   | WithdrawParams
   | PermitParams
   | XTransferParams
-  | XTransferWithCallParams;
+  | XTransferWithCallParams
+  | WrapNativeParams
+  | UnwrapNativeParams;

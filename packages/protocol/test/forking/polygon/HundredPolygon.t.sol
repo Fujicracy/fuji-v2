@@ -9,7 +9,13 @@ import {HundredPolygon} from "../../../src/providers/polygon/HundredPolygon.sol"
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
 
-contract HundredPolygonForkingTest is Routines, ForkingSetup {
+/**
+ * @custom:disabled hundred finance was exploited on April 15th, 2023.
+ * Mint is paused for their hTokens.
+ * The tests in this suite are disabled until further notice.
+ */
+// contract HundredPolygonForkingTests is Routines, ForkingSetup {
+contract HundredPolygonDisabledTest is Routines, ForkingSetup {
   ILendingProvider public hundred;
 
   uint256 public constant DEPOSIT_AMOUNT = 1000e18;

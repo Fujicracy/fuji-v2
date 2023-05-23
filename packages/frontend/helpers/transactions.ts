@@ -10,8 +10,9 @@ import {
 import { formatUnits } from 'ethers/lib/utils';
 
 import { sdk } from '../services/sdk';
-import { FetchStatus } from '../store/borrow.store';
+import { FetchStatus } from './assets';
 import { chainName, transactionUrl } from './chains';
+import { stringifyError } from './errors';
 import {
   HistoryEntry,
   HistoryEntryStatus,
@@ -53,7 +54,9 @@ export const watchTransaction = async (
       return new FujiResultError('Transaction failed', FujiErrorCode.ONCHAIN);
     }
   } catch (error) {
-    return new FujiResultError('Transaction failed', FujiErrorCode.ONCHAIN);
+    return new FujiResultError('Transaction failed', FujiErrorCode.ONCHAIN, {
+      message: stringifyError(error),
+    });
   }
 };
 
@@ -145,7 +148,7 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
   });
 };
 
-const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {
+export const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {
   return bridgeFees.reduce((sum, fee) => {
     const cost = fee.amount * fee.priceUSD;
     return sum + cost;

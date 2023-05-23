@@ -19,10 +19,8 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const isMobile = useMediaQuery(breakpoints.down('sm'));
   const [selectedTab, setSelectedTab] = useState<number>(0);
 
-  const allProviders = useBorrow((state) => state.allProviders);
+  const providers = useBorrow((state) => state.allProviders);
   const vault = useBorrow((state) => state.activeVault);
-  const providers =
-    allProviders && vault ? allProviders[vault.address.value] : [];
 
   return (
     <Container isMobile={isMobile}>
