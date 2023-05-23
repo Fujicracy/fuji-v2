@@ -9,7 +9,7 @@ import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {MorphoAaveV2} from "../../../src/providers/mainnet/MorphoAaveV2.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract MorphoAaveV2ForkingTest is Routines, ForkingSetup {
+contract MorphoAaveV2ForkingTests is Routines, ForkingSetup {
   ILendingProvider public morphoAaveV2;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

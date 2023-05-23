@@ -10,7 +10,7 @@ import {UniswapV2Swapper} from "../../../src/swappers/UniswapV2Swapper.sol";
 import {IUniswapV2Router01} from "../../../src/interfaces/uniswap/IUniswapV2Router01.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract UniswapV2SwapperForkingTest is Routines, ForkingSetup {
+contract UniswapV2SwapperForkingTests is Routines, ForkingSetup {
   ISwapper public swapper;
   address uniswapV2Router;
 

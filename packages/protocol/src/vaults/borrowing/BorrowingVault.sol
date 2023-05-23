@@ -62,16 +62,12 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
   error BorrowingVault__rebalance_invalidProvider();
-  error BorrowingVault__rebalance_invalidFlasher();
-  error BorrowingVault__checkFee_excessFee();
   error BorrowingVault__borrow_slippageTooHigh();
   error BorrowingVault__mintDebt_slippageTooHigh();
   error BorrowingVault__payback_slippageTooHigh();
   error BorrowingVault__burnDebt_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
   error BorrowingVault__correctDebt_noNeedForCorrection();
-  error BorrowingVault__withdraw_debtNeedsCorrection();
-  error BorrowingVault__burnDebtShares_cannotBurn();
   error BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
 
   /*///////////////////
@@ -465,7 +461,6 @@ contract BorrowingVault is BaseVault {
 
     if (totalDebt_ == 0 && supply > 0 && supply > totalDebt_) {
       _pause(VaultActions.Withdraw);
-      revert BorrowingVault__withdraw_debtNeedsCorrection();
     }
     super._withdraw(caller, receiver, owner, assets, shares);
   }

@@ -17,7 +17,13 @@ import {IEulerDToken} from "../../../src/interfaces/euler/IEulerDToken.sol";
 import {IFlashloan} from "../../../src/interfaces/euler/IFlashloan.sol";
 import {IEulerMarkets} from "../../../src/interfaces/euler/IEulerMarkets.sol";
 
-contract FlasherEulerForkingTest is Routines, ForkingSetup, IFlashloan {
+/**
+ * @custom:disabled Euler finance was exploited on March 13th, 2023.
+ * Contracts were paused.
+ * The tests in this suite are disabled until further notice.
+ */
+// contract FlasherEulerForkingTests is Routines, ForkingSetup, IFlashloan {
+contract FlasherEulerDisabledTest is Routines, ForkingSetup, IFlashloan {
   ILendingProvider public providerAave;
   ILendingProvider public providerCompound;
 

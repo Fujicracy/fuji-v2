@@ -15,7 +15,7 @@ import {IFlashLoanRecipient} from "../../../src/interfaces/balancer/IFlashLoanRe
 import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {CompoundV3} from "../../../src/providers/mainnet/CompoundV3.sol";
 
-contract FlasherBalancerForkingTest is Routines, ForkingSetup, IFlashLoanRecipient {
+contract FlasherBalancerForkingTests is Routines, ForkingSetup, IFlashLoanRecipient {
   ILendingProvider public aaveV2;
   ILendingProvider public compoundV3;
 

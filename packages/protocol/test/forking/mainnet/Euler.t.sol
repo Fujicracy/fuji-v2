@@ -9,7 +9,13 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract EulerForkingTest is Routines, ForkingSetup {
+/**
+ * @custom:disabled Euler finance was exploited on March 13th, 2023.
+ * Contracts were paused.
+ * The tests in this suite are disabled until further notice.
+ */
+// contract EulerForkingTests is Routines, ForkingSetup {
+contract EulerDisabledTest is Routines, ForkingSetup {
   ILendingProvider public euler;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

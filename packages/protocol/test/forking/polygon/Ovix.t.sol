@@ -9,7 +9,13 @@ import {OvixPolygon} from "../../../src/providers/polygon/OvixPolygon.sol";
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
 
-contract OvixPolygonForkingTest is Routines, ForkingSetup {
+/**
+ * @custom:disabled 0vix was exploited April 28, 2023
+ * Borrowing is paused in their contracts.
+ * The tests in this suite are disabled until further notice.
+ */
+// contract OvixPolygonForkingTests is Routines, ForkingSetup {
+contract OvixPolygonDisabledTest is Routines, ForkingSetup {
   ILendingProvider public oVix;
 
   uint256 public constant DEPOSIT_AMOUNT = 1000e18;
