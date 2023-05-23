@@ -127,7 +127,7 @@ function CurrencyCard({
   const currencyList =
     shouldShowNativeWrappedPair && selectableCurrencies
       ? nativeAndWrappedPair(selectableCurrencies)
-      : selectableCurrencies;
+      : selectableCurrencies || [];
 
   const handleMax = async () => {
     if (calculatingMax) return;
@@ -209,12 +209,10 @@ function CurrencyCard({
     }
   `;
 
-  // TODO: borrow-refactor
-  const usdValue = usdPrice
-    ? isNaN(usdPrice * +value)
-      ? '$0'
-      : formatValue(usdPrice * +value, { style: 'currency' })
-    : 0;
+  const usdValue =
+    usdPrice && !isNaN(usdPrice * +value)
+      ? formatValue(usdPrice * +value, { style: 'currency' })
+      : '$0.00';
 
   return (
     <Card
@@ -285,17 +283,14 @@ function CurrencyCard({
           onClose={close}
           TransitionComponent={Fade}
         >
-          {/* TODO: borrow-refactor */}
-          {currencyList &&
-            balances &&
-            currencyList.map((currency) => (
-              <CurrencyItem
-                key={currency.name}
-                currency={currency}
-                balance={balances[currency.symbol]}
-                onClick={() => handleCurrencyChange(currency)}
-              />
-            ))}
+          {currencyList.map((currency) => (
+            <CurrencyItem
+              key={currency.name}
+              currency={currency}
+              balance={balances ? balances[currency.symbol] : 0}
+              onClick={() => handleCurrencyChange(currency)}
+            />
+          ))}
         </Menu>
       </div>
 

@@ -20,7 +20,6 @@ const ChainSelect = ({
   disabled,
   onChange,
 }: ChainSelectProps) => {
-  if (!value) return null; // TODO:
   const labelId = `${type}-label`;
 
   return (
@@ -54,7 +53,7 @@ function ChainSelectContent({
   onChange,
 }: {
   type: AssetType;
-  value: ChainId;
+  value?: ChainId;
   disabled: boolean;
   labelId: string;
   onChange: (chainId: ChainId) => void;
