@@ -217,7 +217,7 @@ function TransactionModal({
                   alignItems="start"
                   justifyContent="space-between"
                   gap={2}
-                  mt={1}
+                  mt={1.5}
                   sx={{
                     position: 'relative',
                     '&:not(:last-of-type):after': {
@@ -225,9 +225,16 @@ function TransactionModal({
                       content: '""',
                       borderLeft: `1px solid #47494C`,
                       height: '100%',
-                      transform: 'translateY(25%)',
+                      transform: 'translateY(35%)',
                       left: '2.5%',
                       zIndex: 1,
+                      ['@media screen and (max-width: 390px)']: {
+                        left: '3.5%',
+                        transform: 'translateY(22%)',
+                      },
+                    },
+                    '& .MuiSvgIcon-root': {
+                      mt: 0,
                     },
                   }}
                 >
@@ -241,8 +248,7 @@ function TransactionModal({
                     >
                       {stepIcon(step)}
                     </Stack>
-                    <Typography
-                      variant="small"
+                    <Stack
                       sx={{
                         ml: '0.5rem',
                       }}
@@ -296,33 +302,31 @@ function TransactionModal({
                       >
                         {step.label.amount}
                       </Typography>
-                    </Typography>
+                    </Stack>
                   </Stack>
-                  <Box>
-                    {step.status === HistoryEntryStatus.SUCCESS ? (
-                      <CheckIcon
-                        sx={{
-                          ...commonStatusStyle,
-                          width: '1.125rem',
-                          height: '1.125rem',
-                          backgroundColor: theme.palette.success.dark,
-                          borderRadius: '100%',
-                          padding: '0.2rem',
-                        }}
-                        fontSize="large"
-                      />
-                    ) : entry.status === HistoryEntryStatus.ONGOING ? (
-                      <CircularProgress size={18} sx={commonStatusStyle} />
-                    ) : (
-                      <ErrorOutlineIcon
-                        sx={{
-                          ...commonStatusStyle,
-                          width: '20px',
-                          height: '20px',
-                        }}
-                      />
-                    )}
-                  </Box>
+                  {step.status === HistoryEntryStatus.SUCCESS ? (
+                    <CheckIcon
+                      sx={{
+                        ...commonStatusStyle,
+                        width: '1.125rem',
+                        height: '1.125rem',
+                        backgroundColor: theme.palette.success.dark,
+                        borderRadius: '100%',
+                        padding: '0.2rem',
+                      }}
+                      fontSize="large"
+                    />
+                  ) : entry.status === HistoryEntryStatus.ONGOING ? (
+                    <CircularProgress size={18} sx={commonStatusStyle} />
+                  ) : (
+                    <ErrorOutlineIcon
+                      sx={{
+                        ...commonStatusStyle,
+                        width: '20px',
+                        height: '20px',
+                      }}
+                    />
+                  )}
                 </Stack>
               );
             })}
