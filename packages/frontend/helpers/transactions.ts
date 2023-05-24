@@ -156,7 +156,7 @@ export const transactionSteps = (
     const s2 = array[1];
     if (s2) {
       label.text += ` and ${labelify(s2).text}`;
-      label.amount += ` -> ${labelify(s2).amount}`;
+      label.amount += ` / ${labelify(s2).amount}`;
     }
 
     const description = `${chain} Network`;
