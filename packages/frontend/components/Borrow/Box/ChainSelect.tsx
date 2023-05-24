@@ -1,6 +1,6 @@
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Fade, Grid, MenuItem, Select, Stack, Typography } from '@mui/material';
-import { ChainId } from '@x-fuji/sdk';
+import { Chain, ChainId } from '@x-fuji/sdk';
 
 import { AssetType } from '../../../helpers/assets';
 import { chains } from '../../../helpers/chains';
@@ -60,27 +60,39 @@ function ChainSelectContent({
 }) {
   const selectId = `${type}-chain-select`;
   const menuId = `${type}-chain-menu`;
+
+  const renderItem = (chain: Chain) => (
+    <Grid container alignItems="center">
+      <NetworkIcon network={chain.name} height={18} width={18} />
+      <span style={{ marginLeft: '0.5rem' }}>
+        <Typography variant="small">{chain.name}</Typography>
+      </span>
+    </Grid>
+  );
+
   return (
     <Select
       labelId={labelId}
       id={selectId}
-      value={value}
+      value={value || -1}
       disabled={disabled}
       onChange={(e) => onChange(e.target.value as ChainId)}
       IconComponent={KeyboardArrowDownIcon}
       variant="standard"
+      renderValue={(chainId) => {
+        const chain = chains.find((c) => c.chainId === chainId);
+        if (!chain) {
+          return <Typography>Select a chain</Typography>;
+        }
+        return renderItem(chain);
+      }}
       disableUnderline
       MenuProps={{ TransitionComponent: Fade, id: menuId }}
     >
       {chains.map((chain) => {
         return (
           <MenuItem key={chain.chainId} value={chain.chainId}>
-            <Grid container alignItems="center">
-              <NetworkIcon network={chain.name} height={18} width={18} />
-              <span style={{ marginLeft: '0.5rem' }}>
-                <Typography variant="small">{chain.name}</Typography>
-              </span>
-            </Grid>
+            {renderItem(chain)}
           </MenuItem>
         );
       })}
