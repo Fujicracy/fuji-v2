@@ -1,5 +1,5 @@
 import { Stack, Typography } from '@mui/material';
-import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import React from 'react';
@@ -16,6 +16,14 @@ const routingSteps = [
 ];
 
 function AssetsContainer({ steps }: { steps: RoutingStepDetails[] }) {
+  const startChainId = steps.find(
+    (step) => step.step === RoutingStep.START
+  )?.chainId;
+
+  const destinationChainId = steps.find(
+    (step) => step.step === RoutingStep.END
+  )?.chainId;
+
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
@@ -26,7 +34,12 @@ function AssetsContainer({ steps }: { steps: RoutingStepDetails[] }) {
       {steps
         .filter((step) => routingSteps.includes(step.step))
         .map((step) => (
-          <AssetBox key={step.step} step={step} steps={steps} />
+          <AssetBox
+            key={step.step}
+            step={step}
+            startChainId={startChainId}
+            destinationChainId={destinationChainId}
+          />
         ))}
     </Stack>
   );
@@ -34,14 +47,16 @@ function AssetsContainer({ steps }: { steps: RoutingStepDetails[] }) {
 
 function AssetBox({
   step,
-  steps,
+  startChainId,
+  destinationChainId,
 }: {
   step: RoutingStepDetails;
-  steps: RoutingStepDetails[];
+  startChainId?: ChainId;
+  destinationChainId?: ChainId;
 }) {
   const chainId = [RoutingStep.BORROW, RoutingStep.WITHDRAW].includes(step.step)
-    ? steps[steps.length - 1].chainId
-    : step.chainId;
+    ? destinationChainId
+    : startChainId;
 
   const label = [RoutingStep.DEPOSIT, RoutingStep.PAYBACK].includes(step.step)
     ? 'From'
@@ -77,7 +92,11 @@ function AssetBox({
           <Typography variant="xsmallDark" mr={0.5}>
             {label}
           </Typography>
-          <NetworkIcon network={chainId} height={16} width={16} />
+          <NetworkIcon
+            network={chainId || step.chainId}
+            height={16}
+            width={16}
+          />
           <Typography variant="xsmall" ml={0.5}>
             {chainName(chainId)}
           </Typography>
