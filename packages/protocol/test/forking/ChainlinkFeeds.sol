@@ -79,6 +79,7 @@ contract ChainlinkFeeds {
       0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9,
       0x7bAC85A8a13A4BcD8abb3eB7d6b4d632c5a57676,
       0x3E7d1eAB13ad0104d2750B8863b489D65364e32D,
+      //TODO change this address if needed after oracle issue is solved
       0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8
     ];
 
