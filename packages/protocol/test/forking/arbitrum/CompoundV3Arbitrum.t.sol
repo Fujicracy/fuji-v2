@@ -14,7 +14,7 @@ import {Chief} from "../../../src/Chief.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 
-contract CompoundV3ArbitrumForkingTest is Routines, ForkingSetup {
+contract CompoundV3ArbitrumForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
