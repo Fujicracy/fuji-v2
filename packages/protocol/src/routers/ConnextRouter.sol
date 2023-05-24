@@ -175,7 +175,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
-        IERC20(asset).transfer(address(handler), balance);
+        SafeERC20.safeTransfer(IERC20(asset), address(handler), balance);
         handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
