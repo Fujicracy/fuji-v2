@@ -130,8 +130,6 @@ function TransactionModal({
     marginTop: '0.2rem',
   };
 
-  console.log(steps);
-
   return (
     <Dialog
       open={true}

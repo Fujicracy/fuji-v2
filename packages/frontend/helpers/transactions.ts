@@ -118,7 +118,8 @@ export const transactionSteps = (
     const link = txHash && transactionUrl(chainId, txHash);
 
     const labelify = (
-      step: HistoryRoutingStep
+      step: HistoryRoutingStep,
+      hasSecondPart: boolean = false
     ): { text: string; amount: string } => {
       const amount =
         step.token &&
@@ -137,7 +138,11 @@ export const transactionSteps = (
               step.chainId
             )} to ${' '}
         ${chainName(step.destinationChainId || step.token?.chainId)}`
-          : camelize(`${action} ${name ? preposition : ''} ${name ?? ''}`);
+          : camelize(
+              `${action} ${
+                !hasSecondPart ? `${name ? preposition : ''} ${name ?? ''}` : ''
+              }`
+            );
 
       const singleAmount = `${amount} ${step.token?.symbol}`;
       const amountLabel =
@@ -151,9 +156,9 @@ export const transactionSteps = (
       };
     };
 
-    let label = labelify(s);
-
     const s2 = array[1];
+    let label = labelify(s, Boolean(s2));
+
     if (s2) {
       label.text += ` and ${labelify(s2).text}`;
       label.amount += ` / ${labelify(s2).amount}`;
