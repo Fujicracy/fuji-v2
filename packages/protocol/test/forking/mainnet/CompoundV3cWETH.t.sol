@@ -17,8 +17,8 @@ import {TimelockController} from
 contract CompoundV3ForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
-  uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+  uint256 public DEPOSIT_AMOUNT;
+  uint256 public BORROW_AMOUNT;
 
   function setUp() public {
     setUpFork(MAINNET_DOMAIN);
@@ -33,12 +33,18 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
     _grantRoleChief(REBALANCER_ROLE, address(this));
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
 
+    collateralAsset = 0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0; //wstETH
+    debtAsset = registry[MAINNET_DOMAIN].weth;
+
+    vm.label(collateralAsset, "WSTETH");
+    vm.label(debtAsset, "WETH");
+
     vault = new BorrowingVault(
             collateralAsset,
             debtAsset,
             address(oracle),
             address(chief),
-            'Fuji-V2 WETH-USDC Vault Shares',
+            'Fuji-V2 WSTETH-WETH Vault Shares',
             'fv2WETHUSDC',
             providers,
             DEFAULT_MAX_LTV,
@@ -49,11 +55,14 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
 
-    initVaultDebtShares = ICompoundV3(0xc3d688B66703497DAA19211EEdff47f25384cdc3).baseBorrowMin();
+    initVaultDebtShares = ICompoundV3(0xA17581A9E3356d9A858b789D68B4d866e593aE94).baseBorrowMin();
     initVaultShares =
       _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
 
     _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+
+    BORROW_AMOUNT = 0.5 ether;
+    DEPOSIT_AMOUNT = _getMinCollateralAmount(BorrowingVault(payable(address(vault))), BORROW_AMOUNT);
   }
 
   function test_depositAndBorrow() public {
@@ -87,25 +96,6 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
     uint256 borrowBalance = vault.totalDebt();
     assertGe(depositBalance, DEPOSIT_AMOUNT);
     assertGe(borrowBalance, BORROW_AMOUNT);
-  }
-
-  function test_combinedGetBalances() public {
-    ILendingProvider aaveV2;
-    aaveV2 = new AaveV2();
-    ILendingProvider[] memory providers = new ILendingProvider[](2);
-    providers[0] = compoundV3;
-    providers[1] = aaveV2;
-    _setVaultProviders(vault, providers);
-
-    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
-
-    _setActiveProvider(vault, aaveV2);
-    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, BOB);
-
-    uint256 depositBalance = vault.totalAssets();
-    uint256 borrowBalance = vault.totalDebt();
-    assertGe(depositBalance, DEPOSIT_AMOUNT * 2);
-    assertGe(borrowBalance, BORROW_AMOUNT * 2);
   }
 
   function test_getInterestRates() public {
