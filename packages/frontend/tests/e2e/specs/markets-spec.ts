@@ -153,38 +153,38 @@ describe('Markets', () => {
     // checking last is folded.
     cy.get('@lastRow').find('[data-cy="market-row-network"]').should('exist');
   });
-  it('should redirect after click with correct token prefill', () => {
-    let collateralToken, debtToken;
+  it('should redirect after click with correct currency prefill', () => {
+    let collateralCurrency, debtCurrency;
     // finding first row.
     cy.get('[data-cy="market-row"]').first().as('firstRow', { type: 'static' });
     cy.get('@firstRow')
       .find('[data-cy="market-row-debt"]')
       .invoke('text')
       .then((debt) => {
-        // saving first row debt token.
-        debtToken = debt;
+        // saving first row debt currency.
+        debtCurrency = debt;
       })
       .then(() => {
         cy.get('@firstRow')
           .find('[data-cy="market-row-collateral"]')
           .invoke('text')
           .then((collateral) => {
-            // saving first row collateral token.
-            collateralToken = collateral;
+            // saving first row collateral currency.
+            collateralCurrency = collateral;
           })
           .then(() => {
             // clicking on first row.
             cy.get('@firstRow').first().click();
             // checking redirect to borrow page.
             cy.location('pathname').should('eq', '/borrow');
-            // checking prefilled collateral token.
-            cy.get('[data-cy="token-select"]')
+            // checking prefilled collateral currency.
+            cy.get('[data-cy="currency-select"]')
               .first()
-              .should('have.text', collateralToken);
-            // checking prefilled debt token.
-            cy.get('[data-cy="token-select"]')
+              .should('have.text', collateralCurrency);
+            // checking prefilled debt currency.
+            cy.get('[data-cy="currency-select"]')
               .last()
-              .should('have.text', debtToken);
+              .should('have.text', debtCurrency);
           });
       });
   });

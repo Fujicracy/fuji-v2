@@ -1,5 +1,6 @@
 import { Box, Palette } from '@mui/material';
 import Image, { ImageProps } from 'next/image';
+import { SyntheticEvent } from 'react';
 
 export interface Icon extends Omit<ImageProps, 'src' | 'alt'> {
   sx?: object;
@@ -24,7 +25,7 @@ export function renderIcon(
   props: Icon,
   path: string,
   name: string,
-  onError: (e: any) => void,
+  onError: (e: SyntheticEvent<HTMLImageElement, Event>) => void,
   defaultImage: string | undefined = undefined
 ) {
   const { ...rest } = props;

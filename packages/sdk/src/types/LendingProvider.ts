@@ -1,13 +1,3 @@
-import { BigNumber } from '@ethersproject/bignumber';
-
-// TODO: deprecate
-export type LendingProviderDetails = {
-  name: string;
-  borrowRate: BigNumber;
-  depositRate: BigNumber;
-  active: boolean;
-};
-
 export type LendingProviderBase = {
   name: string;
   llamaKey: string;

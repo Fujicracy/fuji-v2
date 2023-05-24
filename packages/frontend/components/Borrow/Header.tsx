@@ -2,12 +2,12 @@ import { Box, Divider, Stack, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 
 import { ActionType } from '../../helpers/assets';
+import { wrappedSymbol } from '../../helpers/currencies';
 import { useBorrow } from '../../store/borrow.store';
-import { NetworkIcon } from '../Shared/Icons';
-import { TokenIcon } from '../Shared/Icons';
+import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import SlippageSettings from '../Shared/SlippageSettings';
 import TabChip from '../Shared/TabChip';
-import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
+import { TooltipWrapper } from '../Shared/Tooltips';
 
 type BorrowHeaderProps = {
   isEditing: boolean;
@@ -40,9 +40,9 @@ function BorrowHeader({
         >
           <Stack direction="row" justifyContent="start" alignItems="center">
             <Box sx={{ position: 'relative' }}>
-              <TokenIcon token={debt.token} height={40} width={40} />
-              <TokenIcon
-                token={collateral.token}
+              <CurrencyIcon currency={debt.currency} height={40} width={40} />
+              <CurrencyIcon
+                currency={collateral.currency}
                 height={16}
                 width={16}
                 sx={{
@@ -54,14 +54,14 @@ function BorrowHeader({
             </Box>
             <Box ml="0.75rem">
               <Typography variant="h5" fontSize="1.25rem" lineHeight="150%">
-                Debt: {debt.token.symbol}
+                Debt: {debt.currency.symbol}
               </Typography>
               <Typography
                 variant="small"
                 fontSize="0.875rem"
                 lineHeight="22.4px"
               >
-                Collateral: {collateral.token.symbol}
+                Collateral: {wrappedSymbol(collateral.currency)}
               </Typography>
             </Box>
           </Stack>

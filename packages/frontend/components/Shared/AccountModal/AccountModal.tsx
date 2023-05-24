@@ -16,7 +16,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 
-import { addressUrl, hexToChainId } from '../../../helpers/chains';
+import { addressUrl } from '../../../helpers/chains';
 import { HistoryEntry, HistoryEntryStatus } from '../../../helpers/history';
 import { useAuth } from '../../../store/auth.store';
 import { useHistory } from '../../../store/history.store';
@@ -37,7 +37,7 @@ function AccountModal({
 }: AccountModalProps) {
   const { palette } = useTheme();
 
-  const hexChainId = useAuth((state) => state.chain?.id);
+  const chainId = useAuth((state) => state.chainId);
   const walletName = useAuth((state) => state.walletName);
   const logout = useAuth((state) => state.logout);
 
@@ -54,7 +54,6 @@ function AccountModal({
   const [copyAddressHovered, setCopyAddressHovered] = useState(false);
   const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false);
 
-  const chainId = hexToChainId(hexChainId);
   const formattedAddress =
     address.substring(0, 8) + '...' + address.substring(address.length - 4);
 
