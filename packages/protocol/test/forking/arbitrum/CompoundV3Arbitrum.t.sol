@@ -110,9 +110,11 @@ contract CompoundV3ArbitrumForkingTests is Routines, ForkingSetup {
 
   function test_getInterestRates() public {
     uint256 depositRate = compoundV3.getDepositRateFor(vault);
+    console.log("deposit_interest-rate:asset", vault.asset(), depositRate);
     assertEq(depositRate, 0); // Should be zero.
 
     uint256 borrowRate = compoundV3.getBorrowRateFor(vault);
+    console.log("borrow_interest-rate:debtAsset", vault.debtAsset(), borrowRate);
     assertGt(borrowRate, 0); // Should be greater than zero.
   }
 
