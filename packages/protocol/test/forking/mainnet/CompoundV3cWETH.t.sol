@@ -17,8 +17,8 @@ import {TimelockController} from
 contract CompoundV3ForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
-  uint256 public DEPOSIT_AMOUNT = 0.5 ether;
-  uint256 public BORROW_AMOUNT = 200 * 1e6;
+  uint256 public DEPOSIT_AMOUNT;
+  uint256 public BORROW_AMOUNT;
 
   function setUp() public {
     setUpFork(MAINNET_DOMAIN);
