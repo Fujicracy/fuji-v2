@@ -124,12 +124,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    *
    * Requirements:
    * - `calldata` parameter must be encoded with the following structure:
-   *     > abi.encode(Action[] actions, bytes[] args, uint256 slippageThreshold)
+   *     > abi.encode(Action[] actions, bytes[] args)
    * - actions: array of serialized actions to execute from available enum {IRouter.Action}.
    * - args: array of encoded arguments according to each action. See {BaseRouter-internalBundle}.
-   * - slippageThreshold: same argument as defined in the original `xCall()`. This
-   *     argument protects and checks internally for any slippage that happens during
-   *     the bridge of assets.
    */
   function xReceive(
     bytes32 transferId,
