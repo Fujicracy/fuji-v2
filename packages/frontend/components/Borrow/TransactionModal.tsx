@@ -218,8 +218,20 @@ function TransactionModal({
                   justifyContent="space-between"
                   gap={2}
                   mt={1}
+                  sx={{
+                    position: 'relative',
+                    '&:not(:last-of-type):after': {
+                      position: 'absolute',
+                      content: '""',
+                      borderLeft: `1px solid #47494C`,
+                      height: '100%',
+                      transform: 'translateY(25%)',
+                      left: '2.5%',
+                      zIndex: 1,
+                    },
+                  }}
                 >
-                  <Stack direction="row" alignItems="start">
+                  <Stack direction="row" alignItems="start" sx={{ zIndex: 2 }}>
                     <Stack
                       alignItems="center"
                       justifyContent="center"
