@@ -6,11 +6,11 @@ import { FujiErrorCode } from '../constants/errors';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import {
   Chain,
+  Currency,
   FujiError,
   FujiResultError,
   FujiResultSuccess,
 } from '../entities';
-import { Token } from '../entities/Token';
 import { ChainId, OperationType, PreviewName, RoutingStep } from '../enums';
 import { Nxtp } from '../Nxtp';
 import { PreviewNxtpResult } from '../types';
@@ -35,14 +35,14 @@ function _step(
   step: RoutingStep,
   chainId: ChainId,
   amount?: BigNumber,
-  token?: Token,
+  currency?: Currency,
   lendingProvider?: string
 ): RoutingStepDetails {
   return {
     step,
     amount,
     chainId,
-    token,
+    token: currency?.wrapped,
     lendingProvider: lendingProvider
       ? LENDING_PROVIDERS[chainId][lendingProvider]
       : undefined,
@@ -52,9 +52,10 @@ function _step(
 async function _callNxtp(
   srcChain: Chain,
   destChain: Chain,
-  token: Token,
+  currency: Currency,
   amount: BigNumber
 ): FujiResultPromise<PreviewNxtpResult> {
+  const token = currency.wrapped;
   if (amount.eq(0)) {
     const zero = BigNumber.from(0);
     return new FujiResultSuccess({

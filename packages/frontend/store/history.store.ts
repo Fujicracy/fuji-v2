@@ -30,6 +30,7 @@ import {
   NotificationDuration,
   notify,
 } from '../helpers/notifications';
+import { storeOptions } from '../helpers/stores';
 import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -62,6 +63,10 @@ type HistoryActions = {
   watch: (transaction: HistoryTransaction) => void;
   clearStore: () => void;
 
+  changeTxHash: (
+    currentTxHash: string,
+    isHistoricalTransaction?: boolean
+  ) => void;
   openModal: (hash: string, isHistorical?: boolean) => void;
   closeModal: () => void;
 };
@@ -452,18 +457,19 @@ export const useHistory = create<HistoryStore>()(
           });
         },
 
+        changeTxHash(currentTxHash, isHistoricalTransaction) {
+          set({ currentTxHash, isHistoricalTransaction });
+        },
+
         openModal(hash, isHistorical = false) {
-          set({ currentTxHash: hash, isHistoricalTransaction: isHistorical });
+          get().changeTxHash(hash, isHistorical);
         },
 
         closeModal() {
-          set({ currentTxHash: '', isHistoricalTransaction: false });
+          get().changeTxHash('', false);
         },
       }),
-      {
-        enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
-        name: 'xFuji/history',
-      }
+      storeOptions('history')
     ),
 
     {

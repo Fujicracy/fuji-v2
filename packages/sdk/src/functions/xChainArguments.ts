@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers';
 
-import { Token } from '../entities';
+import { Currency } from '../entities';
 import { BridgeFee, PreviewNxtpResult } from '../types';
 
 export function defaultXChainArguments(): {
@@ -17,17 +17,21 @@ export function defaultXChainArguments(): {
 }
 
 export async function updateXChainArguments(
-  token: Token,
+  currency: Currency,
   result: PreviewNxtpResult,
-  secondToken?: Token,
+  secondCurrency?: Currency,
   secondResult?: PreviewNxtpResult
 ): Promise<{
   estimateSlippage: BigNumber;
   bridgeFees: BridgeFee[];
 }> {
+  const token = currency.wrapped;
+  const secondToken = secondCurrency?.wrapped;
+
   const priceResult = await token.getPriceUSD();
   const priceUSD = priceResult.success ? priceResult.data : 0;
   const bridgeFees = [{ amount: result.bridgeFee, token, priceUSD }];
+
   let estimateSlippage = result.estimateSlippage;
   if (secondToken && secondResult) {
     const secondPriceResult = await secondToken.getPriceUSD();

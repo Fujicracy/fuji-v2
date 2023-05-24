@@ -22,7 +22,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-contract LiquidationManagerPolygonForkingTest is ForkingSetup, Routines {
+contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
   using Math for uint256;
 
   uint256 public constant TREASURY_PK = 0xF;

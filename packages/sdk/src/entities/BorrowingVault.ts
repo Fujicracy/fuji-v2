@@ -2,6 +2,7 @@ import { defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
+import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import { TypedDataDomain, TypedDataField, utils } from 'ethers';
 import invariant from 'tiny-invariant';
@@ -12,7 +13,7 @@ import { ChainId, RouterAction } from '../enums';
 import {
   ChainConfig,
   ChainConnectionDetails,
-  LendingProviderDetails,
+  LendingProviderWithFinancials,
   PermitParams,
 } from '../types';
 import {
@@ -269,17 +270,17 @@ export class BorrowingVault {
   }
 
   /**
-   * Retruns the list with all providers of the vault, marking the active one.
+   * Retruns the list with all providers of the vault.
    * Each element also includes the borrow and deposit rate.
    *
    * @throws if {@link setConnection} was not called beforehand
    */
-  async getProviders(): Promise<LendingProviderDetails[]> {
+  async getProviders(): Promise<LendingProviderWithFinancials[]> {
     invariant(
       this.contract && this.multicallRpcProvider,
       'Connection not set!'
     );
-    if (!this.activeProvider || !this.allProviders) {
+    if (!this.allProviders) {
       await this.preLoad();
     }
 
@@ -303,6 +304,9 @@ export class BorrowingVault {
     ]);
 
     const splitIndex = rates.length / 2;
+    // rates are with 27 decimals
+    const rateToFloat = (n: BigNumber) =>
+      parseFloat(formatUnits(n.toString(), 27)) * 100;
     return this.allProviders
       .filter((address) =>
         Boolean(LENDING_PROVIDERS[this.chainId][address]?.name)
@@ -310,9 +314,9 @@ export class BorrowingVault {
       .map((addr: string, i: number) => {
         return {
           name: LENDING_PROVIDERS[this.chainId][addr]?.name,
-          depositRate: rates[i],
-          borrowRate: rates[i + splitIndex],
-          active: addr === this.activeProvider,
+          llamaKey: LENDING_PROVIDERS[this.chainId][addr]?.llamaKey,
+          depositAprBase: rateToFloat(rates[i]),
+          borrowAprBase: rateToFloat(rates[i + splitIndex]),
         };
       });
   }

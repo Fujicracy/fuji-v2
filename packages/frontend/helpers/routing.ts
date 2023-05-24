@@ -2,6 +2,7 @@ import {
   Address,
   BorrowingVault,
   BridgeFee as FujiBridgeFee,
+  Currency,
   FujiResult,
   FujiResultPromise,
   FujiResultSuccess,
@@ -10,7 +11,6 @@ import {
   RouterActionParams,
   RoutingStep,
   RoutingStepDetails,
-  Token,
 } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
@@ -35,8 +35,8 @@ export type RouteMeta = {
 export const fetchRoutes = async (
   mode: Mode,
   vault: BorrowingVault,
-  collateralToken: Token,
-  debtToken: Token,
+  collateralToken: Currency,
+  debtToken: Currency,
   collateralInput: string,
   debtInput: string,
   address: string,

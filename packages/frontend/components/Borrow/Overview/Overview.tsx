@@ -31,10 +31,9 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
     liquidationPrice,
   } = position;
 
-  const allProviders = useBorrow((state) => state.allProviders);
   const vault = useBorrow((state) => state.activeVault);
-  const providers =
-    allProviders && vault ? allProviders[vault.address.value] : [];
+  const allProviders = useBorrow((state) => state.allProviders);
+  const activeProvider = useBorrow((state) => state.activeProvider);
 
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt.input);
@@ -50,7 +49,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
 
   return (
     <Container isMobile={isMobile}>
-      {!isMobile && <Title providers={providers} vault={vault} />}
+      {!isMobile && <Title providers={allProviders} vault={vault} />}
 
       <Summary
         collateral={collateral}
@@ -76,7 +75,8 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
       <Details
         ltv={ltv}
         ltvThreshold={ltvThreshold}
-        providers={providers}
+        providers={allProviders}
+        activeProvider={activeProvider}
         vault={vault}
         isMobile={isMobile}
         isEditing={isEditing}

@@ -9,7 +9,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract AaveV3ForkingTest is Routines, ForkingSetup {
+contract AaveV3ForkingTests is Routines, ForkingSetup {
   ILendingProvider public aaveV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

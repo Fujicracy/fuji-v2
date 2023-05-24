@@ -74,7 +74,7 @@ The major drawback is, compared to writing logic in a component: when an action 
 
 ```ts
 changeAssetChain(type, chainId, updateVault) {
-  const tokens =
+  const currencies =
     type === "debt"
       ? sdk.getDebtForChain(chainId)
       : sdk.getCollateralForChain(chainId)
@@ -83,11 +83,11 @@ changeAssetChain(type, chainId, updateVault) {
     produce((state: BorrowState) => {
       const t = type === "debt" ? state.debt : state.collateral
       t.chainId = chainId
-      t.selectableTokens = tokens
-      t.token = tokens[0]
+      t.selectableCurrencies = currencies
+      t.currency = currencies[0]
     })
   )
-  get().updateTokenPrice(type)
+  get().updateCurrencyPrice(type)
   get().updateBalances(type)
 
   if (updateVault) {
@@ -127,6 +127,7 @@ stores
 ├── auth
 ├── borrow
 ├── history
+├── markets
 └── positions
 ```
 

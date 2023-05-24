@@ -1,12 +1,13 @@
 import {
   ChainId,
+  Currency,
   FujiResultPromise,
   FujiResultSuccess,
   OperationType,
-  Token,
 } from '@x-fuji/sdk';
 
 import {
+  DEFAULT_CHAIN_ID,
   DUST_AMOUNT,
   LTV_RECOMMENDED_DECREASE,
   NOTIFICATION_MESSAGES,
@@ -17,6 +18,9 @@ import { notify } from './notifications';
 import { BasePosition } from './positions';
 import { fetchRoutes } from './routing';
 
+const defaultDebtCurrencies = sdk.getDebtForChain(DEFAULT_CHAIN_ID);
+const defaultCollateralCurrencies = sdk.getCollateralForChain(DEFAULT_CHAIN_ID);
+
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
   PAYBACK_AND_WITHDRAW, // removePosition: both collateral and debt
@@ -26,14 +30,26 @@ export enum Mode {
   PAYBACK, // removePosition: debt
 }
 
-export type AssetType = 'debt' | 'collateral';
+export enum AssetType {
+  Debt = 'debt',
+  Collateral = 'collateral',
+}
 
-export type AllowanceStatus =
-  | 'initial'
-  | 'fetching'
-  | 'allowing'
-  | 'ready'
-  | 'error';
+export enum FetchStatus {
+  Initial,
+  Loading,
+  Ready,
+  Error,
+}
+
+export enum AllowanceStatus {
+  Initial,
+  Loading,
+  Ready,
+  Error,
+  Approving,
+  Unneeded,
+}
 
 export type Allowance = {
   status: AllowanceStatus;
@@ -41,12 +57,12 @@ export type Allowance = {
 };
 
 export type AssetChange = {
-  selectableTokens: Token[];
+  selectableCurrencies: Currency[];
   balances: Record<string, number>;
   allowance: Allowance;
   input: string;
   chainId: ChainId;
-  token: Token;
+  currency: Currency;
   amount: number;
   usdPrice: number;
 };
@@ -67,6 +83,40 @@ export enum ActionType {
   REMOVE = 1,
 }
 
+export const foundCurrency = (
+  selectable: Currency[],
+  updated?: Currency
+): Currency | undefined => {
+  return updated && selectable.find((c) => c.symbol === updated.symbol);
+};
+
+export const defaultCurrency = (
+  selectable: Currency[],
+  updated?: Currency
+): Currency => {
+  return foundCurrency(selectable, updated) || selectable[0];
+};
+
+export const defaultAssetForType = (type: AssetType): AssetChange => {
+  const defaultCurrencies =
+    type === AssetType.Debt
+      ? defaultDebtCurrencies
+      : defaultCollateralCurrencies;
+  return {
+    selectableCurrencies: defaultCurrencies,
+    balances: {},
+    input: '',
+    chainId: DEFAULT_CHAIN_ID,
+    allowance: {
+      status: AllowanceStatus.Initial,
+      value: undefined,
+    },
+    currency: defaultCurrency(defaultCurrencies),
+    amount: 0,
+    usdPrice: 0,
+  };
+};
+
 export const recommendedLTV = (ltvMax: number): number => {
   return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0;
 };
@@ -77,12 +127,15 @@ export const needsAllowance = (
   asset: AssetChange,
   amount: number
 ): boolean => {
+  if (asset.allowance.status === AllowanceStatus.Unneeded) {
+    return false;
+  }
   return (
-    (type === 'debt'
+    (type === AssetType.Debt
       ? mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW
       : mode === Mode.DEPOSIT || mode === Mode.DEPOSIT_AND_BORROW) &&
-    asset.allowance?.value !== undefined &&
-    asset.allowance?.value < amount
+    asset.allowance.value !== undefined &&
+    asset.allowance.value < amount
   );
 };
 
@@ -136,8 +189,8 @@ export const withdrawMaxAmount = async (
       const response = await fetchRoutes(
         mode,
         basePosition.position.vault,
-        collateral.token,
-        debt.token,
+        collateral.currency,
+        debt.currency,
         // we don't care about the collateral input
         '1',
         debt.input,

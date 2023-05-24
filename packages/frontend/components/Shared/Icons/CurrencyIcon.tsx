@@ -1,18 +1,18 @@
 import { useTheme } from '@mui/material';
-import { Token } from '@x-fuji/sdk';
+import { Currency } from '@x-fuji/sdk';
 import { SyntheticEvent, useState } from 'react';
 
 import { getTokenImage } from '../../../helpers/paths';
 import { Icon, renderIcon, renderIconError } from './Base/Icon';
 
 interface Props extends Icon {
-  token: Token | string;
+  currency: Currency | string;
 }
 
-function TokenIcon(props: Props) {
+function CurrencyIcon(props: Props) {
   const { palette } = useTheme();
-  const { token } = props;
-  const symbol = typeof token === 'string' ? token : token.symbol;
+  const { currency } = props;
+  const symbol = typeof currency === 'string' ? currency : currency.symbol;
   const path = getTokenImage(symbol);
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>();
 
@@ -23,4 +23,4 @@ function TokenIcon(props: Props) {
   return renderIcon(props, path, symbol, (e) => setError(e));
 }
 
-export default TokenIcon;
+export default CurrencyIcon;

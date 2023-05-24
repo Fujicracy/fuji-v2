@@ -20,7 +20,7 @@ import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 
-contract SimpleRouterForkingTest is Routines, ForkingSetup {
+contract SimpleRouterForkingTests is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
   ILendingProvider public aaveV3;
 

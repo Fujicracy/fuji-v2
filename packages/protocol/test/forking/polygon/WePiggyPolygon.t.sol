@@ -11,7 +11,7 @@ import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 
-contract WePiggyPolygonForkingTest is Routines, ForkingSetup {
+contract WePiggyPolygonForkingTests is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
 
   uint256 public constant DEPOSIT_AMOUNT = 1000e18;

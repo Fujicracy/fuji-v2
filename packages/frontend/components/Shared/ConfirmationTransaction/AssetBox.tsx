@@ -5,9 +5,10 @@ import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 
+import { AssetType } from '../../../helpers/assets';
 import { chainName } from '../../../helpers/chains';
 import { toNotSoFixed } from '../../../helpers/values';
-import { NetworkIcon, TokenIcon } from '../Icons';
+import { CurrencyIcon, NetworkIcon } from '../Icons';
 
 function AssetBox({
   isEditing,
@@ -18,8 +19,8 @@ function AssetBox({
 }) {
   const { palette } = useTheme();
   const type = [RoutingStep.DEPOSIT, RoutingStep.WITHDRAW].includes(step.step)
-    ? 'collateral'
-    : 'debt';
+    ? AssetType.Collateral
+    : AssetType.Debt;
   const isRemoveAction = [RoutingStep.WITHDRAW, RoutingStep.PAYBACK].includes(
     step.step
   );
@@ -60,7 +61,7 @@ function AssetBox({
         </Typography>
 
         <Stack flexDirection="row" alignItems="center" gap={0.75}>
-          <TokenIcon token={step.token || ''} height={16} width={16} />
+          <CurrencyIcon currency={step.token || ''} height={16} width={16} />
           <Typography variant="small">
             {`${toNotSoFixed(
               formatUnits(

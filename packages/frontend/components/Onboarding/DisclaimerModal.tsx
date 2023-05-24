@@ -11,7 +11,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { ChangeEvent, useEffect, useState } from 'react';
 
-import { useAuth } from '../../store/auth.store';
+import { acceptTermsOfUse, getOnboardStatus } from '../../helpers/auth';
 import ExploreCarousel from './ExploreCarousel';
 
 type AgreementBox = { checked: boolean; text: string };
@@ -31,11 +31,8 @@ const agreements: AgreementBox[] = [
   },
 ];
 
-export function SafetyNoticeModal() {
+export function DisclaimerModal() {
   const { palette } = useTheme();
-
-  const acceptTermsOfUse = useAuth((state) => state.acceptTermsOfUse);
-  const getOnboardStatus = useAuth((state) => state.getOnboardStatus);
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(true);
   const [hasPreviouslyAcceptedTerms, setHasPreviouslyAcceptedTerms] =
@@ -46,12 +43,11 @@ export function SafetyNoticeModal() {
     useState<boolean>(false);
 
   useEffect(() => {
-    const hasPreviouslyAcceptedTerms = (): boolean =>
-      getOnboardStatus().hasAcceptedTerms;
+    const hasPreviouslyAcceptedTerms = getOnboardStatus().hasAcceptedTerms;
 
     setHasAcceptedTerms(hasPreviouslyAcceptedTerms);
     setHasPreviouslyAcceptedTerms(hasPreviouslyAcceptedTerms);
-  }, [getOnboardStatus]);
+  }, []);
 
   const onAcceptClick = () => {
     acceptTermsOfUse();
@@ -176,4 +172,4 @@ export function SafetyNoticeModal() {
   );
 }
 
-export default SafetyNoticeModal;
+export default DisclaimerModal;

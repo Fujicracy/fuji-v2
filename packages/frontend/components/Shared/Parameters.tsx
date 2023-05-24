@@ -22,7 +22,7 @@ function Parameters() {
         onClick={openMenu}
       />
       <Menu
-        id="paramters-menu"
+        id="parameters-menu"
         anchorEl={anchorEl}
         open={isOpen}
         onClose={closeMenu}
