@@ -167,8 +167,6 @@ export class BorrowingVault {
    */
   multicallRpcProvider?: IMulticallProvider;
 
-  private _configParams?: ChainConfig;
-
   constructor(address: Address, collateral: Token, debt: Token) {
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
@@ -187,8 +185,6 @@ export class BorrowingVault {
    */
   setConnection(configParams: ChainConfig): BorrowingVault {
     if (this.rpcProvider) return this;
-
-    this._configParams = configParams;
 
     const connection = CHAIN[this.chainId].setConnection(configParams)
       .connection as ChainConnectionDetails;
@@ -342,25 +338,24 @@ export class BorrowingVault {
 
   /**
    * Returns a historical data of deposit or borrow rates for all providers.
+   * If data for a specific provider is not available at DefiLlama,
+   * an empty array is returned.
    *
    * @param token - the collateral or the debt token of the vault {@link Token}
    */
   async getProvidersStatsFor(token: Token): FujiResultPromise<AprResult[]> {
-    if (token.equals(this.collateral) || token.equals(this.debt))
+    if (!token.equals(this.collateral) && !token.equals(this.debt))
       return new FujiResultError('Wrong token');
 
     if (!this.allProviders) {
       await this.preLoad();
     }
-    if (!this.allProviders || !this._configParams)
-      return new FujiResultError('Connection not set');
+    if (!this.allProviders)
+      return new FujiResultError('Lending Providers are not preLoaded!');
 
-    const { defillamaproxy } = this._configParams;
     const uri = {
-      pools: defillamaproxy ? defillamaproxy + 'pools' : URLS.DEFILLAMA_POOLS,
-      chart: defillamaproxy
-        ? defillamaproxy + 'chartLendBorrow'
-        : URLS.DEFILLAMA_CHART,
+      pools: URLS.DEFILLAMA_POOLS,
+      chart: URLS.DEFILLAMA_CHART,
     };
     try {
       const pools = await axios
@@ -374,15 +369,21 @@ export class BorrowingVault {
           (p: LlamaAssetPool) =>
             p.chain === this.chain.llamaKey &&
             p.project === provider.llamaKey &&
-            p.symbol === token.symbol
+            // if p.symbol === 'ETH' and token.symbol === 'WETH'
+            // in the case of dForce
+            token.symbol.includes(p.symbol)
         )?.pool;
       };
 
       const llamaResult = await Promise.all(
         this.allProviders.map((addr) =>
-          axios
-            .get<GetLlamaPoolStatsResponse>(uri.chart + `/${getPoolId(addr)}`)
-            .then(({ data }) => data.data)
+          getPoolId(addr)
+            ? axios
+                .get<GetLlamaPoolStatsResponse>(
+                  uri.chart + `/${getPoolId(addr)}`
+                )
+                .then(({ data }) => data.data)
+            : Promise.resolve([])
         )
       );
 
