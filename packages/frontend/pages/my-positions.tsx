@@ -1,4 +1,4 @@
-import { Container, useMediaQuery, useTheme } from '@mui/material';
+import { Container } from '@mui/material';
 import { NextPage } from 'next';
 import Head from 'next/head';
 
@@ -7,9 +7,6 @@ import Footer from '../components/Shared/Footer';
 import Header from '../components/Shared/Header/Header';
 
 const MyPositionPage: NextPage = () => {
-  const { breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
-
   return (
     <>
       <Head>
@@ -32,7 +29,7 @@ const MyPositionPage: NextPage = () => {
         <MyPositions />
       </Container>
 
-      {!isMobile && <Footer />}
+      <Footer />
     </>
   );
 };

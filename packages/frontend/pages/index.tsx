@@ -1,4 +1,4 @@
-import { Container, Divider, useMediaQuery, useTheme } from '@mui/material';
+import { Container, Divider } from '@mui/material';
 import { NextPage } from 'next';
 import Head from 'next/head';
 
@@ -7,9 +7,6 @@ import Footer from '../components/Shared/Footer';
 import Header from '../components/Shared/Header/Header';
 
 const MarketsPage: NextPage = () => {
-  const { breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
-
   return (
     <>
       <Head>
@@ -42,7 +39,7 @@ const MarketsPage: NextPage = () => {
         <Markets />
       </Container>
 
-      {!isMobile && <Footer />}
+      <Footer />
     </>
   );
 };

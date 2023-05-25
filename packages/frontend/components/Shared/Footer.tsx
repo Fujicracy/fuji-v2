@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
@@ -12,13 +13,13 @@ function Footer() {
         color: palette.text.secondary,
       }}
     >
-      <div
-        style={{
-          display: 'flex',
+      <Box
+        sx={{
+          display: { xs: 'none', sm: 'flex' },
           justifyContent: 'right',
-          margin: '1.5rem',
+          m: '1.5rem',
         }}
-      ></div>
+      ></Box>
     </footer>
   );
 }

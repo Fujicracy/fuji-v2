@@ -5,7 +5,6 @@ import {
   Grid,
   Stack,
   Typography,
-  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import Head from 'next/head';
@@ -37,9 +36,8 @@ type BorrowWrapperProps = {
 };
 
 function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
-  const { breakpoints, palette } = useTheme();
+  const { palette } = useTheme();
   const router = useRouter();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
 
   const address = useAuth((state) => state.address);
   const positions = usePositions((state) => state.positions);
@@ -184,7 +182,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
         )}
       </Container>
 
-      {!isMobile && <Footer />}
+      <Footer />
     </>
   );
 }
