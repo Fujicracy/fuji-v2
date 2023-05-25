@@ -1,14 +1,25 @@
 import { Box, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { PointTooltipProps } from '@nivo/line';
-import { BigNumber } from 'ethers';
-import { formatUnits } from 'ethers/lib/utils';
 import React from 'react';
 
 const APYChartTooltip = ({ point }: PointTooltipProps) => {
   const { palette } = useTheme();
 
-  const date = (point.data as unknown as { date: string }).date;
+  const { date, aprBase, aprReward } = point.data as any;
+
+  const renderValue = (title: string, value: number) => (
+    <Stack
+      flexDirection="row"
+      alignItems="center"
+      justifyContent="space-between"
+    >
+      <Typography variant="small">{title}</Typography>
+      <Typography variant="small" fontWeight={700} color={palette.success.main}>
+        {value.toFixed(2)}%
+      </Typography>
+    </Stack>
+  );
 
   return (
     <Box
@@ -19,30 +30,9 @@ const APYChartTooltip = ({ point }: PointTooltipProps) => {
         borderRadius: '0.5rem',
       }}
     >
-      <Stack
-        flexDirection="row"
-        alignItems="center"
-        justifyContent="space-between"
-      >
-        <Typography variant="small">Fuji Vault APY</Typography>
-        <Typography
-          variant="small"
-          fontWeight={700}
-          color={palette.success.main}
-        >
-          {(parseFloat(formatUnits(BigNumber.from('0'), 27)) * 100).toFixed(2)}%
-        </Typography>
-      </Stack>
-      <Stack
-        flexDirection="row"
-        alignItems="center"
-        justifyContent="space-between"
-      >
-        <Typography variant="small">Other Lending Protocol</Typography>
-        <Typography variant="small" fontWeight={700} color={palette.info.dark}>
-          {(parseFloat(formatUnits(BigNumber.from('0'), 27)) * 100).toFixed(2)}%
-        </Typography>
-      </Stack>
+      <Typography variant="small">{point.serieId}</Typography>
+      {renderValue('Base APR', aprBase)}
+      {renderValue('Reward APR', aprReward)}
       <Typography variant="small" mt="0.5rem">
         {date}
       </Typography>

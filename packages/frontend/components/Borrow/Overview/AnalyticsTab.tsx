@@ -1,9 +1,11 @@
 import { Box, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { AprResult } from '@x-fuji/sdk';
-import moment from 'moment';
-import React, { useEffect, useState } from 'react';
+import { AprResult, BorrowingVault } from '@x-fuji/sdk';
+import React, { useEffect, useRef, useState } from 'react';
 
+import { TabOption } from '../../../constants';
+import { ChartTab, Period } from '../../../helpers/charts';
+import { DateFormat, formattedDate } from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
 import APYChart from '../../Shared/Charts/APYChart';
 import EmptyChartState from '../../Shared/Charts/EmptyState';
@@ -14,15 +16,12 @@ import AnalyticsHeader from '../Analytics/AnalyticsHeader';
 import InfoBlock from '../Analytics/InfoBlock';
 import PoolInfo from '../Analytics/PoolInfo';
 
-enum ChartTab {
-  BORROW = 0,
-  DEPOSIT = 1,
-}
-
-const chartOptions = [
+const chartOptions: TabOption[] = [
   { value: ChartTab.BORROW, label: 'Borrow APR' },
-  { value: ChartTab.DEPOSIT, label: 'Deposits' },
+  { value: ChartTab.DEPOSIT, label: 'Deposit APR' },
 ];
+
+type AprData = AprResult[] | undefined;
 
 function AnalyticsTab() {
   const { palette } = useTheme();
@@ -30,25 +29,41 @@ function AnalyticsTab() {
   const debt = useBorrow((state) => state.debt);
   const vault = useBorrow((state) => state.activeVault);
 
-  const [selectedTab, setSelectedTab] = useState(ChartTab.BORROW);
-  const [selectedPeriod, setSelectedPeriod] = useState(1);
-  const [data, setData] = useState<AprResult[] | undefined>(undefined);
+  const [selectedTab, setSelectedTab] = useState(chartOptions[0].value);
+  const [selectedPeriod, setSelectedPeriod] = useState<Period>(Period.WEEK);
+  const [borrowData, setBorrowData] = useState<AprData>(undefined);
+  const [depositData, setDepositData] = useState<AprData>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const token = collateral.currency.wrapped;
+  const prevVault = useRef<BorrowingVault | undefined>(undefined);
+
+  const currentData =
+    selectedTab === ChartTab.BORROW ? borrowData : depositData;
+
+  const showInfo = false;
 
   useEffect(() => {
-    if (vault) {
+    if (vault && vault.address !== prevVault.current?.address) {
       (async () => {
-        setLoading(true);
-        const result = await vault.getProvidersStatsFor(token);
-        if (result.success) {
-          setData(result.data);
+        if (borrowData === undefined || depositData === undefined) {
+          setLoading(true);
         }
+        prevVault.current = vault;
+
+        const borrowResult = await vault.getProvidersStatsFor(
+          debt.currency.wrapped
+        );
+        setBorrowData(borrowResult.success ? borrowResult.data : undefined);
+
+        const depositResult = await vault.getProvidersStatsFor(
+          collateral.currency.wrapped
+        );
+        setDepositData(depositResult.success ? depositResult.data : undefined);
+
         setLoading(false);
       })();
     }
-  }, [token, vault]);
+  }, [borrowData, depositData, collateral, debt, vault]);
 
   const loadingSkeleton = (
     <>
@@ -92,31 +107,27 @@ function AnalyticsTab() {
 
       {loading ? (
         loadingSkeleton
-      ) : data ? (
+      ) : currentData ? (
         <>
-          <Typography
-            variant="body2"
-            fontSize="1.125rem"
-            fontWeight={700}
-            lineHeight="1.8rem"
-          >
-            {'2.07%'}
-          </Typography>
           <Typography
             variant="smallDark"
             fontSize="0.875rem"
             lineHeight="1.4rem"
           >
-            {moment().format('MMM D, YYYY')}
+            {formattedDate(DateFormat.YEAR)}
           </Typography>
 
-          <APYChart data={data} />
+          <APYChart
+            data={currentData}
+            tab={selectedTab}
+            period={selectedPeriod}
+          />
         </>
       ) : (
         <EmptyChartState />
       )}
 
-      {data && (
+      {showInfo && currentData && (
         <>
           <Grid container spacing={2} mt="2rem">
             <Grid item xs={12} sm={6} lg={3}>

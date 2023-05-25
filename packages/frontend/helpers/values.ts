@@ -1,6 +1,7 @@
 import { BigNumber } from 'ethers';
 import { BigNumberish } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
+import moment from 'moment';
 
 export const validAmount = (
   amount: string | number,
@@ -104,3 +105,11 @@ export const camelize = (str: string) => {
 
 export const hiddenAddress = (address: string | undefined) =>
   address?.substring(0, 5) + '...' + address?.substring(address?.length - 4);
+
+export enum DateFormat {
+  YEAR = 'MMM D, YYYY',
+  MONTH = 'MMM D',
+}
+
+export const formattedDate = (format: DateFormat, date?: string) =>
+  moment(date).format(format.toString());

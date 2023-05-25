@@ -5,65 +5,22 @@ import { LineSvgProps, ResponsiveLine } from '@nivo/line';
 import { AprResult } from '@x-fuji/sdk';
 import React from 'react';
 
+import { ChartTab, normalizeChartData, Period } from '../../../helpers/charts';
 import APYChartTooltip from '../../Borrow/Analytics/APYChartTooltip';
-
-const testData = [
-  {
-    id: 'line1',
-    data: [
-      { x: 1, y: 0.25, date: 'Mar 10, 2023' },
-      { x: 2, y: 0.75, date: 'Mar 10, 2023' },
-      { x: 3, y: 0.2, date: 'Mar 10, 2023' },
-      { x: 4, y: 0.25, date: 'Mar 10, 2023' },
-      { x: 5, y: 0.1, date: 'Mar 10, 2023' },
-      { x: 6, y: 0.4, date: 'Mar 10, 2023' },
-      { x: 7, y: 0.5, date: 'Mar 10, 2023' },
-      { x: 8, y: 0.25, date: 'Mar 10, 2023' },
-      { x: 9, y: 0.5, date: 'Mar 10, 2023' },
-      { x: 10, y: 0.6, date: 'Mar 10, 2023' },
-      { x: 11, y: 0.7, date: 'Mar 10, 2023' },
-      { x: 12, y: 0.8, date: 'Mar 10, 2023' },
-      { x: 13, y: 1, date: 'Mar 10, 2023' },
-      { x: 14, y: 1.2, date: 'Mar 10, 2023' },
-      { x: 15, y: 0.7, date: 'Mar 10, 2023' },
-      { x: 16, y: 0.5, date: 'Mar 10, 2023' },
-      { x: 17, y: 1.25, date: 'Mar 10, 2023' },
-    ],
-  },
-  {
-    id: 'line2',
-    data: [
-      { x: 1, y: 0.35, date: 'Mar 10, 2023' },
-      { x: 2, y: 0.85, date: 'Mar 10, 2023' },
-      { x: 3, y: 0.4, date: 'Mar 10, 2023' },
-      { x: 4, y: 0.35, date: 'Mar 10, 2023' },
-      { x: 5, y: 0.2, date: 'Mar 10, 2023' },
-      { x: 6, y: 0.7, date: 'Mar 10, 2023' },
-      { x: 7, y: 0.7, date: 'Mar 10, 2023' },
-      { x: 8, y: 0.4, date: 'Mar 10, 2023' },
-      { x: 9, y: 0.8, date: 'Mar 10, 2023' },
-      { x: 10, y: 0.9, date: 'Mar 10, 2023' },
-      { x: 11, y: 1, date: 'Mar 10, 2023' },
-      { x: 12, y: 1.1, date: 'Mar 10, 2023' },
-      { x: 13, y: 1, date: 'Mar 10, 2023' },
-      { x: 14, y: 1.3, date: 'Mar 10, 2023' },
-      { x: 15, y: 0.9, date: 'Mar 10, 2023' },
-      { x: 16, y: 1, date: 'Mar 10, 2023' },
-      { x: 17, y: 1.7, date: 'Mar 10, 2023' },
-    ],
-  },
-];
 
 type APYChartProps = {
   data: AprResult[];
+  period: Period;
+  tab: ChartTab;
 };
 
-function APYChart({ data }: APYChartProps) {
+function APYChart({ data, period, tab }: APYChartProps) {
   const { palette } = useTheme();
-  console.log(data);
+
+  const normalizedData = normalizeChartData(data, tab, period);
 
   const config: LineSvgProps = {
-    data: testData,
+    data: normalizedData,
     layers: ['markers', 'areas', 'crosshair', 'lines', 'axes', 'mesh'],
     defs: [
       linearGradientDef('gradientA', [
@@ -73,7 +30,6 @@ function APYChart({ data }: APYChartProps) {
       ]),
     ],
     fill: [{ match: '*', id: 'gradientA' }],
-    tooltip: APYChartTooltip,
     margin: { top: 0, right: 10, bottom: 50, left: 30 },
     xScale: { type: 'point' },
     yScale: { type: 'linear', min: 0, max: 'auto' },
@@ -120,7 +76,12 @@ function APYChart({ data }: APYChartProps) {
 
   return (
     <Box width="100%" height={400}>
-      <ResponsiveLine {...config} />
+      <ResponsiveLine
+        {...config}
+        tooltip={({ point }) => {
+          return <APYChartTooltip point={point} />;
+        }}
+      />
     </Box>
   );
 }
