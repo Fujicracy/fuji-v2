@@ -1,5 +1,6 @@
 import { Stack, Typography, useTheme } from '@mui/material';
 import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 import Image from 'next/image';
 import React from 'react';
@@ -52,14 +53,22 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
     return <></>;
   }
 
-  function amountText({ step, amount, token }: RoutingStepDetails) {
-    const amountStr = `${toNotSoFixed(
-      formatUnits(amount ?? 0, token?.decimals || 18),
-      true
-    )} ${token?.symbol}`;
-    switch (step) {
+  function amountText({
+    step,
+    index,
+  }: {
+    step: RoutingStepDetails;
+    index: number;
+  }) {
+    const formatted = (value?: BigNumber) =>
+      `${toNotSoFixed(
+        formatUnits(value ?? 0, step.token?.decimals || 18),
+        true
+      )} ${step.token?.symbol}`;
+    const amountStr = formatted(step.amount);
+    switch (step.step) {
       case RoutingStep.X_TRANSFER:
-        return `${amountStr} -> ${amountStr}`;
+        return `${amountStr} -> ${formatted(steps[index + 1]?.amount)}`;
       case RoutingStep.DEPOSIT:
       case RoutingStep.BORROW:
       case RoutingStep.PAYBACK:
@@ -124,7 +133,7 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
                     display: 'block',
                   }}
                 >
-                  {amountText(step)}
+                  {amountText({ step, index })}
                 </Typography>
               </Stack>
             </Stack>

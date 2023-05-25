@@ -8,6 +8,7 @@ import {
 import { useBorrow } from '../store/borrow.store';
 import { AssetType } from './assets';
 import { updateNativeBalance } from './balances';
+import { BigNumber } from 'ethers';
 
 export type HistoryTransaction = {
   address: string;
@@ -64,6 +65,7 @@ export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
   token?: SerializableToken;
   destinationChainId?: number;
   connextLink?: string;
+  bridgeResultAmount?: BigNumber;
 };
 
 export const isValidStep = (step: HistoryRoutingStep): boolean => {

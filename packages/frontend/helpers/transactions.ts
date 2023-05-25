@@ -88,6 +88,7 @@ export const transactionSteps = (
             {
               ...currentValue,
               destinationChainId: entry.steps[index + 1]?.token?.chainId,
+              bridgeResultAmount: entry.steps[index + 1]?.amount,
               connextLink: connextScanLinks && connextScanLinks[bridgeStepId],
             },
           ]);
@@ -147,7 +148,10 @@ export const transactionSteps = (
       const singleAmount = `${amount} ${step.token?.symbol}`;
       const amountLabel =
         step.step === RoutingStep.X_TRANSFER
-          ? `${singleAmount} -> ${singleAmount}`
+          ? `${singleAmount} -> ${toNotSoFixed(
+              formatUnits(step.bridgeResultAmount ?? 0, step.token?.decimals),
+              true
+            )} ${step.token?.symbol}`
           : singleAmount;
 
       return {
