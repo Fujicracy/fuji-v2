@@ -6,8 +6,8 @@ import { ProviderIcon } from '../../Shared/Icons';
 import { DocsTooltip } from '../../Shared/Tooltips';
 
 type TitleProps = {
-  providers: LendingProviderWithFinancials[] | undefined;
-  vault: BorrowingVault | undefined;
+  providers?: LendingProviderWithFinancials[];
+  vault?: BorrowingVault;
 };
 
 function Title({ providers, vault }: TitleProps) {

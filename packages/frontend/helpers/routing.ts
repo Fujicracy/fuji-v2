@@ -28,8 +28,8 @@ export type RouteMeta = {
   steps: RoutingStepDetails[];
   actions: RouterActionParams[];
   estimateTime: number;
-  estimateSlippage: number | undefined;
-  bridgeFees: BridgeFee[] | undefined;
+  estimateSlippage?: number;
+  bridgeFees?: BridgeFee[];
 };
 
 export const fetchRoutes = async (

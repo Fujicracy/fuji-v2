@@ -102,7 +102,7 @@ function TransactionModal({
       router.push(PATH.MY_POSITIONS);
       return;
     }
-    showPosition(router, undefined, vault);
+    showPosition(router, true, vault, undefined);
   };
 
   const handleChange = (evt: MouseEvent) => {

@@ -122,7 +122,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
       than the requested amount due to a ${sign} slippage.`;
   }
 
-  function roundStepAmount(step: RoutingStepDetails | undefined) {
+  function roundStepAmount(step?: RoutingStepDetails) {
     if (!step) return 0;
     const formatted = formatUnits(
       step.amount ?? BigNumber.from('0'),

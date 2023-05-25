@@ -23,8 +23,8 @@ export const validBigNumberAmount = (
 };
 
 export const bigToFloat = (
-  big: BigNumberish | undefined,
-  decimals: number | BigNumberish
+  decimals: number | BigNumberish,
+  big?: BigNumberish
 ): number => {
   const value = big ?? parseUnits('0', 18);
   return parseFloat(formatUnits(value, decimals));
@@ -46,8 +46,8 @@ export const formatValue = (
   Else, eth based tokens use 4 digits
 */
 export const formatBalance = (
-  balance: number | string | undefined,
-  rounding: boolean | undefined = undefined
+  balance?: number | string,
+  rounding?: boolean
 ): string => {
   return (
     formatValue(balance, { notation: rounding ? 'compact' : 'standard' }) ?? '0'

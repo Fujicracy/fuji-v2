@@ -17,15 +17,15 @@ type BorrowBoxProps = {
   isEditing: boolean;
   actionType: ActionType;
   type: AssetType;
-  chainId: ChainId | undefined;
   isExecuting: boolean;
-  value: string | undefined;
-  assetChange: AssetChange | undefined;
   showMax: boolean;
   maxAmount: number;
-  ltvMeta: LtvMeta | undefined;
-  basePosition: BasePosition | undefined;
   index: number;
+  assetChange?: AssetChange;
+  value?: string;
+  ltvMeta?: LtvMeta;
+  chainId?: ChainId;
+  basePosition?: BasePosition;
 };
 
 function BorrowBox({

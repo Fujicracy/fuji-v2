@@ -40,10 +40,10 @@ const initialKeyMetrics: MetricSummary[] = [
 ];
 
 function updateKeyMetricsSummary(
-  totalDeposits_: number | undefined,
-  totalDebt_: number | undefined,
-  totalAPY_: number | undefined,
-  availableBorrow_: number | undefined
+  totalDeposits_?: number,
+  totalDebt_?: number,
+  totalAPY_?: number,
+  availableBorrow_?: number
 ): MetricSummary[] {
   return [
     {
@@ -146,7 +146,7 @@ export default MyPositionsSummary;
 type MetricProps = {
   metric: MetricSummary;
   borderLeft: boolean;
-  onClick: (() => void) | undefined;
+  onClick?: () => void;
 };
 
 const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {

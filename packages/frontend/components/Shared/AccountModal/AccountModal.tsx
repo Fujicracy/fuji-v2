@@ -24,7 +24,7 @@ import HistoryItem from './HistoryItem';
 
 type AccountModalProps = {
   isOpen: boolean;
-  anchorEl: HTMLElement | null | undefined;
+  anchorEl?: HTMLElement | null;
   address: string;
   closeAccountModal: () => void;
 };
@@ -151,7 +151,7 @@ function AccountModal({
 
             <Box>
               <a
-                href={addressUrl(chainId, address)}
+                href={addressUrl(address, chainId)}
                 target="_blank"
                 rel="noreferrer"
               >

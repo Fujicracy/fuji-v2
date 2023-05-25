@@ -53,7 +53,7 @@ export enum AllowanceStatus {
 
 export type Allowance = {
   status: AllowanceStatus;
-  value: number | undefined;
+  value?: number;
 };
 
 export type AssetChange = {
@@ -169,9 +169,7 @@ export const remainingBorrowLimit = (
   return max - debt.amount * debt.usdPrice;
 };
 
-export const ltvMeta = (
-  basePosition: BasePosition | undefined
-): LtvMeta | undefined => {
+export const ltvMeta = (basePosition?: BasePosition): LtvMeta | undefined => {
   if (!basePosition?.position) return undefined;
   const { position, editedPosition } = basePosition;
   return {

@@ -39,7 +39,7 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
           <span
             style={{
               color: data?.amount
-                ? belowPriceColor(data.amount, data.recommended, palette)
+                ? belowPriceColor(data.amount, palette, data.recommended)
                 : palette.info.dark,
             }}
           >
@@ -94,7 +94,7 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
             mb="1rem"
             sx={{
               color: data.amount
-                ? belowPriceColor(data.amount, data.recommended, palette)
+                ? belowPriceColor(data.amount, palette, data.recommended)
                 : palette.info.dark,
             }}
           >

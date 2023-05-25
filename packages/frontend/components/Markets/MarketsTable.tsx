@@ -48,7 +48,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    showPosition(router, walletChainId, entity);
+    showPosition(router, true, entity, walletChainId);
   };
 
   return (

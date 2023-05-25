@@ -98,10 +98,7 @@ const Header = () => {
 
   const formattedAddress = hiddenAddress(address);
 
-  const handleOpenAccountModal = (
-    show: boolean,
-    element: HTMLElement | undefined
-  ) => {
+  const handleOpenAccountModal = (show: boolean, element?: HTMLElement) => {
     setShowAccountModal(show);
     setAccountModalEl(element);
   };

@@ -75,8 +75,8 @@ type BorrowState = {
   availableVaults: VaultWithFinancials[];
   availableVaultsStatus: FetchStatus;
 
-  activeVault: BorrowingVault | undefined;
-  activeProvider: LendingProviderWithFinancials | undefined;
+  activeVault?: BorrowingVault;
+  activeProvider?: LendingProviderWithFinancials;
   allProviders: LendingProviderWithFinancials[] | [];
 
   collateral: AssetChange;

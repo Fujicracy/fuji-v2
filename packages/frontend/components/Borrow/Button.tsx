@@ -19,12 +19,7 @@ import { TransactionMeta } from '../../helpers/transactions';
 import { Position } from '../../store/models/Position';
 
 type BorrowButtonProps = {
-  address: string | undefined;
   collateral: AssetChange;
-  debt: AssetChange | undefined;
-  position: Position | undefined;
-  walletChainId: ChainId | undefined;
-  ltvMeta: LtvMeta | undefined;
   metaStatus: FetchStatus;
   needsSignature: boolean;
   isSigning: boolean;
@@ -40,6 +35,11 @@ type BorrowButtonProps = {
   onRedirectClick: (position: boolean) => void;
   onClick: () => void;
   withConfirmation: (action?: () => void) => void;
+  debt?: AssetChange;
+  position?: Position;
+  walletChainId?: ChainId;
+  ltvMeta?: LtvMeta;
+  address?: string;
 };
 
 function BorrowButton({
@@ -65,11 +65,7 @@ function BorrowButton({
   onClick,
   withConfirmation,
 }: BorrowButtonProps) {
-  const regularButton = (
-    title: string,
-    onClick: () => void,
-    data: string | undefined = undefined
-  ) => {
+  const regularButton = (title: string, onClick: () => void, data?: string) => {
     return (
       <Button
         variant="gradient"

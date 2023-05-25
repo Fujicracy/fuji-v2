@@ -39,7 +39,7 @@ import RoutingModal from './Routing/RoutingModal';
 
 type BorrowProps = {
   isEditing: boolean;
-  basePosition: BasePosition | undefined;
+  basePosition?: BasePosition;
 };
 function Borrow({ isEditing, basePosition }: BorrowProps) {
   const router = useRouter();
@@ -352,7 +352,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               if (borrow) {
                 showBorrow(router);
               } else {
-                showPosition(router, walletChainId, vault, false);
+                showPosition(router, false, vault, walletChainId);
               }
             }}
             onClick={signAndExecute}

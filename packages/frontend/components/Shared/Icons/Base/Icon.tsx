@@ -26,7 +26,7 @@ export function renderIcon(
   path: string,
   name: string,
   onError: (e: SyntheticEvent<HTMLImageElement, Event>) => void,
-  defaultImage: string | undefined = undefined
+  defaultImage?: string
 ) {
   const { ...rest } = props;
 

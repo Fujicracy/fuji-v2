@@ -33,9 +33,9 @@ export const isTopLevelUrl = (url: string) =>
 
 export const showPosition = async (
   router: NextRouter,
-  walletChainId: ChainId | undefined,
+  reset = true,
   entity?: BorrowingVault | VaultWithFinancials,
-  reset = true
+  walletChainId?: ChainId
 ) => {
   const vault = entity instanceof BorrowingVault ? entity : entity?.vault;
   if (!vault) return;

@@ -9,9 +9,9 @@ import { NetworkIcon } from '../../Shared/Icons';
 type ChainSelectProps = {
   label: string;
   type: AssetType;
-  value: ChainId | undefined;
   disabled: boolean;
   onChange: (chainId: ChainId) => void;
+  value?: ChainId;
 };
 const ChainSelect = ({
   value,
