@@ -120,7 +120,7 @@ export const transactionSteps = (
 
     const labelify = (
       step: HistoryRoutingStep,
-      hasSecondPart: boolean = false
+      hasSecondPart = false
     ): { text: string; amount: string } => {
       const amount =
         step.token &&
@@ -161,7 +161,7 @@ export const transactionSteps = (
     };
 
     const s2 = array[1];
-    let label = labelify(s, Boolean(s2));
+    const label = labelify(s, Boolean(s2));
 
     if (s2) {
       label.text += ` and ${labelify(s2).text}`;
