@@ -376,15 +376,14 @@ export class BorrowingVault {
       };
 
       const llamaResult = await Promise.all(
-        this.allProviders.map((addr) =>
-          getPoolId(addr)
+        this.allProviders.map((addr) => {
+          const poolId = getPoolId(addr);
+          return poolId
             ? axios
-                .get<GetLlamaPoolStatsResponse>(
-                  uri.chart + `/${getPoolId(addr)}`
-                )
+                .get<GetLlamaPoolStatsResponse>(uri.chart + `/${poolId}`)
                 .then(({ data }) => data.data)
-            : Promise.resolve([])
-        )
+            : Promise.resolve([]);
+        })
       );
 
       const data = this.allProviders.map((addr, i) => ({
