@@ -8,11 +8,12 @@ const APYChartTooltip = ({ point }: PointTooltipProps) => {
 
   const { date, aprBase, aprReward } = point.data as any;
 
-  const renderValue = (title: string, value: number) => (
+  const renderValue = (title: string, value: number, mb?: string) => (
     <Stack
       flexDirection="row"
       alignItems="center"
       justifyContent="space-between"
+      mb={mb}
     >
       <Typography variant="small">{title}</Typography>
       <Typography variant="small" fontWeight={700} color={palette.success.main}>
@@ -32,10 +33,8 @@ const APYChartTooltip = ({ point }: PointTooltipProps) => {
     >
       <Typography variant="small">{point.serieId}</Typography>
       {renderValue('Base APR', aprBase)}
-      {renderValue('Reward APR', aprReward)}
-      <Typography variant="small" mt="0.5rem">
-        {date}
-      </Typography>
+      {renderValue('Reward APR', aprReward, '0.5rem')}
+      <Typography variant="small">{date}</Typography>
     </Box>
   );
 };
