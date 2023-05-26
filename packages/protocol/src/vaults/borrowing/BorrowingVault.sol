@@ -326,8 +326,8 @@ contract BorrowingVault is BaseVault {
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = msg.sender;
 
-    _borrowChecks(caller, receiver, owner, debt);
     uint256 shares = previewBorrow(debt);
+    _borrowChecks(caller, receiver, owner, debt, shares);
     _borrow(caller, receiver, owner, debt, shares);
 
     return shares;
@@ -373,7 +373,7 @@ contract BorrowingVault is BaseVault {
     uint256 debt = previewMintDebt(shares);
     address caller = msg.sender;
 
-    _borrowChecks(caller, receiver, owner, debt);
+    _borrowChecks(caller, receiver, owner, debt, shares);
     _borrow(caller, receiver, owner, debt, shares);
 
     return debt;
@@ -653,9 +653,20 @@ contract BorrowingVault is BaseVault {
    * @param receiver of the borrow amount
    * @param owner of the debt accountability
    * @param debt or borrowed amount of debt asset
+   * @param shares corresponding to debt
    */
-  function _borrowChecks(address caller, address receiver, address owner, uint256 debt) private {
-    if (debt == 0 || receiver == address(0) || owner == address(0) || debt < minAmount) {
+  function _borrowChecks(
+    address caller,
+    address receiver,
+    address owner,
+    uint256 debt,
+    uint256 shares
+  )
+    private
+  {
+    if (
+      debt == 0 || shares == 0 || receiver == address(0) || owner == address(0) || debt < minAmount
+    ) {
       revert BorrowingVault__borrow_invalidInput();
     }
     if (debt > maxBorrow(owner)) {

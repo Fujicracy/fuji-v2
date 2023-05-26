@@ -62,6 +62,7 @@ function LTVProgressBar({
                 />
               </ClickableTooltip>
               <Typography
+                data-cy="recommended-ltv-percent"
                 variant="xsmall"
                 sx={{ display: { xs: 'none', sm: 'inline' } }}
               >
@@ -98,6 +99,7 @@ function LTVProgressBar({
               </ClickableTooltip>
 
               <Typography
+                data-cy="max-ltv-percent"
                 variant="xsmall"
                 sx={{ display: { xs: 'none', sm: 'inline' } }}
               >
@@ -136,6 +138,7 @@ function LTVProgressBar({
         </Grid>
 
         <LinearProgress
+          data-cy="ltv-progress-line"
           sx={{
             borderRadius: '1.25rem',
             background: palette.background.default,

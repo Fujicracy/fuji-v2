@@ -124,12 +124,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    *
    * Requirements:
    * - `calldata` parameter must be encoded with the following structure:
-   *     > abi.encode(Action[] actions, bytes[] args, uint256 slippageThreshold)
+   *     > abi.encode(Action[] actions, bytes[] args)
    * - actions: array of serialized actions to execute from available enum {IRouter.Action}.
    * - args: array of encoded arguments according to each action. See {BaseRouter-internalBundle}.
-   * - slippageThreshold: same argument as defined in the original `xCall()`. This
-   *     argument protects and checks internally for any slippage that happens during
-   *     the bridge of assets.
    */
   function xReceive(
     bytes32 transferId,
@@ -175,7 +172,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
-        IERC20(asset).transfer(address(handler), balance);
+        SafeERC20.safeTransfer(IERC20(asset), address(handler), balance);
         handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
@@ -237,6 +234,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       if (amount != receivedAmount) {
         beforeSlipped = amount;
         newArgs = abi.encode(vault, receivedAmount, receiver, sender);
+      }
+    } else if (action == Action.WithdrawETH) {
+      // For WithdrawETH
+      (uint256 amount, address receiver) = abi.decode(args, (uint256, address));
+      if (amount != receivedAmount) {
+        beforeSlipped = amount;
+        newArgs = abi.encode(receivedAmount, receiver);
       }
     }
   }

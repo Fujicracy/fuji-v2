@@ -32,6 +32,7 @@ describe('Sdk', () => {
 
   const config: ChainConfig = {
     infuraId: process.env.INFURA_ID ?? '',
+    poktId: process.env.POKT_ID ?? '',
     alchemy: {
       420: process.env.ALCHEMY_ID_CHAIN_420,
     },
@@ -222,6 +223,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -249,6 +251,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -266,6 +269,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -282,6 +286,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -298,6 +303,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,
@@ -315,6 +321,7 @@ describe('Sdk', () => {
         {
           action: RouterAction.X_TRANSFER_WITH_CALL,
           asset: Address.from(AddressZero),
+          sender: Address.from(AddressZero),
           destDomain: 1,
           amount: BigNumber.from(1),
           slippage: 0,

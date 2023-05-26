@@ -14,9 +14,13 @@ import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IEulerDToken} from "../interfaces/euler/IEulerDToken.sol";
 import {IFlashloan} from "../interfaces/euler/IFlashloan.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IEulerMarkets} from "../interfaces/euler/IEulerMarkets.sol";
 
 contract FlasherEuler is BaseFlasher, IFlashloan {
+  ///@dev Custom errors
+  error FlasherEuler__initiateFlashloan_invalidInput();
+
   address public constant EULER_MARKETS = 0x3520d5a913427E6F0D6A83E07ccD4A4da316e4d3;
 
   constructor(address euler) BaseFlasher("FlasherEuler", euler) {}
@@ -31,6 +35,9 @@ contract FlasherEuler is BaseFlasher, IFlashloan {
     external
     override
   {
+    if (amount == 0 || asset == address(0)) {
+      revert FlasherEuler__initiateFlashloan_invalidInput();
+    }
     bytes memory data = abi.encode(asset, amount, requestor, requestorCalldata);
     _checkAndSetEntryPoint(data);
 
@@ -57,6 +64,6 @@ contract FlasherEuler is BaseFlasher, IFlashloan {
     _requestorExecution(asset, amount, 0, requestor, requestorCalldata);
 
     // Repay Euler.
-    IERC20(asset).transfer(msg.sender, amount);
+    SafeERC20.safeTransfer(IERC20(asset), msg.sender, amount);
   }
 }

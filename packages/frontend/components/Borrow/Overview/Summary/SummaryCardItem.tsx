@@ -77,7 +77,11 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
           justifyContent="start"
           sx={{ textAlign: 'left' }}
         >
-          <Typography variant="regularH4" mb="0.5rem">
+          <Typography
+            variant="regularH4"
+            mb="0.5rem"
+            data-cy="borrow-summary-amount"
+          >
             {amount}
           </Typography>
           {extra && (

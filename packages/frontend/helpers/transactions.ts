@@ -17,7 +17,7 @@ import {
   HistoryEntry,
   HistoryEntryStatus,
   HistoryRoutingStep,
-  validSteps,
+  isValidStep,
 } from './history';
 import { BridgeFee } from './routing';
 import { camelize, toNotSoFixed } from './values';
@@ -32,13 +32,15 @@ export type TransactionMeta = {
 };
 
 export type TransactionStep = {
-  label: string;
+  step: RoutingStep;
+  label: { text: string; amount: string };
   description: string;
   chainId: number;
   chain: string;
   status: HistoryEntryStatus;
   txHash?: string;
   link?: string;
+  connextLink?: string;
 };
 
 export const watchTransaction = async (
@@ -60,23 +62,38 @@ export const watchTransaction = async (
   }
 };
 
-export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
+export const transactionSteps = (
+  entry: HistoryEntry,
+  connextScanLinks?: string[]
+): TransactionStep[] => {
   // group steps by chain flow: [[X_TRANSFER], [DEPOSIT, BORROW], [X_TRANSFER]]
-  const source = validSteps(entry.steps).reduce(
-    (acc: Array<Array<HistoryRoutingStep>>, currentValue) => {
-      if (currentValue.step !== RoutingStep.X_TRANSFER) {
-        const index = acc.findIndex(
-          (item) =>
-            item[0].chainId === currentValue.chainId &&
-            item[0].step !== RoutingStep.X_TRANSFER
-        );
-        if (index !== -1) {
-          acc[index].push(currentValue);
+  let bridgeStepId = 0;
+
+  const source = entry.steps.reduce(
+    (acc: Array<Array<HistoryRoutingStep>>, currentValue, index) => {
+      if (isValidStep(currentValue)) {
+        if (currentValue.step !== RoutingStep.X_TRANSFER) {
+          const index = acc.findIndex(
+            (item) =>
+              item[0].chainId === currentValue.chainId &&
+              item[0].step !== RoutingStep.X_TRANSFER
+          );
+          if (index !== -1) {
+            acc[index].push(currentValue);
+          } else {
+            acc.push([currentValue]);
+          }
         } else {
-          acc.push([currentValue]);
+          acc.push([
+            {
+              ...currentValue,
+              destinationChainId: entry.steps[index + 1]?.token?.chainId,
+              bridgeResultAmount: entry.steps[index + 1]?.amount,
+              connextLink: connextScanLinks && connextScanLinks[bridgeStepId],
+            },
+          ]);
+          bridgeStepId++;
         }
-      } else {
-        acc.push([currentValue]);
       }
       return acc;
     },
@@ -101,37 +118,54 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
 
     const link = txHash && transactionUrl(chainId, txHash);
 
-    const labelify = (step: HistoryRoutingStep): string => {
+    const labelify = (
+      step: HistoryRoutingStep,
+      hasSecondPart = false
+    ): { text: string; amount: string } => {
       const amount =
         step.token &&
         toNotSoFixed(formatUnits(step.amount ?? 0, step.token.decimals), true);
       const action = step.step.toString();
-      const preposition =
-        step.step === RoutingStep.DEPOSIT
-          ? 'on'
-          : [
-              RoutingStep.X_TRANSFER,
-              RoutingStep.BORROW,
-              RoutingStep.PAYBACK,
-            ].includes(step.step)
-          ? 'to'
-          : 'from';
+      const withToPrepositions = [RoutingStep.DEPOSIT, RoutingStep.PAYBACK];
+      const preposition = withToPrepositions.includes(step.step)
+        ? 'to'
+        : 'from';
 
       const name = step.lendingProvider?.name;
 
-      const label = camelize(
-        `${action} ${amount} ${step.token?.symbol} ${name ? preposition : ''} ${
-          name ?? ''
-        }`
-      );
-      return label;
+      const text =
+        step.step === RoutingStep.X_TRANSFER
+          ? `${camelize(step.step.toString())} from ${chainName(
+              step.chainId
+            )} to ${' '}
+        ${chainName(step.destinationChainId || step.token?.chainId)}`
+          : camelize(
+              `${action} ${
+                !hasSecondPart ? `${name ? preposition : ''} ${name ?? ''}` : ''
+              }`
+            );
+
+      const singleAmount = `${amount} ${step.token?.symbol}`;
+      const amountLabel =
+        step.step === RoutingStep.X_TRANSFER
+          ? `${singleAmount} -> ${toNotSoFixed(
+              formatUnits(step.bridgeResultAmount ?? 0, step.token?.decimals),
+              true
+            )} ${step.token?.symbol}`
+          : singleAmount;
+
+      return {
+        text,
+        amount: amountLabel,
+      };
     };
 
-    let label = labelify(s);
-
     const s2 = array[1];
+    const label = labelify(s, Boolean(s2));
+
     if (s2) {
-      label += ` and ${labelify(s2)}`;
+      label.text += ` and ${labelify(s2).text}`;
+      label.amount += ` / ${labelify(s2).amount}`;
     }
 
     const description = `${chain} Network`;
@@ -144,6 +178,8 @@ export const transactionSteps = (entry: HistoryEntry): TransactionStep[] => {
       description,
       chain,
       chainId,
+      step: array[0].step,
+      connextLink: array[0].connextLink,
     };
   });
 };
