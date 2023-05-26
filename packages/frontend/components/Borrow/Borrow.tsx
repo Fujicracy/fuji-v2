@@ -292,6 +292,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
           {availableRoutes.length > 1 ? (
             <Stack
+              data-cy="borrow-routes-button"
               direction="row"
               mt="1rem"
               justifyContent="space-between"

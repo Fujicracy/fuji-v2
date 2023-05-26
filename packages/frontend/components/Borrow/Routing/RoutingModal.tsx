@@ -33,6 +33,7 @@ function RoutingModal({ isEditing, open, handleClose }: RoutingModalProps) {
   return (
     <Dialog fullWidth maxWidth="md" onClose={handleClose} open={open}>
       <DialogContent
+        data-cy="routing-modal"
         sx={{
           p: '1.5rem',
           background: palette.secondary.contrastText,
@@ -41,6 +42,7 @@ function RoutingModal({ isEditing, open, handleClose }: RoutingModalProps) {
         }}
       >
         <CloseIcon
+          data-cy="routing-modal-close-button"
           sx={{
             cursor: 'pointer',
             position: 'absolute',
