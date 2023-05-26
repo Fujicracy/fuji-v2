@@ -36,7 +36,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
     enableArea: true,
     areaOpacity: 0.2,
     axisBottom: {
-      tickSize: 5,
+      tickSize: 0,
       tickPadding: 5,
       tickRotation: 0,
     },
@@ -74,10 +74,31 @@ function APYChart({ data, period, tab }: APYChartProps) {
     curve: 'linear',
   };
 
+  const longest = normalizedData.reduce((longest, current) => {
+    return current.data.length > longest.data.length ? current : longest;
+  });
+
+  const valuesToShow = longest.data
+    .map((v, i) =>
+      i %
+        (period === Period.WEEK
+          ? Period.DAY
+          : period === Period.MONTH
+          ? Period.WEEK
+          : Period.MONTH) ===
+      0
+        ? v.x
+        : undefined
+    )
+    .filter((v) => v);
+
   return (
     <Box width="100%" height={400}>
       <ResponsiveLine
         {...config}
+        axisBottom={{
+          tickValues: valuesToShow,
+        }}
         tooltip={({ point }) => {
           return <APYChartTooltip point={point} />;
         }}
