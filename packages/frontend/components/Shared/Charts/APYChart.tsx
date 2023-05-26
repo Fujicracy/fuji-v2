@@ -32,7 +32,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
     fill: [{ match: '*', id: 'gradientA' }],
     margin: { top: 0, right: 10, bottom: 50, left: 30 },
     xScale: { type: 'point' },
-    yScale: { type: 'linear', min: 0, max: 'auto' },
+    yScale: { type: 'linear', min: 'auto', max: 'auto' },
     enableArea: true,
     areaOpacity: 0.2,
     axisBottom: {
