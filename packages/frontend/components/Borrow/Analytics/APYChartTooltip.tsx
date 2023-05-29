@@ -6,7 +6,7 @@ import React from 'react';
 const APYChartTooltip = ({ point }: PointTooltipProps) => {
   const { palette } = useTheme();
 
-  const { date, aprBase, aprReward } = point.data as any;
+  const { date, aprBase, aprReward, y } = point.data as any;
 
   const renderValue = (title: string, value: number, mb?: string) => (
     <Stack
@@ -17,7 +17,7 @@ const APYChartTooltip = ({ point }: PointTooltipProps) => {
     >
       <Typography variant="small">{title}</Typography>
       <Typography variant="small" fontWeight={700} color={palette.success.main}>
-        {value.toFixed(2)}%
+        {value ? value.toFixed(2) : 0}%
       </Typography>
     </Stack>
   );
@@ -31,10 +31,11 @@ const APYChartTooltip = ({ point }: PointTooltipProps) => {
         borderRadius: '0.5rem',
       }}
     >
-      <Typography variant="small">{point.serieId}</Typography>
-      {renderValue('Base APR', aprBase)}
-      {renderValue('Reward APR', aprReward, '0.5rem')}
-      <Typography variant="small">{date}</Typography>
+      <Typography variant="h6">{point.serieId}</Typography>
+      {renderValue('Net APR', y)}
+      {renderValue('Base', aprBase)}
+      {renderValue('Reward', aprReward, '0.5rem')}
+      <Typography variant="xsmall">{date}</Typography>
     </Box>
   );
 };

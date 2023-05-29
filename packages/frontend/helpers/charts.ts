@@ -25,10 +25,6 @@ export const normalizeChartData = (
     id: d.name,
     data: d.aprStats
       .filter((s) => {
-        if (s.aprBase === null || s.aprReward === null) {
-          return false;
-        }
-
         const dataPointDate = new Date(s.timestamp);
         const diffInDays = Math.ceil(
           (now.getTime() - dataPointDate.getTime()) / MILLISECONDS_IN_DAY
@@ -36,15 +32,20 @@ export const normalizeChartData = (
 
         return diffInDays < period;
       })
-      .map((s) => ({
-        date: formattedDate(DateFormat.YEAR, s.timestamp),
-        x: formattedDate(DateFormat.MONTH, s.timestamp),
-        y:
-          type === ChartTab.BORROW
-            ? s.aprBase - s.aprReward
-            : s.aprBase + s.aprReward,
-        ...s,
-      })),
+      .map((s) => {
+        const aprBase = s.aprBase ?? 0;
+        const aprReward = s.aprReward ?? 0;
+
+        return {
+          date: formattedDate(DateFormat.YEAR, s.timestamp),
+          x: formattedDate(DateFormat.MONTH, s.timestamp),
+          y:
+            type === ChartTab.BORROW
+              ? aprBase - aprReward
+              : aprBase + aprReward,
+          ...s,
+        };
+      }),
   }));
   return data;
 };
