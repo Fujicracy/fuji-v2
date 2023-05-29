@@ -14,6 +14,7 @@ import { chainName } from '../../helpers/chains';
 import { RouteMeta } from '../../helpers/routing';
 import BestLabel from '../Markets/BestLabel';
 import { NetworkIcon } from '../Shared/Icons';
+import RoutesSteps from '../Shared/RoutesSteps';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
 
@@ -39,7 +40,6 @@ function Vault({ selected, data, onChange }: VaultProps) {
           cursor: 'pointer',
           height: '3rem',
           borderRadius: '0.5rem',
-
           backgroundColor: selected
             ? `${palette.secondary.dark}`
             : 'transparent',
@@ -100,7 +100,10 @@ function Vault({ selected, data, onChange }: VaultProps) {
             fullWidth
             variant="secondary"
             sx={{ p: '0 1rem' }}
-            onClick={() => setUnfolded(!isUnfolded)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setUnfolded(!isUnfolded);
+            }}
           >
             <Typography variant="small">
               {isUnfolded ? 'Hide' : 'View'} Details
@@ -110,7 +113,19 @@ function Vault({ selected, data, onChange }: VaultProps) {
       </TableRow>
       {isUnfolded && (
         <TableRow>
-          <TableCell colSpan={4}></TableCell>
+          <TableCell
+            onClick={onChange}
+            colSpan={4}
+            sx={{
+              borderStyle: 'unset',
+              backgroundColor: selected
+                ? `${palette.secondary.dark}`
+                : 'transparent',
+              pb: '0.5rem',
+            }}
+          >
+            <RoutesSteps steps={data.route.steps} />
+          </TableCell>
         </TableRow>
       )}
     </>
