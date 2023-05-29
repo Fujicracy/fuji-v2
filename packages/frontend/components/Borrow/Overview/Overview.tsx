@@ -5,6 +5,7 @@ import React from 'react';
 import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
+import VaultsByNetwork from '../VaultsByNetwork';
 import Container from './Container';
 import LTVProgressBar from './LTVProgressBar';
 import Summary from './Summary/Summary';
@@ -48,12 +49,14 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   if (debtInput === undefined) return <></>; // TODO: handle this case
   return (
     <Container isMobile={isMobile}>
+      <VaultsByNetwork isEditing={isEditing} basePosition={basePosition} />
       <Card
         sx={{
           flexDirection: 'column',
           alignItems: 'center',
           p: '1.5rem 2rem',
           width: '100%',
+          mt: '2rem',
         }}
       >
         <CardContent sx={{ padding: 0, gap: '1rem' }}>
