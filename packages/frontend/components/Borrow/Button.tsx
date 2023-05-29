@@ -84,7 +84,13 @@ function BorrowButton({
   };
 
   const disabledButton = (title: string) => (
-    <Button variant="gradient" size="large" fullWidth disabled>
+    <Button
+      variant="gradient"
+      size="large"
+      fullWidth
+      disabled
+      data-cy="disabled-borrow-button"
+    >
       {title}
     </Button>
   );

@@ -50,6 +50,7 @@ function Fees() {
 
   return (
     <Card
+      data-cy="fees-container"
       variant="outlined"
       sx={{ cursor: 'pointer', border: 'none' }}
       onClick={handleClick}
@@ -82,7 +83,7 @@ function Fees() {
       <Collapse in={show} sx={{ width: '100%' }}>
         {crossChainTx && transactionMeta.bridgeFees && (
           <Fee
-            label="Bridge fee"
+            label="Bridge Fee"
             value={`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)}`}
             tooltip={bridgeTooltip()}
           />
@@ -140,7 +141,13 @@ const Fee = ({ label, value, sponsored, tooltip }: FeeProps) => {
   );
 
   return (
-    <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
+    <Stack
+      data-cy="fee-item"
+      direction="row"
+      justifyContent="space-between"
+      width="92%"
+      mt="1rem"
+    >
       <Typography variant="small">{label}</Typography>
       {tooltip ? (
         <Tooltip title={tooltip} placement="top">

@@ -10,6 +10,7 @@ import { ChainConfig, PermitParams } from '../../src/types';
 
 const config: ChainConfig = {
   infuraId: process.env.INFURA_ID ?? '',
+  poktId: process.env.POKT_ID ?? '',
   alchemy: {
     420: process.env.ALCHEMY_ID_CHAIN_420,
   },

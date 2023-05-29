@@ -72,6 +72,7 @@ function ChainSelectContent({
 
   return (
     <Select
+      data-cy="borrow-chain-select"
       labelId={labelId}
       id={selectId}
       value={value || -1}
@@ -91,7 +92,11 @@ function ChainSelectContent({
     >
       {chains.map((chain) => {
         return (
-          <MenuItem key={chain.chainId} value={chain.chainId}>
+          <MenuItem
+            data-cy="borrow-chain-select-item"
+            key={chain.chainId}
+            value={chain.chainId}
+          >
             {renderItem(chain)}
           </MenuItem>
         );

@@ -291,6 +291,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
           {availableRoutes.length > 1 ? (
             <Stack
+              data-cy="borrow-routes-button"
               direction="row"
               mt="1rem"
               justifyContent="space-between"
@@ -372,7 +373,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         onClose={() => setIsConfirmationModalShown(false)}
         basePosition={basePosition}
         transactionMeta={transactionMeta}
-        isEditing={isEditing}
         actionType={actionType}
         action={() => {
           setIsConfirmationModalShown(false);
@@ -384,7 +384,3 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 }
 
 export default Borrow;
-
-Borrow.defaultProps = {
-  position: false,
-};

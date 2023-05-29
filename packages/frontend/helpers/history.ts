@@ -8,6 +8,7 @@ import {
 import { useBorrow } from '../store/borrow.store';
 import { AssetType } from './assets';
 import { updateNativeBalance } from './balances';
+import { BigNumber } from 'ethers';
 
 export type HistoryTransaction = {
   address: string;
@@ -62,17 +63,17 @@ export type HistoryEntry = {
 
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
   token?: SerializableToken;
+  destinationChainId?: number;
+  connextLink?: string;
+  bridgeResultAmount?: BigNumber;
 };
 
-export const validSteps = (
-  steps: HistoryRoutingStep[]
-): HistoryRoutingStep[] => {
-  return steps.filter(
-    (s) =>
-      s.step !== RoutingStep.START &&
-      s.step !== RoutingStep.END &&
-      s.token &&
-      s.amount
+export const isValidStep = (step: HistoryRoutingStep): boolean => {
+  return Boolean(
+    step.step !== RoutingStep.START &&
+      step.step !== RoutingStep.END &&
+      step.token &&
+      step.amount
   );
 };
 

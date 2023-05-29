@@ -103,6 +103,7 @@ function SlippageSettings() {
   return (
     <>
       <Card
+        data-cy="slippage-settings"
         variant="position"
         onClick={openMenu}
         sx={{
@@ -143,7 +144,11 @@ function SlippageSettings() {
             height="30px"
           >
             <Typography variant="body2">Settings</Typography>
-            <Box sx={{ cursor: 'pointer' }} onClick={closeMenu}>
+            <Box
+              sx={{ cursor: 'pointer' }}
+              onClick={closeMenu}
+              data-cy="slippage-close-button"
+            >
               <CloseIcon />
             </Box>
           </Stack>
@@ -181,6 +186,7 @@ function SlippageSettings() {
           >
             {slippageDefaultOptions.map((option) => (
               <Button
+                data-cy="slippage-default-option"
                 size="medium"
                 variant={
                   slippage === option.value ? 'white-outlined' : 'secondary'
@@ -192,6 +198,7 @@ function SlippageSettings() {
               </Button>
             ))}
             <TextField
+              data-cy="slippage-input"
               label="Custom %"
               type="number"
               variant="outlined"
