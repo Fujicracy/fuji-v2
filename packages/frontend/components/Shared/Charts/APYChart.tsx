@@ -89,6 +89,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
         }}
         axisBottom={{
           tickValues: valuesToShow,
+          format: (v) => `${v.split(',')[0]}`,
         }}
         tooltip={({ point }) => {
           return <APYChartTooltip point={point} />;

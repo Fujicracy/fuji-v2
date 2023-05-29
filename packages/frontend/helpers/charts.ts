@@ -48,8 +48,7 @@ export const normalizeChartData = (
         const aprReward = s.aprReward ?? 0;
 
         return {
-          date: formattedDate(DateFormat.YEAR, s.timestamp),
-          x: formattedDate(DateFormat.MONTH, s.timestamp),
+          x: formattedDate(DateFormat.YEAR, s.timestamp),
           y:
             type === ChartTab.BORROW
               ? aprBase - aprReward
