@@ -3,6 +3,7 @@ import {
   CardContent,
   Stack,
   Table,
+  TableBody,
   TableCell,
   TableContainer,
   TableHead,
@@ -41,7 +42,7 @@ function VaultsSelect() {
   }
 
   return (
-    <Stack>
+    <Stack sx={{ mb: '2rem' }}>
       <Typography variant="body2">All Vaults</Typography>
       <Card
         sx={{
@@ -53,8 +54,31 @@ function VaultsSelect() {
         }}
       >
         <CardContent sx={{ padding: 0, gap: '1rem' }}>
-          <TableContainer sx={{ border: 'none' }}>
-            <Table aria-label="Vault select" size="small">
+          <TableContainer
+            sx={{
+              border: 'none',
+              '& .MuiTableCell-root': { border: 'none' },
+              '& tr:first-child td:first-child': {
+                borderTopLeftRadius: '0.5rem',
+              },
+              '& tr:first-child td:last-child': {
+                borderTopRightRadius: '0.5rem',
+              },
+              '& tr:last-child td:first-child': {
+                borderBottomLeftRadius: '0.5rem',
+              },
+              '& tr:last-child td:last-child': {
+                borderBottomRightRadius: '0.5rem',
+              },
+              'tr:first-child td': { borderTopStyle: 'solid' },
+              'tr td:first-child': { borderLeftStyle: 'solid' },
+            }}
+          >
+            <Table
+              aria-label="Vault select"
+              size="small"
+              sx={{ borderCollapse: 'separate' }}
+            >
               <TableHead>
                 <TableRow sx={{ height: '2.625rem' }}>
                   <TableCell align="left">Vault</TableCell>
@@ -63,14 +87,16 @@ function VaultsSelect() {
                   <TableCell align="right" />
                 </TableRow>
               </TableHead>
-              {aggregatedData.map((item, i) => (
-                <Vault
-                  key={i}
-                  selected={i === selectedRoute}
-                  data={item}
-                  onChange={() => didSelectRoute(i)}
-                />
-              ))}
+              <TableBody>
+                {aggregatedData.map((item, i) => (
+                  <Vault
+                    key={i}
+                    selected={i === selectedRoute}
+                    data={item}
+                    onChange={() => didSelectRoute(i)}
+                  />
+                ))}
+              </TableBody>
             </Table>
           </TableContainer>
         </CardContent>

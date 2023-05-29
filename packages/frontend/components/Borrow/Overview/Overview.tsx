@@ -57,7 +57,6 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
           alignItems: 'center',
           p: '1.5rem 2rem',
           width: '100%',
-          mt: '2rem',
         }}
       >
         <CardContent sx={{ padding: 0, gap: '1rem' }}>

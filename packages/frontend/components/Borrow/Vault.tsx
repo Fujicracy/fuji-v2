@@ -25,19 +25,33 @@ type VaultProps = {
 
 function Vault({ selected, data, onChange }: VaultProps) {
   const { palette } = useTheme();
-
+  const borderStyle = `1px solid ${
+    selected ? alpha(palette.secondary.light, 0.5) : 'transparent'
+  } !important`;
   return (
     <TableRow
       sx={{
         cursor: 'pointer',
-        height: '3.375rem',
+        height: '3rem',
         borderRadius: '0.5rem',
-        border: selected
-          ? `1px solid ${alpha(palette.secondary.light, 0.5)}`
-          : 'none',
+
         backgroundColor: selected ? `${palette.secondary.dark}` : 'transparent',
         '&:hover': {
           '& .MuiTableCell-root': { background: '#34363E' },
+        },
+        '& .MuiTableCell-root': {
+          borderTop: borderStyle,
+          borderBottom: borderStyle,
+          '&:first-of-type': {
+            borderTopLeftRadius: '0.5rem !important',
+            borderBottomLeftRadius: '0.5rem !important',
+            borderLeft: borderStyle,
+          },
+          '&:last-of-type': {
+            borderTopRightRadius: '0.5rem',
+            borderBottomRightRadius: '0.5rem',
+            borderRight: borderStyle,
+          },
         },
       }}
       onClick={onChange}
@@ -55,7 +69,7 @@ function Vault({ selected, data, onChange }: VaultProps) {
               value: data.allProviders!.map((p) => p.name),
             }}
           />
-          {data.route.recommended && <BestLabel />}
+          {data.route?.recommended && <BestLabel />}
         </Stack>
       </TableCell>
       <TableCell align="left">
