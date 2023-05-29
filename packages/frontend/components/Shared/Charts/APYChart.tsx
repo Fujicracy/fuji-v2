@@ -5,7 +5,12 @@ import { LineSvgProps, ResponsiveLine } from '@nivo/line';
 import { AprResult } from '@x-fuji/sdk';
 import React from 'react';
 
-import { ChartTab, normalizeChartData, Period } from '../../../helpers/charts';
+import {
+  ChartTab,
+  normalizeChartData,
+  Period,
+  xAxisValues,
+} from '../../../helpers/charts';
 import APYChartTooltip from '../../Borrow/Analytics/APYChartTooltip';
 
 type APYChartProps = {
@@ -18,6 +23,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
   const { palette } = useTheme();
 
   const normalizedData = normalizeChartData(data, tab, period);
+  const valuesToShow = xAxisValues(normalizedData, period);
 
   const config: LineSvgProps = {
     data: normalizedData,
@@ -30,7 +36,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
       ]),
     ],
     fill: [{ match: '*', id: 'gradientA' }],
-    margin: { top: 0, right: 10, bottom: 50, left: 30 },
+    margin: { top: 10, right: 20, bottom: 35, left: 35 },
     xScale: { type: 'point' },
     yScale: { type: 'linear', min: 'auto', max: 'auto' },
     enableArea: true,
@@ -74,28 +80,13 @@ function APYChart({ data, period, tab }: APYChartProps) {
     curve: 'linear',
   };
 
-  const longest = normalizedData.reduce((longest, current) => {
-    return current.data.length > longest.data.length ? current : longest;
-  });
-
-  const valuesToShow = longest.data
-    .map((v, i) =>
-      i %
-        (period === Period.WEEK
-          ? Period.DAY
-          : period === Period.MONTH
-          ? Period.WEEK
-          : Period.MONTH) ===
-      0
-        ? v.x
-        : undefined
-    )
-    .filter((v) => v);
-
   return (
-    <Box width="100%" height={400}>
+    <Box width="100%" height={400} padding={'1rem 0rem'}>
       <ResponsiveLine
         {...config}
+        axisLeft={{
+          format: (v) => `${v}%`,
+        }}
         axisBottom={{
           tickValues: valuesToShow,
         }}
