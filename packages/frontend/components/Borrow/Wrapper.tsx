@@ -180,7 +180,10 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
             <Grid item xs={12} md={5}>
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
-            <Grow in={Boolean(basePosition)} timeout={{ enter: 700 }}>
+            <Grow
+              in={Boolean(basePosition)}
+              timeout={{ enter: isEditing ? 0 : 700 }}
+            >
               {basePosition ? (
                 <Grid item sm={12} md={7}>
                   <Overview isEditing={isEditing} basePosition={basePosition} />

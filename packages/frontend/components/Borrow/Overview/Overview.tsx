@@ -5,8 +5,9 @@ import React from 'react';
 import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
-import VaultsByNetwork from '../VaultsByNetwork';
+import VaultsSelect from '../VaultsSelect';
 import Container from './Container';
+import Details from './Details';
 import LTVProgressBar from './LTVProgressBar';
 import Summary from './Summary/Summary';
 
@@ -49,7 +50,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   if (debtInput === undefined) return <></>; // TODO: handle this case
   return (
     <Container isMobile={isMobile}>
-      <VaultsByNetwork isEditing={isEditing} basePosition={basePosition} />
+      {!isEditing && <VaultsSelect />}
       <Card
         sx={{
           flexDirection: 'column',
@@ -79,6 +80,16 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
             maxLTV={ltvMax}
             recommendedLTV={recommendedLtv}
             isMobile={isMobile}
+          />
+
+          <Details
+            ltv={ltv}
+            ltvThreshold={ltvThreshold}
+            providers={allProviders}
+            activeProvider={activeProvider}
+            vault={vault}
+            isMobile={isMobile}
+            isEditing={isEditing}
           />
         </CardContent>
       </Card>
