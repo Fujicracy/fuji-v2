@@ -3,6 +3,7 @@ import {
   Container,
   Divider,
   Grid,
+  Grow,
   Stack,
   Typography,
   useTheme,
@@ -169,15 +170,25 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
             <CircularProgress size={32} />
           </Grid>
         ) : (
-          <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
+          <Grid
+            container
+            wrap="wrap"
+            alignItems="flex-start"
+            justifyContent="center"
+            spacing={3}
+          >
             <Grid item xs={12} md={5}>
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
-            {basePosition && (
-              <Grid item sm={12} md={7}>
-                <Overview isEditing={isEditing} basePosition={basePosition} />
-              </Grid>
-            )}
+            <Grow in={Boolean(basePosition)} timeout={{ enter: 700 }}>
+              {basePosition ? (
+                <Grid item sm={12} md={7}>
+                  <Overview isEditing={isEditing} basePosition={basePosition} />
+                </Grid>
+              ) : (
+                <></>
+              )}
+            </Grow>
           </Grid>
         )}
       </Container>
