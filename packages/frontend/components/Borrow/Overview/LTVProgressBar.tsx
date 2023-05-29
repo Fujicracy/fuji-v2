@@ -245,7 +245,6 @@ export function LTVProgressBarContainer({
     <>
       <Divider sx={isMobile ? { mt: 2, mb: 1.5 } : { mb: 1.5 }} />
       {children}
-      <Divider sx={{ mt: 2, mb: 2 }} />
     </>
   );
 }

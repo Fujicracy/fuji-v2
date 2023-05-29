@@ -128,16 +128,7 @@ function Container({ children, isMobile }: ContainerProps) {
     </>
   ) : (
     <Grid container alignItems="center" justifyContent="space-between">
-      <Card
-        sx={{
-          flexDirection: 'column',
-          alignItems: 'center',
-          p: '1.5rem 2rem',
-          width: '100%',
-        }}
-      >
-        <CardContent sx={{ padding: 0, gap: '1rem' }}>{children}</CardContent>
-      </Card>
+      {children}
     </Grid>
   );
 }
