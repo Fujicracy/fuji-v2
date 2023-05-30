@@ -1,6 +1,6 @@
 import { useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React, { useState } from 'react';
+import React from 'react';
 
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
@@ -16,7 +16,6 @@ type OverviewProps = {
 function Overview({ basePosition, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
-  const [selectedTab, setSelectedTab] = useState<number>(0);
 
   const providers = useBorrow((state) => state.allProviders);
   const vault = useBorrow((state) => state.activeVault);
