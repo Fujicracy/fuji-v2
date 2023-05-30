@@ -20,7 +20,6 @@ import EmptyChartState from '../../Shared/Charts/EmptyState';
 import PeriodOptions from '../../Shared/Filters/PeriodOptions';
 import { ProviderIcon } from '../../Shared/Icons';
 import TabSwitch from '../../Shared/TabSwitch';
-import AnalyticsHeader from '../Analytics/AnalyticsHeader';
 import InfoBlock from '../Analytics/InfoBlock';
 import PoolInfo from '../Analytics/PoolInfo';
 
@@ -94,7 +93,7 @@ function AnalyticsTab() {
     </>
   );
 
-  return (
+  return currentData ? (
     <Card
       sx={{
         flexDirection: 'column',
@@ -106,11 +105,12 @@ function AnalyticsTab() {
       }}
     >
       <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
-        <AnalyticsHeader
-          collateral={collateral}
-          debt={debt}
-          loading={loading}
-        />
+        {/*<AnalyticsHeader*/}
+        {/*  collateral={collateral}*/}
+        {/*  debt={debt}*/}
+        {/*  loading={loading}*/}
+        {/*/>*/}
+        <Typography variant="body2">Analytics</Typography>
 
         <Stack flexDirection="row" justifyContent="space-between">
           <TabSwitch
@@ -193,7 +193,7 @@ function AnalyticsTab() {
         )}
       </CardContent>
     </Card>
-  );
+  ) : null;
 }
 
 export default AnalyticsTab;

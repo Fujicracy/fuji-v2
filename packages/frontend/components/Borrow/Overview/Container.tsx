@@ -143,6 +143,7 @@ function Container({ children, isMobile }: ContainerProps) {
           {children}
         </CardContent>
       </Card>
+
       <AnalyticsTab />
     </Grid>
   );
