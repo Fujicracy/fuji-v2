@@ -6,15 +6,11 @@ import { ProviderIcon } from '../../Shared/Icons';
 import { DocsTooltip } from '../../Shared/Tooltips';
 
 type TitleProps = {
-  selectedTab: number;
-  onTabClick: (tab: number) => void;
   providers?: LendingProviderWithFinancials[];
   vault?: BorrowingVault;
 };
 
-function Title({ providers, vault, selectedTab, onTabClick }: TitleProps) {
-  const tabs = ['Overview', 'Analytics'];
-
+function Title({ providers, vault }: TitleProps) {
   const safetyRating = Number(vault?.safetyRating?.toString());
   return (
     <>
@@ -30,24 +26,9 @@ function Title({ providers, vault, selectedTab, onTabClick }: TitleProps) {
           alignItems="center"
           sx={{ gap: '2rem', height: '100%' }}
         >
-          {tabs.map((tab, i) => (
-            <Typography
-              key={i}
-              lineHeight="2.5rem"
-              sx={{
-                cursor: 'pointer',
-                pb: '1rem',
-                borderBottom:
-                  i === selectedTab
-                    ? '1px solid white'
-                    : '1px solid transparent',
-              }}
-              variant="body2"
-              onClick={() => onTabClick(i)}
-            >
-              {tab}
-            </Typography>
-          ))}
+          <Typography lineHeight="2.5rem" variant="body2">
+            Overview
+          </Typography>
         </Stack>
         {providers && vault && (
           <Stack direction="row" alignItems="center">

@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
-import AnalyticsTab from './AnalyticsTab';
 import Container from './Container';
 import OverviewTab from './OverviewTab';
 import Title from './Title';
@@ -24,20 +23,9 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
 
   return (
     <Container isMobile={isMobile}>
-      {!isMobile && (
-        <Title
-          providers={providers}
-          vault={vault}
-          selectedTab={selectedTab}
-          onTabClick={setSelectedTab}
-        />
-      )}
+      {!isMobile && <Title providers={providers} vault={vault} />}
 
-      {selectedTab === 0 ? (
-        <OverviewTab isEditing={isEditing} basePosition={basePosition} />
-      ) : (
-        <AnalyticsTab />
-      )}
+      <OverviewTab isEditing={isEditing} basePosition={basePosition} />
     </Container>
   );
 }

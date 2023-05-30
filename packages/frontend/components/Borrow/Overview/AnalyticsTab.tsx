@@ -1,4 +1,12 @@
-import { Box, Grid, Skeleton, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Card,
+  CardContent,
+  Grid,
+  Skeleton,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { AprResult, BorrowingVault } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
@@ -87,85 +95,104 @@ function AnalyticsTab() {
   );
 
   return (
-    <>
-      <AnalyticsHeader collateral={collateral} debt={debt} loading={loading} />
-
-      <Stack flexDirection="row" justifyContent="space-between">
-        <TabSwitch
-          options={chartOptions}
-          selected={selectedTab}
-          onChange={setSelectedTab}
-          width="13.6rem"
+    <Card
+      sx={{
+        flexDirection: 'column',
+        alignItems: 'center',
+        p: '1.5rem 2rem',
+        width: '100%',
+        overflow: 'visible',
+        mt: '2rem',
+      }}
+    >
+      <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
+        <AnalyticsHeader
+          collateral={collateral}
+          debt={debt}
+          loading={loading}
         />
-        <PeriodOptions onChange={onPeriodChange} isDayExcluded={true} />
-      </Stack>
 
-      <Typography variant="smallDark" fontSize="0.875rem" lineHeight="1.4rem">
-        {formattedDate(DateFormat.YEAR)}
-      </Typography>
-
-      {loading ? (
-        loadingSkeleton
-      ) : currentData ? (
-        <>
-          <APYChart
-            data={currentData}
-            tab={selectedTab}
-            period={selectedPeriod}
+        <Stack flexDirection="row" justifyContent="space-between">
+          <TabSwitch
+            options={chartOptions}
+            selected={selectedTab}
+            onChange={setSelectedTab}
+            width="13.6rem"
           />
-        </>
-      ) : (
-        <EmptyChartState />
-      )}
+          <PeriodOptions onChange={onPeriodChange} isDayExcluded={true} />
+        </Stack>
 
-      {showInfo && currentData && (
-        <>
-          <Grid container spacing={2} mt="2rem">
-            <Grid item xs={12} sm={6} lg={3}>
-              <InfoBlock
-                tooltip="test"
-                label="Active Provider"
-                loading={loading}
-                value={
-                  <Stack flexDirection="row" alignItems="center" gap="0.25rem">
-                    <ProviderIcon provider={'test'} height={24} width={24} />
-                    Aave
-                  </Stack>
-                }
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} lg={3}>
-              <InfoBlock
-                loading={loading}
-                tooltip="test"
-                label="Borrow APR"
-                value={
-                  <Typography color={palette.warning.main}>2.55%</Typography>
-                }
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} lg={3}>
-              <InfoBlock
-                label="Total Borrow Amount"
-                value={'$820.1K'}
-                loading={loading}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} lg={3}>
-              <InfoBlock
-                label="Available Liquidity"
-                value={'$250.0K'}
-                loading={loading}
-              />
-            </Grid>
-          </Grid>
+        <Typography variant="smallDark" fontSize="0.875rem" lineHeight="1.4rem">
+          {formattedDate(DateFormat.YEAR)}
+        </Typography>
 
-          <Box sx={{ mt: '2.5rem' }}>
-            <PoolInfo />
-          </Box>
-        </>
-      )}
-    </>
+        {loading ? (
+          loadingSkeleton
+        ) : currentData ? (
+          <>
+            <APYChart
+              data={currentData}
+              tab={selectedTab}
+              period={selectedPeriod}
+            />
+          </>
+        ) : (
+          <EmptyChartState />
+        )}
+
+        {showInfo && currentData && (
+          <>
+            <Grid container spacing={2} mt="2rem">
+              <Grid item xs={12} sm={6} lg={3}>
+                <InfoBlock
+                  tooltip="test"
+                  label="Active Provider"
+                  loading={loading}
+                  value={
+                    <Stack
+                      flexDirection="row"
+                      alignItems="center"
+                      gap="0.25rem"
+                    >
+                      <ProviderIcon provider={'test'} height={24} width={24} />
+                      Aave
+                    </Stack>
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} lg={3}>
+                <InfoBlock
+                  loading={loading}
+                  tooltip="test"
+                  label="Borrow APR"
+                  value={
+                    <Typography color={palette.warning.main}>2.55%</Typography>
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} lg={3}>
+                <InfoBlock
+                  label="Total Borrow Amount"
+                  value={'$820.1K'}
+                  loading={loading}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6} lg={3}>
+                <InfoBlock
+                  label="Available Liquidity"
+                  value={'$250.0K'}
+                  loading={loading}
+                />
+              </Grid>
+            </Grid>
+
+            <Box sx={{ mt: '2.5rem' }}>
+              <PoolInfo />
+            </Box>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
