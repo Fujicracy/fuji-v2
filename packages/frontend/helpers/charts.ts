@@ -50,13 +50,14 @@ export const normalizeChartData = (
       })
       .map((s) => {
         const aprReward = s.aprReward ?? 0;
+        console.log(s);
 
         return {
           x: formattedDate(DateFormat.YEAR, s.timestamp),
           y:
             type === ChartTab.BORROW
-              ? (s.aprBase - aprReward) / 100
-              : (s.aprBase + aprReward) / 100,
+              ? s.aprBase - aprReward
+              : s.aprBase + aprReward,
           ...s,
         };
       }),
