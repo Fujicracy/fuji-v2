@@ -50,7 +50,6 @@ export const normalizeChartData = (
       })
       .map((s) => {
         const aprReward = s.aprReward ?? 0;
-        console.log(s);
 
         return {
           x: formattedDate(DateFormat.YEAR, s.timestamp),
