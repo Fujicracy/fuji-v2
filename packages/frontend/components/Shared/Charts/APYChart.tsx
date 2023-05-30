@@ -94,6 +94,8 @@ function APYChart({ data, period, tab }: APYChartProps) {
     )
     .filter((v) => v);
 
+  if (!valuesToShow.length) return null;
+
   return (
     <Box width="100%" height={400} mt={2}>
       <ResponsiveLine
