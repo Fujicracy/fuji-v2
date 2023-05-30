@@ -21,7 +21,8 @@ export const normalizeChartData = (
   period: Period
 ) => {
   const now = new Date();
-  const data = source.map((d) => ({
+
+  return source.map((d) => ({
     id: d.name,
     data: d.aprStats
       .filter((s) => {
@@ -30,10 +31,13 @@ export const normalizeChartData = (
           (now.getTime() - dataPointDate.getTime()) / MILLISECONDS_IN_DAY
         );
 
-        return diffInDays < period;
+        if (s.aprBase === null) {
+          return false;
+        }
+
+        return diffInDays <= period;
       })
       .map((s) => {
-        const aprBase = s.aprBase ?? 0;
         const aprReward = s.aprReward ?? 0;
 
         return {
@@ -41,11 +45,10 @@ export const normalizeChartData = (
           x: formattedDate(DateFormat.MONTH, s.timestamp),
           y:
             type === ChartTab.BORROW
-              ? aprBase - aprReward
-              : aprBase + aprReward,
+              ? (s.aprBase - aprReward) / 100
+              : (s.aprBase + aprReward) / 100,
           ...s,
         };
       }),
   }));
-  return data;
 };

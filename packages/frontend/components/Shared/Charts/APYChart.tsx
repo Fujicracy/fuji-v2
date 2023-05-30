@@ -21,7 +21,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
 
   const config: LineSvgProps = {
     data: normalizedData,
-    layers: ['markers', 'areas', 'crosshair', 'lines', 'axes', 'mesh'],
+    layers: ['markers', 'crosshair', 'lines', 'axes', 'mesh'],
     defs: [
       linearGradientDef('gradientA', [
         { offset: 0, color: '#4556DC', opacity: 1 },
@@ -30,9 +30,10 @@ function APYChart({ data, period, tab }: APYChartProps) {
       ]),
     ],
     fill: [{ match: '*', id: 'gradientA' }],
-    margin: { top: 0, right: 10, bottom: 50, left: 30 },
+    margin: { top: 0, right: 10, bottom: 50, left: 45 },
     xScale: { type: 'point' },
     yScale: { type: 'linear', min: 'auto', max: 'auto' },
+    yFormat: '-%',
     enableArea: true,
     areaOpacity: 0.2,
     axisBottom: {
@@ -44,6 +45,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
       tickSize: 5,
       tickPadding: 5,
       tickRotation: 0,
+      format: ' >-.1%',
     },
     theme: {
       axis: {
@@ -71,7 +73,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
     useMesh: true,
     crosshairType: 'x',
     animate: true,
-    curve: 'linear',
+    curve: 'monotoneX',
   };
 
   const longest = normalizedData.reduce((longest, current) => {
@@ -93,7 +95,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
     .filter((v) => v);
 
   return (
-    <Box width="100%" height={400}>
+    <Box width="100%" height={400} mt={2}>
       <ResponsiveLine
         {...config}
         axisBottom={{

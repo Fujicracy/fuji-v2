@@ -42,6 +42,15 @@ function AnalyticsTab() {
 
   const showInfo = false;
 
+  const onPeriodChange = (period: Period) => {
+    setLoading(true);
+    setSelectedPeriod(period);
+
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  };
+
   useEffect(() => {
     if (vault && vault.address !== prevVault.current?.address) {
       (async () => {
@@ -69,20 +78,6 @@ function AnalyticsTab() {
     <>
       <Skeleton
         sx={{
-          width: '3.5rem',
-          height: '3rem',
-          m: '-1rem 0',
-        }}
-      />
-      <Skeleton
-        sx={{
-          width: '5.5rem',
-          height: '3rem',
-          m: '-1rem 0',
-        }}
-      />
-      <Skeleton
-        sx={{
           width: '100%',
           height: '38rem',
           m: '-8rem 0 -6rem 0',
@@ -102,21 +97,17 @@ function AnalyticsTab() {
           onChange={setSelectedTab}
           width="13.6rem"
         />
-        <PeriodOptions onChange={setSelectedPeriod} isDayExcluded={true} />
+        <PeriodOptions onChange={onPeriodChange} isDayExcluded={true} />
       </Stack>
+
+      <Typography variant="smallDark" fontSize="0.875rem" lineHeight="1.4rem">
+        {formattedDate(DateFormat.YEAR)}
+      </Typography>
 
       {loading ? (
         loadingSkeleton
       ) : currentData ? (
         <>
-          <Typography
-            variant="smallDark"
-            fontSize="0.875rem"
-            lineHeight="1.4rem"
-          >
-            {formattedDate(DateFormat.YEAR)}
-          </Typography>
-
           <APYChart
             data={currentData}
             tab={selectedTab}

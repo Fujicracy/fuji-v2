@@ -13,7 +13,7 @@ type TitleProps = {
 };
 
 function Title({ providers, vault, selectedTab, onTabClick }: TitleProps) {
-  const tabs = ['Overview']; // 'Analytics'
+  const tabs = ['Overview', 'Analytics'];
 
   const safetyRating = Number(vault?.safetyRating?.toString());
   return (
