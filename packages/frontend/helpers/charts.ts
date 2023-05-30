@@ -1,4 +1,4 @@
-import { AprResult } from '@x-fuji/sdk';
+import { AprResult, AprStat } from '@x-fuji/sdk';
 
 import { MILLISECONDS_IN_DAY } from '../constants';
 import { DateFormat, formattedDate } from './values';
@@ -15,11 +15,22 @@ export enum ChartTab {
   DEPOSIT = 1,
 }
 
+type AprStatChart = AprStat & {
+  x: string;
+  y: number;
+  [key: string]: any;
+};
+
+type AprResultChart = {
+  id: string;
+  data: AprStatChart[];
+};
+
 export const normalizeChartData = (
   source: AprResult[],
   type: ChartTab,
   period: Period
-) => {
+): AprResultChart[] => {
   const now = new Date();
 
   return source.map((d) => ({
@@ -41,8 +52,7 @@ export const normalizeChartData = (
         const aprReward = s.aprReward ?? 0;
 
         return {
-          date: formattedDate(DateFormat.YEAR, s.timestamp),
-          x: formattedDate(DateFormat.MONTH, s.timestamp),
+          x: formattedDate(DateFormat.YEAR, s.timestamp),
           y:
             type === ChartTab.BORROW
               ? (s.aprBase - aprReward) / 100
@@ -51,4 +61,29 @@ export const normalizeChartData = (
         };
       }),
   }));
+};
+
+export const xAxisValues = (
+  data: AprResultChart[],
+  period: Period
+): string[] => {
+  const longest = data.reduce((longest, current) => {
+    return current.data.length > longest.data.length ? current : longest;
+  });
+
+  const valuesToShow = longest.data
+    .map((v, i) =>
+      i %
+        (period === Period.WEEK
+          ? Period.DAY
+          : period === Period.MONTH
+          ? Period.WEEK
+          : Period.MONTH) ===
+      0
+        ? v.x
+        : undefined
+    )
+    .filter((v) => v);
+
+  return valuesToShow as string[];
 };
