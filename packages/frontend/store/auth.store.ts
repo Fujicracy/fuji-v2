@@ -5,7 +5,7 @@ import { ethers, utils } from 'ethers';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { web3onboard } from '../helpers/auth';
+import { getOnboardStatus, web3onboard } from '../helpers/auth';
 import { chainIdToHex, hexToChainId } from '../helpers/chains';
 import { storeOptions } from '../helpers/stores';
 
@@ -19,6 +19,7 @@ export enum AuthStatus {
 
 type AuthState = {
   status: AuthStatus;
+  isDisclaimerShown: boolean;
   started: boolean;
   address?: string;
   ens?: string;
@@ -31,6 +32,7 @@ type AuthState = {
 type AuthActions = {
   login: (options?: ConnectOptions) => void;
   changeWallet: (wallets: WalletState[]) => void;
+  showDisclaimer: () => void;
   init: () => void;
   logout: () => void;
   disconnect: () => void;
@@ -42,6 +44,7 @@ type AuthStore = AuthState & AuthActions;
 const initialState: AuthState = {
   status: AuthStatus.Initial,
   started: false,
+  isDisclaimerShown: false,
 };
 
 export const useAuth = create<AuthStore>()(
@@ -83,6 +86,14 @@ export const useAuth = create<AuthStore>()(
 
         const json = JSON.stringify(wallets.map(({ label }) => label));
         localStorage.setItem('connectedWallets', json);
+      },
+
+      showDisclaimer: () => {
+        if (!get().isDisclaimerShown) {
+          set({ isDisclaimerShown: true });
+
+          return;
+        }
       },
 
       login: async (options) => {

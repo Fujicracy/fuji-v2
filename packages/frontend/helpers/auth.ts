@@ -74,11 +74,16 @@ export const web3onboard = Onboard({
 });
 
 export function acceptTermsOfUse() {
-  const onboardStatus: OnboardStatus = {
-    hasAcceptedTerms: true,
-    date: new Date().toJSON(),
-  };
-  const json = JSON.stringify(onboardStatus);
+  const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
+  const onboardStatus = JSON.parse(onboardStatusJson);
+
+  const json = JSON.stringify({
+    ...onboardStatus,
+    ...{
+      hasAcceptedTerms: true,
+      date: new Date().toJSON(),
+    },
+  });
   localStorage.setItem('termsAccepted', json);
 }
 
@@ -96,10 +101,9 @@ export function getOnboardStatus(): OnboardStatus {
 }
 
 export function setExploreInfoShown(wasExploreInfoShown: boolean) {
-  const onboardStatusJson = localStorage.getItem('termsAccepted');
-  if (!onboardStatusJson) return;
+  const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
 
-  const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
+  const onboardStatus = JSON.parse(onboardStatusJson);
 
   const json = JSON.stringify({ ...onboardStatus, wasExploreInfoShown });
   localStorage.setItem('termsAccepted', json);

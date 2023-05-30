@@ -52,6 +52,7 @@ function ExploreCarousel() {
   const next = () => {
     if (currentSlide === 3) {
       setExploreInfoShown(true);
+      setHasPreviouslyExploreInfoShown(true);
     }
 
     handleNextSlide();
@@ -59,10 +60,11 @@ function ExploreCarousel() {
 
   const skip = () => {
     setExploreInfoShown(true);
+    setHasPreviouslyExploreInfoShown(true);
   };
 
   return (
-    <Dialog open={hasPreviouslyExploreInfoShown}>
+    <Dialog open={!hasPreviouslyExploreInfoShown}>
       <Paper
         variant="outlined"
         sx={{

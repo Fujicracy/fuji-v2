@@ -9,9 +9,11 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { ConnectOptions } from '@web3-onboard/core';
 import { ChangeEvent, useEffect, useState } from 'react';
 
 import { acceptTermsOfUse, getOnboardStatus } from '../../helpers/auth';
+import { useAuth } from '../../store/auth.store';
 
 type AgreementBox = { checked: boolean; text: string };
 
@@ -39,6 +41,9 @@ export function DisclaimerModal() {
   const [agreementsBoxes, setAgreementsBoxes] =
     useState<AgreementBox[]>(agreements);
 
+  const login = useAuth((state) => state.login);
+  const isDisclaimerShown = useAuth((state) => state.isDisclaimerShown);
+
   useEffect(() => {
     const hasPreviouslyAcceptedTerms = getOnboardStatus().hasAcceptedTerms;
 
@@ -46,8 +51,19 @@ export function DisclaimerModal() {
     setHasPreviouslyAcceptedTerms(hasPreviouslyAcceptedTerms);
   }, []);
 
+  useEffect(() => {
+    if (isDisclaimerShown && getOnboardStatus().hasAcceptedTerms) {
+      const options: ConnectOptions | undefined = (window as any).Cypress && {
+        autoSelect: { label: 'MetaMask', disableModals: true },
+      };
+      login(options);
+    }
+  }, [isDisclaimerShown, hasPreviouslyAcceptedTerms, login]);
+
   const onAcceptClick = () => {
     acceptTermsOfUse();
+    setHasPreviouslyAcceptedTerms(true);
+    login();
   };
 
   const onOtherAgreementChange = (index: number, value: boolean) => {
@@ -63,7 +79,10 @@ export function DisclaimerModal() {
     agreementsBoxes.every((item: AgreementBox) => item.checked);
 
   return (
-    <Dialog data-cy="disclaimer-modal" open={!hasPreviouslyAcceptedTerms}>
+    <Dialog
+      data-cy="disclaimer-modal"
+      open={!hasPreviouslyAcceptedTerms && isDisclaimerShown}
+    >
       <Paper
         variant="outlined"
         sx={{

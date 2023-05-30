@@ -48,7 +48,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const address = useAuth((state) => state.address);
   const walletChainId = useAuth((state) => state.chainId);
   const changeChain = useAuth((state) => state.changeChain);
-  const login = useAuth((state) => state.login);
+  const showDisclaimer = useAuth((state) => state.showDisclaimer);
 
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
@@ -347,7 +347,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             mode={mode}
             isEditing={isEditing}
             hasBalanceInVault={hasBalanceInVault}
-            onLoginClick={() => login()}
+            onLoginClick={() => showDisclaimer()}
             onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={(type) => allow(type)}
             onRedirectClick={(borrow) => {

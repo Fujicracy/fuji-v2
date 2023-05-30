@@ -17,7 +17,6 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -51,14 +50,14 @@ const Header = () => {
   const router = useRouter();
   const [banners, setBanners] = useState<BannerConfig[]>([]);
 
-  const { address, ens, status, balance, started, login } = useAuth(
+  const { address, ens, status, balance, started, showDisclaimer } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
       balance: state.balance,
       started: state.started,
-      login: state.login,
+      showDisclaimer: state.showDisclaimer,
     }),
     shallow
   );
@@ -104,13 +103,6 @@ const Header = () => {
   ) => {
     setShowAccountModal(show);
     setAccountModalEl(element);
-  };
-
-  const handleLogin = () => {
-    const options: ConnectOptions | undefined = (window as any).Cypress && {
-      autoSelect: { label: 'MetaMask', disableModals: true },
-    };
-    login(options);
   };
 
   return (
@@ -186,7 +178,7 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={handleLogin}
+                      onClick={showDisclaimer}
                     />
                   </>
                 )}
@@ -323,7 +315,7 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={handleLogin}
+                  onClick={showDisclaimer}
                 />
               </>
             )}
