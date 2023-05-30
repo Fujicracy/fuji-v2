@@ -64,7 +64,7 @@ function ExploreCarousel() {
   };
 
   return (
-    <Dialog open={!hasPreviouslyExploreInfoShown}>
+    <Dialog data-cy="explore-carousel" open={!hasPreviouslyExploreInfoShown}>
       <Paper
         variant="outlined"
         sx={{

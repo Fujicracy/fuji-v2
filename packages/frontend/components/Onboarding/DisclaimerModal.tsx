@@ -52,10 +52,11 @@ export function DisclaimerModal() {
   }, []);
 
   useEffect(() => {
-    if (isDisclaimerShown && getOnboardStatus().hasAcceptedTerms) {
-      const options: ConnectOptions | undefined = (window as any).Cypress && {
-        autoSelect: { label: 'MetaMask', disableModals: true },
-      };
+    if (isDisclaimerShown && hasPreviouslyAcceptedTerms) {
+      const options: ConnectOptions | undefined = window &&
+        (window as any).Cypress && {
+          autoSelect: { label: 'MetaMask', disableModals: true },
+        };
       login(options);
     }
   }, [isDisclaimerShown, hasPreviouslyAcceptedTerms, login]);
@@ -63,7 +64,11 @@ export function DisclaimerModal() {
   const onAcceptClick = () => {
     acceptTermsOfUse();
     setHasPreviouslyAcceptedTerms(true);
-    login();
+    const options: ConnectOptions | undefined = window &&
+      (window as any).Cypress && {
+        autoSelect: { label: 'MetaMask', disableModals: true },
+      };
+    login(options);
   };
 
   const onOtherAgreementChange = (index: number, value: boolean) => {
