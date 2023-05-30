@@ -50,12 +50,7 @@ function AnalyticsTab() {
   const showInfo = false;
 
   const onPeriodChange = (period: Period) => {
-    setLoading(true);
     setSelectedPeriod(period);
-
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
   };
 
   useEffect(() => {
@@ -87,7 +82,7 @@ function AnalyticsTab() {
         sx={{
           width: '100%',
           height: '38rem',
-          m: '-8rem 0 -6rem 0',
+          m: '-7rem 0 -6rem 0',
         }}
       />
     </>

@@ -77,7 +77,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
     pointBorderColor: { from: 'serieColor' },
     useMesh: true,
     crosshairType: 'x',
-    animate: true,
+    animate: false,
     curve: 'monotoneX',
   };
 
