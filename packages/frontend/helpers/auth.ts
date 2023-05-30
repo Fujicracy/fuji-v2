@@ -15,7 +15,7 @@ import { onboardChains } from './chains';
 type OnboardStatus = {
   hasAcceptedTerms: boolean;
   date?: Date | string;
-  isExploreInfoSkipped?: boolean;
+  wasExploreInfoShown?: boolean;
 };
 
 const wcV1InitOptions: WalletConnectOptions = {
@@ -91,17 +91,17 @@ export function getOnboardStatus(): OnboardStatus {
   return {
     hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
     date: onboardStatus.date && new Date(onboardStatus.date),
-    isExploreInfoSkipped: onboardStatus.isExploreInfoSkipped,
+    wasExploreInfoShown: onboardStatus.wasExploreInfoShown,
   };
 }
 
-export function setExploreInfoSkipped(isExploreInfoSkipped: boolean) {
+export function setExploreInfoShown(wasExploreInfoShown: boolean) {
   const onboardStatusJson = localStorage.getItem('termsAccepted');
   if (!onboardStatusJson) return;
 
   const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
 
-  const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped });
+  const json = JSON.stringify({ ...onboardStatus, wasExploreInfoShown });
   localStorage.setItem('termsAccepted', json);
 }
 

@@ -12,7 +12,6 @@ import { useTheme } from '@mui/material/styles';
 import { ChangeEvent, useEffect, useState } from 'react';
 
 import { acceptTermsOfUse, getOnboardStatus } from '../../helpers/auth';
-import ExploreCarousel from './ExploreCarousel';
 
 type AgreementBox = { checked: boolean; text: string };
 
@@ -39,8 +38,6 @@ export function DisclaimerModal() {
     useState<boolean>(true);
   const [agreementsBoxes, setAgreementsBoxes] =
     useState<AgreementBox[]>(agreements);
-  const [isExploreModalShown, setIsExploreModalShown] =
-    useState<boolean>(false);
 
   useEffect(() => {
     const hasPreviouslyAcceptedTerms = getOnboardStatus().hasAcceptedTerms;
@@ -51,12 +48,6 @@ export function DisclaimerModal() {
 
   const onAcceptClick = () => {
     acceptTermsOfUse();
-    setIsExploreModalShown(true);
-  };
-
-  const finishOnboarding = () => {
-    setHasPreviouslyAcceptedTerms(true);
-    setIsExploreModalShown(false);
   };
 
   const onOtherAgreementChange = (index: number, value: boolean) => {
@@ -71,7 +62,7 @@ export function DisclaimerModal() {
     hasAcceptedTerms &&
     agreementsBoxes.every((item: AgreementBox) => item.checked);
 
-  return !isExploreModalShown ? (
+  return (
     <Dialog data-cy="disclaimer-modal" open={!hasPreviouslyAcceptedTerms}>
       <Paper
         variant="outlined"
@@ -167,8 +158,6 @@ export function DisclaimerModal() {
         </Button>
       </Paper>
     </Dialog>
-  ) : (
-    <ExploreCarousel open={isExploreModalShown} onClose={finishOnboarding} />
   );
 }
 
