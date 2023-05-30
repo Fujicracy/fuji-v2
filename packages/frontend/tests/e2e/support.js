@@ -12,5 +12,5 @@ Cypress.Commands.add('login', () => {
 });
 
 Cypress.Commands.add('skipOnboarding', () => {
-    cy.get(`[data-cy="skip-explore"]`).click({ force: true });
+  cy.get(`[data-cy="skip-explore"]`).click({ force: true });
 });
