@@ -32,7 +32,6 @@ type AuthState = {
 type AuthActions = {
   login: (options?: ConnectOptions) => void;
   changeWallet: (wallets: WalletState[]) => void;
-  showDisclaimer: () => void;
   init: () => void;
   logout: () => void;
   disconnect: () => void;
@@ -63,6 +62,12 @@ export const useAuth = create<AuthStore>()(
           return;
         }
         const wallets = JSON.parse(previouslyConnectedWallets);
+
+        if (!get().isDisclaimerShown && !getOnboardStatus().hasAcceptedTerms) {
+          set({ status: AuthStatus.Disconnected });
+          return;
+        }
+
         get().login({
           autoSelect: { label: wallets[0], disableModals: true },
         });
@@ -88,15 +93,14 @@ export const useAuth = create<AuthStore>()(
         localStorage.setItem('connectedWallets', json);
       },
 
-      showDisclaimer: () => {
-        if (!get().isDisclaimerShown) {
+      login: async (options) => {
+        if (!get().isDisclaimerShown && !getOnboardStatus().hasAcceptedTerms) {
           set({ isDisclaimerShown: true });
+          set({ status: AuthStatus.Disconnected });
 
           return;
         }
-      },
 
-      login: async (options) => {
         const wallets = await onboard.connectWallet(options);
 
         if (!wallets[0] || !wallets[0].accounts[0]) {

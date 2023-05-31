@@ -24,7 +24,7 @@ function EmptyState({
 
   const router = useRouter();
 
-  const showDisclaimer = useAuth((state) => state.showDisclaimer, shallow);
+  const login = useAuth((state) => state.login, shallow);
 
   const config = useMemo(() => {
     return reason === 'no-wallet'
@@ -33,7 +33,7 @@ function EmptyState({
           infoText: <></>,
           button: {
             label: 'Connect Wallet',
-            action: showDisclaimer,
+            action: login,
           },
         }
       : {
@@ -54,7 +54,7 @@ function EmptyState({
             action: () => showBorrow(router),
           },
         };
-  }, [reason, showDisclaimer, router]);
+  }, [reason, login, router]);
 
   return (
     <TableRow>

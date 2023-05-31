@@ -50,14 +50,14 @@ const Header = () => {
   const router = useRouter();
   const [banners, setBanners] = useState<BannerConfig[]>([]);
 
-  const { address, ens, status, balance, started, showDisclaimer } = useAuth(
+  const { address, ens, status, balance, started, login } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
       balance: state.balance,
       started: state.started,
-      showDisclaimer: state.showDisclaimer,
+      login: state.login,
     }),
     shallow
   );
@@ -178,7 +178,7 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={showDisclaimer}
+                      onClick={() => login()}
                     />
                   </>
                 )}
@@ -315,7 +315,7 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={showDisclaimer}
+                  onClick={() => login()}
                 />
               </>
             )}
