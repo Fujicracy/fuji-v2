@@ -116,7 +116,7 @@ function Vault({ selected, data, onChange }: VaultProps) {
             }}
           >
             <Typography variant="small">
-              {isUnfolded ? 'Hide' : 'See'} Route
+              {isUnfolded ? 'Close' : 'See Route'}
             </Typography>
           </Button>
         </TableCell>

@@ -177,9 +177,6 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
             justifyContent="center"
             spacing={3}
           >
-            <Grid item xs={12} md={5}>
-              <Borrow isEditing={isEditing} basePosition={basePosition} />
-            </Grid>
             <Grow
               in={Boolean(basePosition)}
               timeout={{ enter: isEditing ? 0 : 700 }}
@@ -192,6 +189,9 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
                 <div />
               )}
             </Grow>
+            <Grid item xs={12} md={5}>
+              <Borrow isEditing={isEditing} basePosition={basePosition} />
+            </Grid>
           </Grid>
         )}
       </Container>
