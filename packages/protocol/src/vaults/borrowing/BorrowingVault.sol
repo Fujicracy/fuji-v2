@@ -913,7 +913,7 @@ contract BorrowingVault is BaseVault {
    * - Must be less than 100% (1e18)
    */
   function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
-    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18) {
+    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18 || maxLtv_ >= liqRatio) {
       revert BaseVault__setter_invalidInput();
     }
     maxLtv = maxLtv_;
