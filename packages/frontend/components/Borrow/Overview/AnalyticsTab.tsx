@@ -20,6 +20,7 @@ import EmptyChartState from '../../Shared/Charts/EmptyState';
 import PeriodOptions from '../../Shared/Filters/PeriodOptions';
 import { ProviderIcon } from '../../Shared/Icons';
 import TabSwitch from '../../Shared/TabSwitch';
+import { TooltipWrapper } from '../../Shared/Tooltips';
 import InfoBlock from '../Analytics/InfoBlock';
 import PoolInfo from '../Analytics/PoolInfo';
 
@@ -35,12 +36,14 @@ function AnalyticsTab() {
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
   const vault = useBorrow((state) => state.activeVault);
+  const activeProvider = useBorrow((state) => state.activeProvider);
 
   const [selectedTab, setSelectedTab] = useState(chartOptions[0].value);
   const [selectedPeriod, setSelectedPeriod] = useState<Period>(Period.WEEK);
   const [borrowData, setBorrowData] = useState<AprData>(undefined);
   const [depositData, setDepositData] = useState<AprData>(undefined);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentApr, setCurrentApr] = useState<string | undefined>(undefined);
 
   const prevVault = useRef<BorrowingVault | undefined>(undefined);
 
@@ -75,6 +78,15 @@ function AnalyticsTab() {
       })();
     }
   }, [borrowData, depositData, collateral, debt, vault]);
+
+  useEffect(() => {
+    const currentApr = (
+      selectedTab === ChartTab.BORROW
+        ? activeProvider?.borrowAprBase
+        : activeProvider?.depositAprBase
+    )?.toFixed(2);
+    setCurrentApr(currentApr);
+  }, [activeProvider, selectedTab]);
 
   const loadingSkeleton = (
     <>
@@ -116,6 +128,30 @@ function AnalyticsTab() {
           />
           <PeriodOptions onChange={onPeriodChange} isDayExcluded={true} />
         </Stack>
+        {activeProvider && currentApr && (
+          <Stack flexDirection={'row'} gap={0.6} alignItems="center">
+            <TooltipWrapper
+              title={`${activeProvider.name}'s current ${
+                selectedTab === ChartTab.BORROW ? 'APR' : 'APY'
+              }`}
+              placement="top"
+            >
+              <Typography
+                variant="body2"
+                fontSize="1.125rem"
+                fontWeight={700}
+                lineHeight="1.8rem"
+              >
+                {`${currentApr}%`}
+              </Typography>
+            </TooltipWrapper>
+            <ProviderIcon
+              provider={activeProvider.name}
+              height={24}
+              width={24}
+            />
+          </Stack>
+        )}
 
         <Typography variant="smallDark" fontSize="0.875rem" lineHeight="1.4rem">
           {formattedDate(DateFormat.YEAR)}
