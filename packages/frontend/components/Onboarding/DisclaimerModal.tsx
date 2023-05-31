@@ -51,16 +51,6 @@ export function DisclaimerModal() {
     setHasPreviouslyAcceptedTerms(hasPreviouslyAcceptedTerms);
   }, []);
 
-  // useEffect(() => {
-  //   if (isDisclaimerShown && hasPreviouslyAcceptedTerms) {
-  //     const options: ConnectOptions | undefined = window &&
-  //       (window as any).Cypress && {
-  //         autoSelect: { label: 'MetaMask', disableModals: true },
-  //       };
-  //     login(options);
-  //   }
-  // }, [isDisclaimerShown, hasPreviouslyAcceptedTerms, login]);
-
   const onAcceptClick = () => {
     acceptTermsOfUse();
     setHasPreviouslyAcceptedTerms(true);
