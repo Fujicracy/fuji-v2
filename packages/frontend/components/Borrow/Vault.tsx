@@ -13,6 +13,7 @@ import React, { useState } from 'react';
 
 import { chainName } from '../../helpers/chains';
 import { RouteMeta } from '../../helpers/routing';
+import { stringifiedBridgeFeeSum } from '../../helpers/transactions';
 import BestLabel from '../Markets/BestLabel';
 import { NetworkIcon } from '../Shared/Icons';
 import RoutesSteps from '../Shared/RoutesSteps';
@@ -170,7 +171,7 @@ function Vault({ selected, data, onChange }: VaultProps) {
                     height={13}
                   />
                   <Typography variant="xsmall" lineHeight="13px">
-                    $3.90
+                    {`$${stringifiedBridgeFeeSum(data.route.bridgeFees)} + gas`}
                   </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" gap={0.6}>
@@ -181,7 +182,7 @@ function Vault({ selected, data, onChange }: VaultProps) {
                     height={13}
                   />
                   <Typography variant="xsmall" lineHeight="13px">
-                    2 mins
+                    {`${data.route.estimateTime / 60} Mins`}
                   </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" gap={0.6}>
@@ -192,7 +193,19 @@ function Vault({ selected, data, onChange }: VaultProps) {
                     height={13}
                   />
                   <Typography variant="xsmall" lineHeight="13px">
-                    Price Impact On Collateral: 0.05%
+                    Price Impact On Collateral:
+                    <Typography
+                      ml={0.3}
+                      variant="xsmall"
+                      lineHeight="13px"
+                      color={
+                        (data.route.estimateSlippage || 0) * -1 >= 0
+                          ? palette.success.main
+                          : palette.warning.main
+                      }
+                    >
+                      {`${(data.route.estimateSlippage || 0) * -1} %`}
+                    </Typography>
                   </Typography>
                 </Stack>
               </Stack>
