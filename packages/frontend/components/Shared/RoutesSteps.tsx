@@ -80,7 +80,19 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
   }
 
   return (
-    <>
+    <Stack
+      sx={{
+        '.step-item:after': {
+          position: 'absolute',
+          content: '""',
+          borderLeft: `1px solid #47494C`,
+          height: '100%',
+          transform: 'translateY(25%)',
+          left: '5%',
+          zIndex: 1,
+        },
+      }}
+    >
       {stepsToShow.map((step, index) => {
         return (
           <Stack
@@ -90,17 +102,11 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
             justifyContent="space-between"
             gap={2}
             mt={1}
+            className={
+              index === stepsToShow.length - 1 ? 'last-step-item' : 'step-item'
+            }
             sx={{
               position: 'relative',
-              '&:not(:last-of-type):after': {
-                position: 'absolute',
-                content: '""',
-                borderLeft: `1px solid #47494C`,
-                height: '100%',
-                transform: 'translateY(25%)',
-                left: '5%',
-                zIndex: 1,
-              },
             }}
           >
             <Stack
@@ -140,7 +146,7 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
           </Stack>
         );
       })}
-    </>
+    </Stack>
   );
 }
 

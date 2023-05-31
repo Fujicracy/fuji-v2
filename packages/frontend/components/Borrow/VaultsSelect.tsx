@@ -42,7 +42,7 @@ function VaultsSelect() {
   }
 
   return (
-    <Stack sx={{ mb: '2rem' }}>
+    <Stack sx={{ mb: '2rem', maxWidth: '42rem' }}>
       <Typography variant="body2">All Vaults</Typography>
       <Card
         sx={{

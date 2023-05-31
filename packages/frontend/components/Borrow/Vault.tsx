@@ -149,7 +149,15 @@ function Vault({ selected, data, onChange }: VaultProps) {
               pb: '0.5rem',
             }}
           >
-            <Stack gap={1}>
+            <Stack
+              gap={1}
+              sx={{
+                '& .step-item:after': {
+                  left: '1.5%',
+                  transform: 'translateY(45%)',
+                },
+              }}
+            >
               {data.route.steps && <RoutesSteps steps={data.route.steps} />}
               <Stack></Stack>
             </Stack>
