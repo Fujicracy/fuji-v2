@@ -14,6 +14,7 @@ import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
 contract VaultUnitTests is MockingSetup, MockRoutines {
   event MinAmountChanged(uint256 newMinAmount);
   event MaxLtvChanged(uint256 newMaxLtv);
+  event LiqRatioChanged(uint256 newLiqRatio);
   event DepositCapChanged(uint256 newDepositCap);
 
   uint8 public constant DEBT_DECIMALS = 18;
@@ -254,6 +255,19 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vm.expectEmit(true, false, false, false);
     emit MinAmountChanged(min);
     vault.setMinAmount(min);
+  }
+
+  function test_setLiqRatio(uint256 newLiqRatio_) public {
+    if (newLiqRatio_ <= DEFAULT_MAX_LTV || newLiqRatio_ < 2e16 || newLiqRatio_ >= 1e18) {
+      vm.prank(chief.timelock());
+      vm.expectRevert();
+      vault.setLiqRatio(newLiqRatio_);
+    } else {
+      vm.expectEmit(true, false, false, false);
+      emit LiqRatioChanged(newLiqRatio_);
+      vm.prank(chief.timelock());
+      vault.setLiqRatio(newLiqRatio_);
+    }
   }
 
   function test_setMaxLtv(uint256 newMaxLTV_) public {
