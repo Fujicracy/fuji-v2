@@ -824,7 +824,7 @@ contract BorrowingVault is BaseVault {
 
     if (healthFactor >= 1e18) {
       liquidationFactor = 0;
-    } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
+    } else if (FULL_LIQUIDATION_THRESHOLD <= healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt
     } else {
       liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100% of owner's debt
