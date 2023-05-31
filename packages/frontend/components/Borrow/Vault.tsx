@@ -155,13 +155,13 @@ function Vault({ selected, data, onChange }: VaultProps) {
               sx={{
                 pb: '0.75rem',
                 '& .step-item:after': {
-                  left: '1.5%',
+                  left: '1.6%',
                   transform: 'translateY(45%)',
                 },
               }}
             >
               {data.route.steps && <RoutesSteps steps={data.route.steps} />}
-              <Stack direction="row" alignItems="center" gap={2}>
+              <Stack direction="row" alignItems="center" gap={2} mt={1}>
                 <Stack direction="row" alignItems="center" gap={0.6}>
                   <Image
                     src="/assets/images/shared/cost.svg"

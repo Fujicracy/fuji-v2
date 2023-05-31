@@ -60,6 +60,7 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
     step: RoutingStepDetails;
     index: number;
   }) {
+    if (BigNumber.from(step.amount).eq(0)) return null;
     const formatted = (value?: BigNumber) =>
       `${toNotSoFixed(
         formatUnits(value ?? 0, step.token?.decimals || 18),
