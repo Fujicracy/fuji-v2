@@ -189,7 +189,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
                   <Overview isEditing={isEditing} basePosition={basePosition} />
                 </Grid>
               ) : (
-                <></>
+                <div />
               )}
             </Grow>
           </Grid>

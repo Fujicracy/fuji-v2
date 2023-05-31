@@ -48,7 +48,7 @@ function VaultsSelect() {
         sx={{
           flexDirection: 'column',
           alignItems: 'center',
-          p: '1.5rem 1rem',
+          p: '1.5rem 1.7rem',
           width: '100%',
           mt: '1rem',
         }}

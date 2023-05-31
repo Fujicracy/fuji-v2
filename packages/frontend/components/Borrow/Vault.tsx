@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { VaultWithFinancials } from '@x-fuji/sdk';
+import Image from 'next/image';
 import React, { useState } from 'react';
 
 import { chainName } from '../../helpers/chains';
@@ -72,7 +73,7 @@ function Vault({ selected, data, onChange }: VaultProps) {
             <IntegratedProviders
               providers={{
                 status: 0,
-                value: data.allProviders!.map((p) => p.name),
+                value: data.allProviders?.map((p) => p.name),
               }}
             />
             {data.route?.recommended && <BestLabel />}
@@ -152,6 +153,7 @@ function Vault({ selected, data, onChange }: VaultProps) {
             <Stack
               gap={1}
               sx={{
+                pb: '0.75rem',
                 '& .step-item:after': {
                   left: '1.5%',
                   transform: 'translateY(45%)',
@@ -159,7 +161,41 @@ function Vault({ selected, data, onChange }: VaultProps) {
               }}
             >
               {data.route.steps && <RoutesSteps steps={data.route.steps} />}
-              <Stack></Stack>
+              <Stack direction="row" alignItems="center" gap={2}>
+                <Stack direction="row" alignItems="center" gap={0.6}>
+                  <Image
+                    src="/assets/images/shared/cost.svg"
+                    alt={'Cost icon'}
+                    width={13}
+                    height={13}
+                  />
+                  <Typography variant="xsmall" lineHeight="13px">
+                    $3.90
+                  </Typography>
+                </Stack>
+                <Stack direction="row" alignItems="center" gap={0.6}>
+                  <Image
+                    src="/assets/images/shared/time.svg"
+                    alt={'Time icon'}
+                    width={13}
+                    height={13}
+                  />
+                  <Typography variant="xsmall" lineHeight="13px">
+                    2 mins
+                  </Typography>
+                </Stack>
+                <Stack direction="row" alignItems="center" gap={0.6}>
+                  <Image
+                    src="/assets/images/shared/priceImpact.svg"
+                    alt={'Price impact icon'}
+                    width={13}
+                    height={13}
+                  />
+                  <Typography variant="xsmall" lineHeight="13px">
+                    Price Impact On Collateral: 0.05%
+                  </Typography>
+                </Stack>
+              </Stack>
             </Stack>
           </TableCell>
         </TableRow>

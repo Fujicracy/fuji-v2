@@ -1,13 +1,4 @@
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import {
-  Box,
-  Card,
-  CardContent,
-  Stack,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, Card, CardContent, useMediaQuery, useTheme } from '@mui/material';
 import { debounce } from 'debounce';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -35,7 +26,6 @@ import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
 import Fees from './Fees';
 import BorrowHeader from './Header';
-import RoutingModal from './Routing/RoutingModal';
 
 type BorrowProps = {
   isEditing: boolean;
@@ -78,7 +68,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const dynamicLtvMeta = ltvMeta(basePosition);
   const metaStatus = transactionMeta.status;
 
-  const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false);
   const [isConfirmationModalShown, setIsConfirmationModalShown] =
@@ -211,31 +200,17 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
         {availableRoutes.length > 1 && (
           <>
             {
-              "If you're trying to open a similar position on another chain, please "
+              "If you're trying to open a similar position on another chain, please select a different route."
             }
-            <Typography
-              variant="xsmall"
-              lineHeight="160%"
-              textAlign="left"
-              onClick={() => {
-                !onMobile && address && setShowRoutingModal(true);
-              }}
-              style={
-                !onMobile
-                  ? { textDecoration: 'underline', cursor: 'pointer' }
-                  : {}
-              }
-            >
-              select a different route.
-            </Typography>
           </>
         )}
       </>
     );
-  }, [availableRoutes, onMobile, address, vault]);
+  }, [availableRoutes, vault]);
 
   const shouldWarningBeDisplayed =
     !isEditing &&
+    debt &&
     availableVaultStatus === FetchStatus.Ready &&
     transactionMeta.status === FetchStatus.Ready &&
     hasBalanceInVault;
@@ -289,38 +264,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             );
           })}
 
-          {availableRoutes.length > 1 ? (
-            <Stack
-              data-cy="borrow-routes-button"
-              direction="row"
-              mt="1rem"
-              justifyContent="space-between"
-              onClick={() => {
-                !isEditing && !onMobile && address && setShowRoutingModal(true);
-              }}
-              sx={{ cursor: address && 'pointer' }}
-            >
-              <Typography variant="smallDark">Routes</Typography>
-              <Stack direction="row">
-                <Typography variant="h6" sx={{ fontSize: '0.875rem' }}>
-                  View all Routes
-                </Typography>
-                <ArrowForwardIosIcon
-                  viewBox="0 0 24 24"
-                  sx={{
-                    fontSize: 24,
-                    p: '5px',
-                  }}
-                />
-              </Stack>
-            </Stack>
-          ) : (
-            <></>
-          )}
-
-          <Box m="1rem 0">
-            <Fees />
-          </Box>
+          <Box m="1rem 0">{debt && <Fees />}</Box>
 
           {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
 
@@ -363,11 +307,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
           <ConnextFooter />
         </CardContent>
       </Card>
-      <RoutingModal
-        isEditing={isEditing}
-        open={showRoutingModal}
-        handleClose={() => setShowRoutingModal(false)}
-      />
       <ConfirmTransactionModal
         open={isConfirmationModalShown}
         onClose={() => setIsConfirmationModalShown(false)}
