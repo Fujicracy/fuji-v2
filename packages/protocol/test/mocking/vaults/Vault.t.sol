@@ -13,6 +13,7 @@ import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
 
 contract VaultUnitTests is MockingSetup, MockRoutines {
   event MinAmountChanged(uint256 newMinAmount);
+  event MaxLtvChanged(uint256 newMaxLtv);
   event DepositCapChanged(uint256 newDepositCap);
 
   uint8 public constant DEBT_DECIMALS = 18;
@@ -253,6 +254,19 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vm.expectEmit(true, false, false, false);
     emit MinAmountChanged(min);
     vault.setMinAmount(min);
+  }
+
+  function test_setMaxLtv(uint256 newMaxLTV_) public {
+    if (newMaxLTV_ < 1e16 || newMaxLTV_ >= 1e18 || newMaxLTV_ >= DEFAULT_LIQ_RATIO) {
+      vm.prank(chief.timelock());
+      vm.expectRevert();
+      vault.setMaxLtv(newMaxLTV_);
+    } else {
+      vm.expectEmit(true, false, false, false);
+      emit MaxLtvChanged(newMaxLTV_);
+      vm.prank(chief.timelock());
+      vault.setMaxLtv(newMaxLTV_);
+    }
   }
 
   function test_tryLessThanMinAmount(uint128 min, uint128 amount) public {
