@@ -88,6 +88,7 @@ function APYChart({ data, period, tab }: APYChartProps) {
       <ResponsiveLine
         {...config}
         axisLeft={{
+          tickValues: 5,
           format: (v) => `${v}%`,
         }}
         axisBottom={{
