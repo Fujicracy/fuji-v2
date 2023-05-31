@@ -841,14 +841,28 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     bytes memory callData = abi.encodeWithSignature(
       string(abi.encodePacked(method, "(address,address)")), address(this), address(this)
     );
-    bytes memory returnedBytes;
     for (uint256 i = 0; i < len;) {
-      returnedBytes = address(_providers[i]).functionStaticCall(callData, ": balance call failed");
-      assets += uint256(bytes32(returnedBytes));
+      assets += _getProviderBalanceStaticCall(_providers[i], callData);
       unchecked {
         ++i;
       }
     }
+  }
+
+  /**
+   * TODO
+   */
+  function _getProviderBalanceStaticCall(
+    ILendingProvider provider,
+    bytes memory callData
+  )
+    internal
+    view
+    returns (uint256 bal)
+  {
+    bytes memory returnedBytes =
+      address(provider).functionStaticCall(callData, ": balance call failed");
+    return uint256(bytes32(returnedBytes));
   }
 
   /*////////////////////

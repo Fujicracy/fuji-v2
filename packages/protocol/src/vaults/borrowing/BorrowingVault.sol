@@ -69,6 +69,7 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
   error BorrowingVault__correctDebt_noNeedForCorrection();
   error BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
+  error BorrowingVault__checkProvidersWithBal_missingProviderWithBalance();
 
   /*///////////////////
    Liquidation controls
@@ -942,6 +943,11 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function _setProviders(ILendingProvider[] memory providers) internal override {
     uint256 len = providers.length;
+
+    ILendingProvider[] memory providersWithBal = _getProvidersWithBal();
+
+    _checkProvidersWithBal(providersWithBal, providers);
+
     for (uint256 i = 0; i < len;) {
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
@@ -963,6 +969,86 @@ contract BorrowingVault is BaseVault {
     _providers = providers;
 
     emit ProvidersChanged(providers);
+  }
+
+  /**
+   * @dev Returns an array of ILendingProviders with collateral asset balance
+   * NOTE: All providers with a debt balance must have a collateral asset balance
+   * therefore, it is redundant to check for debt.
+   *
+   */
+  function _getProvidersWithBal() internal view returns (ILendingProvider[] memory) {
+    uint256 len = _providers.length;
+
+    bytes memory depositCallData = abi.encodeWithSignature(
+      string(abi.encodePacked("getDepositBalance(address,address)")), address(this), address(this)
+    );
+
+    // Solidity memory arrays do not have  "push" method , therefore we count.
+    ILendingProvider[] memory temp = new ILendingProvider[](len);
+    uint256 count;
+
+    for (uint256 i; i < len;) {
+      if (_getProviderBalanceStaticCall(_providers[i], depositCallData) > minAmount) {
+        temp[i] = _providers[i];
+        unchecked {
+          ++count;
+        }
+      }
+      unchecked {
+        ++i;
+      }
+    }
+
+    // Instatiate array with `count` elements and reset count.
+    ILendingProvider[] memory providersWithBal = new ILendingProvider[](count);
+    count = 0;
+    for (uint256 i; i < len;) {
+      if (address(temp[i]) != address(0)) {
+        providersWithBal[count] = temp[i];
+        unchecked {
+          ++count;
+        }
+      }
+      unchecked {
+        ++i;
+      }
+    }
+
+    return providersWithBal;
+  }
+
+  /**
+   * TODO
+   */
+  function _checkProvidersWithBal(
+    ILendingProvider[] memory providersWithBal,
+    ILendingProvider[] memory newProviders
+  )
+    internal
+    pure
+  {
+    uint256 lenWithBal = providersWithBal.length;
+    uint256 lenNewProviders = newProviders.length;
+
+    for (uint256 i = 0; i < lenWithBal;) {
+      bool found;
+      for (uint256 j = 0; j < lenNewProviders;) {
+        if (providersWithBal[i] == newProviders[j]) {
+          found = true;
+          break;
+        }
+        unchecked {
+          ++j;
+        }
+      }
+      if (!found) {
+        revert BorrowingVault__checkProvidersWithBal_missingProviderWithBalance();
+      }
+      unchecked {
+        ++i;
+      }
+    }
   }
 
   /**
