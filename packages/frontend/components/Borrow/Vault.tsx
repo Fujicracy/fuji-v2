@@ -33,6 +33,8 @@ function Vault({ selected, data, onChange }: VaultProps) {
     selected ? alpha(palette.secondary.light, 0.5) : 'transparent'
   } !important`;
 
+  console.log(data);
+
   return (
     <>
       <TableRow
@@ -48,15 +50,12 @@ function Vault({ selected, data, onChange }: VaultProps) {
           },
           '& .MuiTableCell-root': {
             borderTop: borderStyle,
-            borderBottom: borderStyle,
             '&:first-of-type': {
               borderTopLeftRadius: '0.5rem !important',
-              borderBottomLeftRadius: '0.5rem !important',
               borderLeft: borderStyle,
             },
             '&:last-of-type': {
               borderTopRightRadius: '0.5rem',
-              borderBottomRightRadius: '0.5rem',
               borderRight: borderStyle,
             },
           },
@@ -84,7 +83,7 @@ function Vault({ selected, data, onChange }: VaultProps) {
             rating={Number(data.vault?.safetyRating?.toString()) ?? 0}
           />
         </TableCell>
-        <TableCell>
+        <TableCell align="left">
           <Stack direction="row" alignItems="center" gap="0.5rem">
             <NetworkIcon
               network={chainName(data.vault.chainId)}
@@ -94,28 +93,54 @@ function Vault({ selected, data, onChange }: VaultProps) {
             {chainName(data.vault.chainId)}
           </Stack>
         </TableCell>
+        <TableCell align="right">
+          <Typography variant="small" color={palette.success.main}>
+            {data.activeProvider.borrowAprBase?.toFixed(2)} %
+          </Typography>
+        </TableCell>
+        <TableCell align="right">
+          <Typography variant="small" color={palette.warning.main}>
+            {data.activeProvider.depositAprBase?.toFixed(2)} %
+          </Typography>
+        </TableCell>
         <TableCell>
           <Button
             size="small"
             fullWidth
             variant="secondary"
-            sx={{ p: '0 1rem' }}
+            sx={{ p: '0 0.5rem' }}
             onClick={(e) => {
               e.stopPropagation();
               setUnfolded(!isUnfolded);
             }}
           >
             <Typography variant="small">
-              {isUnfolded ? 'Hide' : 'View'} Details
+              {isUnfolded ? 'Hide' : 'See'} Route
             </Typography>
           </Button>
         </TableCell>
       </TableRow>
       {isUnfolded && (
-        <TableRow>
+        <TableRow
+          sx={{
+            display: 'table-row',
+            overflowY: 'hidden',
+            '& .MuiTableCell-root': {
+              borderBottom: borderStyle,
+              '&:first-of-type': {
+                borderBottomLeftRadius: '0.5rem !important',
+                borderLeft: borderStyle,
+              },
+              '&:last-of-type': {
+                borderBottomRightRadius: '0.5rem',
+                borderRight: borderStyle,
+              },
+            },
+          }}
+        >
           <TableCell
             onClick={onChange}
-            colSpan={4}
+            colSpan={6}
             sx={{
               borderStyle: 'unset',
               backgroundColor: selected
@@ -124,7 +149,10 @@ function Vault({ selected, data, onChange }: VaultProps) {
               pb: '0.5rem',
             }}
           >
-            <RoutesSteps steps={data.route.steps} />
+            <Stack gap={1}>
+              {data.route.steps && <RoutesSteps steps={data.route.steps} />}
+              <Stack></Stack>
+            </Stack>
           </TableCell>
         </TableRow>
       )}

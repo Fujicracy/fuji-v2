@@ -48,30 +48,34 @@ function VaultsSelect() {
         sx={{
           flexDirection: 'column',
           alignItems: 'center',
-          p: '1.5rem 2rem',
+          p: '1.5rem 1rem',
           width: '100%',
           mt: '1rem',
         }}
       >
-        <CardContent sx={{ padding: 0, gap: '1rem' }}>
+        <CardContent sx={{ padding: 0 }}>
           <TableContainer
             sx={{
+              overflowY: 'hidden',
               border: 'none',
+              '& td, th': {
+                padding: '0 0.7rem',
+              },
               '& .MuiTableCell-root': { border: 'none' },
-              '& tr:first-child td:first-child': {
+              '& tr:first-of-type td:first-of-type': {
                 borderTopLeftRadius: '0.5rem',
               },
-              '& tr:first-child td:last-child': {
+              '& tr:first-of-type td:last-of-type': {
                 borderTopRightRadius: '0.5rem',
               },
-              '& tr:last-child td:first-child': {
+              '& tr:last-of-type td:first-of-type': {
                 borderBottomLeftRadius: '0.5rem',
               },
-              '& tr:last-child td:last-child': {
+              '& tr:last-of-type td:last-of-type': {
                 borderBottomRightRadius: '0.5rem',
               },
-              'tr:first-child td': { borderTopStyle: 'solid' },
-              'tr td:first-child': { borderLeftStyle: 'solid' },
+              'tr:first-of-type td': { borderTopStyle: 'solid' },
+              'tr td:first-of-type': { borderLeftStyle: 'solid' },
             }}
           >
             <Table
@@ -81,9 +85,11 @@ function VaultsSelect() {
             >
               <TableHead>
                 <TableRow sx={{ height: '2.625rem' }}>
-                  <TableCell align="left">Vault</TableCell>
-                  <TableCell align="left">Rating</TableCell>
-                  <TableCell align="right">Network</TableCell>
+                  <TableCell align="left">Protocols</TableCell>
+                  <TableCell align="left">Safety Rating</TableCell>
+                  <TableCell align="left">Network</TableCell>
+                  <TableCell align="right">Supply APY</TableCell>
+                  <TableCell align="right">Borrow APR</TableCell>
                   <TableCell align="right" />
                 </TableRow>
               </TableHead>
