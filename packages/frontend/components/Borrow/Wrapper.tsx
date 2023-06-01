@@ -131,6 +131,11 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           pl: { xs: '0.25rem', sm: '1rem' },
           pr: { xs: '0.25rem', sm: '1rem' },
           minHeight: '75vh',
+          '@media (min-width: 1200px)': {
+            '&.MuiContainer-root': {
+              maxWidth: '1300px !important',
+            },
+          },
         }}
       >
         {isEditing && !loading && (

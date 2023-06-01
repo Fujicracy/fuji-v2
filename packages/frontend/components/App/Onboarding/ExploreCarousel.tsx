@@ -8,19 +8,21 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { setExploreInfoSkipped } from '../../../helpers/auth';
+import { getOnboardStatus, setExploreInfoShown } from '../../../helpers/auth';
 
-function ExploreCarousel({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+function ExploreCarousel() {
   const { palette } = useTheme();
   const [currentSlide, setCurrentSlide] = useState(1);
+  const [hasPreviouslyExploreInfoShown, setHasPreviouslyExploreInfoShown] =
+    useState<boolean>(true);
+
+  useEffect(() => {
+    const wasExploreInfoShown = getOnboardStatus().wasExploreInfoShown || false;
+
+    setHasPreviouslyExploreInfoShown(wasExploreInfoShown);
+  }, []);
 
   const slides = [
     {
@@ -49,20 +51,20 @@ function ExploreCarousel({
 
   const next = () => {
     if (currentSlide === 3) {
-      setExploreInfoSkipped(false);
-      onClose();
+      setExploreInfoShown(true);
+      setHasPreviouslyExploreInfoShown(true);
     }
 
     handleNextSlide();
   };
 
   const skip = () => {
-    setExploreInfoSkipped(true);
-    onClose();
+    setExploreInfoShown(true);
+    setHasPreviouslyExploreInfoShown(true);
   };
 
   return (
-    <Dialog open={open}>
+    <Dialog data-cy="explore-carousel" open={!hasPreviouslyExploreInfoShown}>
       <Paper
         variant="outlined"
         sx={{

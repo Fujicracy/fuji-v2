@@ -15,7 +15,7 @@ import { onboardChains } from './chains';
 type OnboardStatus = {
   hasAcceptedTerms: boolean;
   date?: Date | string;
-  isExploreInfoSkipped?: boolean;
+  wasExploreInfoShown?: boolean;
 };
 
 const wcV1InitOptions: WalletConnectOptions = {
@@ -74,11 +74,16 @@ export const web3onboard = Onboard({
 });
 
 export function acceptTermsOfUse() {
-  const onboardStatus: OnboardStatus = {
-    hasAcceptedTerms: true,
-    date: new Date().toJSON(),
-  };
-  const json = JSON.stringify(onboardStatus);
+  const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
+  const onboardStatus = JSON.parse(onboardStatusJson);
+
+  const json = JSON.stringify({
+    ...onboardStatus,
+    ...{
+      hasAcceptedTerms: true,
+      date: new Date().toJSON(),
+    },
+  });
   localStorage.setItem('termsAccepted', json);
 }
 
@@ -91,17 +96,16 @@ export function getOnboardStatus(): OnboardStatus {
   return {
     hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
     date: onboardStatus.date && new Date(onboardStatus.date),
-    isExploreInfoSkipped: onboardStatus.isExploreInfoSkipped,
+    wasExploreInfoShown: onboardStatus.wasExploreInfoShown,
   };
 }
 
-export function setExploreInfoSkipped(isExploreInfoSkipped: boolean) {
-  const onboardStatusJson = localStorage.getItem('termsAccepted');
-  if (!onboardStatusJson) return;
+export function setExploreInfoShown(wasExploreInfoShown: boolean) {
+  const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
 
-  const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
+  const onboardStatus = JSON.parse(onboardStatusJson);
 
-  const json = JSON.stringify({ ...onboardStatus, isExploreInfoSkipped });
+  const json = JSON.stringify({ ...onboardStatus, wasExploreInfoShown });
   localStorage.setItem('termsAccepted', json);
 }
 

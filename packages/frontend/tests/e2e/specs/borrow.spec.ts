@@ -1,8 +1,9 @@
 describe('Borrow', () => {
   before(() => {
     cy.visit('/borrow');
-    cy.dismissDisclaimer();
+    cy.skipOnboarding();
     cy.login();
+    cy.dismissDisclaimer();
   });
   it('should load right chain', () => {
     cy.get('[data-cy="borrow-chain-select"]')

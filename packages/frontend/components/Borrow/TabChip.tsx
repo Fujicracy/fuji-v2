@@ -6,9 +6,10 @@ type TabChipProps = {
   selected: boolean;
   label: string;
   onClick: () => void;
+  size: 'large' | 'default';
 };
 
-function TabChip({ selected, label, onClick }: TabChipProps) {
+function TabChip({ selected, label, onClick, size }: TabChipProps) {
   const { palette } = useTheme();
 
   return (
@@ -28,7 +29,7 @@ function TabChip({ selected, label, onClick }: TabChipProps) {
     >
       <Typography
         color={palette.text.primary}
-        fontSize="1rem"
+        fontSize={size === 'large' ? '1rem' : '0.875rem'}
         lineHeight="160%"
         textAlign="center"
         sx={{
