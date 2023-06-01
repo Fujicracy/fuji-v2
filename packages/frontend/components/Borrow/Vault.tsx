@@ -64,10 +64,12 @@ function Vault({
             borderTop: borderStyle,
             '&:first-of-type': {
               borderTopLeftRadius: '0.5rem !important',
+              borderBottomLeftRadius: opened ? '0' : '0.5rem',
               borderLeft: borderStyle,
             },
             '&:last-of-type': {
               borderTopRightRadius: '0.5rem',
+              borderBottomRightRadius: opened ? '0' : '0.5rem',
               borderRight: borderStyle,
             },
           },
@@ -158,7 +160,7 @@ function Vault({
               : isHovered
               ? '#34363E'
               : 'transparent',
-            borderBottom: borderStyle,
+            borderBottom: opened ? borderStyle : 'none',
             '&:first-of-type': {
               borderBottomLeftRadius: '0.5rem !important',
               borderLeft: borderStyle,

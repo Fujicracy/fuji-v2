@@ -98,6 +98,11 @@ function VaultsSelect() {
               '& td, th': {
                 padding: '0 0.5rem',
               },
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none',
+              '&::-webkit-scrollbar': {
+                display: 'none',
+              },
               '& .MuiTableCell-root': { border: 'none' },
               '& tr:first-of-type td:first-of-type': {
                 borderTopLeftRadius: '0.5rem',
