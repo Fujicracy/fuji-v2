@@ -72,6 +72,9 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
             alignItems="center"
             justifyContent="start"
             gap={1.3}
+            sx={{
+              minWidth: '8.6rem',
+            }}
           >
             <IntegratedProviders
               providers={{
@@ -79,7 +82,11 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
                 value: data.allProviders?.map((p) => p.name),
               }}
             />
-            {data.route?.recommended && <BestLabel />}
+            {data.route?.recommended ? (
+              <BestLabel />
+            ) : (
+              <Stack sx={{ width: '3.7rem' }} />
+            )}
           </Stack>
         </TableCell>
         <TableCell align="left">
@@ -171,7 +178,7 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
                 },
               }}
             >
-              {data.route.steps && <RoutesSteps steps={data.route.steps} />}
+              {data.route?.steps && <RoutesSteps steps={data.route.steps} />}
               <Stack direction="row" alignItems="center" gap={2} mt={1}>
                 <Stack direction="row" alignItems="center" gap={0.6}>
                   <Image
@@ -181,7 +188,9 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
                     height={13}
                   />
                   <Typography variant="xsmall" lineHeight="13px">
-                    {`$${stringifiedBridgeFeeSum(data.route.bridgeFees)} + gas`}
+                    {`$${stringifiedBridgeFeeSum(
+                      data.route?.bridgeFees
+                    )} + gas`}
                   </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" gap={0.6}>
@@ -192,7 +201,7 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
                     height={13}
                   />
                   <Typography variant="xsmall" lineHeight="13px">
-                    {`${data.route.estimateTime / 60} Mins`}
+                    {`${data.route?.estimateTime / 60} Mins`}
                   </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center" gap={0.6}>
@@ -209,12 +218,12 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
                       variant="xsmall"
                       lineHeight="13px"
                       color={
-                        (data.route.estimateSlippage || 0) * -1 >= 0
+                        (data.route?.estimateSlippage || 0) * -1 >= 0
                           ? palette.success.main
                           : palette.warning.main
                       }
                     >
-                      {`${(data.route.estimateSlippage || 0) * -1} %`}
+                      {`${(data.route?.estimateSlippage || 0) * -1} %`}
                     </Typography>
                   </Typography>
                 </Stack>

@@ -1,4 +1,6 @@
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {
+  Button,
   Card,
   CardContent,
   Stack,
@@ -12,15 +14,16 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../store/borrow.store';
 import Vault from './Vault';
 
 function VaultsSelect() {
-  const { breakpoints } = useTheme();
+  const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
+  const [isUnFolded, setUnFolded] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(0);
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
@@ -47,25 +50,51 @@ function VaultsSelect() {
     setSelectedRoute(i);
   }
 
+  const filteredRoutes = useMemo(() => {
+    if (!aggregatedData.length) return [];
+    if (isUnFolded) return aggregatedData;
+
+    const selected = aggregatedData.find(
+      (data) => data.index === selectedRoute
+    );
+
+    return [
+      selected,
+      ...aggregatedData
+        .filter((data) => data.index !== selected?.index)
+        .slice(0, 1),
+    ];
+  }, [aggregatedData, isUnFolded, selectedRoute]);
+
+  useEffect(() => {
+    setUnFolded(false);
+    setSelectedRoute(0);
+    setOpenedRoute(null);
+  }, [availableRoutes, availableVaults]);
+
   return (
-    <Stack sx={{ mb: '2rem', maxWidth: '42rem' }}>
+    <Stack sx={{ mb: '2rem', width: '100%', maxWidth: '42rem' }}>
       <Typography variant="body2">All Vaults</Typography>
       <Card
         sx={{
           flexDirection: 'column',
-          alignItems: 'center',
-          p: '1.5rem 1.7rem',
+          alignItems: 'start',
+          p: `1.5rem 1.7rem ${
+            availableRoutes.length > 1 ? '0' : '1.5rem'
+          } 1.7rem`,
           width: '100%',
           mt: '1rem',
+          position: 'relative',
+          backgroundColor: '#191B1F',
         }}
       >
-        <CardContent sx={{ padding: 0 }}>
+        <CardContent sx={{ padding: 0, width: '100%' }}>
           <TableContainer
             sx={{
               overflowY: 'hidden',
               border: 'none',
               '& td, th': {
-                padding: '0 0.7rem',
+                padding: '0 0.5rem',
               },
               '& .MuiTableCell-root': { border: 'none' },
               '& tr:first-of-type td:first-of-type': {
@@ -90,7 +119,12 @@ function VaultsSelect() {
               sx={{ borderCollapse: 'separate' }}
             >
               <TableHead>
-                <TableRow sx={{ height: '2.625rem' }}>
+                <TableRow
+                  sx={{
+                    height: '2.625rem',
+                    '& .MuiTableCell-root': { color: '#787883' },
+                  }}
+                >
                   <TableCell align="left">Protocols</TableCell>
                   <TableCell align="left">Safety Rating</TableCell>
                   <TableCell align="left">Network</TableCell>
@@ -99,21 +133,79 @@ function VaultsSelect() {
                   <TableCell align="right" />
                 </TableRow>
               </TableHead>
-              <TableBody>
-                {aggregatedData.map((item, i) => (
-                  <Vault
-                    key={item.index}
-                    selected={item.index === selectedRoute}
-                    data={item}
-                    onChange={() => didSelectRoute(item.index)}
-                    opened={item.index === openedRoute}
-                    setOpened={() => handleOpen(item.index)}
-                  />
-                ))}
+              <TableBody
+                sx={{
+                  '& tr:nth-child(3)': {
+                    opacity: isUnFolded ? 1 : 0.2,
+                  },
+                }}
+              >
+                {filteredRoutes.length > 0 &&
+                  filteredRoutes.map((item) => {
+                    return (
+                      item && (
+                        <Vault
+                          key={item.index}
+                          selected={item.index === selectedRoute}
+                          data={item}
+                          onChange={() => didSelectRoute(item.index)}
+                          opened={item.index === openedRoute}
+                          setOpened={() => handleOpen(item.index)}
+                        />
+                      )
+                    );
+                  })}
               </TableBody>
             </Table>
           </TableContainer>
         </CardContent>
+
+        {availableRoutes.length > 1 && (
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="center"
+            sx={
+              isUnFolded
+                ? {
+                    position: 'relative',
+                    height: '3rem',
+                    width: '100%',
+                  }
+                : {
+                    position: 'absolute',
+                    bottom: 0,
+                    width: '100%',
+                    height: '3rem',
+                    zIndex: 5,
+                  }
+            }
+          >
+            <Button
+              size="small"
+              variant="secondary"
+              sx={{
+                p: '0.1rem 0.5rem 0.1rem 1rem',
+                backgroundColor: palette.secondary.dark,
+                border: 'none',
+                borderRadius: '100px',
+                '&:hover': {
+                  opacity: 1,
+                  backgroundColor: palette.secondary.light,
+                },
+              }}
+              onClick={() => setUnFolded(!isUnFolded)}
+            >
+              {isUnFolded ? 'Close' : 'See All Vaults'}
+              <KeyboardArrowDownIcon
+                sx={{
+                  ml: '0px !important',
+                  transform: isUnFolded ? 'rotate(180deg)' : '',
+                }}
+              />
+            </Button>
+          </Stack>
+        )}
       </Card>
     </Stack>
   );
