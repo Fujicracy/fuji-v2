@@ -35,10 +35,10 @@ import { vaultFromAddress } from '../../helpers/positions';
 import { transactionSteps } from '../../helpers/transactions';
 import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
-import AddTokenButton from './AddTokenButton';
-import LinkIcon from './Icons/LinkIcon';
-import { stepIcon } from './RoutesSteps';
-import WarningInfo from './WarningInfo';
+import AddTokenButton from '../Shared/AddTokenButton';
+import LinkIcon from '../Shared/Icons/LinkIcon';
+import { stepIcon } from '../Shared/RoutesSteps';
+import WarningInfo from '../Shared/WarningInfo';
 
 type TransactionModalProps = {
   entry: HistoryEntry;

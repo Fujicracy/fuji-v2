@@ -11,7 +11,7 @@ import Header from '../components/App/Header/Header';
 import Notification from '../components/App/Notification';
 import DisclaimerModal from '../components/App/Onboarding/DisclaimerModal';
 import ExploreCarousel from '../components/App/Onboarding/ExploreCarousel';
-import TransactionModal from '../components/Shared/TransactionModal';
+import TransactionModal from '../components/App/TransactionModal';
 import { PATH } from '../constants';
 import {
   changeERC20PollingPolicy,
