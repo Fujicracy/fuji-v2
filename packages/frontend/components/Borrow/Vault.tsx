@@ -1,5 +1,6 @@
 import {
   Button,
+  Collapse,
   Stack,
   TableCell,
   TableRow,
@@ -123,43 +124,43 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
           </Button>
         </TableCell>
       </TableRow>
-      {opened && (
-        <TableRow
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          sx={{
-            display: 'table-row',
-            overflowY: 'hidden',
-            cursor: 'pointer',
-            '& .MuiTableCell-root': {
-              background: selected
-                ? `${palette.secondary.dark}`
-                : isHovered
-                ? '#34363E'
-                : 'transparent',
-              borderBottom: borderStyle,
-              '&:first-of-type': {
-                borderBottomLeftRadius: '0.5rem !important',
-                borderLeft: borderStyle,
-              },
-              '&:last-of-type': {
-                borderBottomRightRadius: '0.5rem',
-                borderRight: borderStyle,
-              },
+      <TableRow
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        sx={{
+          display: 'table-row',
+          overflowY: 'hidden',
+          cursor: 'pointer',
+          '& .MuiTableCell-root': {
+            background: selected
+              ? `${palette.secondary.dark}`
+              : isHovered
+              ? '#34363E'
+              : 'transparent',
+            borderBottom: borderStyle,
+            '&:first-of-type': {
+              borderBottomLeftRadius: '0.5rem !important',
+              borderLeft: borderStyle,
             },
+            '&:last-of-type': {
+              borderBottomRightRadius: '0.5rem',
+              borderRight: borderStyle,
+            },
+          },
+        }}
+      >
+        <TableCell
+          onClick={onChange}
+          colSpan={6}
+          sx={{
+            borderStyle: 'unset',
+            backgroundColor: selected
+              ? `${palette.secondary.dark}`
+              : 'transparent',
+            pb: '0.5rem',
           }}
         >
-          <TableCell
-            onClick={onChange}
-            colSpan={6}
-            sx={{
-              borderStyle: 'unset',
-              backgroundColor: selected
-                ? `${palette.secondary.dark}`
-                : 'transparent',
-              pb: '0.5rem',
-            }}
-          >
+          <Collapse in={opened}>
             <Stack
               gap={1}
               sx={{
@@ -219,9 +220,9 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
                 </Stack>
               </Stack>
             </Stack>
-          </TableCell>
-        </TableRow>
-      )}
+          </Collapse>
+        </TableCell>
+      </TableRow>
     </>
   );
 }
