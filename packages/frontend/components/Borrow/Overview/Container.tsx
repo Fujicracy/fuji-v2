@@ -134,10 +134,15 @@ function Container({ children, isMobile }: ContainerProps) {
           alignItems: 'center',
           p: '1.5rem 2rem',
           width: '100%',
+          overflow: 'visible',
         }}
       >
-        <CardContent sx={{ padding: 0, gap: '1rem' }}>{children}</CardContent>
+        <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
+          {children}
+        </CardContent>
       </Card>
+
+      {/* <Analytics /> */}
     </Grid>
   );
 }

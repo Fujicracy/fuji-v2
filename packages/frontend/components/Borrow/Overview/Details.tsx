@@ -4,7 +4,7 @@ import { BorrowingVault, LendingProviderWithFinancials } from '@x-fuji/sdk';
 import { chainName } from '../../../helpers/chains';
 import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
 import {
-  APRTooltip,
+  InfoTooltip,
   ProvidersTooltip,
   TooltipWrapper,
 } from '../../Shared/Tooltips';
@@ -99,6 +99,10 @@ function Details({
             <Typography variant="smallDark">
               Collateral Interest Rate (APY)
             </Typography>
+            <InfoTooltip
+              isDark
+              title="APR, or annual percentage rate, represents the price you pay to borrow money."
+            />
           </div>
           <TooltipWrapper
             placement="top-end"
@@ -125,7 +129,10 @@ function Details({
             <Typography variant="smallDark">
               Borrow Interest Rate (APR)
             </Typography>
-            <APRTooltip />
+            <InfoTooltip
+              isDark
+              title="APR, or annual percentage rate, represents the price you pay to borrow money."
+            />
           </div>
           <TooltipWrapper
             placement="top-end"

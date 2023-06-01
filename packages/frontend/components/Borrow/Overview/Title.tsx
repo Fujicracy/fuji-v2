@@ -6,8 +6,8 @@ import { ProviderIcon } from '../../Shared/Icons';
 import { DocsTooltip } from '../../Shared/Tooltips';
 
 type TitleProps = {
-  providers: LendingProviderWithFinancials[] | undefined;
-  vault: BorrowingVault | undefined;
+  providers?: LendingProviderWithFinancials[];
+  vault?: BorrowingVault;
 };
 
 function Title({ providers, vault }: TitleProps) {
@@ -17,11 +17,20 @@ function Title({ providers, vault }: TitleProps) {
       <Stack
         direction="row"
         justifyContent="space-between"
-        alignItems="center"
-        height="40px"
+        alignItems="start"
+        height="56px"
       >
-        <Typography variant="body2">Overview</Typography>
-        {providers && (
+        <Stack
+          direction="row"
+          justifyContent="start"
+          alignItems="center"
+          sx={{ gap: '2rem', height: '100%' }}
+        >
+          <Typography lineHeight="2.5rem" variant="body2">
+            Overview
+          </Typography>
+        </Stack>
+        {providers && vault && (
           <Stack direction="row" alignItems="center">
             <DocsTooltip />
             <Typography variant="smallDark" ml={0.5} mr={1}>
@@ -48,7 +57,7 @@ function Title({ providers, vault }: TitleProps) {
           </Stack>
         )}
       </Stack>
-      <Divider sx={{ mt: '1rem', mb: '1.5rem' }} />
+      <Divider sx={{ mb: '1.5rem' }} />
     </>
   );
 }
