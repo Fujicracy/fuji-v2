@@ -12,7 +12,7 @@ type AnalyticsHeaderProps = {
   loading: boolean;
 };
 
-function AnalyticsHeader({ collateral, debt, loading }: AnalyticsHeaderProps) {
+function AnalyticsHeader({ collateral, debt }: AnalyticsHeaderProps) {
   const { palette } = useTheme();
 
   return (
