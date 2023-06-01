@@ -3,7 +3,6 @@ import { NextPage } from 'next';
 import Head from 'next/head';
 
 import Footer from '../components/Shared/Footer';
-import Header from '../components/Shared/Header/Header';
 import Lending from '../components/Shared/Lending';
 
 const LendingPage: NextPage = () => {
@@ -14,8 +13,6 @@ const LendingPage: NextPage = () => {
         <meta name="description" content="Lend assets and earn interest" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Header />
 
       <Divider
         sx={{

@@ -4,7 +4,6 @@ import Head from 'next/head';
 
 import Markets from '../components/Markets/Markets';
 import Footer from '../components/Shared/Footer';
-import Header from '../components/Shared/Header/Header';
 
 const MarketsPage: NextPage = () => {
   return (
@@ -17,8 +16,6 @@ const MarketsPage: NextPage = () => {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Header />
 
       <Divider
         sx={{

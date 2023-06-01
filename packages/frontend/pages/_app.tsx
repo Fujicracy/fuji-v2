@@ -9,6 +9,7 @@ import { useEffect, useRef } from 'react';
 
 import TransactionModal from '../components/Borrow/TransactionModal';
 import DisclaimerModal from '../components/Onboarding/DisclaimerModal';
+import Header from '../components/Shared/Header/Header';
 import Notification from '../components/Shared/Notification';
 import { PATH } from '../constants';
 import {
@@ -122,6 +123,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Web3OnboardProvider web3Onboard={onboard}>
         <ThemeProvider theme={theme}>
           <div className="backdrop"></div>
+          <Header />
           <Component {...pageProps} />
           {entry && entry.address === address && (
             <TransactionModal

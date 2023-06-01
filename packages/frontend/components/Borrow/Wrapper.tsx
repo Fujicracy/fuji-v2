@@ -25,7 +25,6 @@ import { useAuth } from '../../store/auth.store';
 import { FormType, useBorrow } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 import { usePositions } from '../../store/positions.store';
-import Header from '../Shared/Header/Header';
 import Overview from './Overview/Overview';
 import VaultsSelect from './VaultsSelect';
 
@@ -117,8 +116,6 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Header />
 
       <Divider
         sx={{

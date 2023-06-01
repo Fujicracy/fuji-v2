@@ -4,7 +4,6 @@ import Head from 'next/head';
 
 import MyPositions from '../components/Positions/MyPositions';
 import Footer from '../components/Shared/Footer';
-import Header from '../components/Shared/Header/Header';
 
 const MyPositionPage: NextPage = () => {
   return (
@@ -14,8 +13,6 @@ const MyPositionPage: NextPage = () => {
         <meta name="description" content="Manage your open positions" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Header />
 
       <Container
         sx={{
