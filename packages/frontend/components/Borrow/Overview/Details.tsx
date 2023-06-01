@@ -1,13 +1,8 @@
-import { Box, Divider, Grid, Stack, Typography, useTheme } from '@mui/material';
+import { Box, Divider, Grid, Stack, Typography } from '@mui/material';
 import { BorrowingVault, LendingProviderWithFinancials } from '@x-fuji/sdk';
 
 import { chainName } from '../../../helpers/chains';
 import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
-import {
-  APRTooltip,
-  ProvidersTooltip,
-  TooltipWrapper,
-} from '../../Shared/Tooltips';
 
 type DetailsProps = {
   ltv: number;
@@ -28,11 +23,11 @@ function Details({
   isMobile,
   isEditing,
 }: DetailsProps) {
-  const { palette } = useTheme();
-
   return (
     <>
-      <Typography variant="body2">Details</Typography>
+      <Typography variant="body2" sx={{ mt: 2 }}>
+        Details
+      </Typography>
 
       <br />
 
@@ -49,18 +44,6 @@ function Details({
             <DetailDivider isMobile={isMobile} />
           </>
         )}
-
-        <Grid container justifyContent="space-between">
-          <Typography variant="smallDark">
-            {isMobile
-              ? 'Liquidation Threshold'
-              : 'Loan-to-Value Liquidation Threshold'}
-          </Typography>
-
-          <Typography variant="small">{ltvThreshold}%</Typography>
-        </Grid>
-
-        <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
           <Grid item>
@@ -95,54 +78,13 @@ function Details({
         <DetailDivider isMobile={isMobile} />
 
         <Grid container justifyContent="space-between">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="smallDark">
-              Collateral Interest Rate (APY)
-            </Typography>
-          </div>
-          <TooltipWrapper
-            placement="top-end"
-            title={<ProvidersTooltip providers={providers} />}
-          >
-            <Box sx={{ alignItems: 'center' }}>
-              {activeProvider ? (
-                <Typography variant="small">
-                  <span style={{ color: palette.success.main }}>
-                    {activeProvider.depositAprBase?.toFixed(2)}%
-                  </span>
-                </Typography>
-              ) : (
-                'n/a'
-              )}
-            </Box>
-          </TooltipWrapper>
-        </Grid>
+          <Typography variant="smallDark">
+            {isMobile
+              ? 'Liquidation Threshold'
+              : 'Loan-to-Value Liquidation Threshold'}
+          </Typography>
 
-        <DetailDivider isMobile={isMobile} />
-
-        <Grid container justifyContent="space-between">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="smallDark">
-              Borrow Interest Rate (APR)
-            </Typography>
-            <APRTooltip />
-          </div>
-          <TooltipWrapper
-            placement="top-end"
-            title={<ProvidersTooltip providers={providers} isBorrow />}
-          >
-            <Box sx={{ alignItems: 'center' }}>
-              {activeProvider ? (
-                <Typography variant="small">
-                  <span style={{ color: palette.warning.main }}>
-                    {activeProvider.borrowAprBase?.toFixed(2)}%
-                  </span>
-                </Typography>
-              ) : (
-                'n/a'
-              )}
-            </Box>
-          </TooltipWrapper>
+          <Typography variant="small">{ltvThreshold}%</Typography>
         </Grid>
       </DetailContainer>
     </>
