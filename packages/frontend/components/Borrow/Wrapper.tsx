@@ -36,6 +36,8 @@ type BorrowWrapperProps = {
   };
 };
 
+const ANIMATION_DURATION = 1000;
+
 function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const { palette } = useTheme();
   const router = useRouter();
@@ -182,7 +184,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           >
             <Grow
               in={Boolean(basePosition)}
-              timeout={{ enter: isEditing ? 0 : 700 }}
+              timeout={{ enter: isEditing ? 0 : ANIMATION_DURATION }}
             >
               {basePosition ? (
                 <Grid
