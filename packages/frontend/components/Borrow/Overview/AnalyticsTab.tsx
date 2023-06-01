@@ -26,7 +26,7 @@ import PoolInfo from '../Analytics/PoolInfo';
 
 const chartOptions: TabOption[] = [
   { value: ChartTab.BORROW, label: 'Borrow APR' },
-  { value: ChartTab.DEPOSIT, label: 'Deposit APY' },
+  { value: ChartTab.DEPOSIT, label: 'Supply APY' },
 ];
 
 type AprData = AprResult[] | undefined;
