@@ -1,8 +1,8 @@
 import { Stack } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 
-import { TabOption } from '../../constants';
-import TabChip from '../Shared/TabChip';
+import { TabOption } from '../../../constants';
+import TabChip from './TabChip';
 
 type TabSwitchProps = {
   options: TabOption[];

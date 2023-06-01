@@ -11,7 +11,7 @@ import {
   Period,
   xAxisValues,
 } from '../../../helpers/charts';
-import APYChartTooltip from '../../Borrow/Analytics/APYChartTooltip';
+import { APYChartTooltip } from '../Tooltips';
 
 type APYChartProps = {
   data: AprResult[];

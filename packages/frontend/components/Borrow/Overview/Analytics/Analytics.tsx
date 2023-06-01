@@ -11,18 +11,18 @@ import { useTheme } from '@mui/material/styles';
 import { AprResult, BorrowingVault } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
-import { TabOption } from '../../../constants';
-import { ChartTab, Period } from '../../../helpers/charts';
-import { DateFormat, formattedDate } from '../../../helpers/values';
-import { useBorrow } from '../../../store/borrow.store';
-import APYChart from '../../Shared/Charts/APYChart';
-import EmptyChartState from '../../Shared/Charts/EmptyState';
-import PeriodOptions from '../../Shared/Filters/PeriodOptions';
-import { ProviderIcon } from '../../Shared/Icons';
-import TabSwitch from '../../Shared/TabSwitch';
-import { TooltipWrapper } from '../../Shared/Tooltips';
-import InfoBlock from '../Analytics/InfoBlock';
-import PoolInfo from '../Analytics/PoolInfo';
+import { TabOption } from '../../../../constants';
+import { ChartTab, Period } from '../../../../helpers/charts';
+import { DateFormat, formattedDate } from '../../../../helpers/values';
+import { useBorrow } from '../../../../store/borrow.store';
+import APYChart from '../../../Shared/Charts/APYChart';
+import EmptyChartState from '../../../Shared/Charts/EmptyState';
+import PeriodOptions from '../../../Shared/Filters/PeriodOptions';
+import { ProviderIcon } from '../../../Shared/Icons';
+import TabSwitch from '../../../Shared/TabSwitch/TabSwitch';
+import { TooltipWrapper } from '../../../Shared/Tooltips';
+import InfoBlock from './InfoBlock';
+import PoolInfo from './PoolInfo';
 
 const chartOptions: TabOption[] = [
   { value: ChartTab.BORROW, label: 'Borrow APR' },
@@ -64,10 +64,11 @@ function Analytics() {
         }
         prevVault.current = vault;
 
-        const borrowResult = await vault.getProvidersStatsFor(
-          debt.currency.wrapped
+        const borrowResult =
+          debt && (await vault.getProvidersStatsFor(debt.currency.wrapped));
+        setBorrowData(
+          borrowResult && borrowResult.success ? borrowResult.data : undefined
         );
-        setBorrowData(borrowResult.success ? borrowResult.data : undefined);
 
         const depositResult = await vault.getProvidersStatsFor(
           collateral.currency.wrapped
@@ -112,11 +113,6 @@ function Analytics() {
       }}
     >
       <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
-        {/*<AnalyticsHeader*/}
-        {/*  collateral={collateral}*/}
-        {/*  debt={debt}*/}
-        {/*  loading={loading}*/}
-        {/*/>*/}
         <Typography variant="body2">Analytics</Typography>
 
         <Stack flexDirection="row" justifyContent="space-between">

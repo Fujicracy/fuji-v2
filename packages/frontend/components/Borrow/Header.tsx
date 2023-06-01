@@ -5,7 +5,7 @@ import { ActionType } from '../../helpers/assets';
 import { wrappedSymbol } from '../../helpers/currencies';
 import { useBorrow } from '../../store/borrow.store';
 import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
-import TabSwitch from '../Shared/TabSwitch';
+import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { TooltipWrapper } from '../Shared/Tooltips';
 import SlippageSettings from './SlippageSettings';
 
