@@ -2,8 +2,8 @@ import { Container } from '@mui/material';
 import { NextPage } from 'next';
 import Head from 'next/head';
 
+import Footer from '../components/App/Footer';
 import MyPositions from '../components/Positions/MyPositions';
-import Footer from '../components/Shared/Footer';
 
 const MyPositionPage: NextPage = () => {
   return (

@@ -4,7 +4,7 @@ import { Balances } from '@web3-onboard/core/dist/types';
 
 import { hiddenAddress } from '../../../helpers/values';
 import { useHistory } from '../../../store/history.store';
-import Balance from '../Balance';
+import Balance from '../../Shared/Balance';
 
 type BalanceAddonProps = {
   address: string;

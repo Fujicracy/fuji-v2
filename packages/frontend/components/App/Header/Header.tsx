@@ -29,14 +29,14 @@ import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { AuthStatus, useAuth } from '../../../store/auth.store';
 import styles from '../../../styles/components/Header.module.css';
-import AccountModal from '../AccountModal/AccountModal';
-import ChainSelect from '../ChainSelect';
-import { BurgerMenuIcon } from '../Icons';
-import ParameterLinks from '../ParameterLinks';
-import Parameters from '../Parameters';
+import { BurgerMenuIcon } from '../../Shared/Icons';
+import AccountModal from './AccountModal/AccountModal';
 import AddressAddon from './AddressAddon';
 import BalanceAddon from './BalanceAddon';
 import Banner, { BannerConfig } from './Banner';
+import ChainSelect from './ChainSelect';
+import SocialMenu from './SocialMenu';
+import SocialMenuWrapper from './SocialMenuWrapper';
 
 export const BANNERS: BannerConfig[] = [
   {
@@ -259,7 +259,7 @@ const Header = () => {
                       </MenuItem>
                     )}
                     <Divider />
-                    <ParameterLinks />
+                    <SocialMenu />
                   </MenuList>
                 </Menu>
               </Box>
@@ -338,7 +338,7 @@ const Header = () => {
                   />
                 </Grid>
                 <Grid item>
-                  <Parameters />
+                  <SocialMenuWrapper />
                 </Grid>
               </>
             )}

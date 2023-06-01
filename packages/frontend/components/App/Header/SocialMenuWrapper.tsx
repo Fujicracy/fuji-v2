@@ -4,9 +4,9 @@ import { Menu, MenuList, useTheme } from '@mui/material';
 import Chip from '@mui/material/Chip';
 import React from 'react';
 
-import ParameterLinks from './ParameterLinks';
+import SocialMenu from './SocialMenu';
 
-function Parameters() {
+function SocialMenuWrapper() {
   const { palette } = useTheme();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const isOpen = Boolean(anchorEl);
@@ -32,11 +32,11 @@ function Parameters() {
         PaperProps={{ sx: { background: palette.secondary.contrastText } }}
       >
         <MenuList sx={{ minWidth: '200px' }} disablePadding>
-          <ParameterLinks />
+          <SocialMenu />
         </MenuList>
       </Menu>
     </>
   );
 }
 
-export default Parameters;
+export default SocialMenuWrapper;

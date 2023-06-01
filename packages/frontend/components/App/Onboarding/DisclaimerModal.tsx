@@ -11,7 +11,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { ChangeEvent, useEffect, useState } from 'react';
 
-import { acceptTermsOfUse, getOnboardStatus } from '../../helpers/auth';
+import { acceptTermsOfUse, getOnboardStatus } from '../../../helpers/auth';
 import ExploreCarousel from './ExploreCarousel';
 
 type AgreementBox = { checked: boolean; text: string };

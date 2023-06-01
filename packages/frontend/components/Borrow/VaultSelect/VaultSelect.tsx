@@ -16,10 +16,10 @@ import {
 import { useTheme } from '@mui/material/styles';
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { useBorrow } from '../../store/borrow.store';
+import { useBorrow } from '../../../store/borrow.store';
 import Vault from './Vault';
 
-function VaultsSelect() {
+function VaultSelect() {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
@@ -225,4 +225,4 @@ function VaultsSelect() {
   );
 }
 
-export default VaultsSelect;
+export default VaultSelect;

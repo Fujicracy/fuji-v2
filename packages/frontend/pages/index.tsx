@@ -2,8 +2,8 @@ import { Container, Divider } from '@mui/material';
 import { NextPage } from 'next';
 import Head from 'next/head';
 
+import Footer from '../components/App/Footer';
 import Markets from '../components/Markets/Markets';
-import Footer from '../components/Shared/Footer';
 
 const MarketsPage: NextPage = () => {
   return (

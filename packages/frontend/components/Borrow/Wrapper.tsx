@@ -14,7 +14,6 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
 import Borrow from '../../components/Borrow/Borrow';
-import Footer from '../../components/Shared/Footer';
 import { PATH } from '../../constants';
 import {
   BasePosition,
@@ -25,8 +24,9 @@ import { useAuth } from '../../store/auth.store';
 import { FormType, useBorrow } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 import { usePositions } from '../../store/positions.store';
+import Footer from '../App/Footer';
 import Overview from './Overview/Overview';
-import VaultsSelect from './VaultsSelect';
+import VaultSelect from './VaultSelect/VaultSelect';
 
 type BorrowWrapperProps = {
   formType: FormType;
@@ -188,7 +188,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
                   order={{ xs: 2, md: 1 }}
                   sx={{}}
                 >
-                  {!isEditing && <VaultsSelect />}
+                  {!isEditing && <VaultSelect />}
                   <Overview isEditing={isEditing} basePosition={basePosition} />
                 </Grid>
               ) : (

@@ -16,10 +16,10 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 
-import { addressUrl } from '../../../helpers/chains';
-import { HistoryEntry, HistoryEntryStatus } from '../../../helpers/history';
-import { useAuth } from '../../../store/auth.store';
-import { useHistory } from '../../../store/history.store';
+import { addressUrl } from '../../../../helpers/chains';
+import { HistoryEntry, HistoryEntryStatus } from '../../../../helpers/history';
+import { useAuth } from '../../../../store/auth.store';
+import { useHistory } from '../../../../store/history.store';
 import HistoryItem from './HistoryItem';
 
 type AccountModalProps = {

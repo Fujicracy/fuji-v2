@@ -12,14 +12,14 @@ import { VaultWithFinancials } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { useState } from 'react';
 
-import { chainName } from '../../helpers/chains';
-import { RouteMeta } from '../../helpers/routing';
-import { stringifiedBridgeFeeSum } from '../../helpers/transactions';
-import BestLabel from '../Markets/BestLabel';
-import { NetworkIcon } from '../Shared/Icons';
-import RoutesSteps from '../Shared/RoutesSteps';
-import IntegratedProviders from '../Shared/Table/IntegratedProviders';
-import SafetyRating from '../Shared/Table/SafetyRating';
+import { chainName } from '../../../helpers/chains';
+import { RouteMeta } from '../../../helpers/routing';
+import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
+import BestLabel from '../../Shared/BestLabel';
+import { NetworkIcon } from '../../Shared/Icons';
+import RoutesSteps from '../../Shared/RoutesSteps';
+import IntegratedProviders from '../../Shared/Table/IntegratedProviders';
+import SafetyRating from '../../Shared/Table/SafetyRating';
 
 type VaultProps = {
   selected: boolean;

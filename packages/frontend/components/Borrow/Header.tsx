@@ -5,9 +5,9 @@ import { ActionType } from '../../helpers/assets';
 import { wrappedSymbol } from '../../helpers/currencies';
 import { useBorrow } from '../../store/borrow.store';
 import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
-import SlippageSettings from '../Shared/SlippageSettings';
-import TabChip from '../Shared/TabChip';
 import { TooltipWrapper } from '../Shared/Tooltips';
+import SlippageSettings from './SlippageSettings';
+import TabChip from './TabChip';
 
 type BorrowHeaderProps = {
   isEditing: boolean;

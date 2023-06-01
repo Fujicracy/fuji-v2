@@ -16,8 +16,8 @@ import {
   HistoryEntry,
   HistoryEntryStatus,
   stepFromEntry,
-} from '../../../helpers/history';
-import { toNotSoFixed } from '../../../helpers/values';
+} from '../../../../helpers/history';
+import { toNotSoFixed } from '../../../../helpers/values';
 
 type HistoryItemProps = {
   entry: HistoryEntry;

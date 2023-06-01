@@ -18,7 +18,7 @@ import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
-import ConfirmTransactionModal from '../Shared/ConfirmTransactionModal';
+import ConfirmTransactionModal from '../App/ConfirmTransaction/ConfirmTransactionModal';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 import BorrowBox from './Box/Box';

@@ -15,9 +15,9 @@ import {
 import { ChainId } from '@x-fuji/sdk';
 import React from 'react';
 
-import { chainName, chains, isSupported } from '../../helpers/chains';
-import { useAuth } from '../../store/auth.store';
-import { NetworkIcon } from './Icons';
+import { chainName, chains, isSupported } from '../../../helpers/chains';
+import { useAuth } from '../../../store/auth.store';
+import { NetworkIcon } from '../../Shared/Icons';
 
 function ChainSelect() {
   const theme = useTheme();

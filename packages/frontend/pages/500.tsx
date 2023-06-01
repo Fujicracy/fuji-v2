@@ -3,8 +3,8 @@ import Head from 'next/head';
 import Image from 'next/image';
 import React from 'react';
 
-import Footer from '../components/Shared/Footer';
-import Header from '../components/Shared/Header/Header';
+import Footer from '../components/App/Footer';
+import Header from '../components/App/Header/Header';
 
 const SomethingWentWrongPage = () => {
   return (

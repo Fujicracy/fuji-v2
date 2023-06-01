@@ -10,7 +10,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 
-import { setExploreInfoSkipped } from '../../helpers/auth';
+import { setExploreInfoSkipped } from '../../../helpers/auth';
 
 function ExploreCarousel({
   open,

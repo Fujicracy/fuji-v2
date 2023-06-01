@@ -7,10 +7,10 @@ import { useRouter } from 'next/router';
 import Script from 'next/script';
 import { useEffect, useRef } from 'react';
 
-import TransactionModal from '../components/Borrow/TransactionModal';
-import DisclaimerModal from '../components/Onboarding/DisclaimerModal';
-import Header from '../components/Shared/Header/Header';
-import Notification from '../components/Shared/Notification';
+import Header from '../components/App/Header/Header';
+import Notification from '../components/App/Notification';
+import DisclaimerModal from '../components/App/Onboarding/DisclaimerModal';
+import TransactionModal from '../components/Shared/TransactionModal';
 import { PATH } from '../constants';
 import {
   changeERC20PollingPolicy,
