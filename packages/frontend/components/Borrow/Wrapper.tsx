@@ -27,6 +27,7 @@ import { Position } from '../../store/models/Position';
 import { usePositions } from '../../store/positions.store';
 import Header from '../Shared/Header/Header';
 import Overview from './Overview/Overview';
+import VaultsSelect from './VaultsSelect';
 
 type BorrowWrapperProps = {
   formType: FormType;
@@ -182,14 +183,22 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
               timeout={{ enter: isEditing ? 0 : 700 }}
             >
               {basePosition ? (
-                <Grid item sm={12} md={7}>
+                <Grid
+                  item
+                  xs={12}
+                  sm={9.5}
+                  md={7}
+                  order={{ xs: 2, md: 1 }}
+                  sx={{}}
+                >
+                  {!isEditing && <VaultsSelect />}
                   <Overview isEditing={isEditing} basePosition={basePosition} />
                 </Grid>
               ) : (
                 <div />
               )}
             </Grow>
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} md={5} order={{ xs: 1, md: 2 }}>
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
           </Grid>

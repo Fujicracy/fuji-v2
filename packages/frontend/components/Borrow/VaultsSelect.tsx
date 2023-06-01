@@ -73,15 +73,17 @@ function VaultsSelect() {
   }, [availableRoutes, availableVaults]);
 
   return (
-    <Stack sx={{ mb: '2rem', width: '100%', maxWidth: '42rem' }}>
+    <Stack sx={{ mb: '2rem', width: '100%' }}>
       <Typography variant="body2">All Vaults</Typography>
       <Card
         sx={{
           flexDirection: 'column',
           alignItems: 'start',
-          p: `1.5rem 1.7rem ${
-            availableRoutes.length > 1 ? '0' : '1.5rem'
-          } 1.7rem`,
+          p: isMobile
+            ? '1rem 0.5rem'
+            : `1.5rem 1.7rem ${
+                availableRoutes.length > 1 ? '0' : '1.5rem'
+              } 1.7rem`,
           width: '100%',
           mt: '1rem',
           position: 'relative',
@@ -127,16 +129,20 @@ function VaultsSelect() {
                 >
                   <TableCell align="left">Protocols</TableCell>
                   <TableCell align="left">Safety Rating</TableCell>
-                  <TableCell align="left">Network</TableCell>
-                  <TableCell align="right">Supply APY</TableCell>
+                  {!isMobile && (
+                    <>
+                      <TableCell align="left">Network</TableCell>
+                      <TableCell align="right">Supply APY</TableCell>
+                    </>
+                  )}
                   <TableCell align="right">Borrow APR</TableCell>
-                  <TableCell align="right" />
+                  {!isMobile && <TableCell align="right" />}
                 </TableRow>
               </TableHead>
               <TableBody
                 sx={{
                   '& tr:nth-child(3)': {
-                    opacity: isUnFolded ? 1 : 0.2,
+                    opacity: isUnFolded ? 1 : 0.25,
                   },
                 }}
               >
@@ -151,6 +157,7 @@ function VaultsSelect() {
                           onChange={() => didSelectRoute(item.index)}
                           opened={item.index === openedRoute}
                           setOpened={() => handleOpen(item.index)}
+                          isMobile={isMobile}
                         />
                       )
                     );
@@ -175,6 +182,8 @@ function VaultsSelect() {
                 : {
                     position: 'absolute',
                     bottom: 0,
+                    left: 0,
+                    right: 0,
                     width: '100%',
                     height: '3rem',
                     zIndex: 5,

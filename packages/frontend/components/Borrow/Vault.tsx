@@ -27,9 +27,17 @@ type VaultProps = {
   onChange: () => void;
   setOpened: () => void;
   opened: boolean;
+  isMobile: boolean;
 };
 
-function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
+function Vault({
+  selected,
+  data,
+  onChange,
+  setOpened,
+  opened,
+  isMobile,
+}: VaultProps) {
   const { palette } = useTheme();
 
   const [isHovered, setHovered] = useState(false);
@@ -73,7 +81,7 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
             justifyContent="start"
             gap={1.3}
             sx={{
-              minWidth: '8.6rem',
+              minWidth: !isMobile ? '8.6rem' : 'auto',
             }}
           >
             <IntegratedProviders
@@ -94,42 +102,48 @@ function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
             rating={Number(data.vault?.safetyRating?.toString()) ?? 0}
           />
         </TableCell>
-        <TableCell align="left">
-          <Stack direction="row" alignItems="center" gap="0.5rem">
-            <NetworkIcon
-              network={chainName(data.vault.chainId)}
-              width={18}
-              height={18}
-            />
-            {chainName(data.vault.chainId)}
-          </Stack>
-        </TableCell>
+        {!isMobile && (
+          <>
+            <TableCell align="left">
+              <Stack direction="row" alignItems="center" gap="0.5rem">
+                <NetworkIcon
+                  network={chainName(data.vault.chainId)}
+                  width={18}
+                  height={18}
+                />
+                {chainName(data.vault.chainId)}
+              </Stack>
+            </TableCell>
+            <TableCell align="right">
+              <Typography variant="small" color={palette.warning.main}>
+                {data.activeProvider.depositAprBase?.toFixed(2)} %
+              </Typography>
+            </TableCell>
+          </>
+        )}
         <TableCell align="right">
           <Typography variant="small" color={palette.success.main}>
             {data.activeProvider.borrowAprBase?.toFixed(2)} %
           </Typography>
         </TableCell>
-        <TableCell align="right">
-          <Typography variant="small" color={palette.warning.main}>
-            {data.activeProvider.depositAprBase?.toFixed(2)} %
-          </Typography>
-        </TableCell>
-        <TableCell>
-          <Button
-            size="small"
-            fullWidth
-            variant="secondary"
-            sx={{ p: '0 0.5rem' }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpened();
-            }}
-          >
-            <Typography variant="small">
-              {opened ? 'Close' : 'See Route'}
-            </Typography>
-          </Button>
-        </TableCell>
+        {!isMobile && (
+          <TableCell>
+            <Button
+              size="small"
+              fullWidth
+              variant="secondary"
+              sx={{ p: '0 0.5rem' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpened();
+              }}
+            >
+              <Typography variant="small">
+                {opened ? 'Close' : 'See Route'}
+              </Typography>
+            </Button>
+          </TableCell>
+        )}
       </TableRow>
       <TableRow
         onMouseEnter={() => setHovered(true)}

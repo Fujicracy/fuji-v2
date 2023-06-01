@@ -5,7 +5,6 @@ import React from 'react';
 import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
-import VaultsSelect from '../VaultsSelect';
 import Container from './Container';
 import Details from './Details';
 import LTVProgressBar from './LTVProgressBar';
@@ -50,7 +49,6 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   if (debtInput === undefined) return <></>; // TODO: handle this case
   return (
     <Container isMobile={isMobile}>
-      {!isEditing && <VaultsSelect />}
       <Card
         sx={{
           flexDirection: 'column',
