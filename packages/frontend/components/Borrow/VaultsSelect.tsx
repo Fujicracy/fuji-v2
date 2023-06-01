@@ -22,13 +22,19 @@ function VaultsSelect() {
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
   const [selectedRoute, setSelectedRoute] = useState(0);
+  const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
   const availableVaults = useBorrow((state) => state.availableVaults);
   const changeActiveVault = useBorrow((state) => state.changeActiveVault);
   const aggregatedData = availableVaults.map((vault, i) => ({
     ...vault,
     route: availableRoutes[i],
+    index: i,
   }));
+
+  function handleOpen(i: number) {
+    setOpenedRoute(i === openedRoute ? null : i);
+  }
 
   function didSelectRoute(i: number) {
     if (selectedRoute !== i) {
@@ -96,10 +102,12 @@ function VaultsSelect() {
               <TableBody>
                 {aggregatedData.map((item, i) => (
                   <Vault
-                    key={i}
-                    selected={i === selectedRoute}
+                    key={item.index}
+                    selected={item.index === selectedRoute}
                     data={item}
-                    onChange={() => didSelectRoute(i)}
+                    onChange={() => didSelectRoute(item.index)}
+                    opened={item.index === openedRoute}
+                    setOpened={() => handleOpen(item.index)}
                   />
                 ))}
               </TableBody>

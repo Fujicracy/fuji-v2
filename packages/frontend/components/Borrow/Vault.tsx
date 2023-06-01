@@ -24,12 +24,13 @@ type VaultProps = {
   selected: boolean;
   data: VaultWithFinancials & { route: RouteMeta };
   onChange: () => void;
+  setOpened: () => void;
+  opened: boolean;
 };
 
-function Vault({ selected, data, onChange }: VaultProps) {
+function Vault({ selected, data, onChange, setOpened, opened }: VaultProps) {
   const { palette } = useTheme();
 
-  const [isUnfolded, setUnfolded] = useState(false);
   const [isHovered, setHovered] = useState(false);
 
   const borderStyle = `1px solid ${
@@ -45,9 +46,6 @@ function Vault({ selected, data, onChange }: VaultProps) {
           cursor: 'pointer',
           height: '3rem',
           borderRadius: '0.5rem',
-          // backgroundColor: selected
-          //   ? `${palette.secondary.dark}`
-          //   : 'transparent',
           '& .MuiTableCell-root': {
             background: selected
               ? `${palette.secondary.dark}`
@@ -116,16 +114,16 @@ function Vault({ selected, data, onChange }: VaultProps) {
             sx={{ p: '0 0.5rem' }}
             onClick={(e) => {
               e.stopPropagation();
-              setUnfolded(!isUnfolded);
+              setOpened();
             }}
           >
             <Typography variant="small">
-              {isUnfolded ? 'Close' : 'See Route'}
+              {opened ? 'Close' : 'See Route'}
             </Typography>
           </Button>
         </TableCell>
       </TableRow>
-      {isUnfolded && (
+      {opened && (
         <TableRow
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
