@@ -30,27 +30,30 @@ function Vault({ selected, data, onChange }: VaultProps) {
   const { palette } = useTheme();
 
   const [isUnfolded, setUnfolded] = useState(false);
+  const [isHovered, setHovered] = useState(false);
 
   const borderStyle = `1px solid ${
     selected ? alpha(palette.secondary.light, 0.5) : 'transparent'
   } !important`;
 
-  console.log(data);
-
   return (
     <>
       <TableRow
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
         sx={{
           cursor: 'pointer',
           height: '3rem',
           borderRadius: '0.5rem',
-          backgroundColor: selected
-            ? `${palette.secondary.dark}`
-            : 'transparent',
-          '&:hover': {
-            '& .MuiTableCell-root': { background: '#34363E' },
-          },
+          // backgroundColor: selected
+          //   ? `${palette.secondary.dark}`
+          //   : 'transparent',
           '& .MuiTableCell-root': {
+            background: selected
+              ? `${palette.secondary.dark}`
+              : isHovered
+              ? '#34363E'
+              : 'transparent',
             borderTop: borderStyle,
             '&:first-of-type': {
               borderTopLeftRadius: '0.5rem !important',
@@ -124,10 +127,18 @@ function Vault({ selected, data, onChange }: VaultProps) {
       </TableRow>
       {isUnfolded && (
         <TableRow
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
           sx={{
             display: 'table-row',
             overflowY: 'hidden',
+            cursor: 'pointer',
             '& .MuiTableCell-root': {
+              background: selected
+                ? `${palette.secondary.dark}`
+                : isHovered
+                ? '#34363E'
+                : 'transparent',
               borderBottom: borderStyle,
               '&:first-of-type': {
                 borderBottomLeftRadius: '0.5rem !important',
