@@ -17,7 +17,6 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -106,13 +105,6 @@ const Header = () => {
     setAccountModalEl(element);
   };
 
-  const handleLogin = () => {
-    const options: ConnectOptions | undefined = (window as any).Cypress && {
-      autoSelect: { label: 'MetaMask', disableModals: true },
-    };
-    login(options);
-  };
-
   return (
     <AppBar position="static">
       <Stack
@@ -186,7 +178,7 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={handleLogin}
+                      onClick={() => login()}
                     />
                   </>
                 )}
@@ -323,7 +315,7 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={handleLogin}
+                  onClick={() => login()}
                 />
               </>
             )}

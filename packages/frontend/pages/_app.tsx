@@ -9,6 +9,7 @@ import { useEffect, useRef } from 'react';
 
 import TransactionModal from '../components/Borrow/TransactionModal';
 import DisclaimerModal from '../components/Onboarding/DisclaimerModal';
+import ExploreCarousel from '../components/Onboarding/ExploreCarousel';
 import Notification from '../components/Shared/Notification';
 import { PATH } from '../constants';
 import {
@@ -131,6 +132,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             />
           )}
           <DisclaimerModal />
+          <ExploreCarousel />
           <Notification />
         </ThemeProvider>
       </Web3OnboardProvider>
