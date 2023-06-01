@@ -31,7 +31,7 @@ const chartOptions: TabOption[] = [
 
 type AprData = AprResult[] | undefined;
 
-function AnalyticsTab() {
+function Analytics() {
   const { palette } = useTheme();
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
@@ -227,4 +227,4 @@ function AnalyticsTab() {
   ) : null;
 }
 
-export default AnalyticsTab;
+export default Analytics;

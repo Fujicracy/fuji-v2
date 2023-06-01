@@ -12,8 +12,6 @@ import {
 } from '@mui/material';
 import React from 'react';
 
-import AnalyticsTab from './AnalyticsTab';
-
 type ContainerProps = {
   children: React.ReactNode;
   isMobile: boolean;
@@ -144,7 +142,7 @@ function Container({ children, isMobile }: ContainerProps) {
         </CardContent>
       </Card>
 
-      <AnalyticsTab />
+      {/* <Analytics /> */}
     </Grid>
   );
 }
