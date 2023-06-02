@@ -76,6 +76,11 @@ function BorrowHeader({
             alignItems="center"
             height="40px"
           >
+            {isCrossChainOperation && (
+              <Box sx={{ mr: '1rem' }}>
+                <SlippageSettings />
+              </Box>
+            )}
             <TooltipWrapper
               defaultOpen
               placement="top"
@@ -93,11 +98,6 @@ function BorrowHeader({
             >
               <NetworkIcon network={chainName} height={18} width={18} />
             </TooltipWrapper>
-            {isCrossChainOperation && (
-              <Box sx={{ ml: '1rem' }}>
-                <SlippageSettings />
-              </Box>
-            )}
           </Stack>
         </Stack>
       ) : (
@@ -116,12 +116,12 @@ function BorrowHeader({
             alignItems="center"
             height="40px"
           >
-            <NetworkIcon network={chainName} height={18} width={18} />
             {isCrossChainOperation && (
-              <Box sx={{ ml: '1rem' }}>
+              <Box sx={{ mr: '1rem' }}>
                 <SlippageSettings />
               </Box>
             )}
+            <NetworkIcon network={chainName} height={18} width={18} />
           </Stack>
         </Stack>
       )}
