@@ -87,7 +87,13 @@ function VaultSelect() {
   }, [collateral.chainId, debt?.chainId]);
 
   return (
-    <Stack sx={{ mb: '2rem', width: '100%' }}>
+    <Stack
+      sx={
+        isMobile
+          ? { width: 'calc(100% - 1rem)', m: '0 0.5rem 2rem 0.5rem' }
+          : { width: '100%', mb: '2rem' }
+      }
+    >
       <Typography variant="body2">All Vaults</Typography>
       <Card
         sx={{
@@ -131,13 +137,22 @@ function VaultSelect() {
                 borderBottomRightRadius: '0.5rem',
               },
               'tr:first-of-type td': { borderTopStyle: 'solid' },
-              'tr td:first-of-type': { borderLeftStyle: 'solid' },
+              'tr td:first-of-type': {
+                borderLeftStyle: 'solid',
+                width: 'fit-content',
+              },
+              'tr td:not(:first-of-type)': {
+                width: '70px',
+              },
             }}
           >
             <Table
               aria-label="Vault select"
               size="small"
-              sx={{ borderCollapse: 'separate' }}
+              sx={{
+                borderCollapse: 'separate',
+                tableLayout: !isMobile ? 'auto' : 'fixed',
+              }}
             >
               <TableHead>
                 <TableRow
@@ -146,21 +161,27 @@ function VaultSelect() {
                     '& .MuiTableCell-root': { color: '#787883' },
                   }}
                 >
-                  <TableCell align="left">Protocols</TableCell>
-                  <TableCell align="left">Safety Rating</TableCell>
+                  <TableCell align="left" width="45%">
+                    Protocols
+                  </TableCell>
+                  <TableCell align="left" width="20%">
+                    Safety Rating
+                  </TableCell>
                   {!isMobile && (
                     <>
                       <TableCell align="left">Network</TableCell>
                       <TableCell align="right">Supply APY</TableCell>
                     </>
                   )}
-                  <TableCell align="right">Borrow APR</TableCell>
+                  <TableCell align="right" width="35%">
+                    Borrow APR
+                  </TableCell>
                   {!isMobile && <TableCell align="right" />}
                 </TableRow>
               </TableHead>
               <TableBody
                 sx={{
-                  '& tr:nth-child(3)': {
+                  '& tr:nth-of-type(3)': {
                     opacity: isUnFolded ? 1 : 0.25,
                   },
                 }}

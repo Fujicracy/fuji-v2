@@ -29,7 +29,6 @@ export function renderIcon(
   defaultImage?: string
 ) {
   const { ...rest } = props;
-
   return (
     <>
       {props.sx ? (
