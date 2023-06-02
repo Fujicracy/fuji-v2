@@ -25,7 +25,7 @@ import BorrowButton from './Button';
 import ConfirmTransactionModal from './ConfirmTransaction/ConfirmTransactionModal';
 import ConnextFooter from './ConnextFooter';
 import Fees from './Fees';
-import BorrowHeader from './Header';
+import BorrowHeader from './Header/Header';
 
 type BorrowProps = {
   isEditing: boolean;

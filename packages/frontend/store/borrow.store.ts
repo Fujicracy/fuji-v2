@@ -330,7 +330,6 @@ export const useBorrow = create<BorrowStore>()(
                 else if (state.formType === FormType.Create)
                   t.currency = currencies[0];
               }
-              console.log(t);
             })
           );
           get().updateCurrencyPrice(type);

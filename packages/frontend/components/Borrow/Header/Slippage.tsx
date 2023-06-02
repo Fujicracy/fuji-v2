@@ -14,8 +14,8 @@ import { DEFAULT_SLIPPAGE } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useBorrow } from '../../store/borrow.store';
-import { colorTheme } from '../../styles/theme';
+import { useBorrow } from '../../../store/borrow.store';
+import { colorTheme } from '../../../styles/theme';
 
 const slippageDefaultOptions: {
   value: number;
@@ -26,7 +26,7 @@ const slippageDefaultOptions: {
   { value: 30, label: '0.3%' },
 ];
 
-function SlippageSettings() {
+function Slippage() {
   const { palette } = useTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [slippageInput, setSlippageInput] = useState<string>('');
@@ -232,4 +232,4 @@ function SlippageSettings() {
   );
 }
 
-export default SlippageSettings;
+export default Slippage;
