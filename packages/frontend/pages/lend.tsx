@@ -2,7 +2,7 @@ import { Box, Container, Divider } from '@mui/material';
 import { NextPage } from 'next';
 import Head from 'next/head';
 
-import Footer from '../components/Shared/Footer';
+import Footer from '../components/App/Footer';
 import Lending from '../components/Shared/Lending';
 
 const LendingPage: NextPage = () => {

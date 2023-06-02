@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Card, CardContent } from '@mui/material';
 import { debounce } from 'debounce';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -18,11 +18,11 @@ import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
-import ConfirmTransactionModal from '../Shared/ConfirmTransactionModal';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 import BorrowBox from './Box/Box';
 import BorrowButton from './Button';
+import ConfirmTransactionModal from './ConfirmTransaction/ConfirmTransactionModal';
 import ConnextFooter from './ConnextFooter';
 import Fees from './Fees';
 import BorrowHeader from './Header';
@@ -33,8 +33,6 @@ type BorrowProps = {
 };
 function Borrow({ isEditing, basePosition }: BorrowProps) {
   const router = useRouter();
-  const theme = useTheme();
-  const onMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const address = useAuth((state) => state.address);
   const walletChainId = useAuth((state) => state.chainId);
@@ -290,7 +288,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             mode={mode}
             isEditing={isEditing}
             hasBalanceInVault={hasBalanceInVault}
-            onLoginClick={() => login()}
+            onLoginClick={login}
             onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={(type) => allow(type)}
             onRedirectClick={(borrow) => {

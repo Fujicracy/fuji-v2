@@ -188,13 +188,12 @@ function CurrencyCard({
   };
 
   const handleCurrencyChange = (currency: Currency) => {
-    if (!debt) return;
+    const currentCurrency =
+      type === AssetType.Collateral ? collateral.currency : debt?.currency;
     const updateVault =
+      currentCurrency !== undefined &&
       !isEditing &&
-      !isNativeAndWrappedPair(
-        currency,
-        type === AssetType.Collateral ? collateral.currency : debt.currency
-      );
+      !isNativeAndWrappedPair(currency, currentCurrency);
     onCurrencyChange(currency, updateVault);
     close();
   };

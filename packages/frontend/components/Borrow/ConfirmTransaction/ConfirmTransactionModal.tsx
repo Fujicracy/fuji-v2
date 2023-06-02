@@ -10,18 +10,18 @@ import {
   ltvMeta,
   recommendedLTV,
   remainingBorrowLimit,
-} from '../../helpers/assets';
-import { BasePosition } from '../../helpers/positions';
-import { isCrossChainTransaction } from '../../helpers/routing';
+} from '../../../helpers/assets';
+import { BasePosition } from '../../../helpers/positions';
+import { isCrossChainTransaction } from '../../../helpers/routing';
 import {
   stringifiedBridgeFeeSum,
   TransactionMeta,
-} from '../../helpers/transactions';
-import { formatValue } from '../../helpers/values';
-import { useBorrow } from '../../store/borrow.store';
-import InfoRow from './ConfirmationTransaction/InfoRow';
-import RouteBox from './ConfirmationTransaction/RouteBox';
-import WarningInfo from './WarningInfo';
+} from '../../../helpers/transactions';
+import { formatValue } from '../../../helpers/values';
+import { useBorrow } from '../../../store/borrow.store';
+import WarningInfo from '../../Shared/WarningInfo';
+import InfoRow from './InfoRow';
+import RouteBox from './RouteBox';
 
 type ConfirmTransactionModalProps = {
   basePosition: BasePosition | undefined;

@@ -14,7 +14,6 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
 import Borrow from '../../components/Borrow/Borrow';
-import Footer from '../../components/Shared/Footer';
 import { PATH } from '../../constants';
 import {
   BasePosition,
@@ -25,8 +24,9 @@ import { useAuth } from '../../store/auth.store';
 import { FormType, useBorrow } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 import { usePositions } from '../../store/positions.store';
+import Footer from '../App/Footer';
 import Overview from './Overview/Overview';
-import VaultsSelect from './VaultsSelect';
+import VaultSelect from './VaultSelect/VaultSelect';
 
 type BorrowWrapperProps = {
   formType: FormType;
@@ -35,6 +35,8 @@ type BorrowWrapperProps = {
     chain: string;
   };
 };
+
+const ANIMATION_DURATION = 1000;
 
 function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const { palette } = useTheme();
@@ -131,6 +133,11 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           pl: { xs: '0.25rem', sm: '1rem' },
           pr: { xs: '0.25rem', sm: '1rem' },
           minHeight: '75vh',
+          '@media (min-width: 1200px)': {
+            '&.MuiContainer-root': {
+              maxWidth: '1300px !important',
+            },
+          },
         }}
       >
         {isEditing && !loading && (
@@ -177,7 +184,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           >
             <Grow
               in={Boolean(basePosition)}
-              timeout={{ enter: isEditing ? 0 : 700 }}
+              timeout={{ enter: isEditing ? 0 : ANIMATION_DURATION }}
             >
               {basePosition ? (
                 <Grid
@@ -188,7 +195,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
                   order={{ xs: 2, md: 1 }}
                   sx={{}}
                 >
-                  {!isEditing && <VaultsSelect />}
+                  {!isEditing && <VaultSelect />}
                   <Overview isEditing={isEditing} basePosition={basePosition} />
                 </Grid>
               ) : (

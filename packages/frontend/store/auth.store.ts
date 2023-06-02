@@ -5,7 +5,7 @@ import { ethers, utils } from 'ethers';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { web3onboard } from '../helpers/auth';
+import { getOnboardStatus, web3onboard } from '../helpers/auth';
 import { chainIdToHex, hexToChainId } from '../helpers/chains';
 import { storeOptions } from '../helpers/stores';
 
@@ -19,6 +19,7 @@ export enum AuthStatus {
 
 type AuthState = {
   status: AuthStatus;
+  isDisclaimerShown: boolean;
   started: boolean;
   address?: string;
   ens?: string;
@@ -42,6 +43,7 @@ type AuthStore = AuthState & AuthActions;
 const initialState: AuthState = {
   status: AuthStatus.Initial,
   started: false,
+  isDisclaimerShown: false,
 };
 
 export const useAuth = create<AuthStore>()(
@@ -60,6 +62,12 @@ export const useAuth = create<AuthStore>()(
           return;
         }
         const wallets = JSON.parse(previouslyConnectedWallets);
+
+        if (!get().isDisclaimerShown && !getOnboardStatus().hasAcceptedTerms) {
+          set({ status: AuthStatus.Disconnected });
+          return;
+        }
+
         get().login({
           autoSelect: { label: wallets[0], disableModals: true },
         });
@@ -86,6 +94,13 @@ export const useAuth = create<AuthStore>()(
       },
 
       login: async (options) => {
+        if (!get().isDisclaimerShown && !getOnboardStatus().hasAcceptedTerms) {
+          set({ isDisclaimerShown: true });
+          set({ status: AuthStatus.Disconnected });
+
+          return;
+        }
+
         const wallets = await onboard.connectWallet(options);
 
         if (!wallets[0] || !wallets[0].accounts[0]) {

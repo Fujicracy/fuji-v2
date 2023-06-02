@@ -9,10 +9,11 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { ConnectOptions } from '@web3-onboard/core';
 import { ChangeEvent, useEffect, useState } from 'react';
 
-import { acceptTermsOfUse, getOnboardStatus } from '../../helpers/auth';
-import ExploreCarousel from './ExploreCarousel';
+import { acceptTermsOfUse, getOnboardStatus } from '../../../helpers/auth';
+import { useAuth } from '../../../store/auth.store';
 
 type AgreementBox = { checked: boolean; text: string };
 
@@ -39,8 +40,9 @@ export function DisclaimerModal() {
     useState<boolean>(true);
   const [agreementsBoxes, setAgreementsBoxes] =
     useState<AgreementBox[]>(agreements);
-  const [isExploreModalShown, setIsExploreModalShown] =
-    useState<boolean>(false);
+
+  const login = useAuth((state) => state.login);
+  const isDisclaimerShown = useAuth((state) => state.isDisclaimerShown);
 
   useEffect(() => {
     const hasPreviouslyAcceptedTerms = getOnboardStatus().hasAcceptedTerms;
@@ -51,12 +53,12 @@ export function DisclaimerModal() {
 
   const onAcceptClick = () => {
     acceptTermsOfUse();
-    setIsExploreModalShown(true);
-  };
-
-  const finishOnboarding = () => {
     setHasPreviouslyAcceptedTerms(true);
-    setIsExploreModalShown(false);
+    const options: ConnectOptions | undefined = window &&
+      (window as any).Cypress && {
+        autoSelect: { label: 'MetaMask', disableModals: true },
+      };
+    login(options);
   };
 
   const onOtherAgreementChange = (index: number, value: boolean) => {
@@ -71,8 +73,11 @@ export function DisclaimerModal() {
     hasAcceptedTerms &&
     agreementsBoxes.every((item: AgreementBox) => item.checked);
 
-  return !isExploreModalShown ? (
-    <Dialog data-cy="disclaimer-modal" open={!hasPreviouslyAcceptedTerms}>
+  return (
+    <Dialog
+      data-cy="disclaimer-modal"
+      open={!hasPreviouslyAcceptedTerms && isDisclaimerShown}
+    >
       <Paper
         variant="outlined"
         sx={{
@@ -167,8 +172,6 @@ export function DisclaimerModal() {
         </Button>
       </Paper>
     </Dialog>
-  ) : (
-    <ExploreCarousel open={isExploreModalShown} onClose={finishOnboarding} />
   );
 }
 

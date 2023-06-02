@@ -2,8 +2,8 @@ import { Button, Container, Link, Stack, Typography } from '@mui/material';
 import Head from 'next/head';
 import React from 'react';
 
-import Footer from '../components/Shared/Footer';
-import Header from '../components/Shared/Header/Header';
+import Footer from '../components/App/Footer';
+import Header from '../components/App/Header/Header';
 import NotFoundIcon from '../components/Shared/Icons/NotFoundIcon';
 
 const NotFoundPage = () => {

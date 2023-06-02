@@ -17,7 +17,6 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -29,14 +28,14 @@ import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { AuthStatus, useAuth } from '../../../store/auth.store';
 import styles from '../../../styles/components/Header.module.css';
-import AccountModal from '../AccountModal/AccountModal';
-import ChainSelect from '../ChainSelect';
-import { BurgerMenuIcon } from '../Icons';
-import ParameterLinks from '../ParameterLinks';
-import Parameters from '../Parameters';
+import { BurgerMenuIcon } from '../../Shared/Icons';
+import AccountModal from './AccountModal/AccountModal';
 import AddressAddon from './AddressAddon';
 import BalanceAddon from './BalanceAddon';
 import Banner, { BannerConfig } from './Banner';
+import ChainSelect from './ChainSelect';
+import SocialMenu from './SocialMenu';
+import SocialMenuWrapper from './SocialMenuWrapper';
 
 export const BANNERS: BannerConfig[] = [
   {
@@ -101,13 +100,6 @@ const Header = () => {
   const handleOpenAccountModal = (show: boolean, element?: HTMLElement) => {
     setShowAccountModal(show);
     setAccountModalEl(element);
-  };
-
-  const handleLogin = () => {
-    const options: ConnectOptions | undefined = (window as any).Cypress && {
-      autoSelect: { label: 'MetaMask', disableModals: true },
-    };
-    login(options);
   };
 
   return (
@@ -183,7 +175,7 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={handleLogin}
+                      onClick={() => login()}
                     />
                   </>
                 )}
@@ -259,7 +251,7 @@ const Header = () => {
                       </MenuItem>
                     )}
                     <Divider />
-                    <ParameterLinks />
+                    <SocialMenu />
                   </MenuList>
                 </Menu>
               </Box>
@@ -320,7 +312,7 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={handleLogin}
+                  onClick={() => login()}
                 />
               </>
             )}
@@ -338,7 +330,7 @@ const Header = () => {
                   />
                 </Grid>
                 <Grid item>
-                  <Parameters />
+                  <SocialMenuWrapper />
                 </Grid>
               </>
             )}
