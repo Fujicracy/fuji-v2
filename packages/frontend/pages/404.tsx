@@ -2,8 +2,6 @@ import { Button, Container, Link, Stack, Typography } from '@mui/material';
 import Head from 'next/head';
 import React from 'react';
 
-import Footer from '../components/App/Footer';
-import Header from '../components/App/Header/Header';
 import NotFoundIcon from '../components/Shared/Icons/NotFoundIcon';
 
 const NotFoundPage = () => {
@@ -14,8 +12,6 @@ const NotFoundPage = () => {
         <meta name="description" content="Page not found" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Header />
 
       <Container
         sx={{
@@ -55,8 +51,6 @@ const NotFoundPage = () => {
           </Link>
         </Stack>
       </Container>
-
-      <Footer />
     </>
   );
 };
