@@ -11,7 +11,7 @@ type ChainSelectProps = {
   type: AssetType;
   disabled: boolean;
   onChange: (chainId: ChainId) => void;
-  value?: ChainId | '';
+  value?: ChainId | undefined;
 };
 const ChainSelect = ({
   value,

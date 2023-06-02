@@ -2,7 +2,7 @@ import { Stack } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 
 import { TabOption } from '../../../constants';
-import TabChip from './TabChip';
+import Chip from './Chip';
 
 type TabSwitchProps = {
   options: TabOption[];
@@ -39,7 +39,7 @@ function TabSwitch({
       }}
     >
       {options.map((p) => (
-        <TabChip
+        <Chip
           key={`${p.label}`}
           selected={selected === p.value}
           label={p.label}

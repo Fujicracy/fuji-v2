@@ -9,7 +9,7 @@ type TabChipProps = {
   size: 'large' | 'default';
 };
 
-function TabChip({ selected, label, onClick, size }: TabChipProps) {
+function Chip({ selected, label, onClick, size }: TabChipProps) {
   const { palette } = useTheme();
 
   return (
@@ -47,8 +47,8 @@ function TabChip({ selected, label, onClick, size }: TabChipProps) {
   );
 }
 
-export default TabChip;
+export default Chip;
 
-TabChip.defaultProps = {
+Chip.defaultProps = {
   sx: undefined,
 };
