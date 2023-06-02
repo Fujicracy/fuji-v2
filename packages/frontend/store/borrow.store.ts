@@ -97,7 +97,7 @@ type BorrowState = {
 
   isExecuting: boolean;
 
-  allowChainOverride: boolean;
+  shouldResetPage: boolean;
 };
 
 type BorrowActions = {
@@ -147,7 +147,7 @@ type BorrowActions = {
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
 
-  changeChainOverride: (allow: boolean) => void;
+  changeShouldPageReset: (reset: boolean) => void;
 };
 
 type BorrowStore = BorrowState & BorrowActions;
@@ -193,7 +193,7 @@ const initialState: BorrowState = {
   isSigning: false,
   isExecuting: false,
 
-  allowChainOverride: true,
+  shouldResetPage: true,
 };
 
 export const useBorrow = create<BorrowStore>()(
@@ -943,8 +943,8 @@ export const useBorrow = create<BorrowStore>()(
           }
         },
 
-        changeChainOverride(allowChainOverride) {
-          set({ allowChainOverride });
+        changeShouldPageReset(shouldResetPage) {
+          set({ shouldResetPage });
         },
       }),
       storeOptions('borrow')

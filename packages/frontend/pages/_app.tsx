@@ -40,7 +40,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const watchAll = useHistory((state) => state.watchAll);
   const closeModal = useHistory((state) => state.closeModal);
 
-  const changeChainOverride = useBorrow((state) => state.changeChainOverride);
+  const changeShouldPageReset = useBorrow(
+    (state) => state.changeShouldPageReset
+  );
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
@@ -101,7 +103,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       updatePollingPolicy(url);
       if (url !== PATH.BORROW) {
         setTimeout(() => {
-          changeChainOverride(true);
+          changeShouldPageReset(true);
         }, 100);
       }
     };

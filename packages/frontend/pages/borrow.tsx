@@ -10,7 +10,7 @@ const formType = FormType.Create;
 
 const BorrowPage: NextPage = () => {
   const chainId = useAuth((state) => state.chainId);
-  const allowChainOverride = useBorrow((state) => state.allowChainOverride);
+  const shouldResetPage = useBorrow((state) => state.shouldResetPage);
 
   const changeFormType = useBorrow((state) => state.changeFormType);
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
@@ -19,7 +19,7 @@ const BorrowPage: NextPage = () => {
 
   const [hasChain, setHasChain] = useState(false);
 
-  if (allowChainOverride) {
+  if (shouldResetPage) {
     clearDebt();
     changeInputValues('', '');
   }
@@ -31,10 +31,10 @@ const BorrowPage: NextPage = () => {
   useEffect(() => {
     if (chainId && !hasChain) {
       setHasChain(true);
-      if (!allowChainOverride || !chainId) return;
+      if (!shouldResetPage || !chainId) return;
       changeAssetChain(AssetType.Collateral, chainId, false);
     }
-  }, [allowChainOverride, hasChain, chainId, changeAssetChain]);
+  }, [shouldResetPage, hasChain, chainId, changeAssetChain]);
 
   return <BorrowWrapper formType={formType} />;
 };

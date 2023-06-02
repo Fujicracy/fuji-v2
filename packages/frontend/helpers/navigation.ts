@@ -66,7 +66,7 @@ export const showPosition = async (
 export const showBorrow = async (router: NextRouter, override = true) => {
   const borrowStore = useBorrow.getState();
   // I'm not exactly thrilled about this solution, but it works for now
-  borrowStore.changeChainOverride(override);
+  borrowStore.changeShouldPageReset(override);
   if (override) {
     borrowStore.changeInputValues('', '');
     borrowStore.clearDebt();
