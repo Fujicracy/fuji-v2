@@ -1,11 +1,65 @@
 {
+  "WBTC": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
   "WETH": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
-  "WETH-price-feed": "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612",
   "USDC": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-  "USDC-price-feed": "0x50834f3163758fcc1df9973b6e91f0f0f0434ad3",
   "DAI": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
-  "DAI-price-feed": "0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb",
   "USDT": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
-  "USDT-price-feed": "0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7"
+  "price-feeds": [
+    {
+      "asset": "WBTC",
+      "chainlink": "0x6ce185860a4963106506c203335a2910413708e9"
+    },
+    {
+      "asset": "WETH",
+      "chainlink": "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612"
+    },
+    {
+      "asset": "USDC",
+      "chainlink": "0x50834f3163758fcc1df9973b6e91f0f0f0434ad3"
+    },
+    {
+      "asset": "DAI",
+      "chainlink": "0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb"
+    },
+    {
+      "asset": "USDT",
+      "chainlink": "0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7"
+    }
+  ],
+  "simple-mappings": [
+    {
+      "asset": "WBTC",
+      "market": "0xD3204E4189BEcD9cD957046A8e4A643437eE0aCC",
+      "name": "DForce_Arbitrum"
+    },
+    {
+      "asset": "WETH",
+      "market": "0xEe338313f022caee84034253174FA562495dcC15",
+      "name": "DForce_Arbitrum"
+    },
+    {
+      "asset": "USDC",
+      "market": "0x8dc3312c68125a94916d62B97bb5D925f84d4aE0",
+      "name": "DForce_Arbitrum"
+    },
+    {
+      "asset": "DAI",
+      "market": "0xf6995955e4B0E5b287693c221f456951D612b628",
+      "name": "DForce_Arbitrum"
+    }
+  ],
+  "nested-mappings": [
+    {
+      "asset1": "WBTC",
+      "asset2": "USDC",
+      "market": "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+      "name": "Compound_V3_Arbitrum"
+    },
+    {
+      "asset1": "WETH",
+      "asset2": "USDC",
+      "market": "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+      "name": "Compound_V3_Arbitrum"
+    }
+  ]
 }
-

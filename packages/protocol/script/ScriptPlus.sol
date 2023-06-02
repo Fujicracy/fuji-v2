@@ -9,11 +9,31 @@ import {TimelockController} from
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFactory.sol";
+import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 
 contract ScriptPlus is Script {
+  struct PriceFeed {
+    string asset;
+    address chainlink;
+  }
+
+  struct NestedMapping {
+    string asset1;
+    string asset2;
+    address market;
+    string name;
+  }
+
+  struct SimpleMapping {
+    string asset;
+    address market;
+    string name;
+  }
+
+  AddrMapper mapper;
   Chief chief;
   TimelockController timelock;
   BorrowingVaultFactory factory;
@@ -30,6 +50,18 @@ contract ScriptPlus is Script {
   address deployer;
   string configJson;
   string chainName;
+
+  address[] timelockTargets;
+  bytes[] timelockDatas;
+  uint256[] timelockValues;
+  string[] chainNames;
+
+  constructor() {
+    chainNames.push("polygon");
+    chainNames.push("optimism");
+    chainNames.push("arbitrum");
+    chainNames.push("gnosis");
+  }
 
   function setUpOn(string memory chain) internal {
     chainName = chain;
@@ -64,19 +96,37 @@ contract ScriptPlus is Script {
     }
   }
 
-  function setOrDeployFujiOracle(bool deploy, string[] memory assets) internal {
+  function setOrDeployFujiOracle(bool deploy) internal {
+    bytes memory raw = vm.parseJson(configJson, ".price-feeds");
+    PriceFeed[] memory list = abi.decode(raw, (PriceFeed[]));
+
+    uint256 len = list.length;
+
     if (deploy) {
-      uint256 len = assets.length;
       address[] memory addrs = new address[](len);
       address[] memory feeds = new address[](len);
       for (uint256 i; i < len; i++) {
-        addrs[i] = readAddrFromConfig(assets[i]);
-        feeds[i] = readAddrFromConfig(string.concat(assets[i], "-price-feed"));
+        addrs[i] = readAddrFromConfig(list[i].asset);
+        feeds[i] = list[i].chainlink;
       }
       oracle = new FujiOracle(addrs, feeds, address(chief));
       saveAddress("FujiOracle", address(oracle));
     } else {
       oracle = FujiOracle(getAddress("FujiOracle"));
+      address asset;
+      address feed;
+      // set new feeds
+      for (uint256 i; i < len; i++) {
+        asset = readAddrFromConfig(list[i].asset);
+        feed = list[i].chainlink;
+        if (oracle.usdPriceFeeds(asset) != feed) {
+          console.log(string.concat("Setting price feed for: ", list[i].asset));
+          timelockTargets.push(address(oracle));
+          timelockDatas.push(abi.encodeWithSelector(oracle.setPriceFeed.selector, asset, feed));
+          timelockValues.push(0);
+        }
+      }
+      callBatchWithTimelock();
     }
   }
 
@@ -87,14 +137,137 @@ contract ScriptPlus is Script {
     } else {
       factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
     }
+
+    bytes memory data1 = abi.encodeWithSelector(
+      factory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")
+    );
+    bytes memory data2 =
+      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true);
+
+    callWithTimelock(address(factory), data1);
+    callWithTimelock(address(chief), data2);
   }
 
-  function scheduleWithTimelock(address target, bytes memory callData) internal {
-    timelock.schedule(target, 0, callData, 0x00, 0x00, 1 seconds);
+  function setOrDeployAddrMapper(bool deploy) internal {
+    if (deploy) {
+      mapper = new AddrMapper(address(chief));
+      saveAddress("AddrMapper", address(mapper));
+    } else {
+      mapper = AddrMapper(getAddress("AddrMapper"));
+    }
+    setSimpleMappings();
+    setNestedMappings();
+
+    callBatchWithTimelock();
   }
 
-  function executeWithTimelock(address target, bytes memory callData) internal {
-    timelock.execute(target, 0, callData, 0x00, 0x00);
+  function setSimpleMappings() internal {
+    bytes memory raw = vm.parseJson(configJson, ".simple-mappings");
+    SimpleMapping[] memory simple = abi.decode(raw, (SimpleMapping[]));
+
+    uint256 len = simple.length;
+    address asset;
+    address market;
+    string memory name;
+    bytes memory data;
+    for (uint256 i; i < len; i++) {
+      asset = readAddrFromConfig(simple[i].asset);
+      market = simple[i].market;
+      name = simple[i].name;
+
+      if (mapper.getAddressMapping(name, asset) != market) {
+        data = abi.encodeWithSelector(mapper.setMapping.selector, name, asset, market);
+        timelockTargets.push(address(mapper));
+        timelockDatas.push(data);
+        timelockValues.push(0);
+      }
+    }
+  }
+
+  function setNestedMappings() internal {
+    bytes memory raw = vm.parseJson(configJson, ".nested-mappings");
+    NestedMapping[] memory nested = abi.decode(raw, (NestedMapping[]));
+
+    uint256 len = nested.length;
+    address asset1;
+    address asset2;
+    address market;
+    string memory name;
+    bytes memory data;
+    for (uint256 i; i < len; i++) {
+      asset1 = readAddrFromConfig(nested[i].asset1);
+      asset2 = readAddrFromConfig(nested[i].asset2);
+      market = nested[i].market;
+      name = nested[i].name;
+
+      if (mapper.getAddressNestedMapping(name, asset1, asset2) != market) {
+        data =
+          abi.encodeWithSelector(mapper.setNestedMapping.selector, name, asset1, asset2, market);
+        timelockTargets.push(address(mapper));
+        timelockDatas.push(data);
+        timelockValues.push(0);
+      }
+    }
+  }
+
+  function setRouters() internal {
+    uint256 len = chainNames.length;
+
+    address current = address(connextRouter);
+
+    uint32 domain;
+    address router;
+    for (uint256 i; i < len; i++) {
+      domain = getDomainByChainName(chainNames[i]);
+      router = getAddressAt("ConnextRouter", chainNames[i]);
+      if (connextRouter.routerByDomain(domain) != router && current != router) {
+        timelockTargets.push(current);
+        timelockDatas.push(abi.encodeWithSelector(connextRouter.setRouter.selector, domain, router));
+        timelockValues.push(0);
+      }
+    }
+
+    callBatchWithTimelock();
+  }
+
+  function callWithTimelock(address target, bytes memory callData) internal {
+    bytes32 hash = timelock.hashOperation(target, 0, callData, 0x00, 0x00);
+
+    if (timelock.isOperationReady(hash) && timelock.isOperationPending(hash)) {
+      console.log("Execute:");
+      timelock.execute(target, 0, callData, 0x00, 0x00);
+    } else if (!timelock.isOperation(hash) && !timelock.isOperationDone(hash)) {
+      console.log("Schedule:");
+      timelock.schedule(target, 0, callData, 0x00, 0x00, 1 seconds);
+    } else {
+      console.log("Already scheduled and executed:");
+    }
+    console.logBytes32(hash);
+    console.log("============");
+  }
+
+  function callBatchWithTimelock() internal {
+    if (timelockTargets.length == 0) return;
+
+    bytes32 hash =
+      timelock.hashOperationBatch(timelockTargets, timelockValues, timelockDatas, 0x00, 0x00);
+
+    if (timelock.isOperationReady(hash) && timelock.isOperationPending(hash)) {
+      console.log("Execute:");
+      timelock.executeBatch(timelockTargets, timelockValues, timelockDatas, 0x00, 0x00);
+    } else if (!timelock.isOperation(hash) && !timelock.isOperationDone(hash)) {
+      console.log("Schedule:");
+      timelock.scheduleBatch(timelockTargets, timelockValues, timelockDatas, 0x00, 0x00, 1 seconds);
+    } else {
+      console.log("Already scheduled and executed:");
+    }
+    console.logBytes32(hash);
+    console.log("============");
+
+    // clear storage
+    delete timelockTargets;
+    delete timelockDatas;
+    delete timelockValues;
   }
 
   /* UTILITIES */
@@ -194,6 +367,20 @@ contract ScriptPlus is Script {
     s = bytes32(strToUint(_s));
   }
 
+  function getDomainByChainName(string memory name) internal pure returns (uint32 domain) {
+    if (areEq(name, "gnosis")) {
+      domain = GNOSIS_DOMAIN;
+    } else if (areEq(name, "polygon")) {
+      domain = POLYGON_DOMAIN;
+    } else if (areEq(name, "optimism")) {
+      domain = OPTIMISM_DOMAIN;
+    } else if (areEq(name, "arbitrum")) {
+      domain = ARBITRUM_DOMAIN;
+    } else {
+      revert("Unsupported chain!");
+    }
+  }
+
   function strToUint(string memory _str) public pure returns (uint256 res) {
     for (uint256 i = 0; i < bytes(_str).length; i++) {
       if ((uint8(bytes(_str)[i]) - 48) < 0 || (uint8(bytes(_str)[i]) - 48) > 9) {
@@ -203,5 +390,13 @@ contract ScriptPlus is Script {
     }
 
     return res;
+  }
+
+  function areEq(string memory a, string memory b) internal pure returns (bool) {
+    if (bytes(a).length != bytes(b).length) {
+      return false;
+    } else {
+      return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+    }
   }
 }

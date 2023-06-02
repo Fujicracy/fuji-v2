@@ -36,8 +36,7 @@ contract DForceOptimism is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x4cB46032e2790D8CA10be6d0001e8c6362a76adA);
+    return IAddrMapper(0x411C166474432c59AEa0aF9E1369F0dC08c1c5a5);
   }
 
   /**

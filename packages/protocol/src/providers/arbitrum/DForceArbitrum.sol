@@ -36,8 +36,7 @@ contract DForceArbitrum is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5);
+    return IAddrMapper(0x9907F34FbA2336C3Ce8758dd80c301BFf921dEc2);
   }
 
   /**

@@ -8,7 +8,6 @@ import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {AaveV3Arbitrum} from "../src/providers/arbitrum/AaveV3Arbitrum.sol";
 import {RadiantArbitrum} from "../src/providers/arbitrum/RadiantArbitrum.sol";
 import {DForceArbitrum} from "../src/providers/arbitrum/DForceArbitrum.sol";
-import {FujiOracle} from "../src/FujiOracle.sol";
 
 contract RunArbitrum is ScriptPlus {
   AaveV3Arbitrum aaveV3;
@@ -24,24 +23,18 @@ contract RunArbitrum is ScriptPlus {
 
     setOrDeployChief(false);
     setOrDeployConnextRouter(false);
+    setOrDeployFujiOracle(false);
+    setOrDeployBorrowingVaultFactory(false);
+    setOrDeployAddrMapper(false);
 
     _setLendingProviders();
-
-    string[] memory assets = new string[](4);
-    assets[0] = "WETH";
-    assets[1] = "USDC";
-    assets[2] = "DAI";
-    assets[3] = "USDT";
-    setOrDeployFujiOracle(false, assets);
-
-    setOrDeployBorrowingVaultFactory(false);
-
-    /*_configBorrowingVaultFactory();*/
-
     /*_deployVault("WETH", "DAI", "BorrowingVault-WETHDAI", 90);*/
 
     /*_setVaultNewProviders("BorrowingVault-WETHUSDC-2");*/
     /*_setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
+
+    // If setting all routers at once, call after deploying all chians
+    /*setRouters();*/
 
     vm.stopBroadcast();
   }
@@ -60,38 +53,6 @@ contract RunArbitrum is ScriptPlus {
     /*saveAddress("DForceArbitrum", address(dforce));*/
   }
 
-  function _setRouters() internal {
-    address polygonRouter = getAddressAt("ConnextRouter", "polygon");
-    address optimismRouter = getAddressAt("ConnextRouter", "optimism");
-    address gnosisRouter = getAddressAt("ConnextRouter", "gnosis");
-
-    scheduleWithTimelock(
-      address(connextRouter),
-      abi.encodeWithSelector(connextRouter.setRouter.selector, POLYGON_DOMAIN, polygonRouter)
-    );
-    scheduleWithTimelock(
-      address(connextRouter),
-      abi.encodeWithSelector(connextRouter.setRouter.selector, OPTIMISM_DOMAIN, optimismRouter)
-    );
-    scheduleWithTimelock(
-      address(connextRouter),
-      abi.encodeWithSelector(connextRouter.setRouter.selector, GNOSIS_DOMAIN, gnosisRouter)
-    );
-
-    /*executeWithTimelock(*/
-    /*address(connextRouter),*/
-    /*abi.encodeWithSelector(connextRouter.setRouter.selector, POLYGON_DOMAIN, polygonRouter)*/
-    /*);*/
-    /*executeWithTimelock(*/
-    /*address(connextRouter),*/
-    /*abi.encodeWithSelector(connextRouter.setRouter.selector, OPTIMISM_DOMAIN, optimismRouter)*/
-    /*);*/
-    /*executeWithTimelock(*/
-    /*address(connextRouter),*/
-    /*abi.encodeWithSelector(connextRouter.setRouter.selector, GNOSIS_DOMAIN, gnosisRouter)*/
-    /*);*/
-  }
-
   function _setVaultNewProviders(string memory vaultName) internal {
     BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
 
@@ -100,38 +61,13 @@ contract RunArbitrum is ScriptPlus {
     providers[1] = radiant;
     providers[2] = dforce;
     bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-    scheduleWithTimelock(address(vault), callData);
-    /*executeWithTimelock(address(vault), callData);*/
+    callWithTimelock(address(vault), callData);
   }
 
   function _setVaultNewRating(string memory vaultName, uint256 rating) internal {
     bytes memory callData =
       abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
-    scheduleWithTimelock(address(chief), callData);
-    /*executeWithTimelock(address(chief), callData);*/
-  }
-
-  function _configBorrowingVaultFactory() internal {
-    scheduleWithTimelock(
-      address(factory),
-      abi.encodeWithSelector(
-        factory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")
-      )
-    );
-    scheduleWithTimelock(
-      address(chief),
-      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true)
-    );
-    /*executeWithTimelock(*/
-    /*address(factory),*/
-    /*abi.encodeWithSelector(*/
-    /*factory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")*/
-    /*)*/
-    /*);*/
-    /*executeWithTimelock(*/
-    /*address(chief),*/
-    /*abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true)*/
-    /*);*/
+    callWithTimelock(address(chief), callData);
   }
 
   function _deployVault(

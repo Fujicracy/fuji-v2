@@ -25,13 +25,12 @@ contract CompoundV3Polygon is ILendingProvider {
    * @notice Returns the {AddrMapper} contract applicable to this provider.
    */
   function getMapper() public pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153);
+    return IAddrMapper(0x9E19FBd8c75184EeFE096932Fbb6CB338D3bE7Cd);
   }
 
   /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "COMPOUND_V3_POLYGON";
+    return "Compound_V3_Polygon";
   }
 
   /// @inheritdoc ILendingProvider
