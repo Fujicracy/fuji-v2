@@ -11,7 +11,7 @@ type ChainSelectProps = {
   type: AssetType;
   disabled: boolean;
   onChange: (chainId: ChainId) => void;
-  value?: ChainId;
+  value?: ChainId | '';
 };
 const ChainSelect = ({
   value,
@@ -75,7 +75,8 @@ function ChainSelectContent({
       data-cy="borrow-chain-select"
       labelId={labelId}
       id={selectId}
-      value={value || -1}
+      value={value || ''}
+      displayEmpty={true}
       disabled={disabled}
       onChange={(e) => onChange(e.target.value as ChainId)}
       IconComponent={KeyboardArrowDownIcon}
@@ -83,7 +84,7 @@ function ChainSelectContent({
       renderValue={(chainId) => {
         const chain = chains.find((c) => c.chainId === chainId);
         if (!chain) {
-          return <Typography>Select a network</Typography>;
+          return <Typography>Select a chain</Typography>;
         }
         return renderItem(chain);
       }}

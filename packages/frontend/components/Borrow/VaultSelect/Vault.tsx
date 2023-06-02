@@ -57,7 +57,7 @@ function Vault({
           borderRadius: '0.5rem',
           '& .MuiTableCell-root': {
             background: selected
-              ? `${palette.secondary.dark}`
+              ? `${palette.secondary.light}`
               : isHovered
               ? '#34363E'
               : 'transparent',
@@ -178,7 +178,7 @@ function Vault({
           sx={{
             borderStyle: 'unset',
             backgroundColor: selected
-              ? `${palette.secondary.dark}`
+              ? `${palette.secondary.light}`
               : 'transparent',
             pb: '0.5rem',
           }}
@@ -189,7 +189,7 @@ function Vault({
               sx={{
                 pb: '0.75rem',
                 '& .step-item:after': {
-                  left: '1.6%',
+                  left: '1.3%',
                   transform: 'translateY(45%)',
                 },
               }}

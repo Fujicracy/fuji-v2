@@ -110,7 +110,19 @@ function BorrowHeader({
           <Typography variant="body2" height="40px" lineHeight="40px">
             Borrow
           </Typography>
-          {isCrossChainOperation && <SlippageSettings />}
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            height="40px"
+          >
+            <NetworkIcon network={chainName} height={18} width={18} />
+            {isCrossChainOperation && (
+              <Box sx={{ ml: '1rem' }}>
+                <SlippageSettings />
+              </Box>
+            )}
+          </Stack>
         </Stack>
       )}
       <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />

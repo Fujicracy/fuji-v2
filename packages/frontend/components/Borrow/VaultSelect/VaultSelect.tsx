@@ -71,6 +71,16 @@ function VaultSelect() {
     ];
   }, [aggregatedData, isUnFolded, selectedRoute]);
 
+  const handleToggleFolded = () => {
+    if (!isUnFolded) {
+      setUnFolded(true);
+      return;
+    }
+
+    setUnFolded(false);
+    setOpenedRoute(null);
+  };
+
   useEffect(() => {
     setSelectedRoute(0);
     setOpenedRoute(null);
@@ -212,7 +222,7 @@ function VaultSelect() {
                   backgroundColor: palette.secondary.light,
                 },
               }}
-              onClick={() => setUnFolded(!isUnFolded)}
+              onClick={handleToggleFolded}
             >
               {isUnFolded ? 'Close' : 'See All Vaults'}
               <KeyboardArrowDownIcon

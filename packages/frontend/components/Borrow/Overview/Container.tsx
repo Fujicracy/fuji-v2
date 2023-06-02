@@ -38,6 +38,7 @@ function Container({ children, isMobile }: ContainerProps) {
           right: '6%',
           pb: 0,
           border: '1px solid #6C7182',
+          zIndex: 5,
         }}
       >
         <CardContent sx={{ p: 0, width: '100%', mb: '0.8rem' }}>
