@@ -1,7 +1,7 @@
 describe('Markets', () => {
   before(() => {
     cy.visit('/');
-    cy.dismissDisclaimer();
+    cy.skipOnboarding();
   });
   it('should load table data', () => {
     cy.get('[data-cy="market-row"]').should('exist');

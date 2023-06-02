@@ -11,3 +11,5 @@ export const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="n
 </linearGradient>
 </defs>
 </svg>`;
+
+export type TabOption = { value: number; label: string };

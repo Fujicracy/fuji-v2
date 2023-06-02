@@ -132,6 +132,11 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           pl: { xs: '0.25rem', sm: '1rem' },
           pr: { xs: '0.25rem', sm: '1rem' },
           minHeight: '75vh',
+          '@media (min-width: 1200px)': {
+            '&.MuiContainer-root': {
+              maxWidth: '1300px !important',
+            },
+          },
         }}
       >
         {isEditing && !loading && (
@@ -170,10 +175,10 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           </Grid>
         ) : (
           <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} lg={4.5}>
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
-            <Grid item sm={12} md={7}>
+            <Grid item sm={12} lg={7.5}>
               <Overview isEditing={isEditing} basePosition={basePosition} />
             </Grid>
           </Grid>

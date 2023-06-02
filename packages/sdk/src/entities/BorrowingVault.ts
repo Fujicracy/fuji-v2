@@ -4,15 +4,24 @@ import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
+import axios from 'axios';
 import { TypedDataDomain, TypedDataField, utils } from 'ethers';
 import invariant from 'tiny-invariant';
 
-import { CHAIN, CHIEF_ADDRESS, CONNEXT_ROUTER_ADDRESS } from '../constants';
+import {
+  CHAIN,
+  CHIEF_ADDRESS,
+  CONNEXT_ROUTER_ADDRESS,
+  FujiErrorCode,
+  URLS,
+} from '../constants';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import { ChainId, RouterAction } from '../enums';
 import {
+  AprResult,
   ChainConfig,
   ChainConnectionDetails,
+  FujiResultPromise,
   LendingProviderWithFinancials,
   PermitParams,
 } from '../types';
@@ -23,8 +32,14 @@ import {
   ILendingProvider__factory,
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
+import {
+  GetLlamaAssetPoolsResponse,
+  GetLlamaPoolStatsResponse,
+  LlamaAssetPool,
+} from '../types/LlamaResponses';
 import { Address } from './Address';
 import { Chain } from './Chain';
+import { FujiResultError, FujiResultSuccess } from './FujiError';
 import { Token } from './Token';
 
 type AccountBalances = {
@@ -319,6 +334,83 @@ export class BorrowingVault {
           borrowAprBase: rateToFloat(rates[i + splitIndex]),
         };
       });
+  }
+
+  /**
+   * Returns a historical data of deposit or borrow rates for all providers.
+   * If data for a specific provider is not available at DefiLlama,
+   * an empty array is returned.
+   *
+   * @param token - the collateral or the debt token of the vault {@link Token}
+   */
+  async getProvidersStatsFor(token: Token): FujiResultPromise<AprResult[]> {
+    if (!token.equals(this.collateral) && !token.equals(this.debt))
+      return new FujiResultError('Wrong token');
+
+    if (!this.allProviders) {
+      await this.preLoad();
+    }
+    if (!this.allProviders)
+      return new FujiResultError('Lending Providers are not preLoaded!');
+
+    const uri = {
+      pools: URLS.DEFILLAMA_POOLS,
+      chart: URLS.DEFILLAMA_CHART,
+    };
+    try {
+      const pools = await axios
+        .get<GetLlamaAssetPoolsResponse>(uri.pools)
+        .then(({ data }) => data.data);
+
+      const getPoolId = (providerAddr: string) => {
+        const provider = LENDING_PROVIDERS[this.chainId][providerAddr];
+
+        return pools.find(
+          (p: LlamaAssetPool) =>
+            p.chain === this.chain.llamaKey &&
+            p.project === provider.llamaKey &&
+            // if p.symbol === 'ETH' and token.symbol === 'WETH'
+            // in the case of dForce
+            token.symbol.includes(p.symbol)
+        )?.pool;
+      };
+
+      const llamaResult = await Promise.all(
+        this.allProviders.map((addr) => {
+          const poolId = getPoolId(addr);
+          return poolId
+            ? axios
+                .get<GetLlamaPoolStatsResponse>(uri.chart + `/${poolId}`)
+                .then(({ data }) => data.data)
+            : Promise.resolve([]);
+        })
+      );
+
+      const data = this.allProviders.map((addr, i) => ({
+        name: LENDING_PROVIDERS[this.chainId][addr].name,
+        aprStats: llamaResult[i].map(
+          ({
+            timestamp,
+            apyBase,
+            apyReward,
+            apyBaseBorrow,
+            apyRewardBorrow,
+          }) => ({
+            timestamp,
+            aprBase: token.equals(this.debt) ? apyBaseBorrow : apyBase,
+            aprReward: token.equals(this.debt) ? apyRewardBorrow : apyReward,
+          })
+        ),
+      }));
+
+      return new FujiResultSuccess(data);
+    } catch (e) {
+      const message = axios.isAxiosError(e)
+        ? `DefiLlama API call failed with a message: ${e.message}`
+        : 'DefiLlama API call failed with an unexpected error!';
+      console.error(message);
+      return new FujiResultError(message, FujiErrorCode.LLAMA);
+    }
   }
 
   /**
