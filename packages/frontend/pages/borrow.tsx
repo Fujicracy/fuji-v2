@@ -14,13 +14,15 @@ const BorrowPage: NextPage = () => {
 
   const changeFormType = useBorrow((state) => state.changeFormType);
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
+  const changeInputValues = useBorrow((state) => state.changeInputValues);
   const clearDebt = useBorrow((state) => state.clearDebt);
 
   const [hasChain, setHasChain] = useState(false);
 
-  useEffect(() => {
+  if (allowChainOverride) {
     clearDebt();
-  }, [clearDebt]);
+    changeInputValues('', '');
+  }
 
   useEffect(() => {
     changeFormType(formType);

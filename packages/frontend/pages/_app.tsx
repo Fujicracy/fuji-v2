@@ -21,6 +21,7 @@ import {
 import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
+import { useBorrow } from '../store/borrow.store';
 import { useHistory } from '../store/history.store';
 import { usePositions } from '../store/positions.store';
 import { theme } from '../styles/theme';
@@ -38,6 +39,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   const entries = useHistory((state) => state.entries);
   const watchAll = useHistory((state) => state.watchAll);
   const closeModal = useHistory((state) => state.closeModal);
+
+  const changeChainOverride = useBorrow((state) => state.changeChainOverride);
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
@@ -96,6 +99,11 @@ function MyApp({ Component, pageProps }: AppProps) {
         fetchPositions();
       }
       updatePollingPolicy(url);
+      if (url !== PATH.BORROW) {
+        setTimeout(() => {
+          changeChainOverride(true);
+        }, 100);
+      }
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {

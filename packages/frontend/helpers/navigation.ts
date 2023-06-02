@@ -63,8 +63,13 @@ export const showPosition = async (
   }
 };
 
-export const showBorrow = (router: NextRouter, override = true) => {
+export const showBorrow = async (router: NextRouter, override = true) => {
+  const borrowStore = useBorrow.getState();
   // I'm not exactly thrilled about this solution, but it works for now
-  useBorrow.getState().changeChainOverride(override);
+  borrowStore.changeChainOverride(override);
+  if (override) {
+    borrowStore.changeInputValues('', '');
+    borrowStore.clearDebt();
+  }
   router.push(PATH.BORROW);
 };
