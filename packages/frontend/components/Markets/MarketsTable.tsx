@@ -106,7 +106,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="130px" align="right">
-              Collateral APY
+              Supply APY
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
               <Stack direction="row" alignItems="center" justifyContent="right">
