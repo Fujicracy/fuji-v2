@@ -32,7 +32,9 @@ function Details({
 
   return (
     <>
-      <Typography variant="body2">Details</Typography>
+      <Typography mt={2} variant="body2">
+        Details
+      </Typography>
 
       <br />
 

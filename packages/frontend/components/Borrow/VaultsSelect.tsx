@@ -26,6 +26,9 @@ function VaultsSelect() {
   const [isUnFolded, setUnFolded] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(0);
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
+
+  const collateral = useBorrow((state) => state.collateral);
+  const debt = useBorrow((state) => state.debt);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
   const availableVaults = useBorrow((state) => state.availableVaults);
   const changeActiveVault = useBorrow((state) => state.changeActiveVault);
@@ -48,6 +51,8 @@ function VaultsSelect() {
       changeActiveVault(vault);
     }
     setSelectedRoute(i);
+    setOpenedRoute(null);
+    setUnFolded(false);
   }
 
   const filteredRoutes = useMemo(() => {
@@ -67,10 +72,9 @@ function VaultsSelect() {
   }, [aggregatedData, isUnFolded, selectedRoute]);
 
   useEffect(() => {
-    setUnFolded(false);
     setSelectedRoute(0);
     setOpenedRoute(null);
-  }, [availableRoutes, availableVaults]);
+  }, [collateral.chainId, debt?.chainId]);
 
   return (
     <Stack sx={{ mb: '2rem', width: '100%' }}>

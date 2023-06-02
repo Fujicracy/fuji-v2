@@ -111,7 +111,7 @@ function BorrowButton({
   );
 
   if (!debt) {
-    return disabledButton('Please choose a debt chain');
+    return disabledButton('Select a chain to borrow on');
   }
   const collateralAmount = parseFloat(collateral.input);
   const debtAmount = parseFloat(debt.input);
@@ -148,7 +148,7 @@ function BorrowButton({
   if (!address) {
     return regularButton('Connect wallet', onLoginClick, 'borrow-login');
   } else if (!position || !ltvMeta) {
-    return disabledButton('Please choose a debt chain'); // TODO: borrow-refactor
+    return disabledButton('Select a chain to borrow on'); // TODO: borrow-refactor
   } else if (
     collateral.allowance.status === AllowanceStatus.Approving ||
     debt.allowance.status === AllowanceStatus.Approving

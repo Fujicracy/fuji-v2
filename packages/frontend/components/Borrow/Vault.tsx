@@ -117,15 +117,15 @@ function Vault({
               </Stack>
             </TableCell>
             <TableCell align="right">
-              <Typography variant="small" color={palette.warning.main}>
-                {data.activeProvider.depositAprBase?.toFixed(2)} %
+              <Typography variant="small" color={palette.success.main}>
+                {data.activeProvider.depositAprBase?.toFixed(2)}%
               </Typography>
             </TableCell>
           </>
         )}
         <TableCell align="right">
-          <Typography variant="small" color={palette.success.main}>
-            {data.activeProvider.borrowAprBase?.toFixed(2)} %
+          <Typography variant="small" color={palette.warning.main}>
+            {data.activeProvider.borrowAprBase?.toFixed(2)}%
           </Typography>
         </TableCell>
         {!isMobile && (

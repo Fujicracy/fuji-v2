@@ -1,4 +1,4 @@
-import { Card, CardContent, useMediaQuery } from '@mui/material';
+import { Card, CardContent, Typography, useMediaQuery } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
@@ -49,12 +49,14 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   if (debtInput === undefined) return <></>; // TODO: handle this case
   return (
     <Container isMobile={isMobile}>
+      {!isMobile && <Typography variant="body2">Position Overview</Typography>}
       <Card
         sx={{
           flexDirection: 'column',
           alignItems: 'center',
           p: '1.5rem 2rem',
           width: '100%',
+          mt: !isMobile ? '1rem' : '0',
         }}
       >
         <CardContent sx={{ padding: 0, gap: '1rem' }}>
