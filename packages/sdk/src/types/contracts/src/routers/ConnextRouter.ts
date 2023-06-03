@@ -42,11 +42,14 @@ export interface ConnextRouterInterface extends utils.Interface {
     "bumpTransfer(bytes32)": FunctionFragment;
     "chief()": FunctionFragment;
     "connext()": FunctionFragment;
+    "handler()": FunctionFragment;
+    "isAllowedCaller(address)": FunctionFragment;
     "routerByDomain(uint256)": FunctionFragment;
     "setRouter(uint256,address)": FunctionFragment;
     "sweepETH(address)": FunctionFragment;
     "sweepToken(address,address)": FunctionFragment;
     "xBundle(uint8[],bytes[])": FunctionFragment;
+    "xBundleConnext(uint8[],bytes[],uint256)": FunctionFragment;
     "xReceive(bytes32,uint256,address,address,uint32,bytes)": FunctionFragment;
   };
 
@@ -63,11 +66,14 @@ export interface ConnextRouterInterface extends utils.Interface {
       | "bumpTransfer"
       | "chief"
       | "connext"
+      | "handler"
+      | "isAllowedCaller"
       | "routerByDomain"
       | "setRouter"
       | "sweepETH"
       | "sweepToken"
       | "xBundle"
+      | "xBundleConnext"
       | "xReceive"
   ): FunctionFragment;
 
@@ -106,6 +112,11 @@ export interface ConnextRouterInterface extends utils.Interface {
   ): string;
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
   encodeFunctionData(functionFragment: "connext", values?: undefined): string;
+  encodeFunctionData(functionFragment: "handler", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "isAllowedCaller",
+    values: [string]
+  ): string;
   encodeFunctionData(
     functionFragment: "routerByDomain",
     values: [BigNumberish]
@@ -122,6 +133,10 @@ export interface ConnextRouterInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "xBundle",
     values: [BigNumberish[], BytesLike[]]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "xBundleConnext",
+    values: [BigNumberish[], BytesLike[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "xReceive",
@@ -163,6 +178,11 @@ export interface ConnextRouterInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "connext", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "handler", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isAllowedCaller",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "routerByDomain",
     data: BytesLike
@@ -171,6 +191,10 @@ export interface ConnextRouterInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "sweepETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "xBundle", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "xBundleConnext",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "xReceive", data: BytesLike): Result;
 
   events: {
@@ -295,6 +319,13 @@ export interface ConnextRouter extends BaseContract {
 
     connext(overrides?: CallOverrides): Promise<[string]>;
 
+    handler(overrides?: CallOverrides): Promise<[string]>;
+
+    isAllowedCaller(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     routerByDomain(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -320,6 +351,13 @@ export interface ConnextRouter extends BaseContract {
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    xBundleConnext(
+      actions: BigNumberish[],
+      args: BytesLike[],
+      beforeSlipped: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -363,6 +401,10 @@ export interface ConnextRouter extends BaseContract {
 
   connext(overrides?: CallOverrides): Promise<string>;
 
+  handler(overrides?: CallOverrides): Promise<string>;
+
+  isAllowedCaller(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
   routerByDomain(
     arg0: BigNumberish,
     overrides?: CallOverrides
@@ -388,6 +430,13 @@ export interface ConnextRouter extends BaseContract {
   xBundle(
     actions: BigNumberish[],
     args: BytesLike[],
+    overrides?: PayableOverrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  xBundleConnext(
+    actions: BigNumberish[],
+    args: BytesLike[],
+    beforeSlipped: BigNumberish,
     overrides?: PayableOverrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -431,6 +480,10 @@ export interface ConnextRouter extends BaseContract {
 
     connext(overrides?: CallOverrides): Promise<string>;
 
+    handler(overrides?: CallOverrides): Promise<string>;
+
+    isAllowedCaller(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
     routerByDomain(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -453,6 +506,13 @@ export interface ConnextRouter extends BaseContract {
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    xBundleConnext(
+      actions: BigNumberish[],
+      args: BytesLike[],
+      beforeSlipped: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -550,6 +610,13 @@ export interface ConnextRouter extends BaseContract {
 
     connext(overrides?: CallOverrides): Promise<BigNumber>;
 
+    handler(overrides?: CallOverrides): Promise<BigNumber>;
+
+    isAllowedCaller(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     routerByDomain(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -575,6 +642,13 @@ export interface ConnextRouter extends BaseContract {
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    xBundleConnext(
+      actions: BigNumberish[],
+      args: BytesLike[],
+      beforeSlipped: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -619,6 +693,13 @@ export interface ConnextRouter extends BaseContract {
 
     connext(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    handler(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    isAllowedCaller(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     routerByDomain(
       arg0: BigNumberish,
       overrides?: CallOverrides
@@ -644,6 +725,13 @@ export interface ConnextRouter extends BaseContract {
     xBundle(
       actions: BigNumberish[],
       args: BytesLike[],
+      overrides?: PayableOverrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    xBundleConnext(
+      actions: BigNumberish[],
+      args: BytesLike[],
+      beforeSlipped: BigNumberish,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -681,6 +769,10 @@ export interface ConnextRouterMulticall {
   chief(overrides?: CallOverrides): Call<string>;
 
   connext(overrides?: CallOverrides): Call<string>;
+
+  handler(overrides?: CallOverrides): Call<string>;
+
+  isAllowedCaller(arg0: string, overrides?: CallOverrides): Call<boolean>;
 
   routerByDomain(arg0: BigNumberish, overrides?: CallOverrides): Call<string>;
 }

@@ -28,6 +28,11 @@ const _abi = [
         name: "executors",
         type: "address[]",
       },
+      {
+        internalType: "address",
+        name: "admin",
+        type: "address",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
@@ -67,6 +72,25 @@ const _abi = [
       },
     ],
     name: "CallExecuted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "id",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "bytes32",
+        name: "salt",
+        type: "bytes32",
+      },
+    ],
+    name: "CallSalt",
     type: "event",
   },
   {
@@ -375,7 +399,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "duration",
+        name: "",
         type: "uint256",
       },
     ],
@@ -413,7 +437,7 @@ const _abi = [
     outputs: [
       {
         internalType: "uint256",
-        name: "timestamp",
+        name: "",
         type: "uint256",
       },
     ],
@@ -494,7 +518,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes32",
-        name: "hash",
+        name: "",
         type: "bytes32",
       },
     ],
@@ -533,7 +557,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bytes32",
-        name: "hash",
+        name: "",
         type: "bytes32",
       },
     ],
@@ -552,7 +576,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "registered",
+        name: "",
         type: "bool",
       },
     ],
@@ -571,7 +595,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "done",
+        name: "",
         type: "bool",
       },
     ],
@@ -590,7 +614,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "pending",
+        name: "",
         type: "bool",
       },
     ],
@@ -609,7 +633,7 @@ const _abi = [
     outputs: [
       {
         internalType: "bool",
-        name: "ready",
+        name: "",
         type: "bool",
       },
     ],

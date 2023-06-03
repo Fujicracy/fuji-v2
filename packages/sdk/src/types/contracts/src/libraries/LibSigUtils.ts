@@ -30,6 +30,7 @@ export declare namespace LibSigUtils {
     amount: BigNumberish;
     nonce: BigNumberish;
     deadline: BigNumberish;
+    actionArgsHash: BytesLike;
   };
 
   export type PermitStructOutput = [
@@ -39,7 +40,8 @@ export declare namespace LibSigUtils {
     string,
     BigNumber,
     BigNumber,
-    BigNumber
+    BigNumber,
+    string
   ] & {
     chainid: BigNumber;
     owner: string;
@@ -48,28 +50,45 @@ export declare namespace LibSigUtils {
     amount: BigNumber;
     nonce: BigNumber;
     deadline: BigNumber;
+    actionArgsHash: string;
   };
 }
 
 export interface LibSigUtilsInterface extends utils.Interface {
   functions: {
-    "buildPermitStruct(address,address,address,uint256,uint256,address)": FunctionFragment;
+    "buildPermitStruct(address,address,address,uint256,uint256,address,bytes32)": FunctionFragment;
+    "getActionArgsHash(IRouter.Action[],bytes[])": FunctionFragment;
     "getHashTypedDataV4Digest(bytes32,bytes32)": FunctionFragment;
-    "getStructHashBorrow((uint256,address,address,address,uint256,uint256,uint256))": FunctionFragment;
-    "getStructHashWithdraw((uint256,address,address,address,uint256,uint256,uint256))": FunctionFragment;
+    "getStructHashBorrow((uint256,address,address,address,uint256,uint256,uint256,bytes32))": FunctionFragment;
+    "getStructHashWithdraw((uint256,address,address,address,uint256,uint256,uint256,bytes32))": FunctionFragment;
+    "getZeroPermitEncodedArgs(address,address,address,uint256)": FunctionFragment;
   };
 
   getFunction(
     nameOrSignatureOrTopic:
       | "buildPermitStruct"
+      | "getActionArgsHash"
       | "getHashTypedDataV4Digest"
       | "getStructHashBorrow"
       | "getStructHashWithdraw"
+      | "getZeroPermitEncodedArgs"
   ): FunctionFragment;
 
   encodeFunctionData(
     functionFragment: "buildPermitStruct",
-    values: [string, string, string, BigNumberish, BigNumberish, string]
+    values: [
+      string,
+      string,
+      string,
+      BigNumberish,
+      BigNumberish,
+      string,
+      BytesLike
+    ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "getActionArgsHash",
+    values: [BigNumberish[], BytesLike[]]
   ): string;
   encodeFunctionData(
     functionFragment: "getHashTypedDataV4Digest",
@@ -83,9 +102,17 @@ export interface LibSigUtilsInterface extends utils.Interface {
     functionFragment: "getStructHashWithdraw",
     values: [LibSigUtils.PermitStruct]
   ): string;
+  encodeFunctionData(
+    functionFragment: "getZeroPermitEncodedArgs",
+    values: [string, string, string, BigNumberish]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "buildPermitStruct",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getActionArgsHash",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -98,6 +125,10 @@ export interface LibSigUtilsInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "getStructHashWithdraw",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "getZeroPermitEncodedArgs",
     data: BytesLike
   ): Result;
 
@@ -138,12 +169,19 @@ export interface LibSigUtils extends BaseContract {
       amount: BigNumberish,
       plusNonce: BigNumberish,
       vault_: string,
+      actionArgsHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<
       [LibSigUtils.PermitStructOutput] & {
         permit: LibSigUtils.PermitStructOutput;
       }
     >;
+
+    getActionArgsHash(
+      actions: BigNumberish[],
+      args: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<[string]>;
 
     getHashTypedDataV4Digest(
       domainSeperator: BytesLike,
@@ -160,6 +198,14 @@ export interface LibSigUtils extends BaseContract {
       permit: LibSigUtils.PermitStruct,
       overrides?: CallOverrides
     ): Promise<[string]>;
+
+    getZeroPermitEncodedArgs(
+      vault: string,
+      owner: string,
+      receiver: string,
+      amount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[string]>;
   };
 
   buildPermitStruct(
@@ -169,8 +215,15 @@ export interface LibSigUtils extends BaseContract {
     amount: BigNumberish,
     plusNonce: BigNumberish,
     vault_: string,
+    actionArgsHash: BytesLike,
     overrides?: CallOverrides
   ): Promise<LibSigUtils.PermitStructOutput>;
+
+  getActionArgsHash(
+    actions: BigNumberish[],
+    args: BytesLike[],
+    overrides?: CallOverrides
+  ): Promise<string>;
 
   getHashTypedDataV4Digest(
     domainSeperator: BytesLike,
@@ -188,6 +241,14 @@ export interface LibSigUtils extends BaseContract {
     overrides?: CallOverrides
   ): Promise<string>;
 
+  getZeroPermitEncodedArgs(
+    vault: string,
+    owner: string,
+    receiver: string,
+    amount: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<string>;
+
   callStatic: {
     buildPermitStruct(
       owner: string,
@@ -196,8 +257,15 @@ export interface LibSigUtils extends BaseContract {
       amount: BigNumberish,
       plusNonce: BigNumberish,
       vault_: string,
+      actionArgsHash: BytesLike,
       overrides?: CallOverrides
     ): Promise<LibSigUtils.PermitStructOutput>;
+
+    getActionArgsHash(
+      actions: BigNumberish[],
+      args: BytesLike[],
+      overrides?: CallOverrides
+    ): Promise<string>;
 
     getHashTypedDataV4Digest(
       domainSeperator: BytesLike,
@@ -212,6 +280,14 @@ export interface LibSigUtils extends BaseContract {
 
     getStructHashWithdraw(
       permit: LibSigUtils.PermitStruct,
+      overrides?: CallOverrides
+    ): Promise<string>;
+
+    getZeroPermitEncodedArgs(
+      vault: string,
+      owner: string,
+      receiver: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
   };
@@ -226,6 +302,13 @@ export interface LibSigUtils extends BaseContract {
       amount: BigNumberish,
       plusNonce: BigNumberish,
       vault_: string,
+      actionArgsHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getActionArgsHash(
+      actions: BigNumberish[],
+      args: BytesLike[],
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -242,6 +325,14 @@ export interface LibSigUtils extends BaseContract {
 
     getStructHashWithdraw(
       permit: LibSigUtils.PermitStruct,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    getZeroPermitEncodedArgs(
+      vault: string,
+      owner: string,
+      receiver: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
   };
@@ -254,6 +345,13 @@ export interface LibSigUtils extends BaseContract {
       amount: BigNumberish,
       plusNonce: BigNumberish,
       vault_: string,
+      actionArgsHash: BytesLike,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getActionArgsHash(
+      actions: BigNumberish[],
+      args: BytesLike[],
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -270,6 +368,14 @@ export interface LibSigUtils extends BaseContract {
 
     getStructHashWithdraw(
       permit: LibSigUtils.PermitStruct,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    getZeroPermitEncodedArgs(
+      vault: string,
+      owner: string,
+      receiver: string,
+      amount: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
   };
@@ -287,8 +393,15 @@ export interface LibSigUtilsMulticall {
     amount: BigNumberish,
     plusNonce: BigNumberish,
     vault_: string,
+    actionArgsHash: BytesLike,
     overrides?: CallOverrides
   ): Call<LibSigUtils.PermitStructOutput>;
+
+  getActionArgsHash(
+    actions: BigNumberish[],
+    args: BytesLike[],
+    overrides?: CallOverrides
+  ): Call<string>;
 
   getHashTypedDataV4Digest(
     domainSeperator: BytesLike,
@@ -303,6 +416,14 @@ export interface LibSigUtilsMulticall {
 
   getStructHashWithdraw(
     permit: LibSigUtils.PermitStruct,
+    overrides?: CallOverrides
+  ): Call<string>;
+
+  getZeroPermitEncodedArgs(
+    vault: string,
+    owner: string,
+    receiver: string,
+    amount: BigNumberish,
     overrides?: CallOverrides
   ): Call<string>;
 }

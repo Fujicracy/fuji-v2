@@ -314,6 +314,11 @@ const _abi = [
         type: "uint256",
       },
       {
+        internalType: "bytes32",
+        name: "actionArgsHash",
+        type: "bytes32",
+      },
+      {
         internalType: "uint8",
         name: "v",
         type: "uint8",
@@ -355,6 +360,11 @@ const _abi = [
         internalType: "uint256",
         name: "deadline",
         type: "uint256",
+      },
+      {
+        internalType: "bytes32",
+        name: "actionArgsHash",
+        type: "bytes32",
       },
       {
         internalType: "uint8",

@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export { AaveV3Arbitrum__factory } from "./AaveV3Arbitrum__factory";
+export { CompoundV3Arbitrum__factory } from "./CompoundV3Arbitrum__factory";
 export { DForceArbitrum__factory } from "./DForceArbitrum__factory";
 export { HundredArbitrum__factory } from "./HundredArbitrum__factory";
 export { RadiantArbitrum__factory } from "./RadiantArbitrum__factory";

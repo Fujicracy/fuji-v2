@@ -2,7 +2,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export { AaveV3Optimism__factory } from "./AaveV3Optimism__factory";
-export { BeefyVelodromesETHETH__factory } from "./BeefyVelodromesETHETH__factory";
 export { DForceOptimism__factory } from "./DForceOptimism__factory";
 export { HundredOptimism__factory } from "./HundredOptimism__factory";
 export { IronBankOptimism__factory } from "./IronBankOptimism__factory";
