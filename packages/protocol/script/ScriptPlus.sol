@@ -85,7 +85,7 @@ contract ScriptPlus is Script {
 
   function setOrDeployConnextRouter(bool deploy) internal {
     if (deploy) {
-      address connext = getAddress("Connext");
+      address connext = readAddrFromConfig("ConnextCore");
       address weth = readAddrFromConfig("WETH");
 
       connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connext), Chief(chief));

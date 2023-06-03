@@ -27,7 +27,7 @@ contract RunGnosis is ScriptPlus {
     /*agave = new AgaveGnosis();*/
     /*saveAddress("AgaveGnosis", address(agave));*/
 
-    /*_deployVault("WETH", "DAI", "BorrowingVault-WETHDAI", 90);*/
+    /*_deployVault("WETH", "USDC", "BorrowingVault-WETHUSDC-1", 90);*/
 
     /*_setVaultNewProviders("BorrowingVault-WETHUSDC");*/
     /*_setVaultNewRating("BorrowingVault-WETHUSDC", 55);*/
@@ -63,11 +63,15 @@ contract RunGnosis is ScriptPlus {
   {
     address collateral = readAddrFromConfig(collateralAddr);
     address debt = readAddrFromConfig(debtAddr);
+    uint256 maxLtv = 750000000000000000;
+    uint256 liqRatio = 800000000000000000;
 
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = agave;
     address vault = chief.deployVault(
-      address(factory), abi.encode(collateral, debt, address(oracle), providers), rating
+      address(factory),
+      abi.encode(collateral, debt, address(oracle), providers, maxLtv, liqRatio),
+      rating
     );
     saveAddress(name, vault);
   }
