@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export { AaveV2__factory } from "./AaveV2__factory";
+export { AaveV3__factory } from "./AaveV3__factory";
 export { CompoundV2__factory } from "./CompoundV2__factory";
 export { CompoundV3__factory } from "./CompoundV3__factory";
 export { DForce__factory } from "./DForce__factory";

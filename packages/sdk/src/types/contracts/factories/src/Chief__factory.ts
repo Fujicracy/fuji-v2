@@ -30,6 +30,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "Chief__allowSwapper_noAllowChange",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "Chief__allowVaultFactory_noAllowChange",
     type: "error",
   },
@@ -41,11 +46,6 @@ const _abi = [
   {
     inputs: [],
     name: "Chief__checkRatingValue_notInRange",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "Chief__checkValidVault_notValidVault",
     type: "error",
   },
   {
@@ -72,6 +72,16 @@ const _abi = [
   {
     inputs: [],
     name: "Chief__onlyTimelock_callerIsNotTimelock",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Chief__setSafetyRating_notActiveVault",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Chief__setVaultStatus_noStatusChange",
     type: "error",
   },
   {
@@ -112,6 +122,25 @@ const _abi = [
       {
         indexed: true,
         internalType: "address",
+        name: "swapper",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "AllowSwapper",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
         name: "factory",
         type: "address",
       },
@@ -142,31 +171,6 @@ const _abi = [
       },
     ],
     name: "ChangeSafetyRating",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "factory",
-        type: "address",
-      },
-      {
-        indexed: true,
-        internalType: "address",
-        name: "vault",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "bytes",
-        name: "deployData",
-        type: "bytes",
-      },
-    ],
-    name: "DeployVault",
     type: "event",
   },
   {
@@ -249,18 +253,18 @@ const _abi = [
     inputs: [
       {
         indexed: false,
-        internalType: "address[]",
-        name: "previousVaults",
-        type: "address[]",
+        internalType: "address",
+        name: "vault",
+        type: "address",
       },
       {
         indexed: false,
-        internalType: "address[]",
-        name: "newVaults",
-        type: "address[]",
+        internalType: "bool",
+        name: "active",
+        type: "bool",
       },
     ],
-    name: "SetVaults",
+    name: "SetVaultStatus",
     type: "event",
   },
   {
@@ -415,6 +419,24 @@ const _abi = [
     inputs: [
       {
         internalType: "address",
+        name: "swapper",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "allowed",
+        type: "bool",
+      },
+    ],
+    name: "allowSwapper",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "factory",
         type: "address",
       },
@@ -438,6 +460,25 @@ const _abi = [
       },
     ],
     name: "allowedFlasher",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "allowedSwapper",
     outputs: [
       {
         internalType: "bool",
@@ -516,19 +557,6 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "getVaults",
-    outputs: [
-      {
-        internalType: "address[]",
-        name: "",
-        type: "address[]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
     inputs: [
       {
         internalType: "bytes32",
@@ -573,19 +601,49 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "isVaultActive",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "contract IPausableVault[]",
+        name: "vaults",
+        type: "address[]",
+      },
+      {
         internalType: "enum IPausableVault.VaultActions",
         name: "action",
         type: "uint8",
       },
     ],
-    name: "pauseActionInAllVaults",
+    name: "pauseActionInVaults",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
   {
-    inputs: [],
-    name: "pauseForceAllVaults",
+    inputs: [
+      {
+        internalType: "contract IPausableVault[]",
+        name: "vaults",
+        type: "address[]",
+      },
+    ],
+    name: "pauseForceVaults",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -686,12 +744,17 @@ const _abi = [
   {
     inputs: [
       {
-        internalType: "address[]",
-        name: "vaults",
-        type: "address[]",
+        internalType: "address",
+        name: "vault",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "active",
+        type: "bool",
       },
     ],
-    name: "setVaults",
+    name: "setVaultStatus",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -729,8 +792,14 @@ const _abi = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "unpauseForceAllVaults",
+    inputs: [
+      {
+        internalType: "contract IPausableVault[]",
+        name: "vaults",
+        type: "address[]",
+      },
+    ],
+    name: "unpauseForceVaults",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -738,12 +807,17 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "contract IPausableVault[]",
+        name: "vaults",
+        type: "address[]",
+      },
+      {
         internalType: "enum IPausableVault.VaultActions",
         name: "action",
         type: "uint8",
       },
     ],
-    name: "upauseActionInAllVaults",
+    name: "upauseActionInVaults",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

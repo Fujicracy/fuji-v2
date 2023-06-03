@@ -39,6 +39,7 @@ export interface IVaultInterface extends utils.Interface {
     "balanceOfDebt(address)": FunctionFragment;
     "balanceOfDebtShares(address)": FunctionFragment;
     "borrow(uint256,address,address)": FunctionFragment;
+    "burnDebt(uint256,address)": FunctionFragment;
     "convertDebtToShares(uint256)": FunctionFragment;
     "convertToAssets(uint256)": FunctionFragment;
     "convertToDebt(uint256)": FunctionFragment;
@@ -52,21 +53,28 @@ export interface IVaultInterface extends utils.Interface {
     "getProviders()": FunctionFragment;
     "liquidate(address,address)": FunctionFragment;
     "maxBorrow(address)": FunctionFragment;
+    "maxBurnDebt(address)": FunctionFragment;
     "maxDeposit(address)": FunctionFragment;
     "maxMint(address)": FunctionFragment;
+    "maxMintDebt(address)": FunctionFragment;
+    "maxPayback(address)": FunctionFragment;
     "maxRedeem(address)": FunctionFragment;
     "maxWithdraw(address)": FunctionFragment;
     "mint(uint256,address)": FunctionFragment;
+    "mintDebt(uint256,address,address)": FunctionFragment;
     "name()": FunctionFragment;
     "payback(uint256,address)": FunctionFragment;
+    "previewBorrow(uint256)": FunctionFragment;
+    "previewBurnDebt(uint256)": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewMint(uint256)": FunctionFragment;
+    "previewMintDebt(uint256)": FunctionFragment;
+    "previewPayback(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "previewWithdraw(uint256)": FunctionFragment;
     "rebalance(uint256,uint256,address,address,uint256,bool)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
     "setActiveProvider(address)": FunctionFragment;
-    "setDepositCap(uint256)": FunctionFragment;
     "setMinAmount(uint256)": FunctionFragment;
     "setProviders(address[])": FunctionFragment;
     "symbol()": FunctionFragment;
@@ -89,6 +97,7 @@ export interface IVaultInterface extends utils.Interface {
       | "balanceOfDebt"
       | "balanceOfDebtShares"
       | "borrow"
+      | "burnDebt"
       | "convertDebtToShares"
       | "convertToAssets"
       | "convertToDebt"
@@ -102,21 +111,28 @@ export interface IVaultInterface extends utils.Interface {
       | "getProviders"
       | "liquidate"
       | "maxBorrow"
+      | "maxBurnDebt"
       | "maxDeposit"
       | "maxMint"
+      | "maxMintDebt"
+      | "maxPayback"
       | "maxRedeem"
       | "maxWithdraw"
       | "mint"
+      | "mintDebt"
       | "name"
       | "payback"
+      | "previewBorrow"
+      | "previewBurnDebt"
       | "previewDeposit"
       | "previewMint"
+      | "previewMintDebt"
+      | "previewPayback"
       | "previewRedeem"
       | "previewWithdraw"
       | "rebalance"
       | "redeem"
       | "setActiveProvider"
-      | "setDepositCap"
       | "setMinAmount"
       | "setProviders"
       | "symbol"
@@ -157,6 +173,10 @@ export interface IVaultInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "borrow",
     values: [BigNumberish, string, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnDebt",
+    values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
     functionFragment: "convertDebtToShares",
@@ -201,13 +221,20 @@ export interface IVaultInterface extends utils.Interface {
     values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "maxBorrow", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxBurnDebt", values: [string]): string;
   encodeFunctionData(functionFragment: "maxDeposit", values: [string]): string;
   encodeFunctionData(functionFragment: "maxMint", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxMintDebt", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxPayback", values: [string]): string;
   encodeFunctionData(functionFragment: "maxRedeem", values: [string]): string;
   encodeFunctionData(functionFragment: "maxWithdraw", values: [string]): string;
   encodeFunctionData(
     functionFragment: "mint",
     values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintDebt",
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(
@@ -215,11 +242,27 @@ export interface IVaultInterface extends utils.Interface {
     values: [BigNumberish, string]
   ): string;
   encodeFunctionData(
+    functionFragment: "previewBorrow",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewBurnDebt",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
     functionFragment: "previewDeposit",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewMint",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewMintDebt",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewPayback",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -241,10 +284,6 @@ export interface IVaultInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "setActiveProvider",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setDepositCap",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setMinAmount",
@@ -298,6 +337,7 @@ export interface IVaultInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "borrow", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "burnDebt", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "convertDebtToShares",
     data: BytesLike
@@ -335,22 +375,48 @@ export interface IVaultInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxBorrow", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxBurnDebt",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "maxDeposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxMint", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxMintDebt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "maxPayback", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxRedeem", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "maxWithdraw",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "mintDebt", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "payback", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "previewBorrow",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewBurnDebt",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "previewDeposit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "previewMint",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewMintDebt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewPayback",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -365,10 +431,6 @@ export interface IVaultInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "redeem", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "setActiveProvider",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setDepositCap",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -409,6 +471,7 @@ export interface IVaultInterface extends utils.Interface {
     "Payback(address,address,uint256,uint256)": EventFragment;
     "ProvidersChanged(address[])": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
+    "VaultInitialized(address)": EventFragment;
     "VaultRebalance(uint256,uint256,address,address)": EventFragment;
     "Withdraw(address,address,address,uint256,uint256)": EventFragment;
   };
@@ -425,6 +488,7 @@ export interface IVaultInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Payback"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ProvidersChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "VaultInitialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "VaultRebalance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
 }
@@ -564,6 +628,17 @@ export type TransferEvent = TypedEvent<
 
 export type TransferEventFilter = TypedEventFilter<TransferEvent>;
 
+export interface VaultInitializedEventObject {
+  initializer: string;
+}
+export type VaultInitializedEvent = TypedEvent<
+  [string],
+  VaultInitializedEventObject
+>;
+
+export type VaultInitializedEventFilter =
+  TypedEventFilter<VaultInitializedEvent>;
+
 export interface VaultRebalanceEventObject {
   assets: BigNumber;
   debt: BigNumber;
@@ -660,6 +735,12 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    burnDebt(
+      shares: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     convertDebtToShares(
       debt: BigNumberish,
       overrides?: CallOverrides
@@ -710,7 +791,15 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    maxBorrow(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+    maxBorrow(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { debt: BigNumber }>;
+
+    maxBurnDebt(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { shares: BigNumber }>;
 
     maxDeposit(
       receiver: string,
@@ -721,6 +810,16 @@ export interface IVault extends BaseContract {
       receiver: string,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { maxShares: BigNumber }>;
+
+    maxMintDebt(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { shares: BigNumber }>;
+
+    maxPayback(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { debt: BigNumber }>;
 
     maxRedeem(
       owner: string,
@@ -738,6 +837,13 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    mintDebt(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     name(overrides?: CallOverrides): Promise<[string]>;
 
     payback(
@@ -745,6 +851,16 @@ export interface IVault extends BaseContract {
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    previewBorrow(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { shares: BigNumber }>;
+
+    previewBurnDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { debt: BigNumber }>;
 
     previewDeposit(
       assets: BigNumberish,
@@ -755,6 +871,16 @@ export interface IVault extends BaseContract {
       shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { assets: BigNumber }>;
+
+    previewMintDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { debt: BigNumber }>;
+
+    previewPayback(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { shares: BigNumber }>;
 
     previewRedeem(
       shares: BigNumberish,
@@ -785,11 +911,6 @@ export interface IVault extends BaseContract {
 
     setActiveProvider(
       activeProvider: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setDepositCap(
-      newCap: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -868,6 +989,12 @@ export interface IVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  burnDebt(
+    shares: BigNumberish,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   convertDebtToShares(
     debt: BigNumberish,
     overrides?: CallOverrides
@@ -920,9 +1047,15 @@ export interface IVault extends BaseContract {
 
   maxBorrow(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+  maxBurnDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
   maxDeposit(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   maxMint(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxMintDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxPayback(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -934,6 +1067,13 @@ export interface IVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  mintDebt(
+    shares: BigNumberish,
+    receiver: string,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   name(overrides?: CallOverrides): Promise<string>;
 
   payback(
@@ -942,6 +1082,16 @@ export interface IVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  previewBorrow(
+    debt: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewBurnDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   previewDeposit(
     assets: BigNumberish,
     overrides?: CallOverrides
@@ -949,6 +1099,16 @@ export interface IVault extends BaseContract {
 
   previewMint(
     shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewMintDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewPayback(
+    debt: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -981,11 +1141,6 @@ export interface IVault extends BaseContract {
 
   setActiveProvider(
     activeProvider: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setDepositCap(
-    newCap: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1065,6 +1220,12 @@ export interface IVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    burnDebt(
+      shares: BigNumberish,
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     convertDebtToShares(
       debt: BigNumberish,
       overrides?: CallOverrides
@@ -1117,9 +1278,15 @@ export interface IVault extends BaseContract {
 
     maxBorrow(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    maxBurnDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     maxDeposit(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxMint(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxMintDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxPayback(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1131,11 +1298,28 @@ export interface IVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    mintDebt(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     name(overrides?: CallOverrides): Promise<string>;
 
     payback(
       debt: BigNumberish,
       receiver: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewBorrow(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewBurnDebt(
+      shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1146,6 +1330,16 @@ export interface IVault extends BaseContract {
 
     previewMint(
       shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewMintDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewPayback(
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1178,11 +1372,6 @@ export interface IVault extends BaseContract {
 
     setActiveProvider(
       activeProvider: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setDepositCap(
-      newCap: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1317,6 +1506,11 @@ export interface IVault extends BaseContract {
       value?: null
     ): TransferEventFilter;
 
+    "VaultInitialized(address)"(
+      initializer?: null
+    ): VaultInitializedEventFilter;
+    VaultInitialized(initializer?: null): VaultInitializedEventFilter;
+
     "VaultRebalance(uint256,uint256,address,address)"(
       assets?: null,
       debt?: null,
@@ -1384,6 +1578,12 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    burnDebt(
+      shares: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     convertDebtToShares(
       debt: BigNumberish,
       overrides?: CallOverrides
@@ -1436,9 +1636,15 @@ export interface IVault extends BaseContract {
 
     maxBorrow(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    maxBurnDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
     maxDeposit(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxMint(receiver: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxMintDebt(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxPayback(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1450,12 +1656,29 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    mintDebt(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     name(overrides?: CallOverrides): Promise<BigNumber>;
 
     payback(
       debt: BigNumberish,
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    previewBorrow(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewBurnDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewDeposit(
@@ -1465,6 +1688,16 @@ export interface IVault extends BaseContract {
 
     previewMint(
       shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewMintDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewPayback(
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -1497,11 +1730,6 @@ export interface IVault extends BaseContract {
 
     setActiveProvider(
       activeProvider: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setDepositCap(
-      newCap: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1588,6 +1816,12 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    burnDebt(
+      shares: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     convertDebtToShares(
       debt: BigNumberish,
       overrides?: CallOverrides
@@ -1643,6 +1877,11 @@ export interface IVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    maxBurnDebt(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     maxDeposit(
       receiver: string,
       overrides?: CallOverrides
@@ -1650,6 +1889,16 @@ export interface IVault extends BaseContract {
 
     maxMint(
       receiver: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxMintDebt(
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxPayback(
+      owner: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1669,12 +1918,29 @@ export interface IVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    mintDebt(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     name(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     payback(
       debt: BigNumberish,
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    previewBorrow(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewBurnDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewDeposit(
@@ -1684,6 +1950,16 @@ export interface IVault extends BaseContract {
 
     previewMint(
       shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewMintDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewPayback(
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -1716,11 +1992,6 @@ export interface IVault extends BaseContract {
 
     setActiveProvider(
       activeProvider: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDepositCap(
-      newCap: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1820,9 +2091,15 @@ export interface IVaultMulticall {
 
   maxBorrow(owner: string, overrides?: CallOverrides): Call<BigNumber>;
 
+  maxBurnDebt(owner: string, overrides?: CallOverrides): Call<BigNumber>;
+
   maxDeposit(receiver: string, overrides?: CallOverrides): Call<BigNumber>;
 
   maxMint(receiver: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxMintDebt(owner: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxPayback(owner: string, overrides?: CallOverrides): Call<BigNumber>;
 
   maxRedeem(owner: string, overrides?: CallOverrides): Call<BigNumber>;
 
@@ -1830,12 +2107,29 @@ export interface IVaultMulticall {
 
   name(overrides?: CallOverrides): Call<string>;
 
+  previewBorrow(debt: BigNumberish, overrides?: CallOverrides): Call<BigNumber>;
+
+  previewBurnDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
   previewDeposit(
     assets: BigNumberish,
     overrides?: CallOverrides
   ): Call<BigNumber>;
 
   previewMint(shares: BigNumberish, overrides?: CallOverrides): Call<BigNumber>;
+
+  previewMintDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  previewPayback(
+    debt: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 
   previewRedeem(
     shares: BigNumberish,

@@ -9,7 +9,6 @@ import type {
   CallOverrides,
   ContractTransaction,
   Overrides,
-  PayableOverrides,
   PopulatedTransaction,
   Signer,
   utils,
@@ -27,9 +26,9 @@ import type {
   TypedEvent,
   TypedListener,
   OnEvent,
-} from "../../common";
+} from "../common";
 
-export interface BaseRouterInterface extends utils.Interface {
+export interface LiquidationManagerInterface extends utils.Interface {
   functions: {
     "HARVESTER_ROLE()": FunctionFragment;
     "HOUSE_KEEPER_ROLE()": FunctionFragment;
@@ -37,13 +36,12 @@ export interface BaseRouterInterface extends utils.Interface {
     "PAUSER_ROLE()": FunctionFragment;
     "REBALANCER_ROLE()": FunctionFragment;
     "UNPAUSER_ROLE()": FunctionFragment;
-    "WETH9()": FunctionFragment;
-    "allowCaller(address,bool)": FunctionFragment;
+    "allowExecutor(address,bool)": FunctionFragment;
+    "allowedExecutor(address)": FunctionFragment;
     "chief()": FunctionFragment;
-    "isAllowedCaller(address)": FunctionFragment;
-    "sweepETH(address)": FunctionFragment;
-    "sweepToken(address,address)": FunctionFragment;
-    "xBundle(uint8[],bytes[])": FunctionFragment;
+    "completeLiquidation(address[],address,uint256,address,address)": FunctionFragment;
+    "liquidate(address[],address,uint256,address,address)": FunctionFragment;
+    "treasury()": FunctionFragment;
   };
 
   getFunction(
@@ -54,13 +52,12 @@ export interface BaseRouterInterface extends utils.Interface {
       | "PAUSER_ROLE"
       | "REBALANCER_ROLE"
       | "UNPAUSER_ROLE"
-      | "WETH9"
-      | "allowCaller"
+      | "allowExecutor"
+      | "allowedExecutor"
       | "chief"
-      | "isAllowedCaller"
-      | "sweepETH"
-      | "sweepToken"
-      | "xBundle"
+      | "completeLiquidation"
+      | "liquidate"
+      | "treasury"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -87,25 +84,24 @@ export interface BaseRouterInterface extends utils.Interface {
     functionFragment: "UNPAUSER_ROLE",
     values?: undefined
   ): string;
-  encodeFunctionData(functionFragment: "WETH9", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "allowCaller",
+    functionFragment: "allowExecutor",
     values: [string, boolean]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowedExecutor",
+    values: [string]
   ): string;
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "isAllowedCaller",
-    values: [string]
-  ): string;
-  encodeFunctionData(functionFragment: "sweepETH", values: [string]): string;
-  encodeFunctionData(
-    functionFragment: "sweepToken",
-    values: [string, string]
+    functionFragment: "completeLiquidation",
+    values: [string[], string, BigNumberish, string, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "xBundle",
-    values: [BigNumberish[], BytesLike[]]
+    functionFragment: "liquidate",
+    values: [string[], string, BigNumberish, string, string]
   ): string;
+  encodeFunctionData(functionFragment: "treasury", values?: undefined): string;
 
   decodeFunctionResult(
     functionFragment: "HARVESTER_ROLE",
@@ -131,44 +127,46 @@ export interface BaseRouterInterface extends utils.Interface {
     functionFragment: "UNPAUSER_ROLE",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "WETH9", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "allowCaller",
+    functionFragment: "allowExecutor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowedExecutor",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "isAllowedCaller",
+    functionFragment: "completeLiquidation",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "sweepETH", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "xBundle", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "treasury", data: BytesLike): Result;
 
   events: {
-    "AllowCaller(address,bool)": EventFragment;
+    "AllowExecutor(address,bool)": EventFragment;
   };
 
-  getEvent(nameOrSignatureOrTopic: "AllowCaller"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AllowExecutor"): EventFragment;
 }
 
-export interface AllowCallerEventObject {
-  caller: string;
+export interface AllowExecutorEventObject {
+  executor: string;
   allowed: boolean;
 }
-export type AllowCallerEvent = TypedEvent<
+export type AllowExecutorEvent = TypedEvent<
   [string, boolean],
-  AllowCallerEventObject
+  AllowExecutorEventObject
 >;
 
-export type AllowCallerEventFilter = TypedEventFilter<AllowCallerEvent>;
+export type AllowExecutorEventFilter = TypedEventFilter<AllowExecutorEvent>;
 
-export interface BaseRouter extends BaseContract {
+export interface LiquidationManager extends BaseContract {
   connect(signerOrProvider: Signer | Provider | string): this;
   attach(addressOrName: string): this;
   deployed(): Promise<this>;
 
-  interface: BaseRouterInterface;
+  interface: LiquidationManagerInterface;
 
   queryFilter<TEvent extends TypedEvent>(
     event: TypedEventFilter<TEvent>,
@@ -202,37 +200,38 @@ export interface BaseRouter extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-    WETH9(overrides?: CallOverrides): Promise<[string]>;
-
-    allowCaller(
-      caller: string,
+    allowExecutor(
+      executor: string,
       allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    chief(overrides?: CallOverrides): Promise<[string]>;
-
-    isAllowedCaller(
+    allowedExecutor(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    sweepETH(
-      receiver: string,
+    chief(overrides?: CallOverrides): Promise<[string]>;
+
+    completeLiquidation(
+      users: string[],
+      vault: string,
+      debtAmount: BigNumberish,
+      flasher: string,
+      swapper: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    sweepToken(
-      token: string,
-      receiver: string,
+    liquidate(
+      users: string[],
+      vault: string,
+      debtToCover: BigNumberish,
+      flasher: string,
+      swapper: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    xBundle(
-      actions: BigNumberish[],
-      args: BytesLike[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
+    treasury(overrides?: CallOverrides): Promise<[string]>;
   };
 
   HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
@@ -247,34 +246,35 @@ export interface BaseRouter extends BaseContract {
 
   UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
-  WETH9(overrides?: CallOverrides): Promise<string>;
-
-  allowCaller(
-    caller: string,
+  allowExecutor(
+    executor: string,
     allowed: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  allowedExecutor(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
   chief(overrides?: CallOverrides): Promise<string>;
 
-  isAllowedCaller(arg0: string, overrides?: CallOverrides): Promise<boolean>;
-
-  sweepETH(
-    receiver: string,
+  completeLiquidation(
+    users: string[],
+    vault: string,
+    debtAmount: BigNumberish,
+    flasher: string,
+    swapper: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  sweepToken(
-    token: string,
-    receiver: string,
+  liquidate(
+    users: string[],
+    vault: string,
+    debtToCover: BigNumberish,
+    flasher: string,
+    swapper: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  xBundle(
-    actions: BigNumberish[],
-    args: BytesLike[],
-    overrides?: PayableOverrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
+  treasury(overrides?: CallOverrides): Promise<string>;
 
   callStatic: {
     HARVESTER_ROLE(overrides?: CallOverrides): Promise<string>;
@@ -289,39 +289,46 @@ export interface BaseRouter extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<string>;
 
-    WETH9(overrides?: CallOverrides): Promise<string>;
-
-    allowCaller(
-      caller: string,
+    allowExecutor(
+      executor: string,
       allowed: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
 
+    allowedExecutor(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
     chief(overrides?: CallOverrides): Promise<string>;
 
-    isAllowedCaller(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+    completeLiquidation(
+      users: string[],
+      vault: string,
+      debtAmount: BigNumberish,
+      flasher: string,
+      swapper: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
 
-    sweepETH(receiver: string, overrides?: CallOverrides): Promise<void>;
-
-    sweepToken(
-      token: string,
-      receiver: string,
+    liquidate(
+      users: string[],
+      vault: string,
+      debtToCover: BigNumberish,
+      flasher: string,
+      swapper: string,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    xBundle(
-      actions: BigNumberish[],
-      args: BytesLike[],
-      overrides?: CallOverrides
-    ): Promise<void>;
+    treasury(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
-    "AllowCaller(address,bool)"(
-      caller?: null,
+    "AllowExecutor(address,bool)"(
+      executor?: string | null,
       allowed?: null
-    ): AllowCallerEventFilter;
-    AllowCaller(caller?: null, allowed?: null): AllowCallerEventFilter;
+    ): AllowExecutorEventFilter;
+    AllowExecutor(
+      executor?: string | null,
+      allowed?: null
+    ): AllowExecutorEventFilter;
   };
 
   estimateGas: {
@@ -337,37 +344,38 @@ export interface BaseRouter extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    WETH9(overrides?: CallOverrides): Promise<BigNumber>;
-
-    allowCaller(
-      caller: string,
+    allowExecutor(
+      executor: string,
       allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    chief(overrides?: CallOverrides): Promise<BigNumber>;
-
-    isAllowedCaller(
+    allowedExecutor(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    sweepETH(
-      receiver: string,
+    chief(overrides?: CallOverrides): Promise<BigNumber>;
+
+    completeLiquidation(
+      users: string[],
+      vault: string,
+      debtAmount: BigNumberish,
+      flasher: string,
+      swapper: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    sweepToken(
-      token: string,
-      receiver: string,
+    liquidate(
+      users: string[],
+      vault: string,
+      debtToCover: BigNumberish,
+      flasher: string,
+      swapper: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    xBundle(
-      actions: BigNumberish[],
-      args: BytesLike[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
+    treasury(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
@@ -383,41 +391,42 @@ export interface BaseRouter extends BaseContract {
 
     UNPAUSER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    WETH9(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    allowCaller(
-      caller: string,
+    allowExecutor(
+      executor: string,
       allowed: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    isAllowedCaller(
+    allowedExecutor(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    sweepETH(
-      receiver: string,
+    chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    completeLiquidation(
+      users: string[],
+      vault: string,
+      debtAmount: BigNumberish,
+      flasher: string,
+      swapper: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    sweepToken(
-      token: string,
-      receiver: string,
+    liquidate(
+      users: string[],
+      vault: string,
+      debtToCover: BigNumberish,
+      flasher: string,
+      swapper: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    xBundle(
-      actions: BigNumberish[],
-      args: BytesLike[],
-      overrides?: PayableOverrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
+    treasury(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }
 
-export interface BaseRouterMulticall {
+export interface LiquidationManagerMulticall {
   address: string;
   abi: Fragment[];
   functions: FunctionFragment[];
@@ -434,9 +443,9 @@ export interface BaseRouterMulticall {
 
   UNPAUSER_ROLE(overrides?: CallOverrides): Call<string>;
 
-  WETH9(overrides?: CallOverrides): Call<string>;
+  allowedExecutor(arg0: string, overrides?: CallOverrides): Call<boolean>;
 
   chief(overrides?: CallOverrides): Call<string>;
 
-  isAllowedCaller(arg0: string, overrides?: CallOverrides): Call<boolean>;
+  treasury(overrides?: CallOverrides): Call<string>;
 }
