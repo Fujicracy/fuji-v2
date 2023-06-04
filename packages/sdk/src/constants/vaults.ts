@@ -95,7 +95,7 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.GNOSIS]: [
     new BorrowingVault(
-      Address.from('0x4AeF47117628EbC3ae78A9EdBE558794f1500de6'),
+      Address.from('0x6F5d27D6d0541A648e27cB0181e8C8dDcf272Af3'),
       WETH9[ChainId.GNOSIS],
       USDC[ChainId.GNOSIS]
     ),
