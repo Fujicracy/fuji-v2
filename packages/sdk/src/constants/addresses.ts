@@ -123,7 +123,7 @@ export const FUJI_ORACLE_ADDRESS: AddressMap = {
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0x5DA1DAAeBe3bc266fa34FFc22F233b07C2F8658C'
   ),
-  [ChainId.GNOSIS]: Address.from('0x314Cfa1BA6E88B2B2118eD0bECD30D040dA232bf'),
+  [ChainId.GNOSIS]: Address.from('0xaD9D534e95359dF7F89BDbddc92a9B866cb3bF84'),
 };
 
 export const CHIEF_ADDRESS: AddressMap = {
@@ -143,7 +143,7 @@ export const CHIEF_ADDRESS: AddressMap = {
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0xE652f6e7b27EB4E19Fa9cAe4315cff36868B319F'
   ),
-  [ChainId.GNOSIS]: Address.from('0x62a790A77df54Cc75C899a3b27D118958c279A37'),
+  [ChainId.GNOSIS]: Address.from('0x0B455e1e666EfebEa3E1Be1eFd37781ce6dd1ba8'),
 };
 
 export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
@@ -163,5 +163,5 @@ export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.OPTIMISM_GOERLI]: Address.from(
     '0x1C7c4623C4b83805968603a5312928CC6E1Bf3C8'
   ),
-  [ChainId.GNOSIS]: Address.from('0xc349fd29AeD02ec862DfC03AF16e786798d8Aa1b'),
+  [ChainId.GNOSIS]: Address.from('0x77381de8B068c0E4A6d8343C94b74F8CC4a99A78'),
 };
