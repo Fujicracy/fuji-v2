@@ -238,7 +238,7 @@ contract ScriptPlus is Script {
       timelock.execute(target, 0, callData, 0x00, 0x00);
     } else if (!timelock.isOperation(hash) && !timelock.isOperationDone(hash)) {
       console.log("Schedule:");
-      timelock.schedule(target, 0, callData, 0x00, 0x00, 1 seconds);
+      timelock.schedule(target, 0, callData, 0x00, 0x00, 3 seconds);
     } else {
       console.log("Already scheduled and executed:");
     }
