@@ -838,12 +838,7 @@ export const useBorrow = create<BorrowStore>()(
           let notificationId: NotificationId | undefined;
           try {
             if (!actions || !vault || !provider) {
-              throw 'Unexpected undefined value';
-            }
-
-            const permitAction = Sdk.findPermitAction(actions);
-            if (!permitAction) {
-              throw 'No permit action found';
+              throw new Error('Unexpected undefined value');
             }
 
             set({ isSigning: true });
@@ -853,15 +848,17 @@ export const useBorrow = create<BorrowStore>()(
               message: NOTIFICATION_MESSAGES.SIGNATURE_PENDING,
               sticky: true,
             });
-            const { domain, types, value } = await vault.signPermitFor(
-              permitAction
-            );
+            const r = await vault.signPermitFor(actions);
+            if (!r.success) {
+              throw new Error(r.error.message);
+            }
+            const { domain, types, value } = r.data;
             const signer = provider.getSigner();
             const s = await signer._signTypedData(domain, types, value);
             const signature = ethers.utils.splitSignature(s);
 
             set({ signature });
-          } catch (e) {
+          } catch (e: unknown) {
             handleTransactionError(
               e,
               NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
