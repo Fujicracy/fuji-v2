@@ -132,6 +132,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               isHistoricalTransaction={isHistoricalTransaction}
             />
           )}
+          <GuildAccess />
           <DisclaimerModal />
           <ExploreCarousel />
           <Notification />
