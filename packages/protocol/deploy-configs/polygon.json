@@ -4,6 +4,7 @@
   "USDC": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
   "DAI": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
   "USDT": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+  "MATICX": "0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6",
   "ConnextCore": "0x11984dc4465481512eb5b777E44061C158CF2259",
   "price-feeds": [
     {
@@ -25,6 +26,10 @@
     {
       "asset": "USDT",
       "chainlink": "0x0a6513e40db6eb1b165753ad52e80663aea50545"
+    },
+    {
+      "asset": "MATICX",
+      "chainlink": "0x5d37E4b374E6907de8Fc7fb33EE3b0af403C7403"
     }
   ],
   "simple-mappings": [
@@ -61,6 +66,17 @@
       "asset2": "USDC",
       "market": "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
       "name": "Compound_V3_Polygon"
+    }
+  ],
+  "borrowing-vaults": [
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 770000000000000000,
+      "name": "BorrowingVault-WETHUSDC-1",
+      "providers": ["Compound_V3_Polygon", "Aave_V3_Polygon", "Aave_V2_Polygon"],
+      "rating": 95
     }
   ]
 }

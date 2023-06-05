@@ -4,6 +4,7 @@
   "USDC": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   "DAI": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
   "USDT": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+  "WSTETH": "",
   "ConnextCore": "i0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA",
   "price-feeds": [
     {
@@ -25,6 +26,10 @@
     {
       "asset": "USDT",
       "chainlink": "0xECef79E109e997bCA29c1c0897ec9d7b03647F5E"
+    },
+    {
+      "asset": "WSTETH",
+      "chainlink": "0x698B585CbC4407e2D54aa898B2600B53C68958f7"
     }
   ],
   "simple-mappings": [
@@ -47,8 +52,14 @@
       "asset": "DAI",
       "market": "0x5bedE655e2386AbC49E2Cc8303Da6036bF78564c",
       "name": "DForce_Optimism"
+    },
+    {
+      "asset": "WSTETH",
+      "market": "0x4B3488123649E8A671097071A02DA8537fE09A16",
+      "name": "DForce_Optimism"
     }
   ],
-  "nested-mappings": []
+  "nested-mappings": [],
+  "borrowing-vaults": []
 }
 

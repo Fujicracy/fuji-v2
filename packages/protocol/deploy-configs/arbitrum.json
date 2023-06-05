@@ -62,5 +62,6 @@
       "market": "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
       "name": "Compound_V3_Arbitrum"
     }
-  ]
+  ],
+  "borrowing-vaults": []
 }
