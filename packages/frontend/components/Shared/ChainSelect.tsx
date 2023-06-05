@@ -15,12 +15,7 @@ import {
 import { ChainId } from '@x-fuji/sdk';
 import React from 'react';
 
-import {
-  chainName,
-  chains,
-  hexToChainId,
-  isSupported,
-} from '../../helpers/chains';
+import { chainName, chains, isSupported } from '../../helpers/chains';
 import { useAuth } from '../../store/auth.store';
 import { NetworkIcon } from './Icons';
 
@@ -28,11 +23,10 @@ function ChainSelect() {
   const theme = useTheme();
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const [hexChainId, setChainId] = useAuth((state) => [
-    state.chain?.id,
+  const [chainId, setChainId] = useAuth((state) => [
+    state.chainId,
     state.changeChain,
   ]);
-  const chainId = hexToChainId(hexChainId);
   const networkName = chainName(chainId);
 
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -51,6 +45,7 @@ function ChainSelect() {
     <>
       {networkName && isSupported(chainId) ? (
         <Chip
+          data-cy="network-button"
           label={
             <Stack direction="row" alignItems="center" spacing={1}>
               <ListItem
@@ -67,6 +62,7 @@ function ChainSelect() {
         />
       ) : (
         <Chip
+          data-cy="header-unsupported-network"
           label={
             <Stack direction="row" spacing={1} alignItems="center">
               <WarningAmberIcon fontSize="inherit" sx={{ ml: '1px' }} />
@@ -93,6 +89,7 @@ function ChainSelect() {
       >
         {chains.map((chain) => (
           <MenuItem
+            data-cy="network-menu-item"
             key={chain.chainId}
             onClick={() => selectChain(chain.chainId)}
           >
@@ -125,6 +122,7 @@ const ListItem = (props: ListItemProps) => {
       </ListItemIcon>
       {!onMobile && (
         <ListItemText
+          data-cy="header-network"
           sx={{
             '& .MuiTypography-root': {
               fontSize: '0.875rem',

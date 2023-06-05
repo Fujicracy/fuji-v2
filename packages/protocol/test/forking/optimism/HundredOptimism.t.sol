@@ -9,7 +9,13 @@ import {HundredOptimism} from "../../../src/providers/optimism/HundredOptimism.s
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
 
-contract HundredOptimismForkingTest is Routines, ForkingSetup {
+/**
+ * @custom:disabled Optimism tests fail for some lending markets
+ * due to opcode differences between OVM, and EVM.
+ * The tests in this suite are disabled until further notice.
+ */
+// contract HundredOptimismForkingTests is Routines, ForkingSetup {
+contract HundredOptimismDisabledTest is Routines, ForkingSetup {
   ILendingProvider public hundred;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

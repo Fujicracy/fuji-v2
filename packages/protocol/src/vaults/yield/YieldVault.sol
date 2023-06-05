@@ -51,9 +51,25 @@ contract YieldVault is BaseVault {
   {
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
+
+    _pauseForceAllActions();
   }
 
   receive() external payable {}
+
+  /// @inheritdoc BaseVault
+  function initializeVaultShares(uint256 assets, uint256) public override {
+    if (initialized) {
+      revert BaseVault__initializeVaultShares_alreadyInitialized();
+    } else if (assets < minAmount) {
+      revert BaseVault__initializeVaultShares_lessThanMin();
+    }
+    _unpauseForceAllActions();
+    _deposit(msg.sender, chief.timelock(), assets, assets);
+
+    initialized = true;
+    emit VaultInitialized(msg.sender);
+  }
 
   /*///////////////////////////////
       Debt management overrides 
@@ -69,7 +85,7 @@ contract YieldVault is BaseVault {
   function balanceOfDebt(address) public pure override returns (uint256) {}
 
   /// @inheritdoc BaseVault
-  function balanceOfDebtShares(address owner) external view override returns (uint256 debtShares) {}
+  function balanceOfDebtShares(address owner) public pure override returns (uint256 debtShares) {}
 
   /// @inheritdoc BaseVault
   function totalDebt() public pure override returns (uint256) {}
@@ -84,12 +100,43 @@ contract YieldVault is BaseVault {
   function maxBorrow(address) public pure override returns (uint256) {}
 
   /// @inheritdoc BaseVault
+  function maxPayback(address) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function maxMintDebt(address) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function maxBurnDebt(address) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function previewBorrow(uint256) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function previewMintDebt(uint256) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function previewPayback(uint256) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
+  function previewBurnDebt(uint256) public pure override returns (uint256) {}
+
+  /// @inheritdoc BaseVault
   function borrow(uint256, address, address) public pure override returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
   /// @inheritdoc BaseVault
+  function mintDebt(uint256, address, address) public pure override returns (uint256) {
+    revert YieldVault__notApplicable();
+  }
+
+  /// @inheritdoc BaseVault
   function payback(uint256, address) public pure override returns (uint256) {
+    revert YieldVault__notApplicable();
+  }
+
+  /// @inheritdoc BaseVault
+  function burnDebt(uint256, address) public pure override returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
@@ -146,6 +193,7 @@ contract YieldVault is BaseVault {
     address,
     uint256,
     uint256,
+    bytes32,
     uint8,
     bytes32,
     bytes32
@@ -159,6 +207,7 @@ contract YieldVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function _computeFreeAssets(address owner) internal view override returns (uint256) {
+    // There is no restriction on asset-share movements in a {YieldVault}.
     return convertToAssets(balanceOf(owner));
   }
 
@@ -230,8 +279,10 @@ contract YieldVault is BaseVault {
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
       }
-      IERC20(asset()).approve(
-        providers[i].approvedOperator(asset(), asset(), debtAsset()), type(uint256).max
+      SafeERC20.forceApprove(
+        IERC20(asset()),
+        providers[i].approvedOperator(asset(), asset(), debtAsset()),
+        type(uint256).max
       );
       unchecked {
         ++i;

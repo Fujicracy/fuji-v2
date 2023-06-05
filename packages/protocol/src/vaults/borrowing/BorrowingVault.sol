@@ -24,7 +24,6 @@ import {IERC20Metadata} from
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
-import {IFlasher} from "../../interfaces/IFlasher.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
@@ -59,14 +58,17 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
   error BorrowingVault__payback_moreThanMax();
+  error BorrowingVault__beforeTokenTransfer_moreThanMax();
   error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
   error BorrowingVault__rebalance_invalidProvider();
-  error BorrowingVault__rebalance_invalidFlasher();
-  error BorrowingVault__checkFee_excessFee();
   error BorrowingVault__borrow_slippageTooHigh();
+  error BorrowingVault__mintDebt_slippageTooHigh();
   error BorrowingVault__payback_slippageTooHigh();
+  error BorrowingVault__burnDebt_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
+  error BorrowingVault__correctDebt_noNeedForCorrection();
+  error BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
 
   /*///////////////////
    Liquidation controls
@@ -84,13 +86,12 @@ contract BorrowingVault is BaseVault {
   /// @notice Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
-  IERC20Metadata internal _debtAsset;
+  IERC20Metadata internal immutable _debtAsset;
   uint8 internal immutable _debtDecimals;
 
   uint256 public debtSharesSupply;
 
   mapping(address => uint256) internal _debtShares;
-  mapping(address => mapping(address => uint256)) private _borrowAllowances;
 
   IFujiOracle public oracle;
 
@@ -114,6 +115,8 @@ contract BorrowingVault is BaseVault {
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
    * @param providers_ array that will initialize this vault
+   * @param maxLtv_ initially set in vault
+   * @param liqRatio_ initially set in vault
    *
    * @dev Requirements:
    * - Must be initialized with a set of providers.
@@ -129,7 +132,9 @@ contract BorrowingVault is BaseVault {
     address chief_,
     string memory name_,
     string memory symbol_,
-    ILendingProvider[] memory providers_
+    ILendingProvider[] memory providers_,
+    uint256 maxLtv_,
+    uint256 liqRatio_
   )
     BaseVault(asset_, chief_, name_, symbol_)
   {
@@ -137,8 +142,13 @@ contract BorrowingVault is BaseVault {
     _debtDecimals = IERC20Metadata(debtAsset_).decimals();
 
     oracle = IFujiOracle(oracle_);
-    maxLtv = 75 * 1e16;
-    liqRatio = 80 * 1e16;
+
+    if (maxLtv_ == 0 || liqRatio_ == 0 || maxLtv_ < 1e16 || maxLtv_ >= 1e18 || liqRatio_ < maxLtv_)
+    {
+      revert BaseVault__setter_invalidInput();
+    }
+    maxLtv = maxLtv_;
+    liqRatio = liqRatio_;
 
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
@@ -146,9 +156,57 @@ contract BorrowingVault is BaseVault {
 
   receive() external payable {}
 
+  /// @inheritdoc BaseVault
+  function initializeVaultShares(uint256 assets, uint256 debt) public override {
+    if (initialized) {
+      revert BaseVault__initializeVaultShares_alreadyInitialized();
+    } else if (assets < minAmount || debt < minAmount) {
+      revert BaseVault__initializeVaultShares_lessThanMin();
+    }
+    _unpauseForceAllActions();
+
+    _checkMaxLtv(assets, debt);
+    address timelock = chief.timelock();
+    _deposit(msg.sender, timelock, assets, assets);
+    _borrow(msg.sender, timelock, timelock, debt, debt);
+
+    initialized = true;
+    emit VaultInitialized(msg.sender);
+  }
+
+  function _checkMaxLtv(uint256 assets, uint256 debt) internal view {
+    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
+
+    uint256 maxBorrow_ = (assets * maxLtv * price) / (1e18 * 10 ** decimals());
+    if (debt > maxBorrow_) {
+      revert BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
+    }
+  }
+
   /*///////////////////////////////
   /// Debt management overrides ///
   ///////////////////////////////*/
+
+  /**
+   * @dev Hook before all asset-share transfers.
+   * Requirements:
+   * - Must check `from` can move `amount` of shares.
+   *
+   * @param from address
+   * @param to address
+   * @param amount of shares
+   */
+  function _beforeTokenTransfer(address from, address to, uint256 amount) internal view override {
+    /**
+     * @dev Hook check activated only when called by OZ {ERC20-_transfer}
+     * User must not be able to transfer asset-shares locked as collateral
+     */
+    if (from != address(0) && to != address(0)) {
+      if (amount > maxRedeem(from)) {
+        revert BorrowingVault__beforeTokenTransfer_moreThanMax();
+      }
+    }
+  }
 
   /// @inheritdoc IVault
   function debtDecimals() public view override returns (uint8) {
@@ -177,17 +235,64 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc IVault
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
-    return _convertDebtToShares(debt, Math.Rounding.Down);
+    return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
   /// @inheritdoc IVault
   function convertToDebt(uint256 shares) public view override returns (uint256 debt) {
-    return _convertToDebt(shares, Math.Rounding.Down);
+    return _convertToDebt(shares, Math.Rounding.Up);
   }
 
   /// @inheritdoc IVault
   function maxBorrow(address borrower) public view override returns (uint256) {
+    if (paused(VaultActions.Borrow)) {
+      return 0;
+    }
     return _computeMaxBorrow(borrower);
+  }
+
+  /// @inheritdoc IVault
+  function maxPayback(address borrower) public view override returns (uint256) {
+    if (paused(VaultActions.Payback)) {
+      return 0;
+    }
+    return previewBurnDebt(maxBurnDebt(borrower));
+  }
+
+  /// @inheritdoc IVault
+  function maxMintDebt(address borrower) public view override returns (uint256) {
+    if (paused(VaultActions.Borrow)) {
+      return 0;
+    }
+    return convertDebtToShares(maxBorrow(borrower));
+  }
+
+  /// @inheritdoc IVault
+  function maxBurnDebt(address borrower) public view override returns (uint256) {
+    if (paused(VaultActions.Payback)) {
+      return 0;
+    }
+    return _debtShares[borrower];
+  }
+
+  /// @inheritdoc IVault
+  function previewBorrow(uint256 debt) public view override returns (uint256 shares) {
+    return _convertDebtToShares(debt, Math.Rounding.Up);
+  }
+
+  /// @inheritdoc IVault
+  function previewMintDebt(uint256 shares) public view override returns (uint256 debt) {
+    return _convertDebtToShares(shares, Math.Rounding.Down);
+  }
+
+  /// @inheritdoc IVault
+  function previewPayback(uint256 debt) public view override returns (uint256 shares) {
+    return _convertDebtToShares(debt, Math.Rounding.Down);
+  }
+
+  /// @inheritdoc IVault
+  function previewBurnDebt(uint256 shares) public view override returns (uint256 debt) {
+    return _convertToDebt(shares, Math.Rounding.Up);
   }
 
   /**
@@ -219,23 +324,59 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
-    address caller = _msgSender();
+    address caller = msg.sender;
 
-    if (debt == 0 || receiver == address(0) || owner == address(0) || debt < minAmount) {
-      revert BorrowingVault__borrow_invalidInput();
-    }
-    if (debt > maxBorrow(owner)) {
-      revert BorrowingVault__borrow_moreThanAllowed();
-    }
-
-    if (caller != owner) {
-      _spendBorrowAllowance(owner, caller, receiver, debt);
-    }
-
-    uint256 shares = convertDebtToShares(debt);
+    uint256 shares = previewBorrow(debt);
+    _borrowChecks(caller, receiver, owner, debt, shares);
     _borrow(caller, receiver, owner, debt, shares);
 
     return shares;
+  }
+
+  /**
+   * @notice Slippage protected `mintDebt()` inspired by EIP5143.
+   *
+   * @param shares of debt to mint
+   * @param receiver address to whom borrowed amount will be transferred
+   * @param owner address who will incur the debt
+   * @param minDebt amount that must be sent to receiver in this call
+   *
+   * @dev Requirements:
+   * - Must transfer at least `minDebt` when calling `mintDebt()`.
+   */
+  function mintDebt(
+    uint256 shares,
+    address receiver,
+    address owner,
+    uint256 minDebt
+  )
+    public
+    returns (uint256)
+  {
+    uint256 receivedDebt = mintDebt(shares, receiver, owner);
+    if (receivedDebt < minDebt) {
+      revert BorrowingVault__mintDebt_slippageTooHigh();
+    }
+    return receivedDebt;
+  }
+
+  /// @inheritdoc BaseVault
+  function mintDebt(
+    uint256 shares,
+    address receiver,
+    address owner
+  )
+    public
+    override
+    returns (uint256)
+  {
+    uint256 debt = previewMintDebt(shares);
+    address caller = msg.sender;
+
+    _borrowChecks(caller, receiver, owner, debt, shares);
+    _borrow(caller, receiver, owner, debt, shares);
+
+    return debt;
   }
 
   /**
@@ -258,18 +399,70 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc BaseVault
   function payback(uint256 debt, address owner) public override returns (uint256) {
-    if (debt == 0 || owner == address(0)) {
-      revert BorrowingVault__payback_invalidInput();
-    }
+    uint256 shares = previewPayback(debt);
 
-    if (debt > convertToDebt(_debtShares[owner])) {
-      revert BorrowingVault__payback_moreThanMax();
-    }
-
-    uint256 shares = convertDebtToShares(debt);
-    _payback(_msgSender(), owner, debt, shares);
+    _paybackChecks(owner, debt, shares);
+    _payback(msg.sender, owner, debt, shares);
 
     return shares;
+  }
+
+  /**
+   * @notice Slippage protected `burnDebt()` inspired by EIP5143.
+   *
+   * @param shares of debt to payback
+   * @param owner address whose debt will be reduced
+   * @param maxAmount of debt asset that must be pulled from caller to payback in this call
+   *
+   * @dev Requirements:
+   * - Must pull a maximum of `maxAmount` debt asset when calling `maxAmount()`.
+   */
+  function burnDebt(uint256 shares, address owner, uint256 maxAmount) public returns (uint256) {
+    uint256 maxPulledAmount = burnDebt(shares, owner);
+    if (maxPulledAmount > maxAmount) {
+      revert BorrowingVault__burnDebt_slippageTooHigh();
+    }
+    return maxPulledAmount;
+  }
+
+  /// @inheritdoc BaseVault
+  function burnDebt(uint256 shares, address owner) public override returns (uint256) {
+    uint256 debt = previewBurnDebt(shares);
+
+    _paybackChecks(owner, debt, shares);
+    _payback(msg.sender, owner, debt, shares);
+
+    return debt;
+  }
+
+  /**
+   * @dev Checks if vault debt has been paid off externally and pauses the vault if so.
+   * Will call withdraw if normal conditions are met.
+   *
+   * @param caller or {msg.sender}
+   * @param receiver to whom `assets` amount will be transferred to
+   * @param owner to whom `shares` will be burned
+   * @param assets amount transferred during this withraw
+   * @param shares amount burned to `owner` during this withdraw
+   */
+  function _withdraw(
+    address caller,
+    address receiver,
+    address owner,
+    uint256 assets,
+    uint256 shares
+  )
+    internal
+    override
+    whenNotPaused(VaultActions.Withdraw)
+  {
+    uint256 totalDebt_ = totalDebt();
+    uint256 supply = debtSharesSupply;
+
+    if (totalDebt_ == 0 && supply > 0 && supply > totalDebt_) {
+      _pause(VaultActions.Withdraw);
+    }
+    super._withdraw(caller, receiver, owner, assets, shares);
   }
 
   /*///////////////////////
@@ -325,6 +518,7 @@ contract BorrowingVault is BaseVault {
     address receiver,
     uint256 value,
     uint256 deadline,
+    bytes32 actionArgsHash,
     uint8 v,
     bytes32 r,
     bytes32 s
@@ -332,7 +526,7 @@ contract BorrowingVault is BaseVault {
     public
     override
   {
-    VaultPermissions.permitBorrow(owner, receiver, value, deadline, v, r, s);
+    VaultPermissions.permitBorrow(owner, receiver, value, deadline, actionArgsHash, v, r, s);
   }
 
   /**
@@ -357,10 +551,11 @@ contract BorrowingVault is BaseVault {
   /// @inheritdoc BaseVault
   function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
     uint256 debtShares = _debtShares[owner];
+    uint256 assets = convertToAssets(balanceOf(owner));
 
     // Handle no debt case.
     if (debtShares == 0) {
-      freeAssets = convertToAssets(balanceOf(owner));
+      freeAssets = assets;
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
@@ -370,8 +565,6 @@ contract BorrowingVault is BaseVault {
         // Handle wei level amounts in where 'lockedAssets' < 1 wei.
         lockedAssets = 1;
       }
-
-      uint256 assets = convertToAssets(balanceOf(owner));
 
       freeAssets = assets > lockedAssets ? assets - lockedAssets : 0;
     }
@@ -452,6 +645,39 @@ contract BorrowingVault is BaseVault {
   }
 
   /**
+   * @dev Runs common checks for all "borrow" or "mintDebt" actions in this vault.
+   * Requirements:
+   * - Must revert for all conditions not passed.
+   *
+   * @param caller msg.sender in this context
+   * @param receiver of the borrow amount
+   * @param owner of the debt accountability
+   * @param debt or borrowed amount of debt asset
+   * @param shares corresponding to debt
+   */
+  function _borrowChecks(
+    address caller,
+    address receiver,
+    address owner,
+    uint256 debt,
+    uint256 shares
+  )
+    private
+  {
+    if (
+      debt == 0 || shares == 0 || receiver == address(0) || owner == address(0) || debt < minAmount
+    ) {
+      revert BorrowingVault__borrow_invalidInput();
+    }
+    if (debt > maxBorrow(owner)) {
+      revert BorrowingVault__borrow_moreThanAllowed();
+    }
+    if (caller != owner) {
+      _spendBorrowAllowance(owner, caller, receiver, debt);
+    }
+  }
+
+  /**
    * @dev Perform payback action at provider. Payback/burnDebtShares common workflow.
    * Requirements:
    * - Must call `activeProvider` in `_executeProviderAction()`.
@@ -471,14 +697,31 @@ contract BorrowingVault is BaseVault {
     internal
     whenNotPaused(VaultActions.Payback)
   {
-    address asset = debtAsset();
-    SafeERC20.safeTransferFrom(IERC20(asset), caller, address(this), assets);
+    SafeERC20.safeTransferFrom(IERC20(debtAsset()), caller, address(this), assets);
 
     _executeProviderAction(assets, "payback", activeProvider);
 
     _burnDebtShares(owner, shares);
 
     emit Payback(caller, owner, assets, shares);
+  }
+
+  /**
+   * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault.
+   * Requirements:
+   * - Must revert for all conditions not passed.
+   *
+   * @param owner of the debt accountability
+   * @param debt or borrowed amount of debt asset
+   * @param shares of debt being burned
+   */
+  function _paybackChecks(address owner, uint256 debt, uint256 shares) private view {
+    if (debt == 0 || shares == 0 || owner == address(0)) {
+      revert BorrowingVault__payback_invalidInput();
+    }
+    if (shares > _debtShares[owner]) {
+      revert BorrowingVault__payback_moreThanMax();
+    }
   }
 
   /**
@@ -530,13 +773,21 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__rebalance_invalidProvider();
     }
     SafeERC20.safeTransferFrom(IERC20(debtAsset()), msg.sender, address(this), debt);
-    _executeProviderAction(debt, "payback", from);
-    _executeProviderAction(assets, "withdraw", from);
+    if (debt > 0) {
+      _executeProviderAction(debt, "payback", from);
+    }
+    if (assets > 0) {
+      _executeProviderAction(assets, "withdraw", from);
+    }
 
     _checkRebalanceFee(fee, debt);
 
-    _executeProviderAction(assets, "deposit", to);
-    _executeProviderAction(debt + fee, "borrow", to);
+    if (assets > 0) {
+      _executeProviderAction(assets, "deposit", to);
+    }
+    if (debt > 0) {
+      _executeProviderAction(debt + fee, "borrow", to);
+    }
     SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
 
     if (setToAsActiveProvider) {
@@ -573,7 +824,7 @@ contract BorrowingVault is BaseVault {
 
     if (healthFactor >= 1e18) {
       liquidationFactor = 0;
-    } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
+    } else if (FULL_LIQUIDATION_THRESHOLD <= healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt
     } else {
       liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100% of owner's debt
@@ -593,7 +844,7 @@ contract BorrowingVault is BaseVault {
       revert BorrowingVault__liquidate_invalidInput();
     }
 
-    address caller = _msgSender();
+    address caller = msg.sender;
 
     uint256 liquidationFactor = getLiquidationFactor(owner);
     if (liquidationFactor == 0) {
@@ -608,7 +859,9 @@ contract BorrowingVault is BaseVault {
     // Compute `gainedShares` amount that the liquidator will receive.
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
     uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, 1e18);
-    gainedShares = convertToShares(Math.mulDiv(debt, liquidationFactor, discountedPrice));
+
+    uint256 gainedAssets = Math.mulDiv(debtToCover, 10 ** _asset.decimals(), discountedPrice);
+    gainedShares = convertToShares(gainedAssets);
 
     _payback(caller, owner, debtToCover, debtSharesToCover);
 
@@ -657,9 +910,10 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - Must be called from a timelock.
    * - Must be at least 1% (1e16).
+   * - Must be less than 100% (1e18).
    */
   function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
-    if (maxLtv_ < 1e16) {
+    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18 || maxLtv_ >= liqRatio) {
       revert BaseVault__setter_invalidInput();
     }
     maxLtv = maxLtv_;
@@ -674,11 +928,13 @@ contract BorrowingVault is BaseVault {
    * @dev See factor
    * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    * Restrictions:
-   * - Must be greater than 'maxLTV', and non zero.
+   * - Must be greater than 'maxLTV'.
+   * - Must be at least 2% (2e16).
+   * - Must be less than 100% (1e18).
    * - Must be called from a timelock.
    */
   function setLiqRatio(uint256 liqRatio_) external onlyTimelock {
-    if (liqRatio_ < maxLtv || liqRatio_ == 0) {
+    if (liqRatio_ <= maxLtv || liqRatio_ < 2e16 || liqRatio_ >= 1e18) {
       revert BaseVault__setter_invalidInput();
     }
     liqRatio = liqRatio_;
@@ -692,11 +948,15 @@ contract BorrowingVault is BaseVault {
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
       }
-      IERC20(asset()).approve(
-        providers[i].approvedOperator(asset(), asset(), debtAsset()), type(uint256).max
+      SafeERC20.forceApprove(
+        IERC20(asset()),
+        providers[i].approvedOperator(asset(), asset(), debtAsset()),
+        type(uint256).max
       );
-      IERC20(debtAsset()).approve(
-        providers[i].approvedOperator(debtAsset(), asset(), debtAsset()), type(uint256).max
+      SafeERC20.forceApprove(
+        IERC20(debtAsset()),
+        providers[i].approvedOperator(debtAsset(), asset(), debtAsset()),
+        type(uint256).max
       );
       unchecked {
         ++i;
@@ -705,5 +965,25 @@ contract BorrowingVault is BaseVault {
     _providers = providers;
 
     emit ProvidersChanged(providers);
+  }
+
+  /**
+   * @notice In case someone repays this vault's debt directly to the lending provider,
+   * a borrow is done with the amount that was repaid so no issues regarding
+   * the relationship between debt and debt shares occurs.
+   *
+   * @param  treasury address to receive the borrowed amount
+   */
+  function correctDebt(address treasury) external onlyTimelock {
+    uint256 vaultDebt = totalDebt();
+    uint256 vaultDebtShares = debtSharesSupply;
+
+    // Check if there is need for correction.
+    if (vaultDebt >= vaultDebtShares || vaultDebt != 0 || vaultDebtShares == 0) {
+      revert BorrowingVault__correctDebt_noNeedForCorrection();
+    }
+
+    _executeProviderAction(vaultDebtShares, "borrow", activeProvider);
+    SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, vaultDebtShares);
   }
 }

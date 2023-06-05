@@ -37,10 +37,18 @@ function Container({ children, isMobile }: ContainerProps) {
           left: '6%',
           right: '6%',
           pb: 0,
+          border: '1px solid #6C7182',
         }}
       >
-        <CardContent sx={{ p: 0, width: '100%' }}>
-          <CardActionArea onClick={openPreviewTransaction}>
+        <CardContent sx={{ p: 0, width: '100%', mb: '0.8rem' }}>
+          <CardActionArea
+            onClick={openPreviewTransaction}
+            sx={{
+              '.MuiCardActionArea-focusHighlight': {
+                backgroundColor: 'transparent',
+              },
+            }}
+          >
             <Grid container justifyContent="space-between">
               <Typography onClick={openPreviewTransaction} variant="body2">
                 Overview
@@ -111,7 +119,7 @@ function Container({ children, isMobile }: ContainerProps) {
                   )}
                 </Grid>
               </CardActionArea>
-              <Divider sx={{ mt: '1.375rem', mb: '1rem' }} />
+              <Divider sx={{ mt: '0.575rem', mb: '1rem' }} />
               {children}
             </CardContent>
           </Card>
@@ -126,10 +134,15 @@ function Container({ children, isMobile }: ContainerProps) {
           alignItems: 'center',
           p: '1.5rem 2rem',
           width: '100%',
+          overflow: 'visible',
         }}
       >
-        <CardContent sx={{ padding: 0, gap: '1rem' }}>{children}</CardContent>
+        <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
+          {children}
+        </CardContent>
       </Card>
+
+      {/* <Analytics /> */}
     </Grid>
   );
 }

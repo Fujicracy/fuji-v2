@@ -18,7 +18,7 @@ import {AaveV3Polygon} from "../../../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../../../src/providers/polygon/AaveV2Polygon.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 
-contract VaultRebalancingForkingTest is Routines, ForkingSetup {
+contract VaultRebalancingForkingTests is Routines, ForkingSetup {
   ILendingProvider public aaveV2;
   ILendingProvider public aaveV3;
   IRouter public router;
@@ -68,7 +68,7 @@ contract VaultRebalancingForkingTest is Routines, ForkingSetup {
 
     deal(debtAsset, address(this), debt);
 
-    SafeERC20.safeApprove(IERC20(debtAsset), address(vault), debt);
+    SafeERC20.safeIncreaseAllowance(IERC20(debtAsset), address(vault), debt);
     vault.rebalance(assets, debt, aaveV3, aaveV2, 0, true);
 
     assertEq(aaveV3.getDepositBalance(address(vault), IVault(address(vault))), 0);

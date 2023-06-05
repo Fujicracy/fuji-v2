@@ -20,6 +20,7 @@ import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {IChief} from "../interfaces/IChief.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
+import {LibBytes} from "../libraries/LibBytes.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
   /**
@@ -75,7 +76,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   error ConnextRouter__xReceive_notReceivedAssetBalance();
   error ConnextRouter__xReceive_notAllowedCaller();
   error ConnextRouter__xReceiver_noValueTransferUseXbundle();
-  error ConnnextRouter__checkSlippage_outOfBounds();
+  error ConnnextRouter__xBundleConnext_notSelfCalled();
 
   /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -89,6 +90,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * plz check: https://docs.connext.network/resources/deployments
    */
   mapping(uint256 => address) public routerByDomain;
+
+  modifier onlySelf() {
+    if (msg.sender != address(this)) {
+      revert ConnnextRouter__xBundleConnext_notSelfCalled();
+    }
+    _;
+  }
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
@@ -110,18 +118,15 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param originDomain the origin domain identifier according Connext nomenclature
    * @param callData the calldata that will get decoded and executed, see "Requirements"
    *
-   * @dev It does not perform authentification of the calling address. As a result of that,
+   * @dev It does not perform authentication of the calling address. As a result of that,
    * all txns go through Connext's fast path.
    * If `xBundle` fails internally, this contract will send the received funds to {ConnextHandler}.
    *
    * Requirements:
    * - `calldata` parameter must be encoded with the following structure:
-   *     > abi.encode(Action[] actions, bytes[] args, uint256 slippageThreshold)
+   *     > abi.encode(Action[] actions, bytes[] args)
    * - actions: array of serialized actions to execute from available enum {IRouter.Action}.
    * - args: array of encoded arguments according to each action. See {BaseRouter-internalBundle}.
-   * - slippageThreshold: same argument as defined in the original `xCall()`. This
-   *     argument protects and checks internally for any slippage that happens during
-   *     the bridge of assets.
    */
   function xReceive(
     bytes32 transferId,
@@ -134,18 +139,17 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     external
     returns (bytes memory)
   {
-    (Action[] memory actions, bytes[] memory args, uint256 slippageThreshold) =
-      abi.decode(callData, (Action[], bytes[], uint256));
+    (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
     uint256 balance;
-    IERC20 asset_ = IERC20(asset);
+    uint256 beforeSlipped;
     if (amount > 0) {
       // Ensure that at this entry point expected `asset` `amount` is received.
-      balance = asset_.balanceOf(address(this));
+      balance = IERC20(asset).balanceOf(address(this));
       if (balance < amount) {
         revert ConnextRouter__xReceive_notReceivedAssetBalance();
       } else {
-        _tokensToCheck.push(Snapshot(asset, balance - amount));
+        _tempTokenToCheck = Snapshot(asset, balance - amount);
       }
 
       /**
@@ -156,28 +160,51 @@ contract ConnextRouter is BaseRouter, IXReceiver {
        * replace `amount` in the encoded args for the first action if
        * the action is Deposit, or Payback.
        */
-      args[0] = _accountForSlippage(amount, actions[0], args[0], slippageThreshold);
+      (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
     }
 
     /**
      * @dev Connext will keep the custody of the bridged amount if the call
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
-     * Therefore we try/catch instead of directly calling _bundleInternal(actions, args).
+     * Therefore we try/catch instead of directly calling _bundleInternal(...).
      */
-    try this.xBundle(actions, args) {
+    try this.xBundleConnext(actions, args, beforeSlipped) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
-        asset_.transfer(address(handler), balance);
+        SafeERC20.safeTransfer(IERC20(asset), address(handler), balance);
         handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
       // Ensure clear storage for token balance checks.
-      delete _tokensToCheck;
+      delete _tempTokenToCheck;
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
     return "";
+  }
+
+  /**
+   * @notice Function selector created to allow try-catch procedure in Connext message data
+   * passing.Including argument for `beforeSlipepd` not available in {BaseRouter-xBundle}.
+   *
+   * @param actions an array of actions that will be executed in a row
+   * @param args an array of encoded inputs needed to execute each action
+   * @param beforeSlipped amount passed by the origin cross-chain router operation
+   *
+   * @dev Requirements:
+   * - Must only be called within the context of this same contract.
+   */
+  function xBundleConnext(
+    Action[] calldata actions,
+    bytes[] calldata args,
+    uint256 beforeSlipped
+  )
+    external
+    payable
+    onlySelf
+  {
+    _bundleInternal(actions, args, beforeSlipped);
   }
 
   /**
@@ -190,12 +217,11 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   function _accountForSlippage(
     uint256 receivedAmount,
     Action action,
-    bytes memory args,
-    uint256 slippageThreshold
+    bytes memory args
   )
     internal
     pure
-    returns (bytes memory newArgs)
+    returns (bytes memory newArgs, uint256 beforeSlipped)
   {
     newArgs = args;
 
@@ -206,29 +232,28 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         abi.decode(args, (IVault, uint256, address, address));
 
       if (amount != receivedAmount) {
+        beforeSlipped = amount;
         newArgs = abi.encode(vault, receivedAmount, receiver, sender);
-        _checkSlippage(amount, receivedAmount, slippageThreshold);
+      }
+    } else if (action == Action.WithdrawETH) {
+      // For WithdrawETH
+      (uint256 amount, address receiver) = abi.decode(args, (uint256, address));
+      if (amount != receivedAmount) {
+        beforeSlipped = amount;
+        newArgs = abi.encode(receivedAmount, receiver);
       }
     }
   }
 
-  /**
-   * @dev Reverts if the slippage threshold is not respected.
-   *
-   * @param original amount send by the user from the source chain
-   * @param received amount actually received on the destination
-   * @param threshold slippage accepted by the user on the source chain
-   */
-  function _checkSlippage(uint256 original, uint256 received, uint256 threshold) internal pure {
-    uint256 upperBound = original * (10000 + threshold) / 10000;
-    uint256 lowerBound = original * 10000 / (10000 + threshold);
-    if (received > upperBound || received < lowerBound) {
-      revert ConnnextRouter__checkSlippage_outOfBounds();
-    }
-  }
-
   /// @inheritdoc BaseRouter
-  function _crossTransfer(bytes memory params) internal override {
+  function _crossTransfer(
+    bytes memory params,
+    address beneficiary
+  )
+    internal
+    override
+    returns (address)
+  {
     (
       uint256 destDomain,
       uint256 slippage,
@@ -238,9 +263,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address sender
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
-    _checkBeneficiary(receiver);
+    address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
-    _safePullTokenFrom(asset, sender, receiver, amount);
+    _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
@@ -252,7 +277,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       asset,
       // _delegate: address that has rights to update the original slippage tolerance
       // by calling Connext's forceUpdateSlippage function
-      msg.sender,
+      beneficiary_,
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
@@ -262,17 +287,34 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       ""
     );
     emit XCalled(transferId, msg.sender, receiver, destDomain, asset, amount, "");
+
+    return beneficiary_;
   }
 
   /// @inheritdoc BaseRouter
-  function _crossTransferWithCalldata(bytes memory params) internal override {
-    (uint256 destDomain, uint256 slippage, address asset, uint256 amount, bytes memory callData) =
-      abi.decode(params, (uint256, uint256, address, uint256, bytes));
+  function _crossTransferWithCalldata(
+    bytes memory params,
+    address beneficiary
+  )
+    internal
+    override
+    returns (address beneficiary_)
+  {
+    (
+      uint256 destDomain,
+      uint256 slippage,
+      address asset,
+      uint256 amount,
+      address sender,
+      bytes memory callData
+    ) = abi.decode(params, (uint256, uint256, address, uint256, address, bytes));
 
-    address beneficiary = _getBeneficiaryFromCalldata(callData);
-    _checkBeneficiary(beneficiary);
+    (Action[] memory actions, bytes[] memory args,) =
+      abi.decode(callData, (Action[], bytes[], uint256));
 
-    _safePullTokenFrom(asset, msg.sender, msg.sender, amount);
+    beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
+
+    _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
     bytes32 transferId = connext.xcall(
@@ -283,7 +325,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // _asset: address of the token contract
       asset,
       // _delegate: address that can revert or forceLocal on destination
-      msg.sender,
+      beneficiary_,
       // _amount: amount of tokens to transfer
       amount,
       // _slippage: can be anything between 0-10000 becaus
@@ -295,44 +337,81 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     emit XCalled(
       transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
-      );
+    );
+
+    return beneficiary_;
   }
 
   /**
    * @dev Returns who is the first receiver of value in `callData`
    * Requirements:
-   * - Must revert if "swap" is fist action
+   * - Must revert if "swap" is first action
    *
-   * @param callData encoded to execute in {BaseRouter-xBundle}
+   * @param actions to execute in {BaseRouter-xBundle}
+   * @param args to execute in {BaseRouter-xBundle}
    */
-  function _getBeneficiaryFromCalldata(bytes memory callData)
+  function _getBeneficiaryFromCalldata(
+    Action[] memory actions,
+    bytes[] memory args
+  )
     internal
-    pure
-    returns (address beneficiary)
+    view
+    override
+    returns (address beneficiary_)
   {
-    (Action[] memory actions, bytes[] memory args,) =
-      abi.decode(callData, (Action[], bytes[], uint256));
     if (actions[0] == Action.Deposit || actions[0] == Action.Payback) {
       // For Deposit or Payback.
       (,, address receiver,) = abi.decode(args[0], (IVault, uint256, address, address));
-      beneficiary = receiver;
+      beneficiary_ = receiver;
     } else if (actions[0] == Action.Withdraw || actions[0] == Action.Borrow) {
       // For Withdraw or Borrow
       (,,, address owner) = abi.decode(args[0], (IVault, uint256, address, address));
-      beneficiary = owner;
+      beneficiary_ = owner;
     } else if (actions[0] == Action.WithdrawETH) {
       // For WithdrawEth
       (, address receiver) = abi.decode(args[0], (uint256, address));
-      beneficiary = receiver;
+      beneficiary_ = receiver;
     } else if (actions[0] == Action.PermitBorrow || actions[0] == Action.PermitWithdraw) {
       (, address owner,,,,,,) = abi.decode(
         args[0], (IVaultPermissions, address, address, uint256, uint256, uint8, bytes32, bytes32)
       );
-      beneficiary = owner;
+      beneficiary_ = owner;
     } else if (actions[0] == Action.Flashloan) {
       (,,,, bytes memory requestorCalldata) =
         abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
-      beneficiary = _getBeneficiaryFromCalldata(requestorCalldata);
+
+      (Action[] memory newActions, bytes[] memory newArgs) = abi.decode(
+        LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
+      );
+
+      beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
+    } else if (actions[0] == Action.XTransfer) {
+      (,,,, address receiver,) =
+        abi.decode(args[0], (uint256, uint256, address, uint256, address, address));
+      beneficiary_ = receiver;
+    } else if (actions[0] == Action.XTransferWithCall) {
+      (,,,, bytes memory callData) =
+        abi.decode(args[0], (uint256, uint256, address, uint256, bytes));
+
+      (Action[] memory actions_, bytes[] memory args_,) =
+        abi.decode(callData, (Action[], bytes[], uint256));
+
+      beneficiary_ = _getBeneficiaryFromCalldata(actions_, args_);
+    } else if (actions[0] == Action.DepositETH) {
+      /// @dev There is no beneficiary in depositETH, therefore we do a recurssion with i = 1
+      uint256 len = actions.length;
+
+      Action[] memory chopActions = new Action[](len -1);
+      bytes[] memory chopArgs = new bytes[](len -1);
+
+      for (uint256 i = 1; i < len;) {
+        chopActions[i - 1] = actions[i];
+        chopArgs[i - 1] = args[i];
+        unchecked {
+          ++i;
+        }
+      }
+      beneficiary_ = _getBeneficiaryFromCalldata(chopActions, chopArgs);
     } else if (actions[0] == Action.Swap) {
       /// @dev swap cannot be actions[0].
       revert BaseRouter__bundleInternal_swapNotFirstAction();

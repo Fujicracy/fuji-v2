@@ -9,10 +9,11 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { ConnectOptions } from '@web3-onboard/core';
 import { ChangeEvent, useEffect, useState } from 'react';
 
+import { acceptTermsOfUse, getOnboardStatus } from '../../helpers/auth';
 import { useAuth } from '../../store/auth.store';
-import ExploreCarousel from './ExploreCarousel';
 
 type AgreementBox = { checked: boolean; text: string };
 
@@ -31,36 +32,33 @@ const agreements: AgreementBox[] = [
   },
 ];
 
-export function SafetyNoticeModal() {
+export function DisclaimerModal() {
   const { palette } = useTheme();
-
-  const acceptTermsOfUse = useAuth((state) => state.acceptTermsOfUse);
-  const getOnboardStatus = useAuth((state) => state.getOnboardStatus);
 
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(true);
   const [hasPreviouslyAcceptedTerms, setHasPreviouslyAcceptedTerms] =
     useState<boolean>(true);
   const [agreementsBoxes, setAgreementsBoxes] =
     useState<AgreementBox[]>(agreements);
-  const [isExploreModalShown, setIsExploreModalShown] =
-    useState<boolean>(false);
+
+  const login = useAuth((state) => state.login);
+  const isDisclaimerShown = useAuth((state) => state.isDisclaimerShown);
 
   useEffect(() => {
-    const hasPreviouslyAcceptedTerms = (): boolean =>
-      getOnboardStatus().hasAcceptedTerms;
+    const hasPreviouslyAcceptedTerms = getOnboardStatus().hasAcceptedTerms;
 
     setHasAcceptedTerms(hasPreviouslyAcceptedTerms);
     setHasPreviouslyAcceptedTerms(hasPreviouslyAcceptedTerms);
-  }, [getOnboardStatus]);
+  }, []);
 
   const onAcceptClick = () => {
     acceptTermsOfUse();
-    setIsExploreModalShown(true);
-  };
-
-  const finishOnboarding = () => {
     setHasPreviouslyAcceptedTerms(true);
-    setIsExploreModalShown(false);
+    const options: ConnectOptions | undefined = window &&
+      (window as any).Cypress && {
+        autoSelect: { label: 'MetaMask', disableModals: true },
+      };
+    login(options);
   };
 
   const onOtherAgreementChange = (index: number, value: boolean) => {
@@ -75,8 +73,11 @@ export function SafetyNoticeModal() {
     hasAcceptedTerms &&
     agreementsBoxes.every((item: AgreementBox) => item.checked);
 
-  return !isExploreModalShown ? (
-    <Dialog open={!hasPreviouslyAcceptedTerms}>
+  return (
+    <Dialog
+      data-cy="disclaimer-modal"
+      open={!hasPreviouslyAcceptedTerms && isDisclaimerShown}
+    >
       <Paper
         variant="outlined"
         sx={{
@@ -114,6 +115,7 @@ export function SafetyNoticeModal() {
             }
             control={
               <Checkbox
+                data-cy={`disclaimer-check-${agreements.length}`}
                 checked={hasAcceptedTerms}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => {
                   setHasAcceptedTerms(event.target.checked);
@@ -143,6 +145,7 @@ export function SafetyNoticeModal() {
               }
               control={
                 <Checkbox
+                  data-cy={`disclaimer-check-${i}`}
                   checked={agreementsBoxes[i].checked}
                   onChange={(event: ChangeEvent<HTMLInputElement>) => {
                     onOtherAgreementChange(i, event.target.checked);
@@ -162,16 +165,14 @@ export function SafetyNoticeModal() {
           onClick={onAcceptClick}
           disabled={!areAllAccepted}
           fullWidth
-          data-cy="safety-notice-accept"
+          data-cy="disclaimer-button"
           sx={{ mt: '1.5rem' }}
         >
           Agree
         </Button>
       </Paper>
     </Dialog>
-  ) : (
-    <ExploreCarousel open={isExploreModalShown} onClose={finishOnboarding} />
   );
 }
 
-export default SafetyNoticeModal;
+export default DisclaimerModal;

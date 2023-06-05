@@ -24,7 +24,7 @@
     "generate-types": "typechain --target ../../node_modules/@hovoh/typechain-ethers-multicall --out-dir src/types/contracts '../protocol/abis/**/*.json'"
   },
   "dependencies": {
-    "@connext/sdk": "^2.0.2",
+    "@connext/sdk": "^2.0.4-alpha.2",
     "@ethersproject/abi": "^5.4.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/bytes": "^5.0.0",

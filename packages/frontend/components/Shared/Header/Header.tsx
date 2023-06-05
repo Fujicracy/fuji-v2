@@ -2,7 +2,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import {
   AppBar,
   Box,
-  Button,
   Chip,
   Divider,
   Fade,
@@ -18,21 +17,23 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import { ConnectOptions } from '@web3-onboard/core';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
+import { dismissBanner, getBannerVisibility } from '../../../helpers/auth';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { AuthStatus, useAuth } from '../../../store/auth.store';
 import styles from '../../../styles/components/Header.module.css';
-import AccountModal from '../AccountModal';
+import AccountModal from '../AccountModal/AccountModal';
 import ChainSelect from '../ChainSelect';
 import { BurgerMenuIcon } from '../Icons';
 import ParameterLinks from '../ParameterLinks';
 import Parameters from '../Parameters';
+import AddressAddon from './AddressAddon';
 import BalanceAddon from './BalanceAddon';
 import Banner, { BannerConfig } from './Banner';
 
@@ -49,15 +50,13 @@ const Header = () => {
   const router = useRouter();
   const [banners, setBanners] = useState<BannerConfig[]>([]);
 
-  const getBannerVisibility = useAuth((state) => state.getBannerVisibility);
-  const dismissBanner = useAuth((state) => state.dismissBanner);
-
-  const { address, ens, status, balance, login } = useAuth(
+  const { address, ens, status, balance, started, login } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,
       ens: state.ens,
       balance: state.balance,
+      started: state.started,
       login: state.login,
     }),
     shallow
@@ -73,7 +72,7 @@ const Header = () => {
     );
 
     setBanners(filteredBanners);
-  }, [getBannerVisibility]);
+  }, []);
 
   const isPageActive = useCallback(
     (path: string) => {
@@ -104,13 +103,6 @@ const Header = () => {
   ) => {
     setShowAccountModal(show);
     setAccountModalEl(element);
-  };
-
-  const handleLogin = (testing: boolean) => {
-    const options: ConnectOptions | undefined = testing
-      ? { autoSelect: { label: 'MetaMask', disableModals: true } }
-      : undefined;
-    login(options);
   };
 
   return (
@@ -177,6 +169,7 @@ const Header = () => {
                 {status === AuthStatus.Disconnected && (
                   <>
                     <Chip
+                      data-cy="header-login"
                       label="Connect wallet"
                       variant="gradient"
                       sx={{
@@ -185,15 +178,8 @@ const Header = () => {
                           fontSize: '0.6rem',
                         },
                       }}
-                      onClick={() => handleLogin(false)}
+                      onClick={() => login()}
                     />
-                    <Button
-                      data-cy="login"
-                      onClick={() => handleLogin(true)}
-                      sx={{ position: 'absolute', visibility: 'hidden' }}
-                    >
-                      e2e
-                    </Button>
                   </>
                 )}
                 {status === AuthStatus.Connected && <ChainSelect />}
@@ -254,7 +240,11 @@ const Header = () => {
                           );
                         }}
                       >
-                        <ListItemText>
+                        <ListItemText
+                          onClick={(e) => {
+                            handleOpenAccountModal(true, e.currentTarget);
+                          }}
+                        >
                           <Stack direction="row" justifyContent="space-between">
                             <Typography variant="small">
                               {formattedAddress}
@@ -325,15 +315,8 @@ const Header = () => {
                       fontSize: '0.6rem',
                     },
                   }}
-                  onClick={() => handleLogin(false)}
+                  onClick={() => login()}
                 />
-                <Button
-                  data-cy="login"
-                  onClick={() => handleLogin(true)}
-                  sx={{ position: 'absolute', visibility: 'hidden' }}
-                >
-                  e2e
-                </Button>
               </>
             )}
             {status === AuthStatus.Connected && address && (
@@ -365,6 +348,7 @@ const Header = () => {
           address={address}
         />
       )}
+      {started && <AddressAddon />}
     </AppBar>
   );
 };

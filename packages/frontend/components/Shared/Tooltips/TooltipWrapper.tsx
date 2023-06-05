@@ -58,7 +58,7 @@ function TooltipWrapper({
         arrow
         sx={{ display: { xs: 'inline', sm: 'none' } }}
       >
-        <div style={{ cursor: 'pointer' }}>{children}</div>
+        <div>{children}</div>
       </Tooltip>
     </div>
   );

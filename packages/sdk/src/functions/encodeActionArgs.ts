@@ -1,4 +1,5 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
+import { AddressZero } from '@ethersproject/constants';
 import { BigNumber } from 'ethers';
 
 import { FujiResultError, FujiResultSuccess } from '../entities';
@@ -90,18 +91,26 @@ export function encodeActionArgs(
     ).map((r) => r.data);
 
     const callData = defaultAbiCoder.encode(
-      ['uint8[]', 'bytes[]', 'uint256'],
-      [innerActions, innerArgs, params.slippage]
+      ['uint8[]', 'bytes[]'],
+      [innerActions, innerArgs]
     );
     result = defaultAbiCoder.encode(
-      ['uint256', 'uint256', 'address', 'uint256', 'bytes'],
+      ['uint256', 'uint256', 'address', 'uint256', 'address', 'bytes'],
       [
         params.destDomain,
         params.slippage,
-        params.asset.value,
+        params.asset.isZero ? AddressZero : params.asset.value,
         params.amount.toString(),
+        params.sender.value,
         callData,
       ]
+    );
+  } else if (params.action === RouterAction.DEPOSIT_ETH) {
+    result = defaultAbiCoder.encode(['uint256'], [params.amount.toString()]);
+  } else if (params.action === RouterAction.WITHDRAW_ETH) {
+    result = defaultAbiCoder.encode(
+      ['uint256', 'address'],
+      [params.amount.toString(), params.receiver.value]
     );
   } else {
     return new FujiResultError('Unsupported action!');

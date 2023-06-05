@@ -2,13 +2,14 @@ import { Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Image from 'next/image';
 
-import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
+import { TooltipWrapper } from '../Shared/Tooltips';
 
 function BestLabel() {
   const { palette } = useTheme();
   return (
     <TooltipWrapper title="Lowest borrow APR" placement="top">
       <Stack
+        data-cy="best-label"
         direction="row"
         alignItems="center"
         gap="0.25rem"

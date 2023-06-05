@@ -276,6 +276,14 @@ export const WETH9: TokenMap = {
   ),
 };
 
+export const MATICX = new Token(
+  ChainId.MATIC,
+  Address.from('0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6'),
+  18,
+  'MaticX',
+  'Liquid Staking Matic'
+);
+
 export const WNATIVE: TokenMap = {
   [ChainId.ETHEREUM]: WETH9[ChainId.ETHEREUM],
   [ChainId.GOERLI]: WETH9[ChainId.GOERLI],

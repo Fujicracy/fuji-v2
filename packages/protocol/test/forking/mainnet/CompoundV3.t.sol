@@ -5,12 +5,16 @@ import "forge-std/console.sol";
 import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../ForkingSetup.sol";
 import {CompoundV3} from "../../../src/providers/mainnet/CompoundV3.sol";
+import {ICompoundV3} from "../../../src/interfaces/compoundV3/ICompoundV3.sol";
 import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {Chief} from "../../../src/Chief.sol";
+import {TimelockController} from
+  "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 
-contract CompoundV3ForkingTest is Routines, ForkingSetup {
+contract CompoundV3ForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -23,7 +27,33 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
     ILendingProvider[] memory providers = new ILendingProvider[](1);
     providers[0] = compoundV3;
 
-    deploy(providers);
+    chief = new Chief(true, true);
+    timelock = TimelockController(payable(chief.timelock()));
+    // Grant this address all roles.
+    _grantRoleChief(REBALANCER_ROLE, address(this));
+    _grantRoleChief(LIQUIDATOR_ROLE, address(this));
+
+    vault = new BorrowingVault(
+            collateralAsset,
+            debtAsset,
+            address(oracle),
+            address(chief),
+            'Fuji-V2 WETH-USDC Vault Shares',
+            'fv2WETHUSDC',
+            providers,
+            DEFAULT_MAX_LTV,
+            DEFAULT_LIQ_RATIO
+        );
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
+    _callWithTimelock(address(chief), executionCall);
+
+    initVaultDebtShares = ICompoundV3(0xc3d688B66703497DAA19211EEdff47f25384cdc3).baseBorrowMin();
+    initVaultShares =
+      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
+
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
   function test_depositAndBorrow() public {
@@ -80,9 +110,11 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
 
   function test_getInterestRates() public {
     uint256 depositRate = compoundV3.getDepositRateFor(vault);
+    console.log("deposit_interest-rate:asset", vault.asset(), depositRate);
     assertEq(depositRate, 0); // Should be zero.
 
     uint256 borrowRate = compoundV3.getBorrowRateFor(vault);
+    console.log("borrow_interest-rate:debtAsset", vault.debtAsset(), borrowRate);
     assertGt(borrowRate, 0); // Should be greater than zero.
   }
 
@@ -98,7 +130,9 @@ contract CompoundV3ForkingTest is Routines, ForkingSetup {
       address(chief),
       "Fuji-V2 WETH Vault Shares",
       "fv2WETH",
-      providers
+      providers,
+      DEFAULT_MAX_LTV,
+      DEFAULT_LIQ_RATIO
     );
 
     compoundV3.getDepositRateFor(v);

@@ -4,16 +4,17 @@ import {
   ChainId,
   CONNEXT_ROUTER_ADDRESS,
   contracts,
+  Currency,
   DEFAULT_SLIPPAGE,
   FujiError,
   FujiErrorCode,
   FujiResult,
   FujiResultError,
   FujiResultSuccess,
-  LendingProviderDetails,
+  LendingProviderWithFinancials,
   RouterActionParams,
   Sdk,
-  Token,
+  VaultWithFinancials,
 } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
 import { BigNumber, ethers, Signature } from 'ethers';
@@ -33,13 +34,17 @@ import {
   AllowanceStatus,
   AssetChange,
   AssetType,
+  defaultAssetForType,
+  FetchStatus,
+  foundCurrency,
   LiquidationMeta,
   LtvMeta,
   Mode,
 } from '../helpers/assets';
 import { fetchBalances } from '../helpers/balances';
 import { isSupported, testChains } from '../helpers/chains';
-import { handleCancelableMMActionError } from '../helpers/errors';
+import { isBridgeable } from '../helpers/currencies';
+import { handleTransactionError } from '../helpers/errors';
 import {
   dismiss,
   getTransactionLink,
@@ -48,6 +53,7 @@ import {
   notify,
 } from '../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../helpers/routing';
+import { storeOptions } from '../helpers/stores';
 import { TransactionMeta } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -55,20 +61,21 @@ import { useHistory } from './history.store';
 
 setAutoFreeze(false);
 
-type FormType = 'create' | 'edit';
+export enum FormType {
+  Create,
+  Edit,
+}
 
-export type BorrowStore = BorrowState & BorrowActions;
 type BorrowState = {
   formType: FormType;
   mode: Mode;
 
-  availableVaults: BorrowingVault[];
+  availableVaults: VaultWithFinancials[];
   availableVaultsStatus: FetchStatus;
-  // Providers are mapped with their vault address
-  allProviders: Record<string, LendingProviderDetails[]>;
 
   activeVault: BorrowingVault | undefined;
-  activeProvider: LendingProviderDetails | undefined;
+  activeProvider: LendingProviderWithFinancials | undefined;
+  allProviders: LendingProviderWithFinancials[] | [];
 
   collateral: AssetChange;
   debt: AssetChange;
@@ -90,33 +97,40 @@ type BorrowState = {
 
   allowChainOverride: boolean;
 };
-export type FetchStatus = 'initial' | 'fetching' | 'ready' | 'error';
 
 type BorrowActions = {
+  assetForType: (type: AssetType) => AssetChange;
   changeFormType: (type: FormType) => void;
   changeMode: (mode: Mode) => void;
-  changeAll: (collateral: Token, debt: Token, vault: BorrowingVault) => void;
+  changeAll: (
+    collateral: Currency,
+    debt: Currency,
+    vault: BorrowingVault
+  ) => void;
   changeInputValues: (collateral: string, debt: string) => void;
   changeAssetChain: (
     type: AssetType,
     chainId: ChainId,
+    updateVault: boolean,
+    currency?: Currency
+  ) => void;
+  changeAssetCurrency: (
+    type: AssetType,
+    currency: Currency,
     updateVault: boolean
   ) => void;
-  changeAssetToken: (type: AssetType, token: Token) => void;
   changeAssetValue: (type: AssetType, value: string) => void;
-  changeDebtChain: (chainId: ChainId, updateVault: boolean) => void; // Convenience
-  changeDebtToken: (token: Token) => void; // Convenience
-  changeDebtValue: (val: string) => void; // Convenience
-  changeCollateralChain: (chainId: ChainId, updateVault: boolean) => void; // Convenience
-  changeCollateralToken: (token: Token) => void; // Convenience
-  changeCollateralValue: (val: string) => void; // Convenience
-  changeActiveVault: (v: BorrowingVault) => void;
+  changeActiveVault: (v: VaultWithFinancials) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
   changeSlippageValue: (slippage: number) => void;
   changeBalances: (type: AssetType, balances: Record<string, number>) => void;
+  changeAllowance: (
+    type: AssetType,
+    status: AllowanceStatus,
+    amount?: number
+  ) => void;
 
-  updateAllProviders: () => void;
-  updateTokenPrice: (type: AssetType) => void;
+  updateCurrencyPrice: (type: AssetType) => void;
   updateBalances: (type: AssetType) => void;
   updateAllowance: (type: AssetType) => void;
   updateVault: () => void;
@@ -124,7 +138,6 @@ type BorrowActions = {
   updateTransactionMetaDebounced: () => void;
   updateLtv: () => void;
   updateLiquidation: () => void;
-  updateVaultBalance: () => void;
   allow: (type: AssetType) => void;
   updateAvailableRoutes: (routes: RouteMeta[]) => void;
   sign: () => void;
@@ -134,45 +147,21 @@ type BorrowActions = {
   changeChainOverride: (allow: boolean) => void;
 };
 
-const initialChainId = ChainId.MATIC;
-const initialDebtTokens = sdk.getDebtForChain(initialChainId);
-const initialCollateralTokens = sdk.getCollateralForChain(initialChainId);
+type BorrowStore = BorrowState & BorrowActions;
 
 const initialState: BorrowState = {
-  formType: 'create',
+  formType: FormType.Create,
   mode: Mode.DEPOSIT_AND_BORROW,
 
   availableVaults: [],
-  availableVaultsStatus: 'initial',
-  allProviders: {},
+  availableVaultsStatus: FetchStatus.Initial,
+  allProviders: [],
 
   activeVault: undefined,
   activeProvider: undefined,
 
-  collateral: {
-    selectableTokens: initialCollateralTokens,
-    balances: {},
-    input: '',
-    chainId: initialChainId,
-    allowance: {
-      status: 'initial',
-      value: undefined,
-    },
-    token: initialCollateralTokens[0],
-    amount: 0,
-    usdPrice: 0,
-  },
-
-  debt: {
-    selectableTokens: initialDebtTokens,
-    balances: {},
-    allowance: { status: 'initial', value: undefined },
-    input: '',
-    chainId: initialChainId,
-    token: initialDebtTokens[0],
-    amount: 0,
-    usdPrice: 0,
-  },
+  collateral: defaultAssetForType(AssetType.Collateral),
+  debt: defaultAssetForType(AssetType.Debt),
 
   ltv: {
     ltv: 0,
@@ -188,8 +177,8 @@ const initialState: BorrowState = {
   },
 
   transactionMeta: {
-    status: 'initial',
-    bridgeFee: 0,
+    status: FetchStatus.Initial,
+    bridgeFees: undefined,
     gasFees: 0,
     estimateTime: 0,
     estimateSlippage: 0,
@@ -210,6 +199,10 @@ export const useBorrow = create<BorrowStore>()(
       (set, get) => ({
         ...initialState,
 
+        assetForType(type) {
+          return type === AssetType.Collateral ? get().collateral : get().debt;
+        },
+
         async changeFormType(formType) {
           set({ formType });
         },
@@ -227,67 +220,95 @@ export const useBorrow = create<BorrowStore>()(
           const debts = sdk.getDebtForChain(debt.chainId);
           set(
             produce((state: BorrowState) => {
-              state.activeVault = vault; // Need to test this
+              state.activeVault = vault;
 
               state.collateral.chainId = collateral.chainId;
-              state.collateral.selectableTokens = collaterals;
-              state.collateral.token = collateral;
+              state.collateral.selectableCurrencies = collaterals;
+              state.collateral.currency = collateral;
 
               state.debt.chainId = debt.chainId;
-              state.debt.selectableTokens = debts;
-              state.debt.token = debt;
+              state.debt.selectableCurrencies = debts;
+              state.debt.currency = debt;
             })
           );
-          get().updateTokenPrice('collateral');
-          get().updateBalances('collateral');
-          get().updateTokenPrice('debt');
-          get().updateBalances('debt');
-          get().updateAllowance('collateral');
-          get().updateAllowance('debt');
 
-          await get().changeActiveVault(vault);
+          get().updateCurrencyPrice(AssetType.Collateral);
+          get().updateCurrencyPrice(AssetType.Debt);
+          get().updateBalances(AssetType.Collateral);
+          get().updateBalances(AssetType.Debt);
+          get().updateAllowance(AssetType.Collateral);
+          get().updateAllowance(AssetType.Debt);
 
-          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+          const addr = useAuth.getState().address;
+          const account = addr ? Address.from(addr) : undefined;
+          const result = await sdk.getBorrowingVaultsFor(
+            collateral,
+            debt,
+            account
+          );
 
           if (!result.success) {
             console.error(result.error.message);
-            set({ availableVaultsStatus: 'error' });
+            set({ availableVaultsStatus: FetchStatus.Error });
             return;
           }
           const availableVaults = result.data;
           set({ availableVaults });
 
-          await Promise.all([
-            get().updateAllProviders(),
-            get().updateTransactionMeta(),
-          ]);
-          set({ availableVaultsStatus: 'ready' });
+          const e = availableVaults.find(
+            (r) => r.vault.address === vault.address
+          );
+          if (!e) {
+            console.error('Vault not found');
+            set({ availableVaultsStatus: FetchStatus.Error });
+            return;
+          }
+
+          get().changeActiveVault(e);
+
+          get().updateTransactionMeta();
+          set({ availableVaultsStatus: FetchStatus.Ready });
         },
 
         async changeInputValues(collateral, debt) {
           await Promise.all([
-            get().changeCollateralValue(collateral),
-            get().changeDebtValue(debt),
+            get().changeAssetValue(AssetType.Collateral, collateral),
+            get().changeAssetValue(AssetType.Debt, debt),
           ]);
         },
 
-        changeAssetChain(type, chainId: ChainId, updateVault) {
+        changeAssetChain(type, chainId, updateVault, currency) {
           if (!isSupported(chainId)) return;
 
-          const tokens =
-            type === 'debt'
+          const currencies =
+            type === AssetType.Debt
               ? sdk.getDebtForChain(chainId)
               : sdk.getCollateralForChain(chainId);
 
+          if (
+            get().formType === FormType.Edit &&
+            currency &&
+            (!isBridgeable(currency) ||
+              !currencies.find((c) => c.symbol === currency.symbol))
+          ) {
+            notify({
+              type: 'error',
+              message: `${currency.symbol} not supported cross-chain.`,
+            });
+            return;
+          }
           set(
             produce((state: BorrowState) => {
-              const t = type === 'debt' ? state.debt : state.collateral;
+              const t = type === AssetType.Debt ? state.debt : state.collateral;
               t.chainId = chainId;
-              t.selectableTokens = tokens;
-              t.token = tokens[0];
+              t.selectableCurrencies = currencies;
+              const found = foundCurrency(t.selectableCurrencies, t.currency);
+              if (found) t.currency = found;
+              else if (state.formType === FormType.Create)
+                t.currency = currencies[0];
             })
           );
-          get().updateTokenPrice(type);
+          get().updateCurrencyPrice(type);
           get().updateBalances(type);
 
           if (updateVault) {
@@ -299,25 +320,27 @@ export const useBorrow = create<BorrowStore>()(
           get().updateAllowance(type);
         },
 
-        changeAssetToken(type, token) {
+        changeAssetCurrency(type, currency, updateVault) {
           set(
             produce((state: BorrowState) => {
-              if (type === 'debt') {
-                state.debt.token = token;
+              if (type === AssetType.Debt) {
+                state.debt.currency = currency;
               } else {
-                state.collateral.token = token;
+                state.collateral.currency = currency;
               }
             })
           );
-          get().updateTokenPrice(type);
-          get().updateVault();
+          get().updateCurrencyPrice(type);
+          if (updateVault) {
+            get().updateVault();
+          }
           get().updateAllowance(type);
         },
 
         changeAssetValue(type, value) {
           set(
             produce((state: BorrowState) => {
-              if (type === 'debt') {
+              if (type === AssetType.Debt) {
                 state.debt.input = value;
               } else {
                 state.collateral.input = value;
@@ -329,50 +352,38 @@ export const useBorrow = create<BorrowStore>()(
           get().updateLiquidation();
         },
 
-        changeCollateralChain(chainId: ChainId, updateVault) {
-          get().changeAssetChain('collateral', chainId, updateVault);
-        },
-
-        changeCollateralToken(token) {
-          get().changeAssetToken('collateral', token);
-        },
-
-        changeCollateralValue(value) {
-          get().changeAssetValue('collateral', value);
-        },
-
-        changeDebtChain(chainId: ChainId, updateVault) {
-          get().changeAssetChain('debt', chainId, updateVault);
-        },
-
-        changeDebtToken(token) {
-          get().changeAssetToken('debt', token);
-        },
-
-        changeDebtValue(value) {
-          get().changeAssetValue('debt', value);
-        },
-
         changeSlippageValue(slippage) {
           set({ slippage });
         },
 
-        async changeActiveVault(vault) {
-          const providers = await vault.getProviders();
-
+        changeActiveVault({
+          vault,
+          activeProvider,
+          allProviders,
+          depositBalance,
+          borrowBalance,
+        }) {
           const ltvMax = vault.maxLtv
-            ? parseInt(ethers.utils.formatUnits(vault.maxLtv, 16))
+            ? parseInt(formatUnits(vault.maxLtv, 16))
             : DEFAULT_LTV_MAX;
           const ltvThreshold = vault.liqRatio
-            ? parseInt(ethers.utils.formatUnits(vault.liqRatio, 16))
+            ? parseInt(formatUnits(vault.liqRatio, 16))
             : DEFAULT_LTV_THRESHOLD;
 
           set(
             produce((s: BorrowState) => {
               s.activeVault = vault;
-              s.activeProvider = providers.find((p) => p.active);
+              s.activeProvider = activeProvider;
+              s.allProviders = allProviders;
               s.ltv.ltvMax = ltvMax;
               s.ltv.ltvThreshold = ltvThreshold;
+              const dec = vault.collateral.decimals;
+              s.collateral.amount = parseFloat(
+                formatUnits(depositBalance, dec)
+              );
+
+              const dec2 = s.debt.currency.decimals;
+              s.debt.amount = parseFloat(formatUnits(borrowBalance, dec2));
             })
           );
           const route = get().availableRoutes.find(
@@ -381,15 +392,14 @@ export const useBorrow = create<BorrowStore>()(
           if (route) {
             get().changeTransactionMeta(route);
           }
-          await get().updateVaultBalance();
         },
 
-        async changeTransactionMeta(route) {
+        changeTransactionMeta(route) {
           set(
             produce((state: BorrowState) => {
-              state.transactionMeta.status = 'ready';
+              state.transactionMeta.status = FetchStatus.Ready;
               state.needsSignature = Sdk.needSignature(route.actions);
-              state.transactionMeta.bridgeFee = route.bridgeFee;
+              state.transactionMeta.bridgeFees = route.bridgeFees;
               state.transactionMeta.estimateTime = route.estimateTime;
               state.transactionMeta.steps = route.steps;
               state.actions = route.actions;
@@ -404,21 +414,19 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
 
-          const tokens = (type === 'debt' ? get().debt : get().collateral)
-            .selectableTokens;
-          const token =
-            type === 'debt' ? get().debt.token : get().collateral.token;
-          const chainId = token.chainId;
-          const result = await fetchBalances(tokens, address, chainId);
+          const asset = get().assetForType(type);
+          const currencies = asset.selectableCurrencies;
+          const currency = asset.currency;
+          const chainId = currency.chainId;
+          const result = await fetchBalances(currencies, address, chainId);
           if (!result.success) {
             console.error(result.error.message);
             return;
           }
-          const currentToken =
-            type === 'debt' ? get().debt.token : get().collateral.token;
+          const currentCurrency = get().assetForType(type).currency;
           if (
-            token.address !== currentToken.address ||
-            token.chainId !== currentToken.chainId
+            currency.address !== currentCurrency.address ||
+            currency.chainId !== currentCurrency.chainId
           )
             return;
           const balances = result.data;
@@ -428,41 +436,55 @@ export const useBorrow = create<BorrowStore>()(
         async changeBalances(type, balances) {
           set(
             produce((state: BorrowState) => {
-              if (type === 'debt') {
+              if (type === AssetType.Debt) {
                 state.debt.balances = balances;
-              } else if (type === 'collateral') {
+              } else if (type === AssetType.Collateral) {
                 state.collateral.balances = balances;
               }
             })
           );
         },
 
-        async updateTokenPrice(type) {
-          const token =
-            type === 'debt' ? get().debt.token : get().collateral.token;
+        async changeAllowance(type, status, amount) {
+          set(
+            produce((s: BorrowState) => {
+              if (type === AssetType.Debt) {
+                s.debt.allowance.status = status;
+                if (amount !== undefined) s.debt.allowance.value = amount;
+              } else {
+                s.collateral.allowance.status = status;
+                if (amount !== undefined) s.collateral.allowance.value = amount;
+              }
+            })
+          );
+        },
 
-          const result = await token.getPriceUSD();
+        async updateCurrencyPrice(type) {
+          const currency = get().assetForType(type).currency;
+
+          const result = await currency.getPriceUSD();
           if (!result.success) {
             console.error(result.error.message);
             return;
           }
 
-          const currentToken =
-            type === 'debt' ? get().debt.token : get().collateral.token;
-          if (token.address !== currentToken.address) return;
+          const currentCurrency = get().assetForType(type).currency;
+          if (currency.address !== currentCurrency.address) return;
 
-          let tokenValue = result.data;
-          const isTestNet = testChains.some((c) => c.chainId === token.chainId);
-          if (token.symbol === 'WETH' && isTestNet) {
-            tokenValue = 1242.42; // fix bc weth has no value on testnet
+          let currencyValue = result.data;
+          const isTestNet = testChains.some(
+            (c) => c.chainId === currency.chainId
+          );
+          if (currency.symbol === 'WETH' && isTestNet) {
+            currencyValue = 1242.42; // fix bc weth has no value on testnet
           }
 
           set(
             produce((state: BorrowState) => {
-              if (type === 'debt') {
-                state.debt.usdPrice = tokenValue;
+              if (type === AssetType.Debt) {
+                state.debt.usdPrice = currencyValue;
               } else {
-                state.collateral.usdPrice = tokenValue;
+                state.collateral.usdPrice = currencyValue;
               }
             })
           );
@@ -471,101 +493,80 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async updateAllowance(type) {
-          const token =
-            type === 'debt' ? get().debt.token : get().collateral.token;
+          const currency = get().assetForType(type).currency;
           const address = useAuth.getState().address;
 
           if (!address) {
             return;
           }
-
-          set(
-            produce((s: BorrowState) => {
-              if (type === 'debt') {
-                s.debt.allowance.status = 'fetching';
-              } else {
-                s.collateral.allowance.status = 'fetching';
-              }
-            })
-          );
+          if (currency.isNative) {
+            get().changeAllowance(type, AllowanceStatus.Unneeded);
+            return;
+          }
+          get().changeAllowance(type, AllowanceStatus.Loading);
           try {
-            const res = await sdk.getAllowanceFor(token, Address.from(address));
+            const res = await sdk.getAllowanceFor(
+              currency,
+              Address.from(address)
+            );
 
-            const currentToken =
-              type === 'debt' ? get().debt.token : get().collateral.token;
+            const currentCurrency = get().assetForType(type).currency;
             if (
-              token.address !== currentToken.address ||
-              token.chainId !== currentToken.chainId
+              currency.address !== currentCurrency.address ||
+              currency.chainId !== currentCurrency.chainId
             )
               return;
 
-            const value = parseFloat(formatUnits(res, token.decimals));
-            set(
-              produce((s: BorrowState) => {
-                if (type === 'debt') {
-                  s.debt.allowance.status = 'ready';
-                  s.debt.allowance.value = value;
-                } else {
-                  s.collateral.allowance.status = 'ready';
-                  s.collateral.allowance.value = value;
-                }
-              })
-            );
+            const value = parseFloat(formatUnits(res, currency.decimals));
+            get().changeAllowance(type, AllowanceStatus.Ready, value);
           } catch (e) {
             // TODO: how to handle the case where we can't fetch allowance ?
             console.error(e);
-            set(
-              produce((s: BorrowState) => {
-                if (type === 'debt') {
-                  s.debt.allowance.status = 'error';
-                } else {
-                  s.collateral.allowance.status = 'error';
-                }
-              })
-            );
+            get().changeAllowance(type, AllowanceStatus.Error);
           }
         },
 
         async updateVault() {
-          set({ availableVaultsStatus: 'fetching' });
+          set({ availableVaultsStatus: FetchStatus.Loading });
 
-          const collateral = get().collateral.token;
-          const debt = get().debt.token;
-          const result = await sdk.getBorrowingVaultsFor(collateral, debt);
+          const collateral = get().collateral.currency;
+          const debt = get().debt.currency;
+          const addr = useAuth.getState().address;
+          const account = addr ? Address.from(addr) : undefined;
+
+          const result = await sdk.getBorrowingVaultsFor(
+            collateral,
+            debt,
+            account
+          );
 
           if (!result.success) {
             console.error(result.error.message);
-            set({ availableVaultsStatus: 'error' });
+            set({ availableVaultsStatus: FetchStatus.Error });
+            return;
+          }
+          // check if currencies already changed before the previous async call completed
+          if (
+            !collateral.equals(get().collateral.currency) ||
+            !debt.equals(get().debt.currency)
+          ) {
+            await get().updateVault();
             return;
           }
 
           const availableVaults = result.data;
-          const [vault] = availableVaults;
-          if (!vault) {
+
+          if (availableVaults.length === 0) {
             console.error('No available vault');
-            set({ availableVaultsStatus: 'error' });
+            set({ availableVaultsStatus: FetchStatus.Error });
             return;
           }
+
           set({ availableVaults });
+          get().changeActiveVault(availableVaults[0]);
 
-          await get().changeActiveVault(vault);
-          await Promise.all([
-            get().updateAllProviders(),
-            get().updateTransactionMeta(),
-          ]);
-          set({ availableVaultsStatus: 'ready' });
-        },
-
-        async updateAllProviders() {
-          const { availableVaults } = get();
-
-          const allProviders: Record<string, LendingProviderDetails[]> = {};
-          for (const v of availableVaults) {
-            const providers = await v.getProviders();
-            allProviders[v.address.value] = providers;
-          }
-
-          set({ allProviders });
+          get().updateTransactionMeta();
+          set({ availableVaultsStatus: FetchStatus.Ready });
         },
 
         async updateTransactionMeta() {
@@ -588,14 +589,14 @@ export const useBorrow = create<BorrowStore>()(
           if (!activeVault) {
             return set(
               produce((state: BorrowState) => {
-                state.transactionMeta.status = 'error';
+                state.transactionMeta.status = FetchStatus.Error;
               })
             );
           }
 
           set(
             produce((state: BorrowState) => {
-              state.transactionMeta.status = 'fetching';
+              state.transactionMeta.status = FetchStatus.Loading;
               state.signature = undefined;
               state.actions = undefined;
             })
@@ -605,7 +606,9 @@ export const useBorrow = create<BorrowStore>()(
             const formType = get().formType;
             // when editing a position, we need to fetch routes only for the active vault
             const vaults =
-              formType === 'create' ? availableVaults : [activeVault];
+              formType === FormType.Create && availableVaults.length > 0
+                ? availableVaults.map((e) => e.vault)
+                : [activeVault];
 
             const results = await Promise.all(
               vaults.map((v, i) => {
@@ -614,8 +617,8 @@ export const useBorrow = create<BorrowStore>()(
                 return fetchRoutes(
                   mode,
                   v,
-                  collateral.token,
-                  debt.token,
+                  collateral.currency,
+                  debt.currency,
                   collateralInput,
                   debtInput,
                   address,
@@ -639,7 +642,7 @@ export const useBorrow = create<BorrowStore>()(
               (r) => r.address === activeVault.address.value
             );
             // no route means that the active vault has changed before the async call completed
-            if (!selectedRoute && formType === 'create') {
+            if (!selectedRoute && formType === FormType.Create) {
               get().updateVault();
               return;
             }
@@ -655,7 +658,7 @@ export const useBorrow = create<BorrowStore>()(
           } catch (e) {
             set(
               produce((state: BorrowState) => {
-                state.transactionMeta.status = 'error';
+                state.transactionMeta.status = FetchStatus.Error;
               })
             );
             const message = e instanceof FujiError ? e.message : String(e);
@@ -722,88 +725,49 @@ export const useBorrow = create<BorrowStore>()(
           );
         },
 
-        async updateVaultBalance() {
-          const vault = get().activeVault;
-          const address = useAuth.getState().address;
-          if (!vault || !address) {
-            return;
-          }
-
-          const { deposit, borrow } = await vault.getBalances(
-            Address.from(address)
-          );
-
-          const currentVault = get().activeVault;
-          if (vault.address.value !== currentVault?.address.value) return;
-
-          set(
-            produce((s: BorrowState) => {
-              const dec = s.collateral.token.decimals;
-              s.collateral.amount = parseFloat(formatUnits(deposit, dec));
-
-              const dec2 = s.debt.token.decimals;
-              s.debt.amount = parseFloat(formatUnits(borrow, dec2));
-            })
-          );
-        },
-
         /**
          * Allow fuji contract to spend on behalf of the user an amount
-         * Token are deduced from collateral or debt
+         * Currency are deduced from collateral or debt
          * @param type
          */
         async allow(type) {
-          const { token, input } =
-            type === 'debt' ? get().debt : get().collateral;
+          const { currency, input } = get().assetForType(type);
           const amount = parseFloat(input);
           const userAddress = useAuth.getState().address;
           const provider = useAuth.getState().provider;
-          const spender = CONNEXT_ROUTER_ADDRESS[token.chainId].value;
+          const spender = CONNEXT_ROUTER_ADDRESS[currency.chainId].value;
 
           if (!provider || !userAddress) {
             return;
           }
-
-          const changeAllowance = (
-            status: AllowanceStatus,
-            amount?: number
-          ) => {
-            set(
-              produce((s: BorrowState) => {
-                if (type === 'debt') {
-                  s.debt.allowance.status = status;
-                  if (amount) s.debt.allowance.value = amount;
-                } else {
-                  s.collateral.allowance.status = status;
-                  if (amount) s.collateral.allowance.value = amount;
-                }
-              })
-            );
-          };
-          changeAllowance('allowing');
+          get().changeAllowance(type, AllowanceStatus.Approving);
           const owner = provider.getSigner();
           try {
             const approval = await contracts.ERC20__factory.connect(
-              token.address.value,
+              currency.address.value,
               owner
-            ).approve(spender, parseUnits(amount.toString(), token.decimals));
+            ).approve(
+              spender,
+              parseUnits(amount.toString(), currency.decimals)
+            );
             await approval.wait();
 
-            changeAllowance('ready', amount);
+            get().changeAllowance(type, AllowanceStatus.Ready, amount);
             notify({
               message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
               type: 'success',
               link: getTransactionLink({
                 hash: approval.hash,
-                chainId: token.chainId,
+                chainId: currency.chainId,
               }),
             });
           } catch (e) {
-            changeAllowance('error');
-            notify({
-              message: NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE,
-              type: 'error',
-            });
+            get().changeAllowance(type, AllowanceStatus.Error);
+            handleTransactionError(
+              e,
+              NOTIFICATION_MESSAGES.TX_CANCELLED,
+              NOTIFICATION_MESSAGES.ALLOWANCE_FAILURE
+            );
           }
         },
 
@@ -838,7 +802,7 @@ export const useBorrow = create<BorrowStore>()(
 
             set({ signature });
           } catch (e) {
-            handleCancelableMMActionError(
+            handleTransactionError(
               e,
               NOTIFICATION_MESSAGES.SIGNATURE_CANCELLED
             );
@@ -905,7 +869,7 @@ export const useBorrow = create<BorrowStore>()(
             }
             return tx;
           } catch (e) {
-            handleCancelableMMActionError(
+            handleTransactionError(
               e,
               NOTIFICATION_MESSAGES.TX_CANCELLED,
               NOTIFICATION_MESSAGES.TX_NOT_SENT
@@ -938,10 +902,7 @@ export const useBorrow = create<BorrowStore>()(
           set({ allowChainOverride });
         },
       }),
-      {
-        enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
-        name: 'xFuji/borrow',
-      }
+      storeOptions('borrow')
     ),
     {
       name: 'xFuji/borrow',

@@ -9,7 +9,13 @@ import {HundredArbitrum} from "../../../src/providers/arbitrum/HundredArbitrum.s
 import {IAddrMapper} from "../../../src/interfaces/IAddrMapper.sol";
 import {ICToken} from "../../../src/interfaces/compoundV2/ICToken.sol";
 
-contract HundredArbitrumForkingTest is Routines, ForkingSetup {
+/**
+ * @custom:disabled hundred finance was exploited on April 15th, 2023.
+ * Mint is paused for their hTokens.
+ * The tests in this suite are disabled until further notice.
+ */
+// contract HundredArbitrumForkingTests is Routines, ForkingSetup {
+contract HundredArbitrumDisabledTest is Routines, ForkingSetup {
   ILendingProvider public hundred;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

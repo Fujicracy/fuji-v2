@@ -22,20 +22,21 @@ import {
   viewEditedPosition,
 } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
-import { useBorrow } from '../../store/borrow.store';
+import { FormType, useBorrow } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 import { usePositions } from '../../store/positions.store';
 import Header from '../Shared/Header/Header';
 import Overview from './Overview/Overview';
 
 type BorrowWrapperProps = {
+  formType: FormType;
   query?: {
     address: string;
     chain: string;
   };
 };
 
-function BorrowWrapper({ query }: BorrowWrapperProps) {
+function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const { breakpoints, palette } = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
@@ -46,9 +47,8 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
   const baseDebt = useBorrow((state) => state.debt);
   const baseLtv = useBorrow((state) => state.ltv);
   const mode = useBorrow((state) => state.mode);
-  const formType = useBorrow((state) => state.formType);
 
-  const isEditing = formType !== 'create';
+  const isEditing = formType !== FormType.Create;
 
   const [basePosition, setBasePosition] = useState<BasePosition>(
     viewDynamicPosition(!isEditing, undefined)
@@ -132,6 +132,11 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
           pl: { xs: '0.25rem', sm: '1rem' },
           pr: { xs: '0.25rem', sm: '1rem' },
           minHeight: '75vh',
+          '@media (min-width: 1200px)': {
+            '&.MuiContainer-root': {
+              maxWidth: '1300px !important',
+            },
+          },
         }}
       >
         {isEditing && !loading && (
@@ -164,16 +169,16 @@ function BorrowWrapper({ query }: BorrowWrapperProps) {
             direction="column"
             alignItems="center"
             justifyContent="center"
-            style={{ minHeight: '100vh' }}
+            style={{ minHeight: '75vh' }}
           >
             <CircularProgress size={32} />
           </Grid>
         ) : (
           <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
-            <Grid item xs={12} md={5}>
+            <Grid item xs={12} lg={4.5}>
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
-            <Grid item sm={12} md={7}>
+            <Grid item sm={12} lg={7.5}>
               <Overview isEditing={isEditing} basePosition={basePosition} />
             </Grid>
           </Grid>

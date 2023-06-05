@@ -9,7 +9,8 @@ import { useEffect, useRef } from 'react';
 
 import { GuildAccess } from '../components/Access/GuildAccess';
 import TransactionModal from '../components/Borrow/TransactionModal';
-import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
+import DisclaimerModal from '../components/Onboarding/DisclaimerModal';
+import ExploreCarousel from '../components/Onboarding/ExploreCarousel';
 import Notification from '../components/Shared/Notification';
 import { PATH } from '../constants';
 import {
@@ -34,18 +35,23 @@ function MyApp({ Component, pageProps }: AppProps) {
   const isHistoricalTransaction = useHistory(
     (state) => state.isHistoricalTransaction
   );
-  const ongoingTransactions = useHistory((state) => state.ongoingTransactions);
   const entries = useHistory((state) => state.entries);
   const watchAll = useHistory((state) => state.watchAll);
+  const closeModal = useHistory((state) => state.closeModal);
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
   const entry = address && currentTxHash && entries[currentTxHash];
   const prevAddressRef = useRef<string | undefined>(undefined);
 
+  const startedRef = useRef(false);
+
   useEffect(() => {
-    initErrorReporting();
-    initAuth();
+    if (!startedRef.current) {
+      startedRef.current = true;
+      initErrorReporting();
+      initAuth();
+    }
   }, [initAuth]);
 
   useEffect(() => {
@@ -59,7 +65,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       watchAll(address);
     }
     prevAddressRef.current = address;
-  }, [address, ongoingTransactions, watchAll]);
+  }, [address, watchAll]);
+
+  useEffect(() => {
+    if (
+      currentTxHash &&
+      ((address && prevAddressRef.current !== address) ||
+        (!address && prevAddressRef.current))
+    ) {
+      closeModal(); // Makes sure the modal is closed when the user changes address
+    }
+  }, [address, currentTxHash, closeModal]);
 
   useEffect(() => {
     if (address) {
@@ -92,7 +108,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
     changeERC20PollingPolicy(should);
   }
-
+  if (!startedRef.current) return <></>;
   return (
     <>
       <Script id="google-tag-manager" strategy="afterInteractive">
@@ -116,8 +132,8 @@ function MyApp({ Component, pageProps }: AppProps) {
               isHistoricalTransaction={isHistoricalTransaction}
             />
           )}
-          <SafetyNoticeModal />
-          <GuildAccess />
+          <DisclaimerModal />
+          <ExploreCarousel />
           <Notification />
         </ThemeProvider>
       </Web3OnboardProvider>

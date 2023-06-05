@@ -1,21 +1,23 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Button, Dialog, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 
 import {
   ActionType,
+  FetchStatus,
   recommendedLTV,
   remainingBorrowLimit,
 } from '../../helpers/assets';
 import { BasePosition } from '../../helpers/positions';
 import { isCrossChainTransaction } from '../../helpers/routing';
-import { TransactionMeta } from '../../helpers/transactions';
+import {
+  stringifiedBridgeFeeSum,
+  TransactionMeta,
+} from '../../helpers/transactions';
 import { formatValue } from '../../helpers/values';
 import { useBorrow } from '../../store/borrow.store';
-import AssetBox from './ConfirmationTransaction/AssetBox';
 import InfoRow from './ConfirmationTransaction/InfoRow';
 import RouteBox from './ConfirmationTransaction/RouteBox';
 import WarningInfo from './WarningInfo';
@@ -24,23 +26,14 @@ type ConfirmTransactionModalProps = {
   basePosition: BasePosition;
   transactionMeta: TransactionMeta;
   open: boolean;
-  isEditing: boolean;
   actionType: ActionType;
   onClose: () => void;
   action: () => void;
 };
 
-const routingSteps = [
-  RoutingStep.DEPOSIT,
-  RoutingStep.WITHDRAW,
-  RoutingStep.BORROW,
-  RoutingStep.PAYBACK,
-];
-
 export function ConfirmTransactionModal({
   basePosition,
   transactionMeta,
-  isEditing,
   open,
   onClose,
   action,
@@ -59,8 +52,8 @@ export function ConfirmTransactionModal({
   };
 
   const estCost =
-    transactionMeta.status === 'ready'
-      ? `~$${transactionMeta.bridgeFee.toFixed(2)} + gas`
+    transactionMeta.status === FetchStatus.Ready && transactionMeta.bridgeFees
+      ? `~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`
       : 'n/a';
 
   const positionBorrowLimit = remainingBorrowLimit(
@@ -83,7 +76,9 @@ export function ConfirmTransactionModal({
 
   const isCrossChain = isCrossChainTransaction(steps);
   const isEstimatedSlippageBiggerThanSelected = useMemo(
-    () => transactionMeta.estimateSlippage > slippage / 100,
+    () =>
+      transactionMeta.estimateSlippage &&
+      transactionMeta.estimateSlippage > slippage / 100,
     [transactionMeta.estimateSlippage, slippage]
   );
 
@@ -101,14 +96,14 @@ export function ConfirmTransactionModal({
         },
         '& .MuiDialog-paper': {
           maxWidth: '40rem',
-          width: { xs: '80%', sm: '40rem' },
+          width: { xs: '80%', sm: '32rem' },
         },
       }}
     >
       <Paper
         variant="outlined"
         sx={{
-          width: { xs: 'auto', sm: '40rem' },
+          width: { xs: 'auto', sm: '32rem' },
           p: { xs: '1rem', sm: '1.5rem' },
           textAlign: 'center',
         }}
@@ -124,14 +119,6 @@ export function ConfirmTransactionModal({
         <Typography mb="1rem" variant="h5" color={palette.text.primary}>
           Confirm Transaction
         </Typography>
-
-        <Stack>
-          {steps
-            .filter((step) => routingSteps.includes(step.step))
-            .map((step) => (
-              <AssetBox key={step.step} isEditing={isEditing} step={step} />
-            ))}
-        </Stack>
 
         {steps && steps.length > 0 && (
           <RouteBox steps={steps} isCrossChain={isCrossChain} />

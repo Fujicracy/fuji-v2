@@ -1,6 +1,5 @@
 import { Box, Stack, Typography, useTheme } from '@mui/material';
-import { LendingProviderDetails } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
+import { LendingProviderWithFinancials } from '@x-fuji/sdk';
 import React from 'react';
 
 import { ProviderIcon } from '../Icons';
@@ -9,13 +8,13 @@ function ProviderRow({
   provider,
   isBorrow,
 }: {
-  provider: LendingProviderDetails;
+  provider: LendingProviderWithFinancials;
   isBorrow?: boolean;
 }) {
   const { palette } = useTheme();
 
-  const rate = isBorrow ? provider.borrowRate : provider.depositRate;
-  const apr = `${(parseFloat(formatUnits(rate, 27)) * 100).toFixed(2)}%`;
+  const rate = isBorrow ? provider.borrowAprBase : provider.depositAprBase;
+  const apr = `${rate?.toFixed(2)}%`;
 
   return (
     <Stack direction="row" justifyContent="space-between" m="0.25rem 0">
@@ -41,7 +40,7 @@ function ProvidersTooltip({
   isBorrow = false,
   providers = [],
 }: {
-  providers?: LendingProviderDetails[];
+  providers?: LendingProviderWithFinancials[];
   isBorrow?: boolean;
 }) {
   return (

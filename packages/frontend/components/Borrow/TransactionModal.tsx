@@ -20,26 +20,24 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { MouseEvent, useEffect, useState } from 'react';
+import React, { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
-import { chainName, transactionUrl } from '../../helpers/chains';
 import {
+  connextLinksForEntry,
   HistoryEntry,
   HistoryEntryStatus,
-  validSteps,
 } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromAddress } from '../../helpers/positions';
-import { statusForStep, TransactionStep } from '../../helpers/transactions';
-import { camelize } from '../../helpers/values';
+import { transactionSteps } from '../../helpers/transactions';
 import { useAuth } from '../../store/auth.store';
 import { useHistory } from '../../store/history.store';
 import AddTokenButton from '../Shared/AddTokenButton';
-import { NetworkIcon } from '../Shared/Icons';
 import LinkIcon from '../Shared/Icons/LinkIcon';
+import { stepIcon } from '../Shared/RoutesSteps';
 import WarningInfo from '../Shared/WarningInfo';
 
 type TransactionModalProps = {
@@ -57,7 +55,7 @@ function TransactionModal({
   const router = useRouter();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const activeChainId = useAuth((state) => parseInt(state.chain?.id || ''));
+  const activeChainId = useAuth((state) => state.chainId);
 
   const closeModal = useHistory((state) => state.closeModal);
 
@@ -89,61 +87,8 @@ function TransactionModal({
     entry.steps.find((s) => s.step === RoutingStep.BORROW) ||
     entry.steps.find((s) => s.step === RoutingStep.WITHDRAW);
 
-  const connextScanLink = entry.connext
-    ? `https://amarok.connextscan.io/tx/${entry.connext.transferId}`
-    : undefined;
-
-  const validatedSteps = validSteps(entry.steps);
-
-  const steps = validatedSteps.map((s, i): TransactionStep => {
-    const { step, chainId, token } = s;
-
-    const realChainId =
-      s.step === RoutingStep.X_TRANSFER && i === 0 && s.token
-        ? s.token.chainId
-        : chainId;
-
-    const chain = chainName(realChainId);
-    const amount = token && formatUnits(s.amount ?? 0, token.decimals);
-
-    const txHash =
-      realChainId === entry.sourceChain.chainId
-        ? entry.hash
-        : entry.secondChain?.hash;
-
-    const link = txHash && transactionUrl(realChainId, txHash);
-
-    const action = step.toString();
-    const preposition =
-      step === RoutingStep.DEPOSIT
-        ? 'on'
-        : [
-            RoutingStep.X_TRANSFER,
-            RoutingStep.BORROW,
-            RoutingStep.PAYBACK,
-          ].includes(step)
-        ? 'to'
-        : 'from';
-
-    const name = s.lendingProvider?.name;
-
-    const label = camelize(
-      `${action} ${amount} ${token?.symbol} ${name ? preposition : ''} ${
-        name ?? ''
-      }`
-    );
-
-    const description = `${chain} Network`;
-
-    return {
-      label,
-      txHash,
-      link,
-      description,
-      chainId: realChainId,
-      icon: () => <NetworkIcon network={chain} height={18} width={18} />,
-    };
-  });
+  const connextScanLinks = connextLinksForEntry(entry);
+  const steps = transactionSteps(entry, connextScanLinks);
 
   const onClick = async () => {
     // If the user is editing a position, we just need to close the modal
@@ -180,6 +125,10 @@ function TransactionModal({
       color: theme.palette.error.main,
     },
   ];
+
+  const commonStatusStyle = {
+    marginTop: '0.2rem',
+  };
 
   return (
     <Dialog
@@ -259,61 +208,123 @@ function TransactionModal({
             <Divider sx={{ mt: '0.75rem', mb: '0.75rem' }} />
 
             {steps?.map((step) => {
-              const status = statusForStep(step, entry);
               return (
                 <Stack
-                  key={step.label}
+                  key={step.label.text}
                   direction="row"
-                  alignItems="center"
+                  alignItems="start"
                   justifyContent="space-between"
                   gap={2}
-                  mt={1}
+                  mt={1.5}
+                  sx={{
+                    position: 'relative',
+                    '&:not(:last-of-type):after': {
+                      position: 'absolute',
+                      content: '""',
+                      borderLeft: `1px solid #47494C`,
+                      height: '100%',
+                      transform: 'translateY(35%)',
+                      left: '2.5%',
+                      zIndex: 1,
+                      ['@media screen and (max-width: 390px)']: {
+                        left: '3.5%',
+                        transform: 'translateY(22%)',
+                      },
+                    },
+                    '& .MuiSvgIcon-root': {
+                      mt: 0,
+                    },
+                  }}
                 >
-                  <Stack direction="row" alignItems="center">
-                    {step.icon()}
-                    <Typography
-                      variant="small"
+                  <Stack direction="row" alignItems="start" sx={{ zIndex: 2 }}>
+                    <Stack
+                      alignItems="center"
+                      justifyContent="center"
+                      width={20}
+                      height={20}
+                      sx={{ backgroundColor: '#47494C', borderRadius: '100px' }}
+                    >
+                      {stepIcon(step)}
+                    </Stack>
+                    <Stack
                       sx={{
                         ml: '0.5rem',
                       }}
                     >
-                      {step.label}
-                      {step.txHash && step.link && (
-                        <Link
-                          href={step.link}
-                          target="_blank"
-                          variant="smallDark"
-                          fontSize="0.75rem"
-                          color={theme.palette.info.dark}
-                          sx={{
-                            ml: '0.25rem',
-                          }}
-                        >
-                          <LinkIcon />
-                        </Link>
-                      )}
-                    </Typography>
-                  </Stack>
-                  <Box>
-                    {status === HistoryEntryStatus.SUCCESS ? (
-                      <CheckIcon
+                      <Typography variant="xsmall">
+                        {step.label.text}
+                        {step.txHash && step.link && (
+                          <Link
+                            href={step.link}
+                            target="_blank"
+                            sx={{
+                              ml: '0.35rem',
+                              '& svg': {
+                                mb: '-0.1rem',
+                              },
+                            }}
+                          >
+                            <LinkIcon />
+                          </Link>
+                        )}
+                        {step.connextLink && (
+                          <Link
+                            href={step.connextLink}
+                            target="_blank"
+                            sx={{
+                              ml: '0.3rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '1rem',
+                              height: '1rem',
+                              backgroundColor: '#303235',
+                              borderRadius: '100px',
+                            }}
+                          >
+                            <Image
+                              src="/assets/images/logo/connext.svg"
+                              height={10}
+                              width={10}
+                              alt="Connext icon"
+                            />
+                          </Link>
+                        )}
+                      </Typography>
+                      <Typography
+                        variant="xsmallDark"
+                        color={theme.palette.info.main}
                         sx={{
-                          width: '1.125rem',
-                          height: '1.125rem',
-                          backgroundColor: theme.palette.success.dark,
-                          borderRadius: '100%',
-                          padding: '0.2rem',
+                          display: 'block',
                         }}
-                        fontSize="large"
-                      />
-                    ) : entry.status === HistoryEntryStatus.ONGOING ? (
-                      <CircularProgress size={18} />
-                    ) : (
-                      <ErrorOutlineIcon
-                        sx={{ width: '18px', height: '18px' }}
-                      />
-                    )}
-                  </Box>
+                      >
+                        {step.label.amount}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                  {step.status === HistoryEntryStatus.SUCCESS ? (
+                    <CheckIcon
+                      sx={{
+                        ...commonStatusStyle,
+                        width: '1.125rem',
+                        height: '1.125rem',
+                        backgroundColor: theme.palette.success.dark,
+                        borderRadius: '100%',
+                        padding: '0.2rem',
+                      }}
+                      fontSize="large"
+                    />
+                  ) : entry.status === HistoryEntryStatus.ONGOING ? (
+                    <CircularProgress size={18} sx={commonStatusStyle} />
+                  ) : (
+                    <ErrorOutlineIcon
+                      sx={{
+                        ...commonStatusStyle,
+                        width: '20px',
+                        height: '20px',
+                      }}
+                    />
+                  )}
                 </Stack>
               );
             })}
@@ -344,17 +355,8 @@ function TransactionModal({
               )}
           </>
         )}
-        {connextScanLink && (
-          <Stack sx={{ mt: '1rem' }} spacing={1}>
-            <Link href={connextScanLink} target="_blank" variant="inherit">
-              <Button size="medium" fullWidth variant="secondary">
-                View transaction on ConnextScan
-              </Button>
-            </Link>
-          </Stack>
-        )}
         {entry.status === HistoryEntryStatus.SUCCESS && (
-          <Stack sx={{ mt: connextScanLink ? '0.5rem' : '1rem' }} spacing={1}>
+          <Stack sx={{ mt: '1rem' }} spacing={1}>
             <Button
               fullWidth
               variant="gradient"
@@ -363,7 +365,7 @@ function TransactionModal({
             >
               View Position
             </Button>
-            {action?.token?.chainId === activeChainId && (
+            {action?.token && action?.token?.chainId === activeChainId && (
               <Box textAlign="center">
                 <AddTokenButton token={action.token} />
               </Box>

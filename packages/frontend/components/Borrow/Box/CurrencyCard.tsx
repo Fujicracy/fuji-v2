@@ -14,7 +14,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { Token } from '@x-fuji/sdk';
+import { Currency } from '@x-fuji/sdk';
 import React, {
   MouseEvent,
   ReactElement,
@@ -23,14 +23,20 @@ import React, {
   useState,
 } from 'react';
 
-import { DUST_AMOUNT } from '../../../constants';
 import {
   ActionType,
   AssetChange,
   AssetType,
   LtvMeta,
+  Mode,
   recommendedLTV,
+  withdrawMaxAmount,
 } from '../../../helpers/assets';
+import {
+  isNativeAndWrappedPair,
+  isNativeOrWrapped,
+  nativeAndWrappedPair,
+} from '../../../helpers/currencies';
 import { BasePosition } from '../../../helpers/positions';
 import {
   formatValue,
@@ -40,9 +46,9 @@ import {
 import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
 import Balance from '../../Shared/Balance';
-import { TokenIcon } from '../../Shared/Icons';
+import { CurrencyIcon } from '../../Shared/Icons';
 
-type SelectTokenCardProps = {
+type SelectCurrencyCardProps = {
   type: AssetType;
   actionType: ActionType;
   assetChange: AssetChange;
@@ -51,7 +57,7 @@ type SelectTokenCardProps = {
   value: string;
   showMax: boolean;
   maxAmount: number;
-  onTokenChange: (token: Token) => void;
+  onCurrencyChange: (currency: Currency, updateVault: boolean) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta;
   basePosition: BasePosition;
@@ -59,7 +65,7 @@ type SelectTokenCardProps = {
   isFocusedByDefault: boolean;
 };
 
-function TokenCard({
+function CurrencyCard({
   type,
   showMax,
   assetChange,
@@ -68,20 +74,20 @@ function TokenCard({
   disabled,
   value,
   maxAmount,
-  onTokenChange,
+  onCurrencyChange,
   onInputChange,
   ltvMeta,
   basePosition,
   isEditing,
   isFocusedByDefault,
-}: SelectTokenCardProps) {
+}: SelectCurrencyCardProps) {
   const { palette } = useTheme();
 
-  const { token, usdPrice, balances, selectableTokens } = assetChange;
+  const { currency, usdPrice, balances, selectableCurrencies } = assetChange;
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
 
-  const balance = balances[token.symbol];
+  const balance = balances[currency.symbol];
 
   const { ltv, ltvMax } = ltvMeta;
 
@@ -96,29 +102,46 @@ function TokenCard({
     undefined
   );
   const [focused, setFocused] = useState<boolean>(false);
+  const [calculatingMax, setCalculatingMax] = useState<boolean>(false);
+
+  const shouldShowNativeWrappedPair =
+    isEditing &&
+    type === AssetType.Collateral &&
+    isNativeOrWrapped(currency, selectableCurrencies);
+
+  const currencyList = shouldShowNativeWrappedPair
+    ? nativeAndWrappedPair(selectableCurrencies)
+    : selectableCurrencies;
 
   const handleRef = useCallback((node: HTMLInputElement) => {
     setTextInput(node);
   }, []);
 
-  const handleMax = () => {
-    // when we do max withdrawal, we have to deduct a small amount,
-    // otherwise the tx can fail due to some unaccounted dust lefovers
-    const deductedCollateral = Math.max(
-      0,
-      basePosition.position.collateral.amount - DUST_AMOUNT / 100
-    );
-    const amount =
-      actionType === ActionType.REMOVE && type === 'collateral'
-        ? deductedCollateral -
-          (basePosition.position.debt.amount - Number(debt.input)) /
-            ((ltvMax > 1 ? ltvMax / 100 : ltvMax) * collateral.usdPrice)
-        : maxAmount;
-    handleInput(String(amount));
+  const handleMax = async () => {
+    if (calculatingMax) return;
+    setCalculatingMax(true);
+    let maxCollateralAmount = maxAmount;
+    if (actionType === ActionType.REMOVE && type === AssetType.Collateral) {
+      // `mode` has to be precalculated because we set it based on inputs,
+      // the mode will be set after the end of this function.
+      const precalculatedMode =
+        debt.input !== '' ? Mode.PAYBACK_AND_WITHDRAW : Mode.WITHDRAW;
+      const result = await withdrawMaxAmount(
+        precalculatedMode,
+        basePosition,
+        debt,
+        collateral
+      );
+      if (result.success) {
+        maxCollateralAmount = result.data;
+      }
+    }
+    setCalculatingMax(false);
+    handleInput(String(maxCollateralAmount));
   };
 
   const handleInput = (val: string) => {
-    const value = validAmount(val, token.decimals);
+    const value = validAmount(val, currency.decimals);
     onInputChange(value);
   };
 
@@ -149,8 +172,14 @@ function TokenCard({
     handleInput(recommended());
   };
 
-  const handleTokenChange = (token: Token) => {
-    onTokenChange(token);
+  const handleCurrencyChange = (currency: Currency) => {
+    const updateVault =
+      !isEditing &&
+      !isNativeAndWrappedPair(
+        currency,
+        type === AssetType.Collateral ? collateral.currency : debt.currency
+      );
+    onCurrencyChange(currency, updateVault);
     close();
   };
 
@@ -175,11 +204,13 @@ function TokenCard({
 
   return (
     <Card
+      data-cy="borrow-input"
       variant="outlined"
       sx={{
         borderColor:
-          (actionType === ActionType.ADD ? 'collateral' : 'debt') === type &&
-          Number(assetChange.input) > balance
+          (actionType === ActionType.ADD
+            ? AssetType.Collateral
+            : AssetType.Debt) === type && Number(assetChange.input) > balance
             ? palette.error.dark
             : focused
             ? palette.info.main
@@ -190,6 +221,7 @@ function TokenCard({
         <TextField
           id="collateral-amount"
           type="number"
+          inputProps={{ step: '0.1', lang: 'en-US' }}
           placeholder="0"
           inputRef={handleRef}
           value={value}
@@ -210,37 +242,37 @@ function TokenCard({
         />
         <ButtonBase
           id={`select-${type}-button`}
-          disabled={isExecuting || disabled}
+          disabled={isExecuting || (disabled && !shouldShowNativeWrappedPair)}
           onClick={open}
         >
-          {token && disabled ? (
+          {disabled && !shouldShowNativeWrappedPair ? (
             <>
-              <TokenIcon token={token} height={24} width={24} />
+              <CurrencyIcon currency={currency} height={24} width={24} />
               <Typography ml={1} variant="h6">
-                {token.symbol}
+                {currency.symbol}
               </Typography>
             </>
           ) : (
-            <TokenItem
-              token={token}
+            <CurrencyItem
+              currency={currency}
               prepend={<KeyboardArrowDownIcon />}
               sx={{ borderRadius: '2rem' }}
             />
           )}
         </ButtonBase>
         <Menu
-          id={`${type}-token`}
+          id={`${type}-currency`}
           anchorEl={anchorEl}
           open={isOpen}
           onClose={close}
           TransitionComponent={Fade}
         >
-          {selectableTokens.map((token) => (
-            <TokenItem
-              key={token.name}
-              token={token}
-              balance={balances[token.symbol]}
-              onClick={() => handleTokenChange(token)}
+          {currencyList.map((currency) => (
+            <CurrencyItem
+              key={currency.name}
+              currency={currency}
+              balance={balances[currency.symbol]}
+              onClick={() => handleCurrencyChange(currency)}
             />
           ))}
         </Menu>
@@ -293,6 +325,7 @@ function TokenCard({
 
             {Number(recommended()) > 0 && (
               <Typography
+                data-cy="recommended-btn"
                 variant="smallDark"
                 sx={{
                   cursor: 'pointer',
@@ -308,13 +341,14 @@ function TokenCard({
                 onClick={handleRecommended}
               >
                 <Typography
+                  data-cy="recommended-value"
                   variant="smallDark"
                   color={palette.success.main}
                   sx={{
                     cursor: 'pointer',
                   }}
                 >
-                  {toNotSoFixed(recommended())} {debt.token.symbol}
+                  {toNotSoFixed(recommended(), true)} {debt.currency.symbol}
                 </Typography>
               </Typography>
             )}
@@ -325,27 +359,33 @@ function TokenCard({
   );
 }
 
-type TokenItem = {
-  token: Token;
+type CurrencyItem = {
+  currency: Currency;
   balance?: number;
   prepend?: ReactElement;
   sx?: SxProps<Theme>;
-  onClick?: (token: Token) => void;
+  onClick?: (currency: Currency) => void;
 };
-const TokenItem = (props: TokenItem) => {
-  const { token, balance, prepend, sx, onClick } = props;
+const CurrencyItem = ({
+  currency,
+  balance,
+  prepend,
+  sx,
+  onClick,
+}: CurrencyItem) => {
   return (
     <MenuItem
-      key={token.name}
-      value={token.symbol}
-      onClick={() => onClick && onClick(token)}
+      data-cy="currency-select"
+      key={currency.name}
+      value={currency.symbol}
+      onClick={() => onClick && onClick(currency)}
       sx={sx}
     >
       <ListItemIcon>
-        <TokenIcon token={token} height={24} width={24} />
+        <CurrencyIcon currency={currency} height={24} width={24} />
       </ListItemIcon>
       <ListItemText>
-        <Typography variant="h6">{token.symbol}</Typography>
+        <Typography variant="h6">{currency.symbol}</Typography>
       </ListItemText>
       {typeof balance === 'number' && (
         <Typography variant="smallDark" ml="3rem">
@@ -357,8 +397,8 @@ const TokenItem = (props: TokenItem) => {
   );
 };
 
-export default TokenCard;
+export default CurrencyCard;
 
-TokenCard.defaultProps = {
+CurrencyCard.defaultProps = {
   disabled: false,
 };

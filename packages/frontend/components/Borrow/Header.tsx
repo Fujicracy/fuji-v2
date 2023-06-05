@@ -1,12 +1,12 @@
 import { Box, Divider, Stack, Typography } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
 
+import { TabOption } from '../../constants';
 import { ActionType } from '../../helpers/assets';
+import { wrappedSymbol } from '../../helpers/currencies';
 import { useBorrow } from '../../store/borrow.store';
-import { NetworkIcon } from '../Shared/Icons';
-import { TokenIcon } from '../Shared/Icons';
+import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import SlippageSettings from '../Shared/SlippageSettings';
-import TabChip from '../Shared/TabChip';
+import TabSwitch from '../Shared/TabSwitch';
 import TooltipWrapper from '../Shared/Tooltips/TooltipWrapper';
 
 type BorrowHeaderProps = {
@@ -17,6 +17,11 @@ type BorrowHeaderProps = {
   isCrossChainOperation: boolean;
 };
 
+const actionOptions: TabOption[] = [
+  { value: ActionType.ADD, label: 'Deposit / Borrow' },
+  { value: ActionType.REMOVE, label: 'Withdraw / Payback' },
+];
+
 function BorrowHeader({
   isEditing,
   actionType,
@@ -24,7 +29,6 @@ function BorrowHeader({
   onActionTypeChange,
   isCrossChainOperation,
 }: BorrowHeaderProps) {
-  const { palette } = useTheme();
   const networkMessage = `Your position is currently on the ${chainName} Network`;
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
@@ -40,9 +44,9 @@ function BorrowHeader({
         >
           <Stack direction="row" justifyContent="start" alignItems="center">
             <Box sx={{ position: 'relative' }}>
-              <TokenIcon token={debt.token} height={40} width={40} />
-              <TokenIcon
-                token={collateral.token}
+              <CurrencyIcon currency={debt.currency} height={40} width={40} />
+              <CurrencyIcon
+                currency={collateral.currency}
                 height={16}
                 width={16}
                 sx={{
@@ -54,14 +58,14 @@ function BorrowHeader({
             </Box>
             <Box ml="0.75rem">
               <Typography variant="h5" fontSize="1.25rem" lineHeight="150%">
-                Debt: {debt.token.symbol}
+                Debt: {debt.currency.symbol}
               </Typography>
               <Typography
                 variant="small"
                 fontSize="0.875rem"
                 lineHeight="22.4px"
               >
-                Collateral: {collateral.token.symbol}
+                Collateral: {wrappedSymbol(collateral.currency)}
               </Typography>
             </Box>
           </Stack>
@@ -111,35 +115,12 @@ function BorrowHeader({
       )}
       <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
       {isEditing && (
-        <Stack
-          direction="row"
-          sx={{
-            marginTop: 3,
-            marginBottom: 3,
-            flexWrap: 'wrap',
-            gap: '0.25rem',
-            p: '0.1875rem',
-            height: '2.875rem',
-            backgroundColor: palette.secondary.dark,
-            borderRadius: '0.75rem',
-            border: `1px solid ${alpha(palette.secondary.light, 0.5)}`,
-          }}
-        >
-          {[ActionType.ADD, ActionType.REMOVE].map((p) => (
-            <TabChip
-              key={`${p}`}
-              selected={actionType === p}
-              label={
-                p === ActionType.ADD
-                  ? 'Deposit / Borrow'
-                  : 'Payback / Withdraw '
-              }
-              onClick={() => {
-                onActionTypeChange(p);
-              }}
-            />
-          ))}
-        </Stack>
+        <TabSwitch
+          size="large"
+          options={actionOptions}
+          selected={actionType}
+          onChange={onActionTypeChange}
+        />
       )}
     </>
   );

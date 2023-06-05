@@ -5,13 +5,13 @@ import {
   Grid,
   LinearProgress,
   Stack,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
 import { ClickableTooltip } from '../../Shared/Tooltips';
+import InfoTooltip from '../../Shared/Tooltips/InfoTooltip';
 
 type LTVProgressBarProps = {
   borrowLimit: number;
@@ -45,18 +45,10 @@ function LTVProgressBar({
         >
           <Grid item margin="auto">
             <Stack direction="row" alignItems="center">
-              <Tooltip
+              <InfoTooltip
                 title="Being in this area keeps you safe from sudden shifts in the market."
-                placement="top"
-              >
-                <InfoOutlinedIcon
-                  sx={{
-                    mr: '0.313rem',
-                    fontSize: '0.875rem',
-                    display: { xs: 'none', sm: 'inline' },
-                  }}
-                />
-              </Tooltip>
+                isLeft
+              />
 
               <ClickableTooltip
                 title="Being in this area keeps you safe from sudden shifts in the market."
@@ -70,6 +62,7 @@ function LTVProgressBar({
                 />
               </ClickableTooltip>
               <Typography
+                data-cy="recommended-ltv-percent"
                 variant="xsmall"
                 sx={{ display: { xs: 'none', sm: 'inline' } }}
               >
@@ -86,18 +79,13 @@ function LTVProgressBar({
           </Grid>
           <Grid item marginRight="3rem">
             <Stack direction="row" alignItems="center">
-              <Tooltip
-                title="Maximum portion of collateral value that can be borrowed. It's advisable not to exceed this threshold as you might be at risk of liquidation."
-                placement="top"
-              >
-                <InfoOutlinedIcon
-                  sx={{
-                    mr: '0.313rem',
-                    fontSize: '0.875rem',
-                    display: { xs: 'none', sm: 'inline' },
-                  }}
-                />
-              </Tooltip>
+              <InfoTooltip
+                title={
+                  "Maximum portion of collateral value that can be borrowed. It's advisable not to exceed this threshold as you might be at risk of liquidation."
+                }
+                isLeft
+              />
+
               <ClickableTooltip
                 title="Maximum portion of collateral value that can be borrowed. It's advisable not to exceed this threshold as you might be at risk of liquidation."
                 placement="top"
@@ -111,6 +99,7 @@ function LTVProgressBar({
               </ClickableTooltip>
 
               <Typography
+                data-cy="max-ltv-percent"
                 variant="xsmall"
                 sx={{ display: { xs: 'none', sm: 'inline' } }}
               >
@@ -149,6 +138,7 @@ function LTVProgressBar({
         </Grid>
 
         <LinearProgress
+          data-cy="ltv-progress-line"
           sx={{
             borderRadius: '1.25rem',
             background: palette.background.default,
@@ -189,18 +179,10 @@ function LTVProgressBar({
             }}
           >
             <Typography variant="xsmall">LTV</Typography>
-            <Tooltip
-              arrow
+            <InfoTooltip
               title="The amount you borrow divided by the amount of collateral you provide is known as your Loan To Value ratio."
-            >
-              <InfoOutlinedIcon
-                sx={{
-                  ml: '0.313rem',
-                  fontSize: '0.875rem',
-                  display: { xs: 'none', sm: 'inline' },
-                }}
-              />
-            </Tooltip>
+              isLeft
+            />
           </div>
 
           <div
@@ -209,17 +191,10 @@ function LTVProgressBar({
               alignItems: 'center',
             }}
           >
-            <Tooltip
-              arrow
+            <InfoTooltip
               title="Maximum USD value borrowable based on the collaterals you have provided."
-            >
-              <InfoOutlinedIcon
-                sx={{
-                  mr: '0.313rem',
-                  fontSize: '0.875rem',
-                }}
-              />
-            </Tooltip>
+              isLeft
+            />
             <Typography variant="xsmall">
               Borrow Limit: ${borrowLimit.toFixed(2)}
             </Typography>

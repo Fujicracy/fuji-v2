@@ -9,7 +9,7 @@ import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {MorphoCompound} from "../../../src/providers/mainnet/MorphoCompound.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
-contract MorphoCompoundForkingTest is Routines, ForkingSetup {
+contract MorphoCompoundForkingTests is Routines, ForkingSetup {
   ILendingProvider public morphoCompound;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;

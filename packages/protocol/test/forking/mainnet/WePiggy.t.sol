@@ -8,7 +8,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {WePiggy} from "../../../src/providers/mainnet/WePiggy.sol";
 
-contract WePiggyForkingTest is Routines, ForkingSetup {
+contract WePiggyForkingTests is Routines, ForkingSetup {
   ILendingProvider public wePiggy;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -48,8 +48,8 @@ contract WePiggyForkingTest is Routines, ForkingSetup {
     uint256 borrowBalance = vault.totalDebt();
 
     //account for rounding issue
-    assertApproxEqAbs(depositBalance, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);
-    assertApproxEqAbs(borrowBalance, BORROW_AMOUNT, BORROW_AMOUNT / 1000);
+    assertApproxEqAbs(depositBalance - initVaultShares, DEPOSIT_AMOUNT, DEPOSIT_AMOUNT / 1000);
+    assertApproxEqAbs(borrowBalance - initVaultDebtShares, BORROW_AMOUNT, BORROW_AMOUNT / 1000);
   }
 
   function test_getInterestRates() public {

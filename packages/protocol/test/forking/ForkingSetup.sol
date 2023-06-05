@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
+import "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
@@ -10,6 +11,8 @@ import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
 import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Chief} from "../../src/Chief.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
 import {IRouter} from "../../src/interfaces/IRouter.sol";
@@ -31,6 +34,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   address public BOB = vm.addr(BOB_PK);
   uint256 public constant CHARLIE_PK = 0xC;
   address public CHARLIE = vm.addr(CHARLIE_PK);
+  address public INITIALIZER = vm.addr(0x111A13); // arbitrary address
 
   uint32 originDomain;
 
@@ -53,15 +57,20 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   MockOracle mockOracle;
   IFujiOracle oracle;
 
-  address public dummy;
-
   address public collateralAsset;
   address public debtAsset;
+
+  uint256 initVaultShares;
+  uint256 initVaultDebtShares;
+
+  uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
+  uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
 
   constructor() {
     vm.label(ALICE, "alice");
     vm.label(BOB, "bob");
     vm.label(CHARLIE, "charlie");
+    vm.label(INITIALIZER, "initializer");
 
     forks[GOERLI_DOMAIN] = vm.createFork("goerli");
     forks[OPTIMISM_GOERLI_DOMAIN] = vm.createFork("optimism_goerli");
@@ -154,7 +163,11 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     originDomain = domain;
 
-    oracle = new FujiOracle(assets[originDomain], priceFeeds[originDomain], address(chief));
+    oracle = new FujiOracle(
+            assets[originDomain],
+            priceFeeds[originDomain],
+            address(chief)
+        );
 
     if (reg.connext != address(0)) {
       vm.label(reg.connext, "Connext");
@@ -172,7 +185,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     }
 
     if (domain == GOERLI_DOMAIN || domain == OPTIMISM_GOERLI_DOMAIN || domain == MUMBAI_DOMAIN) {
-      MockERC20 tDAI = new MockERC20("Test DAI", "tDAI");
+      MockERC20 tDAI = new MockERC20('Test DAI', 'tDAI');
       debtAsset = address(tDAI);
       vm.label(debtAsset, "testDAI");
 
@@ -193,14 +206,27 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
 
     vault = new BorrowingVault(
-      collateralAsset,
-      debtAsset,
-      address(oracle),
-      address(chief),
-      "Fuji-V2 WETH-USDC Vault Shares",
-      "fv2WETHUSDC",
-      providers
-    );
+            collateralAsset,
+            debtAsset,
+            address(oracle),
+            address(chief),
+            'Fuji-V2 WETH-USDC Vault Shares',
+            'fv2WETHUSDC',
+            providers,
+            DEFAULT_MAX_LTV,
+            DEFAULT_LIQ_RATIO
+        );
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
+    _callWithTimelock(address(chief), executionCall);
+
+    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
+    initVaultDebtShares = minAmount;
+    initVaultShares =
+      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
+
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
   }
 
   function deployVault(
@@ -228,14 +254,80 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _grantRoleChief(LIQUIDATOR_ROLE, address(this));
 
     vault = new BorrowingVault(
-      collateralAsset,
-      debtAsset,
-      address(oracle),
-      address(chief),
-      nameVault,
-      symbolVault,
-      providers
-    );
+            collateralAsset,
+            debtAsset,
+            address(oracle),
+            address(chief),
+            nameVault,
+            symbolVault,
+            providers,
+            DEFAULT_MAX_LTV,
+            DEFAULT_LIQ_RATIO
+        );
+
+    bytes memory executionCall =
+      abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
+    _callWithTimelock(address(chief), executionCall);
+
+    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
+    initVaultDebtShares = minAmount;
+    initVaultShares =
+      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
+
+    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+  }
+
+  function _initalizeVault(
+    address vault_,
+    address initializer,
+    uint256 assets,
+    uint256 debt
+  )
+    internal
+  {
+    BorrowingVault bVault = BorrowingVault(payable(vault_));
+    address collatAsset_ = bVault.asset();
+    address debtAsset_ = bVault.debtAsset();
+
+    deal(collatAsset_, initializer, assets /*,true*/ );
+    deal(debtAsset_, initializer, debt /*,true*/ );
+
+    vm.startPrank(initializer);
+    SafeERC20.safeIncreaseAllowance(IERC20(collatAsset_), vault_, assets);
+    SafeERC20.safeIncreaseAllowance(IERC20(debtAsset_), vault_, debt);
+    bVault.initializeVaultShares(assets, debt);
+    vm.stopPrank();
+  }
+
+  function _initalizeYieldVault(address vault_, address initializer, uint256 assets) internal {
+    YieldVault yvault = YieldVault(payable(vault_));
+    address collatAsset_ = yvault.asset();
+
+    deal(collatAsset_, initializer, assets /*,true*/ );
+
+    vm.startPrank(initializer);
+    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, assets);
+    yvault.initializeVaultShares(assets, 0);
+    vm.stopPrank();
+  }
+
+  function _getMinCollateralAmount(
+    BorrowingVault vault_,
+    uint256 debt
+  )
+    internal
+    view
+    returns (uint256)
+  {
+    uint256 price = oracle.getPriceOf(vault_.debtAsset(), vault_.asset(), vault_.debtDecimals());
+    uint256 minCollateralAmount =
+      (debt * 1e18 * 10 ** vault_.decimals()) / (vault_.maxLtv() * price) + 1;
+    if (minCollateralAmount < vault_.minAmount()) {
+      return vault_.minAmount();
+    }
+
+    // Multiply by two to ensure a healthier ltv.
+    return minCollateralAmount;
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {
@@ -262,7 +354,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
   function _getPermitBorrowArgs(
     LibSigUtils.Permit memory permit,
-    uint256 ownerPrivateKey,
+    uint256 ownerPKey,
     address vault_
   )
     internal
@@ -271,13 +363,13 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
     bytes32 digest =
       LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
-    (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    (v, r, s) = vm.sign(ownerPKey, digest);
     deadline = permit.deadline;
   }
 
   function _getPermitWithdrawArgs(
     LibSigUtils.Permit memory permit,
-    uint256 ownerPrivateKey,
+    uint256 ownerPKey,
     address vault_
   )
     internal
@@ -286,7 +378,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     bytes32 structHash = LibSigUtils.getStructHashWithdraw(permit);
     bytes32 digest =
       LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
-    (v, r, s) = vm.sign(ownerPrivateKey, digest);
+    (v, r, s) = vm.sign(ownerPKey, digest);
     deadline = permit.deadline;
   }
 
@@ -295,33 +387,34 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
    */
   function _buildPermitAsBytes(
     address owner,
-    uint256 ownerPrivateKey,
+    uint256 ownerPKey,
     address operator,
     address receiver,
     uint256 amount,
     uint256 plusNonce,
-    address vault_
+    address vault_,
+    bytes32 actionArgsHash
   )
     internal
     returns (bytes memory arg)
   {
-    LibSigUtils.Permit memory permit =
-      LibSigUtils.buildPermitStruct(owner, operator, owner, amount, plusNonce, vault_);
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      owner, operator, receiver, amount, plusNonce, vault_, actionArgsHash
+    );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ownerPrivateKey, vault_);
+      _getPermitBorrowArgs(permit, ownerPKey, vault_);
 
     arg = abi.encode(vault_, owner, receiver, amount, deadline, v, r, s);
   }
 
   function _getDepositAndBorrowCallData(
-    address beneficiary,
-    uint256 beneficiaryPrivateKey,
+    address owner,
+    uint256 ownerPKey,
     uint256 amount,
     uint256 borrowAmount,
     address router,
-    address vault_,
-    uint256 slippage
+    address vault_
   )
     internal
     returns (bytes memory callData)
@@ -332,14 +425,25 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     actions[2] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(vault_, amount, beneficiary, router);
+    args[0] = abi.encode(vault_, amount, owner, router);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault_, owner, owner, borrowAmount);
+    args[2] = abi.encode(vault_, borrowAmount, owner, owner);
 
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    // Replace permit action arguments, now with the signature values.
     args[1] = _buildPermitAsBytes(
-      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
+      owner, // owner
+      ownerPKey, // owner pkey to sign
+      router, // operator
+      owner, // receiver
+      borrowAmount, // amount
+      0, // plus nonce
+      vault_, // vault
+      actionArgsHash // actions args hash
     );
-    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
 
-    callData = abi.encode(actions, args, slippage);
+    callData = abi.encode(actions, args);
   }
 
   function _getDepositAndBorrow(
@@ -360,11 +464,22 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
 
     bytes[] memory args = new bytes[](3);
     args[0] = abi.encode(vault_, amount, beneficiary, router);
-
-    args[1] = _buildPermitAsBytes(
-      beneficiary, beneficiaryPrivateKey, router, beneficiary, borrowAmount, 0, vault_
-    );
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault_, beneficiary, beneficiary, borrowAmount);
     args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = _buildPermitAsBytes(
+      beneficiary,
+      beneficiaryPrivateKey,
+      router,
+      beneficiary,
+      borrowAmount,
+      0,
+      vault_,
+      actionArgsHash
+    );
 
     return (actions, args);
   }

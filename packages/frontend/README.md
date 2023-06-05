@@ -27,16 +27,25 @@ The `pages/api` directory is mapped to `/api/*`. Files in this directory are tre
 
 ## Testing
 
-Please note that testing is a WIP feature. We setup [synpress](https://github.com/synthetixio/synpress) but are having a few bugs (i.e., can't use watch mode aka `yarn test:watch` in our package).
+Please note that testing is a WIP. We use [synpress](https://github.com/synthetixio/synpress) but are having a few bugs (i.e., can't use watch mode aka `yarn test:watch` in our package).
+
+Please add the following to your `.env` file (if you want to test with a different network, you'll have to change the tests):
 
 ```bash
-# in your .env
-
-PRIVATE_KEY=<testing-wallet-key>
-NETWORK_NAME=polygon
+SECRET_WORDS=<seed phrase, space separated>
+NETWORK_NAME=Gnosis
+RPC_URL=https://rpc.gnosischain.com/
+CHAIN_ID=100
+SYMBOL=xDAI
 ```
 
-⚠️ RN it looks like there is a bug if you use "mainnet" as network name (changeMetamaskNetwork never ends or if you put it in .env setupMetamask never finish), so I suggest using `Polygon` or `Fantom` instead.
+You also need a `cypress.env.json` file with the following content:
+
+```ts
+{
+  "user_address": "public address matching the secret_words provided above"
+}
+```
 
 ## Learn More
 
@@ -65,7 +74,7 @@ The major drawback is, compared to writing logic in a component: when an action 
 
 ```ts
 changeAssetChain(type, chainId, updateVault) {
-  const tokens =
+  const currencies =
     type === "debt"
       ? sdk.getDebtForChain(chainId)
       : sdk.getCollateralForChain(chainId)
@@ -74,11 +83,11 @@ changeAssetChain(type, chainId, updateVault) {
     produce((state: BorrowState) => {
       const t = type === "debt" ? state.debt : state.collateral
       t.chainId = chainId
-      t.selectableTokens = tokens
-      t.token = tokens[0]
+      t.selectableCurrencies = currencies
+      t.currency = currencies[0]
     })
   )
-  get().updateTokenPrice(type)
+  get().updateCurrencyPrice(type)
   get().updateBalances(type)
 
   if (updateVault) {
@@ -118,7 +127,8 @@ stores
 ├── auth
 ├── borrow
 ├── history
-└── snackbar
+├── markets
+└── positions
 ```
 
 ## File organization
@@ -156,5 +166,3 @@ There are 4 different pages:
 - my-positions/  lists all of the user open positions
   - my-positions/{chainId}-{vaultAddr}  manage an open position
 ```
-
-![schema](./drawio.svg)

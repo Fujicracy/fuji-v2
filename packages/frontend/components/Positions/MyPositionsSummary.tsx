@@ -1,11 +1,9 @@
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   Box,
   Button,
   Card,
   Grid,
   Stack,
-  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -17,6 +15,7 @@ import { showBorrow } from '../../helpers/navigation';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
+import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import PositionYieldsModal from './PositionYieldsModal';
 
 type MetricSummary = {
@@ -172,20 +171,7 @@ const Metric = ({ metric, borderLeft: leftBorder, onClick }: MetricProps) => {
       <Typography color={nameColor} fontSize="0.875rem">
         {metric.name}{' '}
         {metric.tooltip && (
-          <Tooltip
-            arrow
-            title={
-              <span>
-                Net APY accounts for all positions, APR earned by collateral
-                minus APR accrued by debt
-              </span>
-            }
-            placement="top"
-          >
-            <InfoOutlinedIcon
-              sx={{ fontSize: '1rem', color: palette.info.main }}
-            />
-          </Tooltip>
+          <InfoTooltip title="Net APY accounts for all positions, APR earned by collateral minus APR accrued by debt" />
         )}
       </Typography>
 

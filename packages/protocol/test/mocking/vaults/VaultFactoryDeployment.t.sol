@@ -35,7 +35,7 @@ contract VaultFactoryDeploymentUnitTests is MockingSetup {
   }
 
   function do_borrowingVaultParamsCheck(
-    IVault vault_,
+    BorrowingVault vault_,
     string memory name_,
     string memory symbol_
   )
@@ -56,6 +56,8 @@ contract VaultFactoryDeploymentUnitTests is MockingSetup {
     assertTrue(keccak256(abi.encodePacked(name__)) == keccak256(abi.encodePacked(name_)));
     assertTrue(keccak256(abi.encodePacked(symbol__)) == keccak256(abi.encodePacked(symbol_)));
     assertTrue(vault_.activeProvider() == mockProvider);
+    assertTrue(vault_.maxLtv() == DEFAULT_MAX_LTV);
+    assertTrue(vault_.liqRatio() == DEFAULT_LIQ_RATIO);
   }
 
   function do_yieldVaultParamsCheck(
@@ -106,12 +108,19 @@ contract VaultFactoryDeploymentUnitTests is MockingSetup {
 
     address vaultAddr = chief.deployVault(
       address(bVaultFactory),
-      abi.encode(address(collateralAsset), address(debtAsset), address(oracle), providers),
+      abi.encode(
+        address(collateralAsset),
+        address(debtAsset),
+        address(oracle),
+        providers,
+        DEFAULT_MAX_LTV,
+        DEFAULT_LIQ_RATIO
+      ),
       95
     );
 
     do_borrowingVaultParamsCheck(
-      IVault(vaultAddr), "Fuji-V2 tWETH-tDAI BorrowingVault", "fbvtWETHtDAI"
+      BorrowingVault(payable(vaultAddr)), "Fuji-V2 tWETH-tDAI BorrowingVault", "fbvtWETHtDAI"
     );
   }
 

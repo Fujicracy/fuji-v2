@@ -1,38 +1,61 @@
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { SOCIAL_URL } from '../constants';
+import { NOTIFICATION_MESSAGES, SENTRY_DSN, SOCIAL_URL } from '../constants';
 import { NotificationLink, notify } from './notifications';
+
+enum ErrorCode {
+  CANCELLED,
+  INSUFFICIENT_FUNDS,
+  OTHER,
+}
 
 export const initErrorReporting = () => {
   if (process.env.NEXT_PUBLIC_APP_ENV !== 'production') {
     return;
   }
   Sentry.init({
-    dsn: 'https://f64501e2fca94d6c9434a00ed0aece54@o1151449.ingest.sentry.io/4504884437057536',
+    dsn: SENTRY_DSN,
     integrations: [new BrowserTracing()],
     tracesSampleRate: 1.0,
   });
 };
 
-export const handleCancelableMMActionError = (
+export const sendToSentry = (error: unknown) => Sentry.captureException(error);
+
+export const stringifyError = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error);
+
+export const handleTransactionError = (
   error: unknown,
   cancelledMessage: string,
   failureMessage?: string
 ) => {
-  const userCancelled =
-    error instanceof Error &&
-    'code' in error &&
-    error['code'] === 'ACTION_REJECTED';
-  const message = userCancelled
-    ? cancelledMessage
-    : failureMessage ?? String(error);
-  const link: NotificationLink | undefined = userCancelled
-    ? undefined
-    : { url: SOCIAL_URL.DISCORD, type: 'discord' };
+  // error.code is a bit useless there, there are only a handful of them
+  const code: ErrorCode = !(error instanceof Error)
+    ? ErrorCode.OTHER
+    : error.message.includes('user rejected')
+    ? ErrorCode.CANCELLED
+    : error.message.includes('insufficient funds')
+    ? ErrorCode.INSUFFICIENT_FUNDS
+    : ErrorCode.OTHER;
+
+  const message =
+    code === ErrorCode.CANCELLED
+      ? cancelledMessage
+      : code === ErrorCode.INSUFFICIENT_FUNDS
+      ? NOTIFICATION_MESSAGES.TX_INSUFFICIENT_FUNDS
+      : failureMessage || stringifyError(error);
+
+  const link: NotificationLink | undefined =
+    code === ErrorCode.OTHER
+      ? { url: SOCIAL_URL.DISCORD, type: 'discord' }
+      : undefined;
+
   notify({
     type: 'error',
     message,
     link,
+    sticky: code === ErrorCode.OTHER,
   });
 };

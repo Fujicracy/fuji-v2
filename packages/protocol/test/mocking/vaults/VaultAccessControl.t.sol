@@ -27,20 +27,6 @@ contract VaultAccessControlUnitTests is MockingSetup {
     );
     vm.prank(foe);
     vault.setMinAmount(amount);
-    vm.stopPrank();
-  }
-
-  function test_tryFoeSetDepositCap(address foe, uint256 amount) public {
-    vm.assume(
-      foe != address(timelock) && foe != address(0) && foe != address(this) && foe != address(chief)
-        && amount > 0
-    );
-    vm.expectRevert(
-      SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
-    );
-    vm.prank(foe);
-    vault.setDepositCap(amount);
-    vm.stopPrank();
   }
 
   function test_tryFoeSetProviders(address foe) public {
@@ -55,7 +41,6 @@ contract VaultAccessControlUnitTests is MockingSetup {
     );
     vm.prank(foe);
     vault.setProviders(providers);
-    vm.stopPrank();
   }
 
   function test_tryFoeSetActiveProvider(address foe) public {
@@ -70,7 +55,6 @@ contract VaultAccessControlUnitTests is MockingSetup {
     );
     vm.prank(foe);
     vault.setActiveProvider(maliciousProvider);
-    vm.stopPrank();
   }
 
   /// BorrowingVault borrowing parameters changing tests
@@ -85,7 +69,6 @@ contract VaultAccessControlUnitTests is MockingSetup {
     );
     vm.prank(foe);
     vault.setOracle(maliciousOracle);
-    vm.stopPrank();
   }
 
   function test_tryFoeSetMaxLtv(address foe) public {
@@ -98,7 +81,6 @@ contract VaultAccessControlUnitTests is MockingSetup {
     );
     vm.prank(foe);
     vault.setMaxLtv(newMaliciousMaxLtv);
-    vm.stopPrank();
   }
 
   function test_tryFoeSetLiqRatio(address foe) public {
@@ -111,6 +93,5 @@ contract VaultAccessControlUnitTests is MockingSetup {
     );
     vm.prank(foe);
     vault.setLiqRatio(newMaliciousLiqRatio);
-    vm.stopPrank();
   }
 }

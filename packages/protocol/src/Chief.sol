@@ -16,6 +16,7 @@ import {AccessControl} from "openzeppelin-contracts/contracts/access/AccessContr
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+import {IVault} from "./interfaces/IVault.sol";
 import {IPausableVault} from "./interfaces/IPausableVault.sol";
 import {IVaultFactory} from "./interfaces/IVaultFactory.sol";
 import {IChief} from "./interfaces/IChief.sol";
@@ -33,21 +34,12 @@ contract Chief is CoreRoles, AccessControl, IChief {
   event AllowPermissionlessDeployments(bool allowed);
 
   /**
-   * @dev Emitted when a new vault gets deployed.
+   * @dev Emitted when `vault` is set to be active or not.
    *
-   * @param factory address of the factory through which to deploy
-   * @param vault address of the newly deployed vault
-   * @param deployData encoded args used to deploy the vault
+   * @param vault address
+   * @param active boolean
    */
-  event DeployVault(address indexed factory, address indexed vault, bytes deployData);
-
-  /**
-   * @dev Emitted when `_vaults` are set through `setVaults()`.
-   *
-   * @param previousVaults addresses
-   * @param newVaults addresses
-   */
-  event SetVaults(address[] previousVaults, address[] newVaults);
+  event SetVaultStatus(address vault, bool active);
 
   /**
    * @dev Emitted when a new flasher is alllowed/disallowed.
@@ -90,13 +82,14 @@ contract Chief is CoreRoles, AccessControl, IChief {
 
   /// @dev Custom Errors
   error Chief__checkInput_zeroAddress();
+  error Chief__setVaultStatus_noStatusChange();
   error Chief__allowFlasher_noAllowChange();
   error Chief__allowVaultFactory_noAllowChange();
   error Chief__deployVault_factoryNotAllowed();
   error Chief__deployVault_missingRole(address account, bytes32 role);
   error Chief__onlyTimelock_callerIsNotTimelock();
+  error Chief__setSafetyRating_notActiveVault();
   error Chief__checkRatingValue_notInRange();
-  error Chief__checkValidVault_notValidVault();
   error Chief__allowSwapper_noAllowChange();
 
   /**
@@ -111,9 +104,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
   /// @dev Control who can deploy new vaults through `deployVault()`
   bool public permissionlessDeployments;
 
-  address[] internal _vaults;
-
+  mapping(address => bool) public isVaultActive;
   mapping(address => uint256) public vaultSafetyRating;
+
   mapping(address => bool) public allowedVaultFactory;
   mapping(address => bool) public allowedFlasher;
   mapping(address => bool) public allowedSwapper;
@@ -135,10 +128,22 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Gets an array with all deployed vaults.
+   * @notice Changes the status of `vault`, while triggering
+   * corresponding "pause" actions.
+   *
+   * @param vault to change state
+   * @param active boolean
+   *
+   * @dev Refer to internal function for implementation.
+   * Requirements:
+   * - Must be called from timelock
+   * - Must check `active` argument does change current state.
+   * - Must check `vault` is not address zero.
+   * - Must pause Deposit action in `vault`.
+   * - Must pause Borrow action if `vault` is a {BorrowingVault}.
    */
-  function getVaults() external view returns (address[] memory) {
-    return _vaults;
+  function setVaultStatus(address vault, bool active) external onlyTimelock {
+    _setVaultStatus(vault, active);
   }
 
   /**
@@ -163,22 +168,6 @@ contract Chief is CoreRoles, AccessControl, IChief {
     // grant admin role to new timelock address
     _grantRole(DEFAULT_ADMIN_ROLE, timelock);
     emit UpdateTimelock(newTimelock);
-  }
-
-  /**
-   * @notice Clears and sets the `vaults` recorded in this {Chief-_vaults}.
-   *
-   * @param vaults addresses that should be recorded
-   *
-   * @dev This method should only be used in extraordinary cases.
-   * Requirements:
-   *  - Must be called from a timelock.
-   */
-  function setVaults(address[] memory vaults) external onlyTimelock {
-    address[] memory previous = _vaults;
-    delete _vaults;
-    _vaults = vaults;
-    emit SetVaults(previous, _vaults);
   }
 
   /**
@@ -230,9 +219,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
 
     vault = IVaultFactory(factory).deployVault(deployData);
     vaultSafetyRating[vault] = rating;
-    _vaults.push(vault);
-
-    emit DeployVault(factory, vault, deployData);
+    _setVaultStatus(vault, true);
   }
 
   /**
@@ -248,7 +235,9 @@ contract Chief is CoreRoles, AccessControl, IChief {
    *  - `vault` is a non-zero address and is contained in `_vaults`.
    */
   function setSafetyRating(address vault, uint256 newRating) external onlyTimelock {
-    _checkValidVault(vault);
+    if (!isVaultActive[vault]) {
+      revert Chief__setSafetyRating_notActiveVault();
+    }
     _checkRatingValue(newRating);
 
     vaultSafetyRating[vault] = newRating;
@@ -318,25 +307,29 @@ contract Chief is CoreRoles, AccessControl, IChief {
   }
 
   /**
-   * @notice Force pause all actions from all vaults in `_vaults`.
+   * @notice Force pause all actions in `vaults`.
+   *
+   * @param vaults to pause
    *
    * @dev Requirements:
    *  - Must be restricted to `PAUSER_ROLE`.
    */
-  function pauseForceAllVaults() external onlyRole(PAUSER_ROLE) {
-    bytes memory callData = abi.encodeWithSelector(IPausableVault.pauseForceAll.selector);
-    _changePauseState(callData);
+  function pauseForceVaults(IPausableVault[] calldata vaults) external onlyRole(PAUSER_ROLE) {
+    bytes memory data = abi.encodeWithSelector(IPausableVault.pauseForceAll.selector);
+    _changePauseState(vaults, data);
   }
 
   /**
-   * @notice Resumes all actions by force unpausing all vaults in `_vaults`.
+   * @notice Resumes all actions by force unpausing all `vaults`.
+   *
+   * @param vaults to unpause
    *
    * @dev Requirements:
    *  - Must be restricted to `UNPAUSER_ROLE`.
    */
-  function unpauseForceAllVaults() external onlyRole(UNPAUSER_ROLE) {
+  function unpauseForceVaults(IPausableVault[] calldata vaults) external onlyRole(UNPAUSER_ROLE) {
     bytes memory callData = abi.encodeWithSelector(IPausableVault.unpauseForceAll.selector);
-    _changePauseState(callData);
+    _changePauseState(vaults, callData);
   }
 
   /**
@@ -348,12 +341,15 @@ contract Chief is CoreRoles, AccessControl, IChief {
    *  - `action` in all vaults' must be not paused; otherwise revert.
    *  - Must be restricted to `PAUSER_ROLE`.
    */
-  function pauseActionInAllVaults(IPausableVault.VaultActions action)
+  function pauseActionInVaults(
+    IPausableVault[] calldata vaults,
+    IPausableVault.VaultActions action
+  )
     external
     onlyRole(PAUSER_ROLE)
   {
     bytes memory callData = abi.encodeWithSelector(IPausableVault.pause.selector, action);
-    _changePauseState(callData);
+    _changePauseState(vaults, callData);
   }
 
   /**
@@ -365,12 +361,15 @@ contract Chief is CoreRoles, AccessControl, IChief {
    *  - `action` in all vaults' must be in paused state; otherwise revert.
    *  - Must be restricted to `PAUSER_ROLE`.
    */
-  function upauseActionInAllVaults(IPausableVault.VaultActions action)
+  function upauseActionInVaults(
+    IPausableVault[] calldata vaults,
+    IPausableVault.VaultActions action
+  )
     external
     onlyRole(UNPAUSER_ROLE)
   {
-    bytes memory callData = abi.encodeWithSelector(IPausableVault.unpause.selector, uint8(action));
-    _changePauseState(callData);
+    bytes memory callData = abi.encodeWithSelector(IPausableVault.unpause.selector, action);
+    _changePauseState(vaults, callData);
   }
 
   /**
@@ -379,7 +378,7 @@ contract Chief is CoreRoles, AccessControl, IChief {
   function _deployTimelockController() internal {
     address[] memory admins = new address[](1);
     admins[0] = msg.sender;
-    timelock = address(new TimelockController{salt: "0x00"}(1 days, admins, admins));
+    timelock = address(new TimelockController{salt: "0x00"}(1 days, admins, admins, address(0)));
     _grantRole(DEFAULT_ADMIN_ROLE, timelock);
   }
 
@@ -393,16 +392,44 @@ contract Chief is CoreRoles, AccessControl, IChief {
   /**
    * @dev Executes pause state changes.
    *
-   * @param callData encoded data containing pause or unpause commands.
+   * @param vaults to change pause state
+   * @param data encoded data containing pause or unpause commands.
    */
-  function _changePauseState(bytes memory callData) internal {
-    uint256 alength = _vaults.length;
+  function _changePauseState(IPausableVault[] memory vaults, bytes memory data) internal {
+    uint256 alength = vaults.length;
     for (uint256 i; i < alength;) {
-      address(_vaults[i]).functionCall(callData, ": pause call failed");
+      address(vaults[i]).functionCall(data, ": pause call failed");
       unchecked {
         ++i;
       }
     }
+  }
+
+  /**
+   * @dev Refer to {Chief-setVaultStatus}.
+   *
+   * @param vault to change state
+   * @param active boolean
+   */
+  function _setVaultStatus(address vault, bool active) internal {
+    _checkInputIsNotZeroAddress(vault);
+    if (isVaultActive[vault] == active) {
+      revert Chief__setVaultStatus_noStatusChange();
+    }
+    isVaultActive[vault] = active;
+    vaultSafetyRating[vault] = 0;
+
+    // Pause Deposit and Borrow actions if corresponding and applicable to `vault`.
+    if (active == false) {
+      IPausableVault(vault).pause(IPausableVault.VaultActions.Deposit);
+
+      // If `vault` is a {BorrowingVault}.
+      if (IVault(vault).debtAsset() != address(0)) {
+        IPausableVault(vault).pause(IPausableVault.VaultActions.Borrow);
+      }
+    }
+
+    emit SetVaultStatus(vault, active);
   }
 
   /**
@@ -424,28 +451,6 @@ contract Chief is CoreRoles, AccessControl, IChief {
   function _checkRatingValue(uint256 rating) internal pure {
     if (rating == 0 || rating > 100) {
       revert Chief__checkRatingValue_notInRange();
-    }
-  }
-
-  /**
-   * @dev Reverts if `vault` is an zero address and is not in `_vaults` array.
-   *
-   * @param vault address of vault to check
-   */
-  function _checkValidVault(address vault) internal view {
-    _checkInputIsNotZeroAddress(vault);
-    uint256 len = _vaults.length;
-    bool isInVaultList;
-    for (uint256 i = 0; i < len;) {
-      if (vault == _vaults[i]) {
-        isInVaultList = true;
-      }
-      unchecked {
-        ++i;
-      }
-    }
-    if (!isInVaultList) {
-      revert Chief__checkValidVault_notValidVault();
     }
   }
 }

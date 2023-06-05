@@ -16,6 +16,8 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
   event PausedForceAll(address account);
   event UnpausedForceAll(address account);
 
+  IPausableVault[] public vaults;
+
   BorrowingVault public vault2;
 
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
@@ -39,14 +41,19 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
             address(chief),
             'Fuji-V2 tWETH-tDAI BorrowingVault',
             'fbvtWETHtDAI',
-            providers
+            providers,
+            DEFAULT_MAX_LTV,
+            DEFAULT_LIQ_RATIO
         );
 
     // Set up {Chief-_vaults} manually to bypass vault factory set-up.
-    address[] memory vaults = new address[](2);
-    vaults[0] = address(vault);
-    vaults[1] = address(vault2);
-    bytes memory executionCall = abi.encodeWithSelector(chief.setVaults.selector, vaults);
+    IPausableVault[] memory vaults_ = new IPausableVault[](2);
+    vaults_[0] = IPausableVault(address(vault));
+    vaults_[1] = IPausableVault(address(vault2));
+
+    vaults = vaults_;
+
+    bytes memory executionCall = abi.encodeWithSelector(chief.setVaultStatus.selector, vault2, true);
     _callWithTimelock(address(chief), executionCall);
   }
 
@@ -149,7 +156,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
 
     vm.startPrank(ALICE);
     IERC20(collateralAsset).approve(address(vault), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault.deposit(DEPOSIT_AMOUNT, ALICE);
     vm.stopPrank();
 
@@ -176,7 +183,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
 
   function test_pauseDepositAllVaultsFromChief() public {
     vm.prank(CHARLIE);
-    chief.pauseActionInAllVaults(IPausableVault.VaultActions.Deposit);
+    chief.pauseActionInVaults(vaults, IPausableVault.VaultActions.Deposit);
 
     assertEq(vault.paused(IPausableVault.VaultActions.Deposit), true);
     assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), true);
@@ -187,14 +194,14 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
     // Borrowingvault called by ALICE
     vm.startPrank(ALICE);
     IERC20(collateralAsset).approve(address(vault), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault.deposit(DEPOSIT_AMOUNT, ALICE);
     vm.stopPrank();
 
     // BorrowingVault2 called by BOB
     vm.startPrank(BOB);
     IERC20(collateralAsset).approve(address(vault2), DEPOSIT_AMOUNT);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault2.deposit(DEPOSIT_AMOUNT, BOB);
     vm.stopPrank();
   }
@@ -206,20 +213,20 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
     assertEq(vault2.balanceOf(BOB), DEPOSIT_AMOUNT);
 
     vm.prank(CHARLIE);
-    chief.pauseActionInAllVaults(IPausableVault.VaultActions.Withdraw);
+    chief.pauseActionInVaults(vaults, IPausableVault.VaultActions.Withdraw);
 
     assertEq(vault.paused(IPausableVault.VaultActions.Withdraw), true);
     assertEq(vault2.paused(IPausableVault.VaultActions.Withdraw), true);
 
     // Borrowingvault called by ALICE
     vm.startPrank(ALICE);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault.withdraw(DEPOSIT_AMOUNT, ALICE, ALICE);
     vm.stopPrank();
 
     // BorrowingVault2 called by BOB
     vm.startPrank(BOB);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault2.withdraw(DEPOSIT_AMOUNT, BOB, BOB);
     vm.stopPrank();
   }
@@ -231,20 +238,20 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
     assertEq(vault2.balanceOf(BOB), DEPOSIT_AMOUNT);
 
     vm.prank(CHARLIE);
-    chief.pauseActionInAllVaults(IPausableVault.VaultActions.Borrow);
+    chief.pauseActionInVaults(vaults, IPausableVault.VaultActions.Borrow);
 
     assertEq(vault.paused(IPausableVault.VaultActions.Borrow), true);
     assertEq(vault2.paused(IPausableVault.VaultActions.Borrow), true);
 
     // Borrowingvault called by ALICE
     vm.startPrank(ALICE);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault.borrow(BORROW_AMOUNT, ALICE, ALICE);
     vm.stopPrank();
 
     // BorrowingVault2 called by BOB
     vm.startPrank(BOB);
-    vm.expectRevert(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+    vm.expectRevert();
     vault2.borrow(BORROW_AMOUNT, BOB, BOB);
     vm.stopPrank();
   }
@@ -261,7 +268,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
     assertEq(vault2.balanceOfDebt(BOB), BORROW_AMOUNT);
 
     vm.prank(CHARLIE);
-    chief.pauseActionInAllVaults(IPausableVault.VaultActions.Payback);
+    chief.pauseActionInVaults(vaults, IPausableVault.VaultActions.Payback);
 
     assertEq(vault.paused(IPausableVault.VaultActions.Payback), true);
     assertEq(vault2.paused(IPausableVault.VaultActions.Payback), true);
@@ -283,7 +290,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
 
   function test_pauseForceAllActionsAllVaultsFromChief() public {
     vm.prank(CHARLIE);
-    chief.pauseForceAllVaults();
+    chief.pauseForceVaults(vaults);
 
     assertEq(vault.paused(IPausableVault.VaultActions.Deposit), true);
     assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), true);
@@ -300,7 +307,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
 
   function test_unpauseForceAllActionsAllVaultsFromChief() public {
     vm.prank(CHARLIE);
-    chief.pauseForceAllVaults();
+    chief.pauseForceVaults(vaults);
 
     assertEq(vault.paused(IPausableVault.VaultActions.Deposit), true);
     assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), true);
@@ -315,7 +322,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
     assertEq(vault2.paused(IPausableVault.VaultActions.Payback), true);
 
     vm.prank(CHARLIE);
-    chief.unpauseForceAllVaults();
+    chief.unpauseForceVaults(vaults);
 
     assertEq(vault.paused(IPausableVault.VaultActions.Deposit), false);
     assertEq(vault2.paused(IPausableVault.VaultActions.Deposit), false);

@@ -1,38 +1,26 @@
-import CheckIcon from '@mui/icons-material/Check';
 import CircleIcon from '@mui/icons-material/Circle';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import LaunchIcon from '@mui/icons-material/Launch';
 import {
   Box,
   Button,
-  capitalize,
   Card,
   CardContent,
-  CircularProgress,
   Divider,
   List,
   ListItem,
-  ListItemButton,
-  ListItemText,
   Popover,
   Stack,
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
 import { useState } from 'react';
 
-import { addressUrl, hexToChainId } from '../../helpers/chains';
-import {
-  HistoryEntry,
-  HistoryEntryStatus,
-  stepFromEntry,
-} from '../../helpers/history';
-import { toNotSoFixed } from '../../helpers/values';
-import { useAuth } from '../../store/auth.store';
-import { useHistory } from '../../store/history.store';
+import { addressUrl } from '../../../helpers/chains';
+import { HistoryEntry, HistoryEntryStatus } from '../../../helpers/history';
+import { useAuth } from '../../../store/auth.store';
+import { useHistory } from '../../../store/history.store';
+import HistoryItem from './HistoryItem';
 
 type AccountModalProps = {
   isOpen: boolean;
@@ -49,7 +37,7 @@ function AccountModal({
 }: AccountModalProps) {
   const { palette } = useTheme();
 
-  const hexChainId = useAuth((state) => state.chain?.id);
+  const chainId = useAuth((state) => state.chainId);
   const walletName = useAuth((state) => state.walletName);
   const logout = useAuth((state) => state.logout);
 
@@ -66,13 +54,13 @@ function AccountModal({
   const [copyAddressHovered, setCopyAddressHovered] = useState(false);
   const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false);
 
-  const chainId = hexToChainId(hexChainId);
   const formattedAddress =
     address.substring(0, 8) + '...' + address.substring(address.length - 4);
 
   const copy = () => {
     navigator.clipboard.writeText(address);
     setCopied(true);
+
     setTimeout(() => {
       setCopied(false);
     }, 5000);
@@ -89,6 +77,7 @@ function AccountModal({
 
   const onLogout = () => {
     logout();
+    closeAccountModal();
   };
 
   return (
@@ -111,7 +100,11 @@ function AccountModal({
             <Typography variant="xsmall">
               Connected with {walletName}
             </Typography>
-            <Button variant="small" onClick={onLogout}>
+            <Button
+              data-cy="header-disconnect"
+              variant="small"
+              onClick={onLogout}
+            >
               Disconnect
             </Button>
           </Stack>
@@ -214,7 +207,7 @@ function AccountModal({
           <List sx={{ pb: '.75rem' }}>
             {historyEntries?.length ? (
               historyEntries.map((e) => (
-                <BorrowEntry
+                <HistoryItem
                   key={e.hash}
                   entry={e}
                   onClick={() => handleEntryClick(e)}
@@ -235,71 +228,3 @@ function AccountModal({
 }
 
 export default AccountModal;
-
-type BorrowEntryProps = {
-  entry: HistoryEntry;
-  onClick: () => void;
-};
-
-function BorrowEntry({ entry, onClick }: BorrowEntryProps) {
-  const deposit = stepFromEntry(entry, RoutingStep.DEPOSIT);
-  const borrow = stepFromEntry(entry, RoutingStep.BORROW);
-  const payback = stepFromEntry(entry, RoutingStep.PAYBACK);
-  const withdraw = stepFromEntry(entry, RoutingStep.WITHDRAW);
-
-  const firstStep = deposit ?? payback;
-  const secondStep = borrow ?? withdraw;
-
-  const { palette } = useTheme();
-
-  const listAction =
-    entry.status === HistoryEntryStatus.ONGOING ? (
-      <CircularProgress size={16} />
-    ) : entry.status === HistoryEntryStatus.FAILURE ? (
-      <ErrorOutlineIcon />
-    ) : (
-      <CheckIcon
-        sx={{
-          backgroundColor: palette.success.dark,
-          borderRadius: '100%',
-          padding: '0.2rem',
-        }}
-        fontSize="small"
-      />
-    );
-
-  const firstTitle =
-    firstStep && firstStep.token
-      ? `${firstStep.step.toString()} ${toNotSoFixed(
-          formatUnits(firstStep.amount ?? 0, firstStep.token.decimals)
-        )} ${firstStep.token.symbol}`
-      : '';
-
-  const secondTitle =
-    secondStep && secondStep.token
-      ? `${secondStep.step.toString()} ${toNotSoFixed(
-          formatUnits(secondStep.amount ?? 0, secondStep.token.decimals)
-        )} ${secondStep.token.symbol}`
-      : '';
-
-  const connector = firstTitle && secondTitle ? ' and ' : '';
-
-  const title = capitalize(firstTitle + connector + secondTitle);
-
-  return (
-    <ListItemButton
-      sx={{
-        px: '1.25rem',
-        py: '.25rem',
-        '& .MuiListItemSecondaryAction-root': { right: 0 },
-      }}
-      onClick={onClick}
-    >
-      <ListItem secondaryAction={listAction} sx={{ p: 0 }}>
-        <ListItemText sx={{ m: 0 }}>
-          <Typography variant="xsmall">{title}</Typography>
-        </ListItemText>
-      </ListItem>
-    </ListItemButton>
-  );
-}

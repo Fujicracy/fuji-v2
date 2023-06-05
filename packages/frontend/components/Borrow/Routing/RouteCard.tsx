@@ -2,18 +2,19 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { Box, Chip, Collapse, Paper, Tooltip, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { Stack } from '@mui/system';
-import { RoutingStep, RoutingStepDetails, Token } from '@x-fuji/sdk';
+import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 import { formatUnits } from 'ethers/lib/utils';
 
 import { chainName } from '../../../helpers/chains';
 import { RouteMeta } from '../../../helpers/routing';
+import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
 import { camelize, toNotSoFixed } from '../../../helpers/values';
 import {
+  CurrencyIcon,
+  CurrencyWithNetworkIcon,
   NetworkIcon,
   ProviderIcon,
-  TokenIcon,
-  TokenWithNetworkIcon,
 } from '../../Shared/Icons';
 
 type RouteCardProps = {
@@ -40,10 +41,14 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   function iconForStep(step: RoutingStepDetails) {
     if (step.step === RoutingStep.X_TRANSFER) {
       return (
-        <NetworkIcon network={chainName(step.chainId)} height={18} width={18} />
+        <NetworkIcon
+          network={chainName(step.token?.chainId)}
+          height={18}
+          width={18}
+        />
       );
     } else if (step.token) {
-      return <TokenIcon token={step.token} height={18} width={18} />;
+      return <CurrencyIcon currency={step.token} height={18} width={18} />;
     }
     return <></>;
   }
@@ -52,7 +57,6 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
     step,
     amount,
     token,
-    chainId,
     lendingProvider,
   }: RoutingStepDetails) {
     switch (step) {
@@ -87,7 +91,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
         );
       case RoutingStep.X_TRANSFER:
         return camelize(
-          `${step.toString()} to ${chainName(chainId)} via Connext`
+          `${step.toString()} to ${chainName(token?.chainId)} via Connext`
         );
       default:
         return camelize(step);
@@ -104,7 +108,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
   }
 
   function slippageTextTooltip() {
-    if (!bridgeStep) return '';
+    if (!bridgeStep || !route.estimateSlippage) return '';
     const bridgeIndex = steps.indexOf(bridgeStep);
     const step =
       bridgeIndex === 0 ? steps[bridgeIndex + 1] : steps[bridgeIndex - 1];
@@ -131,7 +135,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
     return (
       <Stack direction="row" justifyContent="space-between" flexWrap="wrap">
         <Stack direction="row" gap="0.5rem">
-          {bridgeStep && !isMock && (
+          {bridgeStep && route.bridgeFees && !isMock && (
             <>
               <Chip
                 variant="routing"
@@ -149,7 +153,9 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
                     />
                   }
                   variant="routing"
-                  label={`Bridge Fee ~$${route.bridgeFee.toFixed(2)}`}
+                  label={`Bridge Fee ~$${stringifiedBridgeFeeSum(
+                    route.bridgeFees
+                  )}`}
                 />
               </Tooltip>
             </>
@@ -219,6 +225,7 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
 
   return (
     <Paper
+      data-cy="route-card"
       sx={{
         border: `2px solid ${
           selected ? palette.primary.main : palette.secondary.light
@@ -234,10 +241,12 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
       {renderHeader()}
       <Stack mt="1rem" direction="row" justifyContent="space-between">
         <Stack direction="row">
-          <TokenWithNetworkIcon
-            token={startStep?.token as Token}
-            network={chainName(startStep?.chainId)}
-          />
+          {startStep && startStep.token && (
+            <CurrencyWithNetworkIcon
+              currency={startStep.token}
+              network={chainName(startStep?.chainId)}
+            />
+          )}
           <Box>
             <Typography variant="body">
               {`${isMock ? '' : roundStepAmount(startStep)} ${
@@ -264,10 +273,12 @@ function RouteCard({ route, isEditing, selected, onChange }: RouteCardProps) {
             </Typography>
           </Box>
 
-          <TokenWithNetworkIcon
-            token={endStep?.token as Token}
-            network={chainName(endStep?.chainId)}
-          />
+          {endStep && endStep.token && (
+            <CurrencyWithNetworkIcon
+              currency={endStep.token}
+              network={chainName(endStep?.chainId)}
+            />
+          )}
         </Stack>
       </Stack>
 

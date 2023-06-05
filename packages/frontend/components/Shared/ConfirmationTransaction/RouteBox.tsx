@@ -1,13 +1,11 @@
-import { Box, Card, Divider, Stack, Typography } from '@mui/material';
+import { Card, Divider, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
+import { RoutingStepDetails } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React from 'react';
 
-import { chainName } from '../../../helpers/chains';
-import { camelize, toNotSoFixed } from '../../../helpers/values';
-import { NetworkIcon } from '../Icons';
+import AssetsContainer from '../AssetsContainer';
+import RoutesSteps from '../RoutesSteps';
 
 function RouteBox({
   steps,
@@ -17,80 +15,6 @@ function RouteBox({
   isCrossChain: boolean;
 }) {
   const { palette } = useTheme();
-
-  const stepsToShow = steps.filter(
-    (s) => s.step !== RoutingStep.START && s.step !== RoutingStep.END
-  );
-
-  function description(step: RoutingStepDetails) {
-    if (step.lendingProvider) {
-      const withToPrepositions = [RoutingStep.DEPOSIT, RoutingStep.PAYBACK];
-      const preposition = withToPrepositions.includes(step.step)
-        ? 'to'
-        : 'from';
-      return (
-        <Typography
-          align="center"
-          variant="xsmall"
-          fontSize="0.75rem"
-          sx={{ display: 'flex', gap: '0.25rem' }}
-        >
-          {`${preposition} ${step.lendingProvider.name} on `}
-          <NetworkIcon
-            network={chainName(step.chainId)}
-            height={14}
-            width={14}
-          />
-        </Typography>
-      );
-    }
-    if (step.step === RoutingStep.X_TRANSFER) {
-      return (
-        <Stack flexDirection="row" alignItems="center" gap="0.25rem">
-          <Typography align="center" variant="xsmall" fontSize="0.75rem">
-            from
-          </Typography>
-          <NetworkIcon
-            network={chainName(step.token?.chainId)}
-            height={14}
-            width={14}
-          />
-          <Typography align="center" variant="xsmall" fontSize="0.75rem">
-            to
-          </Typography>
-          <NetworkIcon
-            network={chainName(step.chainId)}
-            height={14}
-            width={14}
-          />
-        </Stack>
-      );
-    }
-
-    return <></>;
-  }
-
-  function textForStep({ step, amount, token }: RoutingStepDetails) {
-    switch (step) {
-      case RoutingStep.DEPOSIT:
-      case RoutingStep.BORROW:
-      case RoutingStep.PAYBACK:
-      case RoutingStep.WITHDRAW:
-        return camelize(
-          `${step.toString()} ${toNotSoFixed(
-            formatUnits(amount ?? 0, token?.decimals || 18)
-          )} ${token?.symbol}`
-        );
-      case RoutingStep.X_TRANSFER:
-        return camelize(
-          `${step.toString()} ${toNotSoFixed(
-            formatUnits(amount ?? 0, token?.decimals || 18)
-          )} ${token?.symbol}`
-        );
-      default:
-        return camelize(step);
-    }
-  }
 
   return (
     <Card
@@ -110,64 +34,23 @@ function RouteBox({
         <Typography variant="small">Route</Typography>
 
         {isCrossChain && (
-          <Typography variant="small">via Connext Network</Typography>
+          <Stack direction="row" alignItems="center">
+            <Typography variant="small">via</Typography>
+            <Image
+              src="/assets/images/logo/connext-title.svg"
+              height={16}
+              width={95}
+              alt="Connext logo"
+            />
+          </Stack>
         )}
       </Stack>
 
-      <Divider sx={{ m: '0.75rem 0', height: '1px', width: '100%' }} />
+      <Divider sx={{ m: '0.75rem 0 1rem 0', height: '1px', width: '100%' }} />
 
-      <Stack
-        width="100%"
-        justifyContent="space-between"
-        sx={{
-          flex: 1,
-          maxWidth: '38rem',
-          flexWrap: 'wrap',
-          flexDirection: { xs: 'column', sm: 'row' },
-          alignItems: 'center',
-          justifyContent: { xs: 'center', sm: 'space-between' },
-          gap: '0.5rem',
-        }}
-      >
-        {stepsToShow.map((step, i) => (
-          <React.Fragment key={i}>
-            {i !== 0 && (
-              <Box
-                sx={{
-                  ['@media screen and (max-width: 600px)']: {
-                    transform: 'rotate(90deg)',
-                  },
-                }}
-              >
-                <Image
-                  alt="Arrow icon"
-                  src="/assets/images/shared/doubleArrow.svg"
-                  height={10}
-                  width={9}
-                />
-              </Box>
-            )}
-            <Stack
-              direction="column"
-              sx={{
-                p: '0.375rem 0.45rem',
-                backgroundColor: '#35353B',
-                borderRadius: '6px',
-                minWidth: '8rem',
-                flex: 1,
-                width: { xs: '100%', sm: 'unset' },
-              }}
-            >
-              <Typography align="left" variant="xsmall">
-                {textForStep(step)}
-              </Typography>
-              <Typography align="left" variant="xsmall" mt={0.5}>
-                {description(step)}
-              </Typography>
-            </Stack>
-          </React.Fragment>
-        ))}
-      </Stack>
+      <AssetsContainer steps={steps} />
+
+      <RoutesSteps steps={steps} />
     </Card>
   );
 }
