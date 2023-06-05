@@ -36,7 +36,7 @@ contract DForcePolygon is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
-    return IAddrMapper(0x9E19FBd8c75184EeFE096932Fbb6CB338D3bE7Cd);
+    return IAddrMapper(0x1FA4F8dCbfF685434E221E1ea22744F52C521231);
   }
 
   /**

@@ -30,7 +30,7 @@ contract RunPolygon is ScriptPlus {
     setOrDeployAddrMapper(false);
 
     _setLendingProviders();
-    /*_deployVault("WETH", "DAI", "BorrowingVault-WETHDAI", 90);*/
+    /*deployBorrowingVaults();*/
 
     /*_setVaultNewProviders("BorrowingVault-WETHUSDC-2");*/
     /*_setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
@@ -42,21 +42,21 @@ contract RunPolygon is ScriptPlus {
   }
 
   function _setLendingProviders() internal {
-    aaveV3 = AaveV3Polygon(getAddress("AaveV3Polygon"));
+    aaveV3 = AaveV3Polygon(getAddress("Aave_V3_Polygon"));
     /*aaveV3 = new AaveV3Polygon();*/
-    /*saveAddress("AaveV3Polygon", address(aaveV3));*/
+    /*saveAddress("Aave_V3_Polygon", address(aaveV3));*/
 
-    aaveV2 = AaveV2Polygon(getAddress("AaveV2Polygon"));
+    aaveV2 = AaveV2Polygon(getAddress("Aave_V2_Polygon"));
     /*aaveV2 = new AaveV2Polygon();*/
-    /*saveAddress("AaveV2Polygon", address(aaveV2));*/
+    /*saveAddress("Aave_V2_Polygon", address(aaveV2));*/
 
-    dforce = DForcePolygon(getAddress("DForcePolygon"));
+    dforce = DForcePolygon(getAddress("DForce_Polygon"));
     /*dforce = new DForcePolygon();*/
-    /*saveAddress("DForcePolygon", address(dforce));*/
+    /*saveAddress("DForce_Polygon", address(dforce));*/
 
-    compound = CompoundV3Polygon(getAddress("CompoundV3Polygon"));
+    compound = CompoundV3Polygon(getAddress("Compound_V3_Polygon"));
     /*compound = new CompoundV3Polygon();*/
-    /*saveAddress("CompoundV3Polygon", address(compound));*/
+    /*saveAddress("Compound_V3_Polygon", address(compound));*/
   }
 
   function _setVaultNewProviders(string memory vaultName) internal {
@@ -74,25 +74,5 @@ contract RunPolygon is ScriptPlus {
     bytes memory callData =
       abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
     callWithTimelock(address(chief), callData);
-  }
-
-  function _deployVault(
-    string memory collateralAddr,
-    string memory debtAddr,
-    string memory name,
-    uint256 rating
-  )
-    internal
-  {
-    address collateral = readAddrFromConfig(collateralAddr);
-    address debt = readAddrFromConfig(debtAddr);
-
-    ILendingProvider[] memory providers = new ILendingProvider[](2);
-    providers[0] = aaveV2;
-    providers[1] = aaveV3;
-    address vault = chief.deployVault(
-      address(factory), abi.encode(collateral, debt, address(oracle), providers), rating
-    );
-    saveAddress(name, vault);
   }
 }

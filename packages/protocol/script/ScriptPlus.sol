@@ -8,6 +8,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
+import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFactory.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
@@ -31,6 +32,16 @@ contract ScriptPlus is Script {
     string asset;
     address market;
     string name;
+  }
+
+  struct VaultConfig {
+    string collateral;
+    string debt;
+    uint256 liqRatio;
+    uint256 maxLtv;
+    string name;
+    string[] providers;
+    uint256 rating;
   }
 
   AddrMapper mapper;
@@ -230,6 +241,41 @@ contract ScriptPlus is Script {
     callBatchWithTimelock();
   }
 
+  function deployBorrowingVaults() internal {
+    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+    uint256 len = vaults.length;
+    address collateral;
+    address debt;
+    string memory name;
+    uint256 liqRatio;
+    uint256 maxLtv;
+    string[] memory providerNames;
+    uint256 rating;
+    for (uint256 i; i < len; i++) {
+      collateral = readAddrFromConfig(vaults[i].collateral);
+      debt = readAddrFromConfig(vaults[i].debt);
+      name = vaults[i].name;
+      liqRatio = vaults[i].liqRatio;
+      maxLtv = vaults[i].maxLtv;
+      providerNames = vaults[i].providers;
+      rating = vaults[i].rating;
+
+      uint256 providersLen = providerNames.length;
+      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      for (uint256 j; j < providersLen; j++) {
+        providers[j] = ILendingProvider(getAddress(providerNames[j]));
+      }
+      address vault = chief.deployVault(
+        address(factory),
+        abi.encode(collateral, debt, address(oracle), providers, maxLtv, liqRatio),
+        rating
+      );
+      saveAddress(name, vault);
+    }
+  }
+
   function callWithTimelock(address target, bytes memory callData) internal {
     bytes32 hash = timelock.hashOperation(target, 0, callData, 0x00, 0x00);
 
@@ -257,7 +303,7 @@ contract ScriptPlus is Script {
       timelock.executeBatch(timelockTargets, timelockValues, timelockDatas, 0x00, 0x00);
     } else if (!timelock.isOperation(hash) && !timelock.isOperationDone(hash)) {
       console.log("Schedule:");
-      timelock.scheduleBatch(timelockTargets, timelockValues, timelockDatas, 0x00, 0x00, 1 seconds);
+      timelock.scheduleBatch(timelockTargets, timelockValues, timelockDatas, 0x00, 0x00, 3 seconds);
     } else {
       console.log("Already scheduled and executed:");
     }
