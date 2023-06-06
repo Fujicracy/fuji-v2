@@ -89,7 +89,7 @@ function VaultSelect() {
     setOpenedRoute(null);
     setTimeout(() => {
       setIsLoading(false);
-    }, 500);
+    }, 1000);
   }, [collateral.chainId, debt?.chainId]);
 
   return (
