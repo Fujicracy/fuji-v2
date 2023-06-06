@@ -98,6 +98,7 @@ type BorrowState = {
   isExecuting: boolean;
 
   shouldResetPage: boolean;
+  willLoadBorrow: boolean;
 };
 
 type BorrowActions = {
@@ -149,6 +150,7 @@ type BorrowActions = {
   signAndExecute: () => void;
 
   changeShouldPageReset: (reset: boolean) => void;
+  changeWillLoadBorrow: (willLoadBorrow: boolean) => void;
 };
 
 type BorrowStore = BorrowState & BorrowActions;
@@ -195,6 +197,7 @@ const initialState: BorrowState = {
   isExecuting: false,
 
   shouldResetPage: true,
+  willLoadBorrow: false,
 };
 
 export const useBorrow = create<BorrowStore>()(
@@ -219,8 +222,8 @@ export const useBorrow = create<BorrowStore>()(
           }
         },
 
-        async updateAvailableRoutes(routes: RouteMeta[]) {
-          set({ availableRoutes: routes });
+        async updateAvailableRoutes(availableRoutes: RouteMeta[]) {
+          set({ availableRoutes });
         },
 
         async changeDebt(debt) {
@@ -957,6 +960,15 @@ export const useBorrow = create<BorrowStore>()(
 
         changeShouldPageReset(shouldResetPage) {
           set({ shouldResetPage });
+        },
+
+        changeWillLoadBorrow(willLoadBorrow) {
+          set({ willLoadBorrow });
+          if (willLoadBorrow) {
+            setTimeout(() => {
+              set({ willLoadBorrow: false });
+            }, 1000);
+          }
         },
       }),
       storeOptions('borrow')

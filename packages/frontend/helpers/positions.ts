@@ -236,6 +236,7 @@ export function viewEditedPosition(
 
 export function viewDynamicPosition(
   isEditing: boolean,
+  allowSettingDebt: boolean,
   position?: Position,
   editedPosition?: Position
 ): BasePosition | undefined {
@@ -243,7 +244,7 @@ export function viewDynamicPosition(
   const baseCollateral = useBorrow.getState().collateral;
   let baseDebt = useBorrow.getState().debt;
 
-  if (!baseDebt && isEditing && position) {
+  if (!baseDebt && isEditing && position && !allowSettingDebt) {
     const debt = debtForCurrency(position.debt.currency);
     useBorrow.getState().changeDebt(debt);
     baseDebt = debt;

@@ -43,6 +43,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   const changeShouldPageReset = useBorrow(
     (state) => state.changeShouldPageReset
   );
+  const changeWillLoadBorrow = useBorrow((state) => state.changeWillLoadBorrow);
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
@@ -101,7 +102,9 @@ function MyApp({ Component, pageProps }: AppProps) {
         fetchPositions();
       }
       updatePollingPolicy(url);
-      if (url !== PATH.BORROW) {
+      const routeIsBorrow = url === PATH.BORROW;
+      changeWillLoadBorrow(routeIsBorrow);
+      if (!routeIsBorrow) {
         setTimeout(() => {
           changeShouldPageReset(true);
         }, 100);

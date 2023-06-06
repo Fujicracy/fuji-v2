@@ -48,11 +48,14 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const baseDebt = useBorrow((state) => state.debt);
   const baseLtv = useBorrow((state) => state.ltv);
   const mode = useBorrow((state) => state.mode);
+  const willLoadBorrow = useBorrow((state) => state.willLoadBorrow);
 
   const isEditing = formType !== FormType.Create;
 
   const [basePosition, setBasePosition] = useState<BasePosition | undefined>(
-    baseDebt ? viewDynamicPosition(isEditing, undefined) : undefined
+    baseDebt
+      ? viewDynamicPosition(isEditing, willLoadBorrow, undefined)
+      : undefined
   );
   const [loading, setLoading] = useState<boolean>(
     isEditing && (!positions || positions.length === 0)
@@ -75,11 +78,13 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
     }
     const basePosition = viewDynamicPosition(
       isEditing,
+      willLoadBorrow,
       matchPosition,
       editedPosition
     );
     setBasePosition(basePosition);
   }, [
+    formType,
     baseCollateral,
     baseDebt,
     baseLtv,
@@ -87,6 +92,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
     positions,
     mode,
     isEditing,
+    willLoadBorrow,
     query,
   ]);
 
