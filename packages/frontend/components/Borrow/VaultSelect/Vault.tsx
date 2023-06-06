@@ -116,7 +116,10 @@ function Vault({
                 {chainName(data.vault.chainId)}
               </Stack>
             </TableCell>
-            <TableCell align="right">
+            <TableCell
+              align="right"
+              sx={{ display: { xs: 'none', lg: 'table-cell' } }}
+            >
               <Typography variant="small" color={palette.success.main}>
                 {data.activeProvider.depositAprBase?.toFixed(2)}%
               </Typography>

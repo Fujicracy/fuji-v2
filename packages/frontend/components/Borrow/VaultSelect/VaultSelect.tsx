@@ -190,7 +190,12 @@ function VaultSelect() {
                     {!isMobile && (
                       <>
                         <TableCell align="left">Network</TableCell>
-                        <TableCell align="right">Supply APY</TableCell>
+                        <TableCell
+                          align="right"
+                          sx={{ display: { xs: 'none', lg: 'table-cell' } }}
+                        >
+                          Supply APY
+                        </TableCell>
                       </>
                     )}
                     <TableCell align="right" width="35%">
