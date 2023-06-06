@@ -24,7 +24,7 @@ contract RunArbitrum is ScriptPlus {
     setOrDeployChief(false);
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
-    setOrDeployBorrowingVaultFactory(false);
+    setOrDeployBorrowingVaultFactory(false, false);
     setOrDeployAddrMapper(false);
 
     _setLendingProviders();

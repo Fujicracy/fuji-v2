@@ -141,7 +141,7 @@ contract ScriptPlus is Script {
     }
   }
 
-  function setOrDeployBorrowingVaultFactory(bool deploy) internal {
+  function setOrDeployBorrowingVaultFactory(bool deploy, bool setContractCode) internal {
     if (deploy) {
       factory = new BorrowingVaultFactory(address(chief));
       saveAddress("BorrowingVaultFactory", address(factory));
@@ -149,14 +149,19 @@ contract ScriptPlus is Script {
       factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
     }
 
+    /*console.logBytes(vm.getDeployedCode("BorrowingVault.sol:BorrowingVault"));*/
     bytes memory data1 = abi.encodeWithSelector(
-      factory.setContractCode.selector, vm.getCode("BorrowingVault.sol:BorrowingVault")
+      factory.setContractCode.selector, vm.getDeployedCode("BorrowingVault.sol:BorrowingVault")
     );
     bytes memory data2 =
       abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true);
 
-    callWithTimelock(address(factory), data1);
-    callWithTimelock(address(chief), data2);
+    if (setContractCode) {
+      callWithTimelock(address(factory), data1);
+    }
+    if (!chief.allowedVaultFactory(address(factory))) {
+      callWithTimelock(address(chief), data2);
+    }
   }
 
   function setOrDeployAddrMapper(bool deploy) internal {
