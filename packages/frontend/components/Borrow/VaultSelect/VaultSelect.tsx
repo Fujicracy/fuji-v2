@@ -90,7 +90,7 @@ function VaultSelect() {
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-  }, [collateral.chainId, debt?.chainId]);
+  }, [collateral.chainId, debt?.chainId, availableVaults]);
 
   return (
     <Stack
