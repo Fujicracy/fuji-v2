@@ -266,7 +266,9 @@ function VaultSelect() {
               }}
               onClick={handleToggleFolded}
             >
-              {isUnFolded ? 'Close' : 'See All Vaults'}
+              <Typography variant="small">
+                {isUnFolded ? 'Hide' : 'See All Vaults'}
+              </Typography>
               <KeyboardArrowDownIcon
                 sx={{
                   ml: '0px !important',
