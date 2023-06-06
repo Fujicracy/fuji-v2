@@ -159,7 +159,7 @@ function Vault({
           cursor: 'pointer',
           '& .MuiTableCell-root': {
             background: selected
-              ? `${palette.secondary.dark}`
+              ? `${palette.secondary.light}`
               : isHovered
               ? '#34363E'
               : 'transparent',
