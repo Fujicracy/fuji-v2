@@ -84,7 +84,7 @@ function ChainSelectContent({
       renderValue={(chainId) => {
         const chain = chains.find((c) => c.chainId === chainId);
         if (!chain) {
-          return <Typography>Select a chain</Typography>;
+          return <Typography>Select a network</Typography>;
         }
         return renderItem(chain);
       }}

@@ -110,8 +110,11 @@ function BorrowButton({
     </LoadingButton>
   );
 
-  if (!debt) {
-    return disabledButton('Select a chain to borrow on');
+  if (!address) {
+    return regularButton('Connect wallet', onLoginClick, 'borrow-login');
+  }
+  if (!debt || !position || !ltvMeta) {
+    return disabledButton('Select a network to borrow on');
   }
   const collateralAmount = parseFloat(collateral.input);
   const debtAmount = parseFloat(debt.input);
@@ -145,11 +148,7 @@ function BorrowButton({
   const bridgeStep = transactionMeta.steps.find(
     (s) => s.step === RoutingStep.X_TRANSFER
   );
-  if (!address) {
-    return regularButton('Connect wallet', onLoginClick, 'borrow-login');
-  } else if (!position || !ltvMeta) {
-    return disabledButton('Select a chain to borrow on'); // TODO: borrow-refactor
-  } else if (
+  if (
     collateral.allowance.status === AllowanceStatus.Approving ||
     debt.allowance.status === AllowanceStatus.Approving
   ) {
