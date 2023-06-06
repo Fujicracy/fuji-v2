@@ -212,7 +212,11 @@ export const useBorrow = create<BorrowStore>()(
         },
 
         async changeMode(mode) {
-          set({ mode, needsSignature: false });
+          const diff = mode !== get().mode;
+          set({ mode });
+          if (diff) {
+            get().updateTransactionMeta();
+          }
         },
 
         async updateAvailableRoutes(routes: RouteMeta[]) {
