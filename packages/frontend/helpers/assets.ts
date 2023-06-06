@@ -109,6 +109,11 @@ export const defaultAssetForType = (type: AssetType): AssetChange => {
   );
 };
 
+export const debtForCurrency = (currency: Currency): AssetChange => {
+  const debts = sdk.getDebtForChain(currency.chainId);
+  return assetForData(currency.chainId, debts, currency);
+};
+
 export const assetForData = (
   chainId: ChainId,
   selectableCurrencies: Currency[],

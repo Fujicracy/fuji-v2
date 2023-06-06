@@ -104,6 +104,7 @@ type BorrowActions = {
   assetForType: (type: AssetType) => AssetChange | undefined;
   changeFormType: (type: FormType) => void;
   changeMode: (mode: Mode) => void;
+  changeDebt: (debt: AssetChange) => void;
   changeAll: (
     collateral: Currency,
     debt: Currency,
@@ -216,6 +217,14 @@ export const useBorrow = create<BorrowStore>()(
 
         async updateAvailableRoutes(routes: RouteMeta[]) {
           set({ availableRoutes: routes });
+        },
+
+        async changeDebt(debt) {
+          set(
+            produce((state: BorrowState) => {
+              state.debt = debt;
+            })
+          );
         },
 
         async changeAll(collateral, debt, vault) {

@@ -10,9 +10,14 @@ import { BigNumber } from 'ethers';
 import { useBorrow } from '../store/borrow.store';
 import { AssetMeta, Position } from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
-import { AssetChange, AssetType, Mode } from './assets';
+import { AssetChange, AssetType, debtForCurrency, Mode } from './assets';
 import { getAllBorrowingVaultFinancials } from './borrow';
 import { bigToFloat, formatNumber } from './values';
+
+export type BasePosition = {
+  position: Position;
+  editedPosition?: Position;
+};
 
 export const getTotalSum = (
   positions: Position[],
@@ -229,21 +234,25 @@ export function viewEditedPosition(
   return future;
 }
 
-export type BasePosition = {
-  position: Position;
-  editedPosition?: Position;
-};
-
 export function viewDynamicPosition(
-  dynamic: boolean,
+  isEditing: boolean,
   position?: Position,
   editedPosition?: Position
 ): BasePosition | undefined {
+  const dynamic = !isEditing;
   const baseCollateral = useBorrow.getState().collateral;
-  const baseDebt = useBorrow.getState().debt;
+  let baseDebt = useBorrow.getState().debt;
+
+  if (!baseDebt && isEditing && position) {
+    const debt = debtForCurrency(position.debt.currency);
+    useBorrow.getState().changeDebt(debt);
+    baseDebt = debt;
+  }
+
   if (!baseDebt) {
     return undefined;
   }
+
   const baseLtv = useBorrow.getState().ltv;
   const baseLiquidation = useBorrow.getState().liquidationMeta;
   return {
