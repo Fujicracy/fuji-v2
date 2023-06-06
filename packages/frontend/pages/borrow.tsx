@@ -15,6 +15,9 @@ const BorrowPage: NextPage = () => {
   const changeFormType = useBorrow((state) => state.changeFormType);
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
   const changeInputValues = useBorrow((state) => state.changeInputValues);
+  const changeShouldPageReset = useBorrow(
+    (state) => state.changeShouldPageReset
+  );
   const clearDebt = useBorrow((state) => state.clearDebt);
 
   const [hasChain, setHasChain] = useState(false);
@@ -22,6 +25,7 @@ const BorrowPage: NextPage = () => {
   if (shouldResetPage) {
     clearDebt();
     changeInputValues('', '');
+    changeShouldPageReset(false);
   }
 
   useEffect(() => {
