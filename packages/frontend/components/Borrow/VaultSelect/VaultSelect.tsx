@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   CardContent,
+  Skeleton,
   Stack,
   Table,
   TableBody,
@@ -24,6 +25,7 @@ function VaultSelect() {
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
   const [isUnFolded, setUnFolded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(0);
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
 
@@ -82,8 +84,12 @@ function VaultSelect() {
   };
 
   useEffect(() => {
+    setIsLoading(true);
     setSelectedRoute(0);
     setOpenedRoute(null);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
   }, [collateral.chainId, debt?.chainId]);
 
   return (
@@ -102,7 +108,7 @@ function VaultSelect() {
           p: isMobile
             ? '1rem 0.5rem'
             : `1.5rem 1.7rem ${
-                availableRoutes.length > 1 ? '0' : '1.5rem'
+                availableRoutes.length > 1 ? '0' : '1rem'
               } 1.7rem`,
           width: '100%',
           mt: '1rem',
@@ -111,103 +117,118 @@ function VaultSelect() {
         }}
       >
         <CardContent sx={{ padding: 0, width: '100%' }}>
-          <TableContainer
-            sx={{
-              overflowY: 'hidden',
-              border: 'none',
-              '& td, th': {
-                padding: '0 0.5rem',
-              },
-              msOverflowStyle: 'none',
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': {
-                display: 'none',
-              },
-              '& .MuiTableCell-root': { border: 'none' },
-              '& tr:first-of-type td:first-of-type': {
-                borderTopLeftRadius: '0.5rem',
-              },
-              '& tr:first-of-type td:last-of-type': {
-                borderTopRightRadius: '0.5rem',
-              },
-              '& tr:last-of-type td:first-of-type': {
-                borderBottomLeftRadius: '0.5rem',
-              },
-              '& tr:last-of-type td:last-of-type': {
-                borderBottomRightRadius: '0.5rem',
-              },
-              'tr:first-of-type td': { borderTopStyle: 'solid' },
-              'tr td:first-of-type': {
-                borderLeftStyle: 'solid',
-                width: 'fit-content',
-              },
-              'tr td:not(:first-of-type)': {
-                width: '70px',
-              },
-            }}
-          >
-            <Table
-              aria-label="Vault select"
-              size="small"
+          {isLoading ? (
+            <>
+              {new Array(2).fill('').map((_, i) => (
+                <Skeleton
+                  key={`loading-${i}`}
+                  sx={{
+                    width: '100%',
+                    height: '4rem',
+                    m: `1rem 0 ${i !== 1 ? '-1rem' : '0'} 0`,
+                  }}
+                />
+              ))}
+            </>
+          ) : (
+            <TableContainer
               sx={{
-                borderCollapse: 'separate',
-                tableLayout: !isMobile ? 'auto' : 'fixed',
+                overflowY: 'hidden',
+                border: 'none',
+                '& td, th': {
+                  padding: '0 0.5rem',
+                },
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': {
+                  display: 'none',
+                },
+                '& .MuiTableCell-root': { border: 'none' },
+                '& tr:first-of-type td:first-of-type': {
+                  borderTopLeftRadius: '0.5rem',
+                },
+                '& tr:first-of-type td:last-of-type': {
+                  borderTopRightRadius: '0.5rem',
+                },
+                '& tr:last-of-type td:first-of-type': {
+                  borderBottomLeftRadius: '0.5rem',
+                },
+                '& tr:last-of-type td:last-of-type': {
+                  borderBottomRightRadius: '0.5rem',
+                },
+                'tr:first-of-type td': { borderTopStyle: 'solid' },
+                'tr td:first-of-type': {
+                  borderLeftStyle: 'solid',
+                  width: 'fit-content',
+                },
+                'tr td:not(:first-of-type)': {
+                  width: '70px',
+                },
               }}
             >
-              <TableHead>
-                <TableRow
-                  sx={{
-                    height: '2.625rem',
-                    '& .MuiTableCell-root': { color: '#787883' },
-                  }}
-                >
-                  <TableCell align="left" width="45%">
-                    Protocols
-                  </TableCell>
-                  <TableCell align="left" width="20%">
-                    Safety Rating
-                  </TableCell>
-                  {!isMobile && (
-                    <>
-                      <TableCell align="left">Network</TableCell>
-                      <TableCell align="right">Supply APY</TableCell>
-                    </>
-                  )}
-                  <TableCell align="right" width="35%">
-                    Borrow APR
-                  </TableCell>
-                  {!isMobile && <TableCell align="right" />}
-                </TableRow>
-              </TableHead>
-              <TableBody
+              <Table
+                aria-label="Vault select"
+                size="small"
                 sx={{
-                  '& tr:nth-of-type(3)': {
-                    opacity: isUnFolded ? 1 : 0.25,
-                  },
+                  borderCollapse: 'separate',
+                  tableLayout: !isMobile ? 'auto' : 'fixed',
                 }}
               >
-                {filteredRoutes.length > 0 &&
-                  filteredRoutes.map((item) => {
-                    return (
-                      item && (
-                        <Vault
-                          key={item.index}
-                          selected={item.index === selectedRoute}
-                          data={item}
-                          onChange={() => didSelectRoute(item.index)}
-                          opened={item.index === openedRoute}
-                          setOpened={() => handleOpen(item.index)}
-                          isMobile={isMobile}
-                        />
-                      )
-                    );
-                  })}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                <TableHead>
+                  <TableRow
+                    sx={{
+                      height: '2.625rem',
+                      '& .MuiTableCell-root': { color: '#787883' },
+                    }}
+                  >
+                    <TableCell align="left" width="45%">
+                      Protocols
+                    </TableCell>
+                    <TableCell align="left" width="20%">
+                      Safety Rating
+                    </TableCell>
+                    {!isMobile && (
+                      <>
+                        <TableCell align="left">Network</TableCell>
+                        <TableCell align="right">Supply APY</TableCell>
+                      </>
+                    )}
+                    <TableCell align="right" width="35%">
+                      Borrow APR
+                    </TableCell>
+                    {!isMobile && <TableCell align="right" />}
+                  </TableRow>
+                </TableHead>
+                <TableBody
+                  sx={{
+                    '& tr:nth-of-type(3)': {
+                      opacity: isUnFolded ? 1 : 0.25,
+                    },
+                  }}
+                >
+                  {filteredRoutes.length > 0 &&
+                    filteredRoutes.map((item) => {
+                      return (
+                        item && (
+                          <Vault
+                            key={item.index}
+                            selected={item.index === selectedRoute}
+                            data={item}
+                            onChange={() => didSelectRoute(item.index)}
+                            opened={item.index === openedRoute}
+                            setOpened={() => handleOpen(item.index)}
+                            isMobile={isMobile}
+                          />
+                        )
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </CardContent>
 
-        {availableRoutes.length > 1 && (
+        {!isLoading && filteredRoutes.length > 1 && (
           <Stack
             direction="row"
             alignItems="center"
