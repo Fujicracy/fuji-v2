@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import Script from 'next/script';
 import { useEffect, useRef } from 'react';
 
-import { GuildAccess } from '../components/Access/GuildAccess';
+import { GuildAccess } from '../components/App/GuildAccess';
 import TransactionModal from '../components/Borrow/TransactionModal';
 import DisclaimerModal from '../components/Onboarding/DisclaimerModal';
 import ExploreCarousel from '../components/Onboarding/ExploreCarousel';
