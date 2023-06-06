@@ -15,7 +15,6 @@ import React, { useEffect, useState } from 'react';
 
 import Borrow from '../../components/Borrow/Borrow';
 import { PATH } from '../../constants';
-import { AssetChange } from '../../helpers/assets';
 import {
   BasePosition,
   viewDynamicPosition,
@@ -60,29 +59,25 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   );
 
   useEffect(() => {
+    let matchPosition: Position | undefined;
     let editedPosition: Position | undefined;
-    const matchPosition =
-      query &&
-      positions.find(
+
+    if (address && positions.length > 0 && query) {
+      matchPosition = positions.find(
         (position) =>
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       );
-    const debt = matchPosition ? (matchPosition.debt as AssetChange) : baseDebt;
-
-    if (address && positions.length > 0 && query) {
       editedPosition =
-        matchPosition && debt
-          ? viewEditedPosition(baseCollateral, debt, matchPosition, mode)
+        matchPosition && baseDebt
+          ? viewEditedPosition(baseCollateral, baseDebt, matchPosition, mode)
           : undefined;
     }
     const basePosition = viewDynamicPosition(
       !isEditing,
       matchPosition,
-      editedPosition,
-      debt
+      editedPosition
     );
-
     setBasePosition(basePosition);
   }, [
     baseCollateral,

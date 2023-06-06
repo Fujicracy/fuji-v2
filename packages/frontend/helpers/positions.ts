@@ -188,7 +188,7 @@ export function viewEditedPosition(
   const collateralInput = parseFloat(
     collateral.input === '' ? '0' : collateral.input
   );
-  const debtInput = parseFloat(!debt.input ? '0' : debt.input);
+  const debtInput = parseFloat(debt.input === '' ? '0' : debt.input);
   switch (mode) {
     case Mode.DEPOSIT:
       future.collateral.amount = current.collateral.amount + collateralInput;
@@ -237,11 +237,11 @@ export type BasePosition = {
 export function viewDynamicPosition(
   dynamic: boolean,
   position?: Position,
-  editedPosition?: Position,
-  debt?: AssetChange | AssetMeta
+  editedPosition?: Position
 ): BasePosition | undefined {
   const baseCollateral = useBorrow.getState().collateral;
-  if (!debt) {
+  const baseDebt = useBorrow.getState().debt;
+  if (!baseDebt) {
     return undefined;
   }
   const baseLtv = useBorrow.getState().ltv;
@@ -254,7 +254,7 @@ export function viewDynamicPosition(
         baseCollateral,
         position?.collateral
       ),
-      debt: dynamicPositionMeta(dynamic, debt as AssetChange, position?.debt),
+      debt: dynamicPositionMeta(dynamic, baseDebt, position?.debt),
       ltv: position ? 100 * position.ltv : baseLtv.ltv,
       ltvMax: position ? 100 * position.ltvMax : baseLtv.ltvMax,
       ltvThreshold: position
