@@ -8,8 +8,8 @@ pragma solidity 0.8.15;
  *
  * @notice Contract that combines two chainlink price feeds into
  * one resulting feed denominated in another currency asset.
- * For example: [wsteth/eth]-feed and [eth/usd]-feed to return wsteth/usd.
  *
+ * @dev For example: [wsteth/eth]-feed and [eth/usd]-feed to return a [wsteth/usd]-feed.
  * Note: Ensure units work, this contract multiplies the feeds.
  */
 
@@ -25,13 +25,13 @@ contract ChainlinkComputedFeed {
   }
 
   ///@dev custom errors
-  error ChainlinkComputedOracle_invalidInput();
-  error ChainlinkComputedOracle_fetchFeedAssetFailed();
-  error ChainlinkComputedOracle_fetchFeedInterFailed();
-  error ChainlinkComputedOracle_lessThanOrZeroAnswer();
-  error ChainlinkComputedOracle_noRoundId();
-  error ChainlinkComputedOracle_noValidUpdateAt();
-  error ChainlinkComputedOracle_staleFeed();
+  error ChainlinkComputedFeed_invalidInput();
+  error ChainlinkComputedFeed_fetchFeedAssetFailed();
+  error ChainlinkComputedFeed_fetchFeedInterFailed();
+  error ChainlinkComputedFeed_lessThanOrZeroAnswer();
+  error ChainlinkComputedFeed_noRoundId();
+  error ChainlinkComputedFeed_noValidUpdateAt();
+  error ChainlinkComputedFeed_staleFeed();
 
   string private _description;
 
@@ -55,7 +55,7 @@ contract ChainlinkComputedFeed {
     _decimals = decimals_;
 
     if (feedAsset_ == address(0) || feedInterAsset_ == address(0) || allowedTimeout_ == 0) {
-      revert ChainlinkComputedOracle_invalidInput();
+      revert ChainlinkComputedFeed_invalidInput();
     }
 
     feedAsset = IAggregatorV3(feedAsset_);
@@ -138,19 +138,19 @@ contract ChainlinkComputedFeed {
 
     // Perform checks to the returned chainlink responses
     if (clFeed.answer <= 0 || clInter.answer <= 0) {
-      revert ChainlinkComputedOracle_lessThanOrZeroAnswer();
+      revert ChainlinkComputedFeed_lessThanOrZeroAnswer();
     } else if (clFeed.roundId == 0 || clInter.roundId == 0) {
-      revert ChainlinkComputedOracle_noRoundId();
+      revert ChainlinkComputedFeed_noRoundId();
     } else if (
       clFeed.updatedAt > block.timestamp || clFeed.updatedAt == 0
         || clInter.updatedAt > block.timestamp || clInter.updatedAt == 0
     ) {
-      revert ChainlinkComputedOracle_noValidUpdateAt();
+      revert ChainlinkComputedFeed_noValidUpdateAt();
     } else if (
       block.timestamp - clFeed.updatedAt > allowedTimeout
         || block.timestamp - clInter.updatedAt > allowedTimeout
     ) {
-      revert ChainlinkComputedOracle_staleFeed();
+      revert ChainlinkComputedFeed_staleFeed();
     }
   }
 }
