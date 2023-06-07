@@ -48,7 +48,7 @@ function VaultSelect() {
   function didSelectRoute(i: number) {
     if (selectedRoute !== i) {
       const vault = availableVaults.find(
-        (v) => v.vault.address.value === availableRoutes[i].address
+        (v) => v.vault.address.value === availableRoutes[i]?.address
       );
       if (!vault) return;
       changeActiveVault(vault);
