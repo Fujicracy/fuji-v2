@@ -17,11 +17,11 @@ export const LENDING_PROVIDERS: Record<
     },
   },
   [ChainId.MATIC]: {
-    '0xEBdCb08bA47e6a4EC2590140011d8707D76962B8': {
+    '0x1Cf617a63eC0134041170134c4625Eb12549217D': {
       name: 'Aave V2',
       llamaKey: 'aave-v2',
     },
-    '0x5BDE166199Cb85323FcF0282999eaaF7BA6ab5E6': {
+    '0xA169a53E5C8c36dD1CfeD0Ceb2BcD15026091272': {
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
@@ -29,11 +29,11 @@ export const LENDING_PROVIDERS: Record<
       name: '0VIX',
       llamaKey: '0vix',
     },
-    '0x2beeCC93A095208375b89547EFd4b3dCa826a927': {
+    '0x3E29CB29013F0A97A763C21DCCF1fe4Fc21Ec626': {
       name: 'dForce',
       llamaKey: 'dforce',
     },
-    '0x79D4155045a3CE87051B84E12E398Ad4383F034f': {
+    '0xefCBD8831eFD775A624f48b49af769992B52056c': {
       name: 'Compound V3',
       llamaKey: 'compound-v3',
     },
@@ -68,11 +68,11 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
-    '0x77F535F7B2785FE0fD310dD97d30C5A4E020019A': {
+    '0x66211Ab72fB0a06e9E6eD8b21Aa3c1a01F171521': {
       name: 'dForce',
       llamaKey: 'dforce',
     },
-    '0xd3346737E370119961C444c0C1b10d7C3fcDf36C': {
+    '0x04357b844a321B5d5a2a370aD0CbEF43dAc776Ee': {
       name: 'WePiggy',
       llamaKey: 'abcd',
     },

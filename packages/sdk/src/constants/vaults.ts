@@ -1,7 +1,7 @@
 import { Address, BorrowingVault } from '../entities';
 import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
-import { DAI, MATICX, USDC, USDT, WETH9 } from './tokens';
+import { DAI, USDC, USDT, WETH9 } from './tokens';
 
 export const VAULT_LIST: ChainVaultList = {
   [ChainId.ETHEREUM]: [],
@@ -14,24 +14,24 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.MATIC]: [
     new BorrowingVault(
-      Address.from('0x2D932f0adEC52d3213DA5e129dafdD428068DD73'),
+      Address.from('0x401fbB3BcB8902cF37d9296d3Fc762eD0F708079'),
       WETH9[ChainId.MATIC],
       USDC[ChainId.MATIC]
     ),
     new BorrowingVault(
-      Address.from('0x7325eF2C05d2CFbC300387707EF3c17284f01aBa'),
+      Address.from('0x54b9C5B6ef062C92257bf911E504b817356Ef39A'),
       WETH9[ChainId.MATIC],
       USDC[ChainId.MATIC]
     ),
     new BorrowingVault(
-      Address.from('0x9fafDa0f9400856b89f6777629C0c765331B1877'),
+      Address.from('0x98a554825ddad69432507cF8c69c3C775d1507d1'),
       WETH9[ChainId.MATIC],
       DAI[ChainId.MATIC]
     ),
     new BorrowingVault(
-      Address.from('0x23B7C49610f4DC7E7a764Cf619ce2bC8eA72c856'),
-      MATICX,
-      USDC[ChainId.MATIC]
+      Address.from('0x786105b1ae439a544cCF9E4A76352826546A60B6'),
+      WETH9[ChainId.MATIC],
+      DAI[ChainId.MATIC]
     ),
   ],
   [ChainId.MATIC_MUMBAI]: [
@@ -66,12 +66,22 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.OPTIMISM]: [
     new BorrowingVault(
-      Address.from('0xDa917380247b48382674Bd159d75D75314Cb21fB'),
+      Address.from('0x4de7Bacd810b4D11a309440fdfF2bdBE6047C556'),
       WETH9[ChainId.OPTIMISM],
       USDC[ChainId.OPTIMISM]
     ),
     new BorrowingVault(
-      Address.from('0xC8054218c5fbA84E18C6F26f51Ec691Ee9725e49'),
+      Address.from('0x4ba27a78c021Deab31D7B46aCaBf87DA04445FeF'),
+      WETH9[ChainId.OPTIMISM],
+      USDC[ChainId.OPTIMISM]
+    ),
+    new BorrowingVault(
+      Address.from('0x930dC8e66Edd2bD6C6E5984EecE95b8729Ae0d6c'),
+      WETH9[ChainId.OPTIMISM],
+      DAI[ChainId.OPTIMISM]
+    ),
+    new BorrowingVault(
+      Address.from('0x1FCd79114eCdb6713CD479107Bd92272a6C3C85B'),
       WETH9[ChainId.OPTIMISM],
       DAI[ChainId.OPTIMISM]
     ),
