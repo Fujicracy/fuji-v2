@@ -32,12 +32,14 @@ const wcV1InitOptions: WalletConnectOptions = {
   },
 };
 
-// const wcV2InitOptions: WalletConnectOptions = {
-//   version: 2,
-//   projectId: `${process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY}`,
-// };
+console.log(process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY);
 
-const walletConnect = walletConnectModule(wcV1InitOptions);
+const wcV2InitOptions: WalletConnectOptions = {
+  version: 2,
+  projectId: `${process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY}`,
+};
+
+const walletConnect = walletConnectModule(wcV2InitOptions);
 const coinbase = coinbaseModule();
 const ledger = ledgerModule();
 const mewWalletModule = mewWallet();
