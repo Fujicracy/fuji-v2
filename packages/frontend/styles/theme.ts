@@ -161,7 +161,7 @@ const theme = createTheme(colorTheme, {
       color: colorTheme.palette.text.primary,
     },
     body2: {
-      fontWeight: 700,
+      fontWeight: 600,
       fontSize: '1rem',
       lineHeight: '160%',
       color: colorTheme.palette.text.primary,

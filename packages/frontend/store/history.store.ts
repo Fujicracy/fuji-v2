@@ -251,12 +251,12 @@ export const useHistory = create<HistoryStore>()(
 
           try {
             const updateIfNeeded = (
-              address: string | undefined,
-              shown: boolean | undefined,
+              first: boolean,
+              txHash: string,
               firstChainId: ChainId,
               secondChainId: ChainId,
-              txHash: string,
-              first: boolean
+              address?: string,
+              shown?: boolean
             ) => {
               if (address !== entry.address) return;
 
@@ -378,12 +378,12 @@ export const useHistory = create<HistoryStore>()(
             }
 
             updateIfNeeded(
-              useAuth.getState().address,
-              entry.sourceChain.shown,
+              true,
+              entry.hash,
               entry.sourceChain.chainId,
               entry.secondChain.chainId,
-              entry.hash,
-              true
+              useAuth.getState().address,
+              entry.sourceChain.shown
             );
             if (entry.secondChain.status !== HistoryEntryStatus.SUCCESS) {
               await crossChainWatch(
@@ -401,12 +401,12 @@ export const useHistory = create<HistoryStore>()(
             if (!secondChain || !secondChain.hash) return;
 
             updateIfNeeded(
-              useAuth.getState().address,
-              secondChain.shown,
+              false,
+              secondChain.hash,
               secondChain.chainId,
               entry.thirdChain.chainId,
-              secondChain.hash,
-              false
+              useAuth.getState().address,
+              secondChain.shown
             );
 
             await crossChainWatch(secondChain.chainId, secondChain.hash, false);

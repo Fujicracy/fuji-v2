@@ -8,10 +8,11 @@ import Script from 'next/script';
 import { useEffect, useRef } from 'react';
 
 import { GuildAccess } from '../components/App/GuildAccess';
-import TransactionModal from '../components/Borrow/TransactionModal';
-import DisclaimerModal from '../components/Onboarding/DisclaimerModal';
-import ExploreCarousel from '../components/Onboarding/ExploreCarousel';
-import Notification from '../components/Shared/Notification';
+import Header from '../components/App/Header/Header';
+import Notification from '../components/App/Notification';
+import DisclaimerModal from '../components/App/Onboarding/DisclaimerModal';
+import ExploreCarousel from '../components/App/Onboarding/ExploreCarousel';
+import TransactionModal from '../components/App/TransactionModal';
 import { PATH } from '../constants';
 import {
   changeERC20PollingPolicy,
@@ -21,6 +22,7 @@ import {
 import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
+import { useBorrow } from '../store/borrow.store';
 import { useHistory } from '../store/history.store';
 import { usePositions } from '../store/positions.store';
 import { theme } from '../styles/theme';
@@ -40,6 +42,11 @@ function MyApp({ Component, pageProps }: AppProps) {
   const entries = useHistory((state) => state.entries);
   const watchAll = useHistory((state) => state.watchAll);
   const closeModal = useHistory((state) => state.closeModal);
+
+  const changeShouldPageReset = useBorrow(
+    (state) => state.changeShouldPageReset
+  );
+  const changeWillLoadBorrow = useBorrow((state) => state.changeWillLoadBorrow);
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
@@ -98,6 +105,13 @@ function MyApp({ Component, pageProps }: AppProps) {
         fetchPositions();
       }
       updatePollingPolicy(url);
+      const routeIsBorrow = url === PATH.BORROW;
+      changeWillLoadBorrow(routeIsBorrow);
+      if (!routeIsBorrow) {
+        setTimeout(() => {
+          changeShouldPageReset(true);
+        }, 100);
+      }
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {
@@ -126,6 +140,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Web3OnboardProvider web3Onboard={onboard}>
         <ThemeProvider theme={theme}>
           <div className="backdrop"></div>
+          <Header />
           <Component {...pageProps} />
           {entry && entry.address === address && (
             <TransactionModal

@@ -4,7 +4,7 @@ import { BorrowingVault, LendingProviderWithFinancials } from '@x-fuji/sdk';
 import { chainName } from '../../../helpers/chains';
 import { NetworkIcon, ProviderIcon } from '../../Shared/Icons';
 import {
-  InfoTooltip,
+  APRTooltip,
   ProvidersTooltip,
   TooltipWrapper,
 } from '../../Shared/Tooltips';
@@ -32,7 +32,9 @@ function Details({
 
   return (
     <>
-      <Typography variant="body2">Details</Typography>
+      <Typography mt={2} variant="body2">
+        Details
+      </Typography>
 
       <br />
 
@@ -92,65 +94,62 @@ function Details({
           </Grid>
         </Grid>
 
-        <DetailDivider isMobile={isMobile} />
+        {isEditing && (
+          <>
+            <DetailDivider isMobile={isMobile} />
 
-        <Grid container justifyContent="space-between">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="smallDark">
-              Collateral Interest Rate (APY)
-            </Typography>
-            <InfoTooltip
-              isDark
-              title="APR, or annual percentage rate, represents the price you pay to borrow money."
-            />
-          </div>
-          <TooltipWrapper
-            placement="top-end"
-            title={<ProvidersTooltip providers={providers} />}
-          >
-            <Box sx={{ alignItems: 'center' }}>
-              {activeProvider ? (
-                <Typography variant="small">
-                  <span style={{ color: palette.success.main }}>
-                    {activeProvider.depositAprBase?.toFixed(2)}%
-                  </span>
+            <Grid container justifyContent="space-between">
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="smallDark">
+                  Collateral Interest Rate (APY)
                 </Typography>
-              ) : (
-                'n/a'
-              )}
-            </Box>
-          </TooltipWrapper>
-        </Grid>
+              </div>
+              <TooltipWrapper
+                placement="top-end"
+                title={<ProvidersTooltip providers={providers} />}
+              >
+                <Box sx={{ alignItems: 'center' }}>
+                  {activeProvider ? (
+                    <Typography variant="small">
+                      <span style={{ color: palette.success.main }}>
+                        {activeProvider.depositAprBase?.toFixed(2)}%
+                      </span>
+                    </Typography>
+                  ) : (
+                    'n/a'
+                  )}
+                </Box>
+              </TooltipWrapper>
+            </Grid>
 
-        <DetailDivider isMobile={isMobile} />
+            <DetailDivider isMobile={isMobile} />
 
-        <Grid container justifyContent="space-between">
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="smallDark">
-              Borrow Interest Rate (APR)
-            </Typography>
-            <InfoTooltip
-              isDark
-              title="APR, or annual percentage rate, represents the price you pay to borrow money."
-            />
-          </div>
-          <TooltipWrapper
-            placement="top-end"
-            title={<ProvidersTooltip providers={providers} isBorrow />}
-          >
-            <Box sx={{ alignItems: 'center' }}>
-              {activeProvider ? (
-                <Typography variant="small">
-                  <span style={{ color: palette.warning.main }}>
-                    {activeProvider.borrowAprBase?.toFixed(2)}%
-                  </span>
+            <Grid container justifyContent="space-between">
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <Typography variant="smallDark">
+                  Borrow Interest Rate (APR)
                 </Typography>
-              ) : (
-                'n/a'
-              )}
-            </Box>
-          </TooltipWrapper>
-        </Grid>
+                <APRTooltip />
+              </div>
+              <TooltipWrapper
+                placement="top-end"
+                title={<ProvidersTooltip providers={providers} isBorrow />}
+              >
+                <Box sx={{ alignItems: 'center' }}>
+                  {activeProvider ? (
+                    <Typography variant="small">
+                      <span style={{ color: palette.warning.main }}>
+                        {activeProvider.borrowAprBase?.toFixed(2)}%
+                      </span>
+                    </Typography>
+                  ) : (
+                    'n/a'
+                  )}
+                </Box>
+              </TooltipWrapper>
+            </Grid>
+          </>
+        )}
       </DetailContainer>
     </>
   );

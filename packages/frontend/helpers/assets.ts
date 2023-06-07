@@ -53,7 +53,7 @@ export enum AllowanceStatus {
 
 export type Allowance = {
   status: AllowanceStatus;
-  value: number | undefined;
+  value?: number;
 };
 
 export type AssetChange = {
@@ -102,16 +102,33 @@ export const defaultAssetForType = (type: AssetType): AssetChange => {
     type === AssetType.Debt
       ? defaultDebtCurrencies
       : defaultCollateralCurrencies;
+  return assetForData(
+    DEFAULT_CHAIN_ID,
+    defaultCurrencies,
+    defaultCurrency(defaultCurrencies)
+  );
+};
+
+export const debtForCurrency = (currency: Currency): AssetChange => {
+  const debts = sdk.getDebtForChain(currency.chainId);
+  return assetForData(currency.chainId, debts, currency);
+};
+
+export const assetForData = (
+  chainId: ChainId,
+  selectableCurrencies: Currency[],
+  currency: Currency
+): AssetChange => {
   return {
-    selectableCurrencies: defaultCurrencies,
+    selectableCurrencies,
     balances: {},
     input: '',
-    chainId: DEFAULT_CHAIN_ID,
+    chainId,
     allowance: {
       status: AllowanceStatus.Initial,
       value: undefined,
     },
-    currency: defaultCurrency(defaultCurrencies),
+    currency,
     amount: 0,
     usdPrice: 0,
   };
@@ -155,6 +172,18 @@ export const remainingBorrowLimit = (
 ): number => {
   const max = maxBorrowLimit(collateral.amount, collateral.usdPrice, maxLtv);
   return max - debt.amount * debt.usdPrice;
+};
+
+export const ltvMeta = (basePosition?: BasePosition): LtvMeta | undefined => {
+  if (!basePosition?.position) return undefined;
+  const { position, editedPosition } = basePosition;
+  return {
+    ltv: editedPosition ? editedPosition.ltv : position.ltv,
+    ltvMax: position.ltvMax,
+    ltvThreshold: editedPosition
+      ? editedPosition.ltvThreshold
+      : position.ltvThreshold,
+  };
 };
 
 export const withdrawMaxAmount = async (

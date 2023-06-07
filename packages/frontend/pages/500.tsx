@@ -1,23 +1,9 @@
-import {
-  Button,
-  Container,
-  Link,
-  Stack,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Button, Container, Link, Stack, Typography } from '@mui/material';
 import Head from 'next/head';
 import Image from 'next/image';
 import React from 'react';
 
-import Footer from '../components/Shared/Footer';
-import Header from '../components/Shared/Header/Header';
-
 const SomethingWentWrongPage = () => {
-  const { breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
-
   return (
     <>
       <Head>
@@ -25,8 +11,6 @@ const SomethingWentWrongPage = () => {
         <meta name="description" content="Something went wrong" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Header />
 
       <Container
         sx={{
@@ -73,8 +57,6 @@ const SomethingWentWrongPage = () => {
           </Link>
         </Stack>
       </Container>
-
-      {!isMobile && <Footer />}
     </>
   );
 };

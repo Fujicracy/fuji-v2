@@ -375,7 +375,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
 
   // error RebalancerManager__checkAssetsAmount_invalidAmount();
   function test_checkAssetsAmountInvalidAmount(uint256 invalidAmount) public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
     vm.assume(invalidAmount > assets);
 
     //rebalance with more amount than available should revert

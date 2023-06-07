@@ -32,7 +32,7 @@ export enum NotificationDuration {
 type NotificationArguments = {
   message: string;
   type: NotificationType;
-  link?: NotificationLink | undefined;
+  link?: NotificationLink;
   sticky?: boolean;
   duration?: NotificationDuration;
 };

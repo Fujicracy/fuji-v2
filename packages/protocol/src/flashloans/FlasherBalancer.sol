@@ -77,6 +77,6 @@ contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
 
     _requestorExecution(address(tokens[0]), amounts[0], feeAmounts[0], requestor, requestorCalldata);
 
-    SafeERC20.safeTransfer(tokens[0], getFlashloanSourceAddr(asset), amounts[0] + feeAmounts[0]);
+    SafeERC20.safeTransfer(tokens[0], getFlashloanSourceAddr(asset), amounts[0]);
   }
 }

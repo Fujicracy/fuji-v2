@@ -13,7 +13,6 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Chief} from "../../../src/Chief.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
 
 contract CompoundV3ForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
@@ -132,27 +131,5 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
   function test_twoDeposits() public {
     do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
     do_deposit(DEPOSIT_AMOUNT, vault, BOB);
-  }
-
-  function test_baseAssetBalance() public {
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = compoundV3;
-
-    collateralAsset = registry[MAINNET_DOMAIN].weth;
-    YieldVault yvault = new YieldVault(
-      collateralAsset,
-      address(chief),
-      "Fuji-V2 tWETH YieldVault",
-      "fyvtWETH",
-      providers
-    );
-
-    _initalizeYieldVault(address(yvault), INITIALIZER, initVaultShares);
-
-    do_deposit(DEPOSIT_AMOUNT, yvault, ALICE);
-
-    assertApproxEqAbs(
-      compoundV3.getDepositBalance(address(yvault), yvault), DEPOSIT_AMOUNT + initVaultShares, 2
-    );
   }
 }

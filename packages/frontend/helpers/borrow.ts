@@ -8,9 +8,9 @@ export function modeForContext(
   isEditing: boolean,
   actionType: ActionType,
   collateral: number,
-  debt: number
+  debt?: number
 ): Mode {
-  if (!isEditing) return Mode.DEPOSIT_AND_BORROW;
+  if (!isEditing || debt === undefined) return Mode.DEPOSIT_AND_BORROW;
   if ((collateral > 0 && debt > 0) || (collateral === 0 && debt === 0)) {
     return ActionType.ADD === actionType
       ? Mode.DEPOSIT_AND_BORROW
@@ -25,8 +25,8 @@ export function modeForContext(
 
 export const failureForMode = (
   mode: Mode,
-  collateral: string | undefined,
-  debt: string | undefined
+  collateral?: string,
+  debt?: string
 ): boolean => {
   return (
     ((mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
@@ -37,11 +37,11 @@ export const failureForMode = (
 };
 
 /*
-  Convenience function that calls the SDK to get all the vaults with 
+  Convenience function that calls the SDK to get all the vaults with
   financials and returns both the data and errors.
 */
 export const getAllBorrowingVaultFinancials = async (
-  address: Address | undefined
+  address?: Address
 ): Promise<{ data: VaultWithFinancials[]; errors: FujiError[] }> => {
   const data: VaultWithFinancials[] = [];
   const errors: FujiError[] = [];
