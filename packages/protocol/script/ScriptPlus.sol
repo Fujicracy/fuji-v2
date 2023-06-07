@@ -6,6 +6,8 @@ import "forge-std/console.sol";
 
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
+import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
@@ -346,6 +348,43 @@ contract ScriptPlus is Script {
         timelockValues.push(0);
       } else {
         console.log(string.concat(name, " already set."));
+      }
+      console.log("============");
+    }
+
+    callBatchWithTimelock();
+  }
+
+  function initBorrowingVaults2() internal {
+    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+    uint256 len = vaults.length;
+    BorrowingVault2 vault;
+    address collateral;
+    address debt;
+    uint256 maxLtv;
+    string memory name;
+    for (uint256 i; i < len; i++) {
+      name = vaults[i].name;
+      maxLtv = vaults[i].maxLtv;
+
+      collateral = readAddrFromConfig(vaults[i].collateral);
+      debt = readAddrFromConfig(vaults[i].debt);
+
+      vault = BorrowingVault2(payable(getAddress(name)));
+
+      if (!vault.initialized()) {
+        console.log(string.concat("Initializing: ", name, " ..."));
+        uint256 debtShares = 1e6;
+        uint256 price = oracle.getPriceOf(debt, collateral, vault.debtDecimals());
+        uint256 minCollateral = (debtShares * 1e18 * 10 ** vault.decimals()) / (maxLtv * price) + 1;
+        uint256 colShares = minCollateral < debtShares ? debtShares : minCollateral;
+
+        SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), colShares);
+        vault.initializeVaultShares(colShares, debtShares);
+      } else {
+        console.log(string.concat(name, " already initialized."));
       }
       console.log("============");
     }
