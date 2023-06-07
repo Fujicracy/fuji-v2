@@ -14,6 +14,7 @@ export const onboard = web3onboard;
 export enum AuthStatus {
   Initial,
   Connected,
+  Connecting,
   Disconnected,
 }
 
@@ -101,6 +102,7 @@ export const useAuth = create<AuthStore>()(
           return;
         }
 
+        set({ status: AuthStatus.Connecting });
         const wallets = await onboard.connectWallet(options);
 
         if (!wallets[0] || !wallets[0].accounts[0]) {
