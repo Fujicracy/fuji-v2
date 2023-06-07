@@ -19,7 +19,6 @@ import {LibSSTORE2} from "../../libraries/LibSSTORE2.sol";
 import {LibBytes} from "../../libraries/LibBytes.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 
 contract BorrowingVaultFactory is VaultDeployer {
   struct BVaultData {
@@ -33,6 +32,7 @@ contract BorrowingVaultFactory is VaultDeployer {
 
   /// @dev Custom Errors
   error BorrowingVaultFactory__deployVault_failed();
+  error BorrowingVaultFactory__deployVault_noContractCode();
 
   event DeployBorrowingVault(
     address indexed vault,
@@ -70,14 +70,7 @@ contract BorrowingVaultFactory is VaultDeployer {
     BVaultData memory vdata;
     ///@dev Scoped section created to avoid stack too big error.
     {
-      (
-        address asset,
-        address debtAsset,
-        address oracle,
-        ILendingProvider[] memory providers,
-        uint256 maxLtv,
-        uint256 liqRatio
-      ) = abi.decode(deployData, (address, address, address, ILendingProvider[], uint256, uint256));
+      (address asset, address debtAsset) = abi.decode(deployData, (address, address));
 
       vdata.asset = asset;
       vdata.debtAsset = debtAsset;
@@ -97,11 +90,10 @@ contract BorrowingVaultFactory is VaultDeployer {
       bytes memory creationCode =
         LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
 
+      if (creationCode.length == 0) revert BorrowingVaultFactory__deployVault_noContractCode();
+
       vdata.bytecode = abi.encodePacked(
-        creationCode,
-        abi.encode(
-          asset, debtAsset, oracle, chief, vdata.name, vdata.symbol, providers, maxLtv, liqRatio
-        )
+        creationCode, abi.encode(asset, debtAsset, chief, vdata.name, vdata.symbol)
       );
     }
 
@@ -118,6 +110,15 @@ contract BorrowingVaultFactory is VaultDeployer {
     emit DeployBorrowingVault(
       vault, vdata.asset, vdata.debtAsset, vdata.name, vdata.symbol, vdata.salt
     );
+  }
+
+  /**
+   * @notice Gets the bytecode for the BorrowingVault.
+   *
+   */
+  function getContractCode() external view returns (bytes memory creationCode) {
+    creationCode =
+      LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
   }
 
   /**
