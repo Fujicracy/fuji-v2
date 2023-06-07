@@ -107,11 +107,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       updatePollingPolicy(url);
       const routeIsBorrow = url === PATH.BORROW;
       changeWillLoadBorrow(routeIsBorrow);
-      if (!routeIsBorrow) {
-        setTimeout(() => {
-          changeShouldPageReset(true);
-        }, 100);
-      }
+      changeShouldPageReset(routeIsBorrow);
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {
