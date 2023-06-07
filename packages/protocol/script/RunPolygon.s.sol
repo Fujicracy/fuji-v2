@@ -30,7 +30,11 @@ contract RunPolygon is ScriptPlus {
     setOrDeployAddrMapper(false);
 
     _setLendingProviders();
-    /*deployBorrowingVaults();*/
+
+    if (chief.allowedVaultFactory(address(factory))) {
+      deployBorrowingVaults2();
+      setBorrowingVaults2();
+    }
 
     /*_setVaultNewProviders("BorrowingVault-WETHUSDC-2");*/
     /*_setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/

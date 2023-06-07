@@ -10,6 +10,8 @@ import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFactory.sol";
+import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
+import {BorrowingVault2} from "../src/vaults/borrowing/BorrowingVault2.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {Chief} from "../src/Chief.sol";
@@ -149,17 +151,16 @@ contract ScriptPlus is Script {
       factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
     }
 
-    /*console.logBytes(vm.getDeployedCode("BorrowingVault.sol:BorrowingVault"));*/
-    bytes memory data1 = abi.encodeWithSelector(
-      factory.setContractCode.selector, vm.getDeployedCode("BorrowingVault.sol:BorrowingVault")
-    );
-    bytes memory data2 =
-      abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true);
-
     if (setContractCode) {
+      console.log("Setting BorrowingVault2 contract code ...");
+      bytes memory data1 = abi.encodeWithSelector(
+        factory.setContractCode.selector, vm.getCode("BorrowingVault2.sol:BorrowingVault2")
+      );
       callWithTimelock(address(factory), data1);
     }
     if (!chief.allowedVaultFactory(address(factory))) {
+      bytes memory data2 =
+        abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true);
       callWithTimelock(address(chief), data2);
     }
   }
@@ -279,6 +280,77 @@ contract ScriptPlus is Script {
       );
       saveAddress(name, vault);
     }
+  }
+
+  function deployBorrowingVaults2() internal {
+    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+    uint256 len = vaults.length;
+    address collateral;
+    address debt;
+    string memory name;
+    uint256 rating;
+    for (uint256 i; i < len; i++) {
+      collateral = readAddrFromConfig(vaults[i].collateral);
+      debt = readAddrFromConfig(vaults[i].debt);
+      name = vaults[i].name;
+      rating = vaults[i].rating;
+
+      try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
+        console.log(string.concat("Skip deploying: ", name));
+      } catch {
+        console.log(string.concat("Deploying: ", name, " ..."));
+        address vault = chief.deployVault(address(factory), abi.encode(collateral, debt), rating);
+        saveAddress(name, vault);
+      }
+    }
+  }
+
+  function setBorrowingVaults2() internal {
+    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+    uint256 len = vaults.length;
+    BorrowingVault2 vault;
+    string memory name;
+    uint256 liqRatio;
+    uint256 maxLtv;
+    string[] memory providerNames;
+    for (uint256 i; i < len; i++) {
+      name = vaults[i].name;
+      liqRatio = vaults[i].liqRatio;
+      maxLtv = vaults[i].maxLtv;
+      providerNames = vaults[i].providers;
+
+      uint256 providersLen = providerNames.length;
+      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      for (uint256 j; j < providersLen; j++) {
+        providers[j] = ILendingProvider(getAddress(providerNames[j]));
+      }
+      vault = BorrowingVault2(payable(getAddress(name)));
+
+      if (address(vault.oracle()) == address(0)) {
+        console.log(string.concat("Setting ", name, "..."));
+        timelockTargets.push(address(vault));
+        timelockDatas.push(abi.encodeWithSelector(vault.setOracle.selector, address(oracle)));
+        timelockValues.push(0);
+        timelockTargets.push(address(vault));
+        timelockDatas.push(abi.encodeWithSelector(vault.setProviders.selector, providers));
+        timelockValues.push(0);
+        timelockTargets.push(address(vault));
+        timelockDatas.push(abi.encodeWithSelector(vault.setActiveProvider.selector, providers[0]));
+        timelockValues.push(0);
+        timelockTargets.push(address(vault));
+        timelockDatas.push(abi.encodeWithSelector(vault.setLtvFactors.selector, maxLtv, liqRatio));
+        timelockValues.push(0);
+      } else {
+        console.log(string.concat(name, " already set."));
+      }
+      console.log("============");
+    }
+
+    callBatchWithTimelock();
   }
 
   function callWithTimelock(address target, bytes memory callData) internal {
