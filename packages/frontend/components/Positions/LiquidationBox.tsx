@@ -23,7 +23,7 @@ function LiquidationBox({
       return (
         <Typography
           variant="xsmall"
-          color={liquidationColor(ltv, recommendedLtv, palette)}
+          color={liquidationColor(ltv, palette, recommendedLtv)}
         >
           (~{percentPriceDiff}%{' below)'}
         </Typography>

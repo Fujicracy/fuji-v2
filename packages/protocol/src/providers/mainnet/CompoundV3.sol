@@ -110,11 +110,7 @@ contract CompoundV3 is ILendingProvider {
   /// @inheritdoc ILendingProvider
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
-    if (asset == cMarketV3.baseToken()) {
-      balance = cMarketV3.balanceOf(user);
-    } else {
-      balance = cMarketV3.collateralBalanceOf(user, asset);
-    }
+    return cMarketV3.collateralBalanceOf(user, asset);
   }
 
   /// @inheritdoc ILendingProvider

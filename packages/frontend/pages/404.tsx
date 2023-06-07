@@ -1,23 +1,10 @@
-import {
-  Button,
-  Container,
-  Link,
-  Stack,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Button, Container, Link, Stack, Typography } from '@mui/material';
 import Head from 'next/head';
 import React from 'react';
 
-import Footer from '../components/Shared/Footer';
-import Header from '../components/Shared/Header/Header';
 import NotFoundIcon from '../components/Shared/Icons/NotFoundIcon';
 
 const NotFoundPage = () => {
-  const { breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
-
   return (
     <>
       <Head>
@@ -25,8 +12,6 @@ const NotFoundPage = () => {
         <meta name="description" content="Page not found" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Header />
 
       <Container
         sx={{
@@ -66,8 +51,6 @@ const NotFoundPage = () => {
           </Link>
         </Stack>
       </Container>
-
-      {!isMobile && <Footer />}
     </>
   );
 };

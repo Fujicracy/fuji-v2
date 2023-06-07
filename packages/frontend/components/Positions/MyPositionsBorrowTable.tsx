@@ -73,7 +73,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
 
   function handleClick(row: PositionRow) {
     const entity = vaultFromAddress(row.address);
-    showPosition(router, entity?.chainId, entity);
+    showPosition(router, true, entity, entity?.chainId);
   }
 
   return (

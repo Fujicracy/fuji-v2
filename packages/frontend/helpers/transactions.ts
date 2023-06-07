@@ -27,8 +27,8 @@ export type TransactionMeta = {
   gasFees: number; // TODO: cannot estimate gas fees until the user has approved AND permit fuji to use its fund
   estimateTime: number;
   steps: RoutingStepDetails[];
-  bridgeFees: BridgeFee[] | undefined;
-  estimateSlippage: number | undefined;
+  bridgeFees?: BridgeFee[];
+  estimateSlippage?: number;
 };
 
 export type TransactionStep = {

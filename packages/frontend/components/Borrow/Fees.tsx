@@ -24,7 +24,7 @@ function Fees() {
   const show =
     showTransactionDetails && transactionMeta.status === FetchStatus.Ready;
 
-  const crossChainTx = collateral.chainId !== debt.chainId;
+  const crossChainTx = debt && collateral.chainId !== debt.chainId;
 
   const handleClick = () => {
     if (transactionMeta.status === FetchStatus.Ready) {

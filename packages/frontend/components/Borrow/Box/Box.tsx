@@ -17,15 +17,15 @@ type BorrowBoxProps = {
   isEditing: boolean;
   actionType: ActionType;
   type: AssetType;
-  chainId: ChainId;
   isExecuting: boolean;
-  value: string;
-  assetChange: AssetChange;
   showMax: boolean;
   maxAmount: number;
-  ltvMeta: LtvMeta;
-  basePosition: BasePosition;
   index: number;
+  assetChange?: AssetChange;
+  value?: string;
+  ltvMeta?: LtvMeta;
+  chainId?: ChainId;
+  basePosition?: BasePosition;
 };
 
 function BorrowBox({
@@ -69,9 +69,9 @@ function BorrowBox({
         type={type}
         value={chainId}
         disabled={isExecuting}
-        onChange={(chainId) =>
-          changeAssetChain(type, chainId, !isEditing, assetChange.currency)
-        }
+        onChange={(chainId) => {
+          changeAssetChain(type, chainId, !isEditing, assetChange?.currency);
+        }}
       />
       <CurrencyCard
         type={type}

@@ -68,7 +68,7 @@ contract ScriptPlus is Script {
     addr = abi.decode(res, (address));
   }
 
-  function getPrivKey() internal view returns (uint256 key) {
+  function getPrivKey() internal returns (uint256 key) {
     bytes32 k = vm.envBytes32("PRIVATE_KEY");
     key = uint256(k);
   }
@@ -100,7 +100,6 @@ contract ScriptPlus is Script {
     string memory _chainName
   )
     internal
-    view
     returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
   {
     string memory path = string(abi.encodePacked(".local/", _chainName, "/sig_", sigName));
