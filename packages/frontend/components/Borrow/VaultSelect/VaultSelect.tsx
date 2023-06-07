@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   CardContent,
+  Collapse,
   Skeleton,
   Stack,
   Table,
@@ -67,9 +68,7 @@ function VaultSelect() {
 
     return [
       selected,
-      ...aggregatedData
-        .filter((data) => data.index !== selected?.index)
-        .slice(0, 1),
+      ...aggregatedData.filter((data) => data.index !== selected?.index),
     ];
   }, [aggregatedData, isUnFolded, selectedRoute]);
 
@@ -87,10 +86,11 @@ function VaultSelect() {
     setIsLoading(true);
     setSelectedRoute(0);
     setOpenedRoute(null);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
-  }, [collateral.chainId, debt?.chainId, availableVaults]);
+  }, [collateral.chainId, debt?.chainId]);
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, [availableRoutes]);
 
   return (
     <Stack
@@ -108,128 +108,134 @@ function VaultSelect() {
           p: isMobile
             ? '1rem 0.5rem'
             : `1.5rem 1.7rem ${
-                availableRoutes.length > 1 ? '0' : '1rem'
+                availableRoutes.length === 1
+                  ? '1rem'
+                  : isUnFolded
+                  ? '2.5rem'
+                  : '0'
               } 1.7rem`,
           width: '100%',
           mt: '1rem',
           position: 'relative',
           backgroundColor: '#191B1F',
+          transition: 'all 500ms',
         }}
       >
         <CardContent sx={{ padding: 0, width: '100%' }}>
           {isLoading ? (
-            <>
-              {new Array(2).fill('').map((_, i) => (
-                <Skeleton
-                  key={`loading-${i}`}
-                  sx={{
-                    width: '100%',
-                    height: '4rem',
-                    m: `1rem 0 ${i !== 1 ? '-1rem' : '0'} 0`,
-                  }}
-                />
-              ))}
-            </>
-          ) : (
-            <TableContainer
+            <Skeleton
               sx={{
-                overflowY: 'hidden',
-                border: 'none',
-                '& td, th': {
-                  padding: '0 0.5rem',
-                },
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': {
-                  display: 'none',
-                },
-                '& .MuiTableCell-root': { border: 'none' },
-                '& tr:first-of-type td:first-of-type': {
-                  borderTopLeftRadius: '0.5rem',
-                },
-                '& tr:first-of-type td:last-of-type': {
-                  borderTopRightRadius: '0.5rem',
-                },
-                '& tr:last-of-type td:first-of-type': {
-                  borderBottomLeftRadius: '0.5rem',
-                },
-                '& tr:last-of-type td:last-of-type': {
-                  borderBottomRightRadius: '0.5rem',
-                },
-                'tr:first-of-type td': { borderTopStyle: 'solid' },
-                'tr td:first-of-type': {
-                  borderLeftStyle: 'solid',
-                  width: 'fit-content',
-                },
-                'tr td:not(:first-of-type)': {
-                  width: '70px',
-                },
+                width: '100%',
+                height: '9.2rem',
               }}
+            />
+          ) : (
+            <Collapse
+              in={isUnFolded}
+              collapsedSize={filteredRoutes.length > 1 ? '150px' : '108px'}
+              timeout={{ enter: 500, exit: 500 }}
             >
-              <Table
-                aria-label="Vault select"
-                size="small"
+              <TableContainer
                 sx={{
-                  borderCollapse: 'separate',
-                  tableLayout: !isMobile ? 'auto' : 'fixed',
+                  overflowY: 'hidden',
+                  border: 'none',
+                  '& td, th': {
+                    padding: '0 0.5rem',
+                  },
+                  msOverflowStyle: 'none',
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': {
+                    display: 'none',
+                  },
+                  '& .MuiTableCell-root': { border: 'none' },
+                  '& tr:first-of-type td:first-of-type': {
+                    borderTopLeftRadius: '0.5rem',
+                  },
+                  '& tr:first-of-type td:last-of-type': {
+                    borderTopRightRadius: '0.5rem',
+                  },
+                  '& tr:last-of-type td:first-of-type': {
+                    borderBottomLeftRadius: '0.5rem',
+                  },
+                  '& tr:last-of-type td:last-of-type': {
+                    borderBottomRightRadius: '0.5rem',
+                  },
+                  'tr:first-of-type td': { borderTopStyle: 'solid' },
+                  'tr td:first-of-type': {
+                    borderLeftStyle: 'solid',
+                    width: 'fit-content',
+                  },
+                  'tr td:not(:first-of-type)': {
+                    width: '70px',
+                  },
                 }}
               >
-                <TableHead>
-                  <TableRow
-                    sx={{
-                      height: '2.625rem',
-                      '& .MuiTableCell-root': { color: '#787883' },
-                    }}
-                  >
-                    <TableCell align="left" width="45%">
-                      Protocols
-                    </TableCell>
-                    <TableCell align="left" width="20%">
-                      Safety Rating
-                    </TableCell>
-                    {!isMobile && (
-                      <>
-                        <TableCell align="left">Network</TableCell>
-                        <TableCell
-                          align="right"
-                          sx={{ display: { xs: 'none', lg: 'table-cell' } }}
-                        >
-                          Supply APY
-                        </TableCell>
-                      </>
-                    )}
-                    <TableCell align="right" width="35%">
-                      Borrow APR
-                    </TableCell>
-                    {!isMobile && <TableCell align="right" />}
-                  </TableRow>
-                </TableHead>
-                <TableBody
+                <Table
+                  aria-label="Vault select"
+                  size="small"
                   sx={{
-                    '& tr:nth-of-type(3)': {
-                      opacity: isUnFolded ? 1 : 0.25,
-                    },
+                    borderCollapse: 'separate',
+                    tableLayout: !isMobile ? 'auto' : 'fixed',
                   }}
                 >
-                  {filteredRoutes.length > 0 &&
-                    filteredRoutes.map((item) => {
-                      return (
-                        item && (
-                          <Vault
-                            key={item.index}
-                            selected={item.index === selectedRoute}
-                            data={item}
-                            onChange={() => didSelectRoute(item.index)}
-                            opened={item.index === openedRoute}
-                            setOpened={() => handleOpen(item.index)}
-                            isMobile={isMobile}
-                          />
-                        )
-                      );
-                    })}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                  <TableHead>
+                    <TableRow
+                      sx={{
+                        height: '2.625rem',
+                        '& .MuiTableCell-root': { color: '#787883' },
+                      }}
+                    >
+                      <TableCell align="left" width="45%">
+                        Protocols
+                      </TableCell>
+                      <TableCell align="left" width="20%">
+                        Safety Rating
+                      </TableCell>
+                      {!isMobile && (
+                        <>
+                          <TableCell align="left">Network</TableCell>
+                          <TableCell
+                            align="right"
+                            sx={{ display: { xs: 'none', lg: 'table-cell' } }}
+                          >
+                            Supply APY
+                          </TableCell>
+                        </>
+                      )}
+                      <TableCell align="right" width="35%">
+                        Borrow APR
+                      </TableCell>
+                      {!isMobile && <TableCell align="right" />}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody
+                    sx={{
+                      '& tr:nth-of-type(3)': {
+                        opacity: isUnFolded ? 1 : 0.25,
+                        transition: 'all 500ms',
+                      },
+                    }}
+                  >
+                    {filteredRoutes.length > 0 &&
+                      filteredRoutes.map((item) => {
+                        return (
+                          item && (
+                            <Vault
+                              key={item.index}
+                              selected={item.index === selectedRoute}
+                              data={item}
+                              onChange={() => didSelectRoute(item.index)}
+                              opened={item.index === openedRoute}
+                              setOpened={() => handleOpen(item.index)}
+                              isMobile={isMobile}
+                            />
+                          )
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Collapse>
           )}
         </CardContent>
 
@@ -238,23 +244,15 @@ function VaultSelect() {
             direction="row"
             alignItems="center"
             justifyContent="center"
-            sx={
-              isUnFolded
-                ? {
-                    position: 'relative',
-                    height: '3rem',
-                    width: '100%',
-                  }
-                : {
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    width: '100%',
-                    height: '3rem',
-                    zIndex: 5,
-                  }
-            }
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              width: '100%',
+              height: '3rem',
+              zIndex: 5,
+            }}
           >
             <Button
               size="small"
