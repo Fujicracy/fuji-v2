@@ -112,7 +112,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       changeWillLoadBorrow(routeIsBorrow);
       if (router.asPath === PATH.BORROW) {
         changeShouldPageReset(routeIsBorrow);
-      } else if (!routeIsBorrow) {
+      } else {
         delayTaskBecauseOfNavigation(() => changeShouldPageReset(true));
       }
     };
