@@ -44,8 +44,7 @@ contract WePiggyOptimism is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x4cB46032e2790D8CA10be6d0001e8c6362a76adA);
+    return IAddrMapper(0x4dCC76FfFD9b8345B8dAa15414fbd787A3B226DB);
   }
 
   /**
@@ -54,7 +53,7 @@ contract WePiggyOptimism is ILendingProvider {
    * @param asset address of the token to be used as collateral/debt.
    */
   function _getCToken(address asset) internal view returns (address cToken) {
-    cToken = _getAddrmapper().getAddressMapping("WePiggy", asset);
+    cToken = _getAddrmapper().getAddressMapping(providerName(), asset);
   }
 
   /**

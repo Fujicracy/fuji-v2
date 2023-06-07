@@ -4,8 +4,8 @@
   "USDC": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   "DAI": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
   "USDT": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-  "WSTETH": "",
-  "ConnextCore": "i0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA",
+  "WSTETH": "0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb",
+  "ConnextCore": "0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA",
   "price-feeds": [
     {
       "asset": "WBTC",
@@ -60,6 +60,61 @@
     }
   ],
   "nested-mappings": [],
-  "borrowing-vaults": []
+  "borrowing-vaults": [
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHUSDC-1",
+      "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHUSDC-2",
+      "providers": ["Aave_V3_Optimism"],
+      "rating": 95
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-1",
+      "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-2",
+      "providers": ["Aave_V3_Optimism"],
+      "rating": 95
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "USDC",
+      "liqRatio": 790000000000000000,
+      "maxLtv": 700000000000000000,
+      "name": "BorrowingVault-WSTETHUSDC-1",
+      "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 85
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "USDC",
+      "liqRatio": 790000000000000000,
+      "maxLtv": 700000000000000000,
+      "name": "BorrowingVault-WSTETHUSDC-2",
+      "providers": ["Aave_V3_Optimism"],
+      "rating": 90
+    }
+  ]
 }
 
