@@ -208,7 +208,14 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
                 <div />
               )}
             </Grow>
-            <Grid item xs={12} md={5} order={{ xs: 1, md: 2 }}>
+            <Grid
+              item
+              xs={12}
+              md={5}
+              order={{ xs: 1, md: 2 }}
+              mt={basePosition ? { xs: 0, md: '2.6rem' } : 0}
+              sx={{ transition: 'all 500ms ease-in' }}
+            >
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
           </Grid>
