@@ -96,7 +96,11 @@ function VaultSelect() {
     <Stack
       sx={
         isMobile
-          ? { width: 'calc(100% - 1rem)', m: '0 0.5rem 2rem 0.5rem' }
+          ? {
+              width: 'calc(100% - 1rem)',
+              m: '0 0.5rem',
+              mb: { xs: '1rem', sm: '3.5rem' },
+            }
           : { width: '100%', mb: '2rem' }
       }
     >
@@ -106,9 +110,9 @@ function VaultSelect() {
           flexDirection: 'column',
           alignItems: 'start',
           p: isMobile
-            ? '1rem 0.5rem'
+            ? `1rem 0.5rem ${isUnFolded ? '2.5' : '1'}rem 0.5rem`
             : `1.5rem 1.7rem ${
-                availableRoutes.length === 1
+                filteredRoutes.length === 1
                   ? '1rem'
                   : isUnFolded
                   ? '2.5rem'
