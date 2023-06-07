@@ -6,7 +6,7 @@ import {
 } from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
 
-import { PATH } from '../constants';
+import { NAVIGATION_TASK_DELAY, PATH } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { usePositions } from '../store/positions.store';
@@ -16,6 +16,7 @@ type Page = {
   title: string;
   path: string;
 };
+
 export const topLevelPages: Page[] = [
   { title: 'Markets', path: PATH.MARKETS },
   { title: 'Borrow', path: PATH.BORROW },
@@ -72,4 +73,8 @@ export const showBorrow = async (router: NextRouter, override = true) => {
     borrowStore.clearDebt();
   }
   router.push(PATH.BORROW);
+};
+
+export const delayTaskBecauseOfNavigation = (func: () => void) => {
+  setTimeout(func, NAVIGATION_TASK_DELAY);
 };
