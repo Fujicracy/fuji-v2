@@ -32,14 +32,13 @@ const wcV1InitOptions: WalletConnectOptions = {
   },
 };
 
-console.log(process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY);
-
 const wcV2InitOptions: WalletConnectOptions = {
   version: 2,
   projectId: `${process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY}`,
 };
 
-const walletConnect = walletConnectModule(wcV2InitOptions);
+const injected = injectedModule();
+const walletConnect = walletConnectModule(wcV2InitOptions || wcV1InitOptions);
 const coinbase = coinbaseModule();
 const ledger = ledgerModule();
 const mewWalletModule = mewWallet();
@@ -52,7 +51,7 @@ const xdefiWallet = xdefiWalletModule();
 export const web3onboard = Onboard({
   chains: onboardChains,
   wallets: [
-    injectedModule(),
+    injected,
     coinbase,
     ledger,
     mewWalletModule,
