@@ -30,6 +30,7 @@ const wcV1InitOptions: WalletConnectOptions = {
       'pillar',
     ],
   },
+  connectFirstChainId: true,
 };
 
 const wcV2InitOptions: WalletConnectOptions = {
