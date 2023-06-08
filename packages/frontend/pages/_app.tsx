@@ -20,7 +20,10 @@ import {
   stopPolling,
 } from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
-import { isTopLevelUrl } from '../helpers/navigation';
+import {
+  delayTaskBecauseOfNavigation,
+  isTopLevelUrl,
+} from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
 import { useHistory } from '../store/history.store';
@@ -107,10 +110,10 @@ function MyApp({ Component, pageProps }: AppProps) {
       updatePollingPolicy(url);
       const routeIsBorrow = url === PATH.BORROW;
       changeWillLoadBorrow(routeIsBorrow);
-      if (!routeIsBorrow) {
-        setTimeout(() => {
-          changeShouldPageReset(true);
-        }, 100);
+      if (router.asPath === PATH.BORROW) {
+        changeShouldPageReset(routeIsBorrow);
+      } else {
+        delayTaskBecauseOfNavigation(() => changeShouldPageReset(true));
       }
     };
     router.events.on('routeChangeStart', handleRouteChange);

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import BorrowWrapper from '../components/Borrow/Wrapper';
 import { AssetType } from '../helpers/assets';
+import { delayTaskBecauseOfNavigation } from '../helpers/navigation';
 import { useAuth } from '../store/auth.store';
 import { FormType, useBorrow } from '../store/borrow.store';
 
@@ -25,7 +26,7 @@ const BorrowPage: NextPage = () => {
   if (shouldResetPage) {
     clearDebt();
     changeInputValues('', '');
-    changeShouldPageReset(false);
+    delayTaskBecauseOfNavigation(() => changeShouldPageReset(false));
   }
 
   useEffect(() => {
