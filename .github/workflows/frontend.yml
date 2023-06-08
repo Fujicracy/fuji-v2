@@ -86,6 +86,9 @@ jobs:
       - name: Build
         run: yarn workspace @x-fuji/frontend build
 
+      - name: Remove .next/cache
+        run: rm -rf packages/frontend/.next/cache
+
       - name: Deploy
         id: "deploy"
         uses: "google-github-actions/deploy-appengine@v0"
