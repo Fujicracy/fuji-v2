@@ -1,21 +1,11 @@
-import {
-  Box,
-  Container,
-  Divider,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, Container, Divider } from '@mui/material';
 import { NextPage } from 'next';
 import Head from 'next/head';
 
-import Footer from '../components/Shared/Footer';
-import Header from '../components/Shared/Header/Header';
+import Footer from '../components/App/Footer';
 import Lending from '../components/Shared/Lending';
 
 const LendingPage: NextPage = () => {
-  const { breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
-
   return (
     <>
       <Head>
@@ -23,8 +13,6 @@ const LendingPage: NextPage = () => {
         <meta name="description" content="Lend assets and earn interest" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <Header />
 
       <Divider
         sx={{
@@ -47,7 +35,7 @@ const LendingPage: NextPage = () => {
         </Box>
       </Container>
 
-      {!isMobile && <Footer />}
+      <Footer />
     </>
   );
 };

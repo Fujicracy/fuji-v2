@@ -18,11 +18,11 @@ import { MouseEvent, useEffect, useState } from 'react';
 
 import { MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
+import BestLabel from '../Shared/BestLabel';
 import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
-import BestLabel from './BestLabel';
 
 type MarketsTableRowProps = {
   row: MarketRow;

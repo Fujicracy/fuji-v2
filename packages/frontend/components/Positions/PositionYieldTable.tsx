@@ -155,7 +155,7 @@ function PositionYieldTableHeader() {
         <TableCell>Borrow</TableCell>
         <TableCell>Collateral</TableCell>
         <TableCell align="right">Borrow APY</TableCell>
-        <TableCell align="right">Collateral APY</TableCell>
+        <TableCell align="right">Supply APY</TableCell>
         <TableCell align="right">Net APY</TableCell>
         <TableCell align="right">Est. Yield/Cost</TableCell>
       </TableRow>

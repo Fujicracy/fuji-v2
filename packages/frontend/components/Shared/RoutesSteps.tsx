@@ -60,6 +60,7 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
     step: RoutingStepDetails;
     index: number;
   }) {
+    if (BigNumber.from(step.amount).eq(0)) return null;
     const formatted = (value?: BigNumber) =>
       `${toNotSoFixed(
         formatUnits(value ?? 0, step.token?.decimals || 18),
@@ -80,7 +81,19 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
   }
 
   return (
-    <>
+    <Stack
+      sx={{
+        '.step-item:after': {
+          position: 'absolute',
+          content: '""',
+          borderLeft: `1px solid #47494C`,
+          height: '100%',
+          transform: 'translateY(25%)',
+          left: '5%',
+          zIndex: 1,
+        },
+      }}
+    >
       {stepsToShow.map((step, index) => {
         return (
           <Stack
@@ -90,17 +103,11 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
             justifyContent="space-between"
             gap={2}
             mt={1}
+            className={
+              index === stepsToShow.length - 1 ? 'last-step-item' : 'step-item'
+            }
             sx={{
               position: 'relative',
-              '&:not(:last-of-type):after': {
-                position: 'absolute',
-                content: '""',
-                borderLeft: `1px solid #47494C`,
-                height: '100%',
-                transform: 'translateY(25%)',
-                left: '5%',
-                zIndex: 1,
-              },
             }}
           >
             <Stack
@@ -140,7 +147,7 @@ function RoutesSteps({ steps }: { steps: RoutingStepDetails[] }) {
           </Stack>
         );
       })}
-    </>
+    </Stack>
   );
 }
 

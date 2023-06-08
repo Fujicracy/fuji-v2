@@ -50,7 +50,7 @@ export function isChain(id: number): boolean {
   return ChainId[Number(id)] !== undefined;
 }
 
-export function isSupported(id: ChainId | undefined): boolean {
+export function isSupported(id?: ChainId): boolean {
   return chains.some((chain) => chain.chainId === id && chain.isDeployed);
 }
 
@@ -58,24 +58,20 @@ export function chainIdToHex(id: ChainId): string {
   return `0x${id.toString(16)}`;
 }
 
-export function hexToChainId(hex: string | undefined): ChainId | undefined {
+export function hexToChainId(hex?: string): ChainId | undefined {
   if (!hex) return undefined;
   return parseInt(hex, 16);
 }
 
 export function transactionUrl(id: ChainId, hash: string) {
-  return explorerUrl(id, hash, 'tx');
+  return explorerUrl(hash, 'tx', id);
 }
 
-export function addressUrl(id: ChainId | undefined, address: string) {
-  return explorerUrl(id, address, 'address');
+export function addressUrl(address: string, id?: ChainId) {
+  return explorerUrl(address, 'address', id);
 }
 
-function explorerUrl(
-  id: ChainId | undefined,
-  value: string,
-  type: 'tx' | 'address'
-) {
+function explorerUrl(value: string, type: 'tx' | 'address', id?: ChainId) {
   if (id === undefined) return;
   return CHAIN_BLOCK_EXPLORER_URL[id] + type + '/' + value;
 }

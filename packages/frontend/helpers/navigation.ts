@@ -33,9 +33,9 @@ export const isTopLevelUrl = (url: string) =>
 
 export const showPosition = async (
   router: NextRouter,
-  walletChainId: ChainId | undefined,
+  reset = true,
   entity?: BorrowingVault | VaultWithFinancials,
-  reset = true
+  walletChainId?: ChainId
 ) => {
   const vault = entity instanceof BorrowingVault ? entity : entity?.vault;
   if (!vault) return;
@@ -63,8 +63,13 @@ export const showPosition = async (
   }
 };
 
-export const showBorrow = (router: NextRouter, override = true) => {
+export const showBorrow = async (router: NextRouter, override = true) => {
+  const borrowStore = useBorrow.getState();
   // I'm not exactly thrilled about this solution, but it works for now
-  useBorrow.getState().changeChainOverride(override);
+  borrowStore.changeShouldPageReset(override);
+  if (override) {
+    borrowStore.changeInputValues('', '');
+    borrowStore.clearDebt();
+  }
   router.push(PATH.BORROW);
 };

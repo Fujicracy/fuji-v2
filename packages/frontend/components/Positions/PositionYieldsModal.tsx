@@ -111,9 +111,9 @@ export function PositionYieldsModal({
                 color={Number(totalAPY) >= 0 ? palette.success.main : 'inherit'}
               >
                 {formatValue(totalAPY, {
-                  style: 'currency',
                   maximumFractionDigits: 2,
                 })}
+                %
               </Typography>
             </Box>
             <Box ml="3rem" sx={{ textAlign: 'start' }}>

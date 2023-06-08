@@ -57,7 +57,7 @@ export const checkBalances = async () => {
   const debt = useBorrow.getState().debt;
 
   await checkBalance(address, AssetType.Collateral, collateral);
-  await checkBalance(address, AssetType.Debt, debt);
+  if (debt) await checkBalance(address, AssetType.Debt, debt);
 };
 
 const checkBalance = async (
@@ -86,6 +86,7 @@ const checkBalance = async (
 
   // Check if balances changed but don't even get there if chain changed
   if (
+    current &&
     current.currency.chainId === asset.currency.chainId &&
     balancesDiffer(current.balances, balances)
   ) {

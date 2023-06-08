@@ -10,9 +10,14 @@ import { BigNumber } from 'ethers';
 import { useBorrow } from '../store/borrow.store';
 import { AssetMeta, Position } from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
-import { AssetChange, AssetType, Mode } from './assets';
+import { AssetChange, AssetType, debtForCurrency, Mode } from './assets';
 import { getAllBorrowingVaultFinancials } from './borrow';
 import { bigToFloat, formatNumber } from './values';
+
+export type BasePosition = {
+  position: Position;
+  editedPosition?: Position;
+};
 
 export const getTotalSum = (
   positions: Position[],
@@ -47,17 +52,17 @@ export const getPositionsWithBalance = async (
     const p = {} as Position;
     p.vault = v.vault;
     p.collateral = {
-      amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
+      amount: bigToFloat(v.vault.collateral.decimals, v.depositBalance),
       currency: v.vault.collateral,
-      usdPrice: bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals),
+      usdPrice: bigToFloat(v.vault.collateral.decimals, v.collateralPriceUSD),
       get baseAPR() {
         return v.activeProvider.depositAprBase;
       },
     };
     p.debt = {
-      amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
+      amount: bigToFloat(v.vault.debt.decimals, v.borrowBalance),
       currency: v.vault.debt,
-      usdPrice: bigToFloat(v.debtPriceUSD, v.vault.debt.decimals),
+      usdPrice: bigToFloat(v.vault.debt.decimals, v.debtPriceUSD),
       get baseAPR() {
         return v.activeProvider.borrowAprBase;
       },
@@ -65,8 +70,8 @@ export const getPositionsWithBalance = async (
     p.ltv =
       (p.debt.amount * p.debt.usdPrice) /
       (p.collateral.amount * p.collateral.usdPrice);
-    p.ltvMax = bigToFloat(v.vault.maxLtv, 18);
-    p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18);
+    p.ltvMax = bigToFloat(18, v.vault.maxLtv);
+    p.ltvThreshold = bigToFloat(18, v.vault.liqRatio);
     p.liquidationPrice =
       p.debt.usdPrice === 0
         ? 0
@@ -85,8 +90,8 @@ export const getPositionsWithBalance = async (
 
 export const getAccrual = (
   usdBalance: number,
-  baseAPR: number | undefined,
-  type: AssetType
+  type: AssetType,
+  baseAPR?: number
 ): number => {
   const factor = type === AssetType.Debt ? -1 : 1;
   // `baseAPR` returned bu SDK is formatted in %, therefore to get decimal we divide by 100.
@@ -107,7 +112,6 @@ export const getCurrentAvailableBorrowingPower = (
 };
 
 export type PositionRow = {
-  chainId: number | undefined;
   debt: {
     symbol: string | '-';
     amount: number | '-';
@@ -124,11 +128,12 @@ export type PositionRow = {
   liquidationPrice: number | '-';
   oraclePrice: number | '-';
   percentPriceDiff: number | '-';
-  address: string | undefined;
   ltv: number | 0;
   ltvMax: number | 0;
   safetyRating: number | 0;
   activeProvidersNames: string[];
+  chainId?: number;
+  address?: string;
 };
 
 export function getRows(positions: Position[]): PositionRow[] {
@@ -162,7 +167,7 @@ export function getRows(positions: Position[]): PositionRow[] {
   }
 }
 
-function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
+function handleDisplayLiquidationPrice(liqPrice?: number) {
   if (liqPrice === undefined || liqPrice === 0) {
     return '-';
   } else {
@@ -229,18 +234,26 @@ export function viewEditedPosition(
   return future;
 }
 
-export type BasePosition = {
-  position: Position;
-  editedPosition?: Position;
-};
-
 export function viewDynamicPosition(
-  dynamic: boolean,
-  position: Position | undefined,
-  editedPosition: Position | undefined = undefined
-): BasePosition {
+  isEditing: boolean,
+  allowSettingDebt: boolean,
+  position?: Position,
+  editedPosition?: Position
+): BasePosition | undefined {
+  const dynamic = !isEditing;
   const baseCollateral = useBorrow.getState().collateral;
-  const baseDebt = useBorrow.getState().debt;
+  let baseDebt = useBorrow.getState().debt;
+
+  if (!baseDebt && isEditing && position && !allowSettingDebt) {
+    const debt = debtForCurrency(position.debt.currency);
+    useBorrow.getState().changeDebt(debt);
+    baseDebt = debt;
+  }
+
+  if (!baseDebt) {
+    return undefined;
+  }
+
   const baseLtv = useBorrow.getState().ltv;
   const baseLiquidation = useBorrow.getState().liquidationMeta;
   return {
@@ -272,7 +285,7 @@ export function viewDynamicPosition(
 export function dynamicPositionMeta(
   dynamic: boolean, // If tue, it means we need to show data the user is inputting
   source: AssetChange,
-  positionMeta: AssetMeta | undefined = undefined
+  positionMeta?: AssetMeta
 ): AssetMeta {
   if (positionMeta) return positionMeta;
   return {
@@ -300,7 +313,7 @@ export function getEstimatedEarnings({
   );
 }
 
-export function vaultFromAddress(address: string | undefined) {
+export function vaultFromAddress(address?: string) {
   if (!address) return undefined;
   const positions = usePositions.getState().positions;
   return positions.find((pos) => pos.vault?.address.value === address)?.vault;
@@ -308,8 +321,8 @@ export function vaultFromAddress(address: string | undefined) {
 
 export function liquidationColor(
   percentage: number | string,
-  recommended: number | undefined,
-  palette: Palette
+  palette: Palette,
+  recommended?: number
 ) {
   if (typeof percentage === 'string' || !recommended) return palette.info.main;
   return percentage <= recommended
@@ -319,8 +332,8 @@ export function liquidationColor(
 
 export function belowPriceColor(
   percentage: number | string,
-  min: number | undefined,
-  palette: Palette
+  palette: Palette,
+  min?: number
 ) {
   if (typeof percentage === 'string' || !min) return palette.info.main;
   if (percentage <= 5) return palette.error.main;
