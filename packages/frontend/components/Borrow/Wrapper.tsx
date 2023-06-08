@@ -53,9 +53,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const isEditing = formType !== FormType.Create;
 
   const [basePosition, setBasePosition] = useState<BasePosition | undefined>(
-    baseDebt
-      ? viewDynamicPosition(isEditing, willLoadBorrow, undefined)
-      : undefined
+    undefined
   );
   const [loading, setLoading] = useState<boolean>(
     isEditing && (!positions || positions.length === 0)
@@ -76,13 +74,17 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           ? viewEditedPosition(baseCollateral, baseDebt, matchPosition, mode)
           : undefined;
     }
-    const basePosition = viewDynamicPosition(
+
+    if (willLoadBorrow) return;
+
+    const newBasePosition = viewDynamicPosition(
       isEditing,
       willLoadBorrow,
       matchPosition,
       editedPosition
     );
-    setBasePosition(basePosition);
+
+    setBasePosition(newBasePosition);
   }, [
     formType,
     baseCollateral,
@@ -214,7 +216,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
               md={5}
               order={{ xs: 1, md: 2 }}
               mt={basePosition ? { xs: 0, md: '2.6rem' } : 0}
-              sx={{ transition: 'all 500ms ease-in' }}
+              sx={{ transition: `all ${isEditing ? '0ms' : '500ms'} ease-in` }}
             >
               <Borrow isEditing={isEditing} basePosition={basePosition} />
             </Grid>
