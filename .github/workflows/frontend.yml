@@ -145,6 +145,9 @@ jobs:
       - name: Build
         run: yarn workspace @x-fuji/frontend build
 
+      - name: Remove .next/cache
+        run: rm -rf packages/frontend/.next/cache
+
       - name: Deploy
         id: "deploy"
         uses: "google-github-actions/deploy-appengine@v0"
@@ -160,4 +163,4 @@ jobs:
           # SENTRY_URL: https://sentry.io/
         with:
           environment: production
-          sourcemaps: 'packages/frontend/.next/static/chunks'
+          sourcemaps: "packages/frontend/.next/static/chunks"
