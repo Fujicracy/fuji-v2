@@ -20,7 +20,7 @@ contract RunGnosis is ScriptPlus {
     setOrDeployChief(false);
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
-    setOrDeployBorrowingVaultFactory(false, false);
+    setOrDeployBorrowingVaultFactory2(false, false);
     /*setOrDeployAddrMapper(false);*/
 
     agave = AgaveGnosis(getAddress("AgaveGnosis"));

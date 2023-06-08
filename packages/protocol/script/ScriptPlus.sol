@@ -9,7 +9,7 @@ import {TimelockController} from
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
-import {BorrowingVaultFactory} from "../src/vaults/borrowing/BorrowingVaultFactory.sol";
+import {BorrowingVaultFactory2} from "../src/vaults/borrowing/BorrowingVaultFactory2.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
 import {BorrowingVault2} from "../src/vaults/borrowing/BorrowingVault2.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
@@ -49,7 +49,7 @@ contract ScriptPlus is Script {
   AddrMapper mapper;
   Chief chief;
   TimelockController timelock;
-  BorrowingVaultFactory factory;
+  BorrowingVaultFactory2 factory;
   FujiOracle oracle;
   ConnextRouter connextRouter;
 
@@ -143,12 +143,12 @@ contract ScriptPlus is Script {
     }
   }
 
-  function setOrDeployBorrowingVaultFactory(bool deploy, bool setContractCode) internal {
+  function setOrDeployBorrowingVaultFactory2(bool deploy, bool setContractCode) internal {
     if (deploy) {
-      factory = new BorrowingVaultFactory(address(chief));
-      saveAddress("BorrowingVaultFactory", address(factory));
+      factory = new BorrowingVaultFactory2(address(chief));
+      saveAddress("BorrowingVaultFactory2", address(factory));
     } else {
-      factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
+      factory = BorrowingVaultFactory2(getAddress("BorrowingVaultFactory2"));
     }
 
     if (setContractCode) {
