@@ -113,9 +113,6 @@ contract BorrowingVault2 is BaseVault {
    * @param chief_ that deploys and controls this vault
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
-   *
-   * @dev Requirements:
-   * - Must check `maxLTV` Must < `liqRatio`.
    */
   constructor(
     address asset_,
