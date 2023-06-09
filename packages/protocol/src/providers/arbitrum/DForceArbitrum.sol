@@ -66,7 +66,7 @@ contract DForceArbitrum is ILendingProvider {
    * @param asset address of the token to be used as collateral/debt
    */
   function _getiToken(address asset) internal view returns (address iToken) {
-    iToken = _getAddrmapper().getAddressMapping("DForce", asset);
+    iToken = _getAddrmapper().getAddressMapping(providerName(), asset);
   }
 
   /// @inheritdoc ILendingProvider
