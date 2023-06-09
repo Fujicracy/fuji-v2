@@ -28,7 +28,12 @@ contract RunArbitrum is ScriptPlus {
     setOrDeployAddrMapper(false);
 
     _setLendingProviders();
-    /*_deployVault("WETH", "DAI", "BorrowingVault-WETHDAI", 90);*/
+
+    if (chief.allowedVaultFactory(address(factory))) {
+      deployBorrowingVaults2();
+      setBorrowingVaults2();
+      initBorrowingVaults2();
+    }
 
     /*_setVaultNewProviders("BorrowingVault-WETHUSDC-2");*/
     /*_setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
@@ -68,25 +73,5 @@ contract RunArbitrum is ScriptPlus {
     bytes memory callData =
       abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
     callWithTimelock(address(chief), callData);
-  }
-
-  function _deployVault(
-    string memory collateralAddr,
-    string memory debtAddr,
-    string memory name,
-    uint256 rating
-  )
-    internal
-  {
-    address collateral = readAddrFromConfig(collateralAddr);
-    address debt = readAddrFromConfig(debtAddr);
-
-    ILendingProvider[] memory providers = new ILendingProvider[](2);
-    providers[0] = aaveV3;
-    providers[1] = radiant;
-    address vault = chief.deployVault(
-      address(factory), abi.encode(collateral, debt, address(oracle), providers), rating
-    );
-    saveAddress(name, vault);
   }
 }
