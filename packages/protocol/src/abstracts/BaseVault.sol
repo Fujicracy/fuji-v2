@@ -99,6 +99,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     _asset = IERC20Metadata(asset_);
     _decimals = IERC20Metadata(asset_).decimals();
     minAmount = 1e6;
+
+    // pause all actions that will be unpaused when initializing the vault
+    _pauseForceAllActions();
   }
 
   /**
