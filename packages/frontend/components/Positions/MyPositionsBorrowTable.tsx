@@ -36,6 +36,8 @@ type PositionsBorrowTableProps = {
   loading: boolean;
 };
 
+const NUMBER_OF_COLUMNS = 8;
+
 function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   const { palette } = useTheme();
   const router = useRouter();
@@ -53,7 +55,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   if (!account) {
     return (
       <MyPositionsBorrowTableContainer>
-        <EmptyState reason="no-wallet" />
+        <EmptyState reason="no-wallet" columnsCount={NUMBER_OF_COLUMNS} />
       </MyPositionsBorrowTableContainer>
     );
   }
@@ -61,7 +63,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     return (
       <MyPositionsBorrowTableContainer>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(8).fill('').map((_, index) => (
+          {new Array(NUMBER_OF_COLUMNS).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
@@ -175,7 +177,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
           <ExtraTableSpace colSpan={7} itemLength={rows.length} max={5} />
         </>
       ) : (
-        <EmptyState reason="no-positions" />
+        <EmptyState reason="no-positions" columnsCount={NUMBER_OF_COLUMNS} />
       )}
     </MyPositionsBorrowTableContainer>
   );

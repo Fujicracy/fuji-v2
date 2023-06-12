@@ -15,9 +15,11 @@ import { useAuth } from '../../store/auth.store';
 
 function EmptyState({
   reason,
+  columnsCount,
   minHeight,
 }: {
   reason: 'no-wallet' | 'no-positions';
+  columnsCount: number;
   minHeight?: string;
 }) {
   const { palette } = useTheme();
@@ -59,7 +61,7 @@ function EmptyState({
   return (
     <TableRow>
       <TableCell
-        colSpan={8}
+        colSpan={columnsCount}
         align="center"
         sx={{ m: '0', textAlign: 'center', p: 0 }}
       >
