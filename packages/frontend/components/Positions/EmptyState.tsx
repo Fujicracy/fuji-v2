@@ -59,7 +59,7 @@ function EmptyState({
   return (
     <TableRow>
       <TableCell
-        colSpan={7}
+        colSpan={8}
         align="center"
         sx={{ m: '0', textAlign: 'center', p: 0 }}
       >
