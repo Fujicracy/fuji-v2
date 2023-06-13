@@ -42,12 +42,13 @@ function Vault({
   isMobile,
 }: VaultProps) {
   const { palette } = useTheme();
-  const ref = createRef<HTMLElement>();
+
   const [height, setHeight] = useState(0);
   const [isHovered, setHovered] = useState(false);
 
   const markets = useMarkets((state) => state.rows);
 
+  const stackRef = createRef<HTMLElement>();
   const aprRef = useRef<AprData>(
     aprData(
       data.activeProvider.borrowAprBase || 0,
@@ -72,12 +73,12 @@ function Vault({
   }, [markets, data, aprRef]);
 
   const handleOpen = (e: { stopPropagation: () => void }) => {
-    if (!ref.current) return;
+    if (!stackRef.current) return;
     e.stopPropagation();
-    setHeight(ref.current.clientHeight);
+    setHeight(stackRef.current.clientHeight);
     setOpened({
       index: data.index,
-      height: height || ref.current.clientHeight,
+      height: height || stackRef.current.clientHeight,
     });
   };
 
@@ -226,7 +227,7 @@ function Vault({
         >
           <Collapse in={opened}>
             <Stack
-              ref={ref}
+              ref={stackRef}
               gap={1}
               sx={{
                 pb: '0.75rem',
