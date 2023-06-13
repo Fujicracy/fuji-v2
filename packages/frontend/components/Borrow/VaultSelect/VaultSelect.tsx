@@ -25,6 +25,7 @@ function VaultSelect() {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
+  const [started, setStarted] = useState(false);
   const [isUnFolded, setUnFolded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(0);
@@ -33,9 +34,12 @@ function VaultSelect() {
 
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
+  const activeVault = useBorrow((state) => state.activeVault);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
   const availableVaults = useBorrow((state) => state.availableVaults);
+  const override = useBorrow((state) => state.borrowingNavigation.shouldReset);
   const changeActiveVault = useBorrow((state) => state.changeActiveVault);
+
   const aggregatedData = availableVaults.map((vault, i) => ({
     ...vault,
     route: availableRoutes[i],
@@ -89,10 +93,30 @@ function VaultSelect() {
   };
 
   useEffect(() => {
+    if (started || filteredRoutes.length === 0) return;
+    setStarted(true);
     setIsLoading(true);
-    setSelectedRoute(0);
+    let selected = 0;
+    if (!override) {
+      for (let i = 0; i < filteredRoutes.length; i++) {
+        if (
+          activeVault?.address.value === filteredRoutes[i]?.vault.address.value
+        ) {
+          selected = i;
+          return;
+        }
+      }
+    }
+    setSelectedRoute(selected);
     setOpenedRoute(null);
-  }, [collateral.chainId, debt?.chainId]);
+  }, [
+    override,
+    started,
+    collateral.chainId,
+    activeVault,
+    filteredRoutes,
+    debt?.chainId,
+  ]);
 
   useEffect(() => {
     setIsLoading(false);
