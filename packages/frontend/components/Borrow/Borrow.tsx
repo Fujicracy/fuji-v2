@@ -55,10 +55,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const changeMode = useBorrow((state) => state.changeMode);
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
   const changeInputValues = useBorrow((state) => state.changeInputValues);
-  const updateBalances = useBorrow((state) => state.updateBalances);
-  const updateVault = useBorrow((state) => state.updateVault);
+  const updateAll = useBorrow((state) => state.updateAll);
   const allow = useBorrow((state) => state.allow);
-  const updateAllowance = useBorrow((state) => state.updateAllowance);
   const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
 
@@ -76,6 +74,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     }
   );
 
+  const prevAddress = useRef<string | undefined>(undefined);
   const prevActionType = useRef<ActionType>(ActionType.ADD);
 
   const shouldSignTooltipBeShown = useMemo(() => {
@@ -128,25 +127,12 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             changeAssetChain(AssetType.Collateral, walletChainId, true);
             changeAssetChain(AssetType.Debt, walletChainId, false);
           } else {
-            updateBalances(AssetType.Collateral);
-            updateBalances(AssetType.Debt);
-            updateAllowance(AssetType.Collateral);
-            updateAllowance(AssetType.Debt);
-            updateVault();
+            updateAll();
           }
         }, 500);
       }
     }
-  }, [
-    address,
-    collateral,
-    walletChainId,
-    vault,
-    changeAssetChain,
-    updateBalances,
-    updateAllowance,
-    updateVault,
-  ]);
+  }, [address, collateral, walletChainId, vault, changeAssetChain, updateAll]);
 
   useEffect(() => {
     updateCurrencyPrice(AssetType.Collateral);
@@ -161,15 +147,23 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [actionType, changeInputValues]);
 
   useEffect(() => {
-    if (address && vault) {
-      const current = availableVaults.find((v) =>
-        v.vault.address.equals(vault.address)
-      );
-      if (current) {
-        setHasBalanceInVault(current.depositBalance.gt(DUST_AMOUNT_IN_WEI));
+    (async () => {
+      if (prevAddress.current !== address) {
+        if (prevAddress.current !== undefined) {
+          await updateAll(vault?.address.value);
+        }
+        prevAddress.current = address;
       }
-    }
-  }, [address, vault, availableVaults]);
+      if (address && vault) {
+        const current = availableVaults.find((v) =>
+          v.vault.address.equals(vault.address)
+        );
+        if (current) {
+          setHasBalanceInVault(current.depositBalance.gt(DUST_AMOUNT_IN_WEI));
+        }
+      }
+    })();
+  }, [address, vault, availableVaults, updateAll]);
 
   useEffect(() => {
     const mode = modeForContext(

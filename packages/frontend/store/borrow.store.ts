@@ -135,16 +135,16 @@ type BorrowActions = {
     amount?: number
   ) => void;
 
+  updateAll: (vaultAddress?: string) => void;
   updateCurrencyPrice: (type: AssetType) => void;
   updateBalances: (type: AssetType) => void;
   updateAllowance: (type: AssetType) => void;
-  updateVault: () => void;
+  updateVault: (address?: string) => void;
   updateTransactionMeta: () => void;
   updateTransactionMetaDebounced: () => void;
   updateLtv: () => void;
   updateLiquidation: () => void;
   allow: (type: AssetType) => void;
-  updateAvailableRoutes: (routes: RouteMeta[]) => void;
   sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
@@ -220,10 +220,6 @@ export const useBorrow = create<BorrowStore>()(
           if (diff) {
             get().updateTransactionMeta();
           }
-        },
-
-        async updateAvailableRoutes(availableRoutes: RouteMeta[]) {
-          set({ availableRoutes });
         },
 
         async changeDebt(debt) {
@@ -502,6 +498,14 @@ export const useBorrow = create<BorrowStore>()(
           );
         },
 
+        async updateAll(vaultAddress) {
+          await get().updateBalances(AssetType.Collateral);
+          await get().updateBalances(AssetType.Debt);
+          await get().updateAllowance(AssetType.Collateral);
+          await get().updateAllowance(AssetType.Debt);
+          await get().updateVault(vaultAddress);
+        },
+
         async updateCurrencyPrice(type) {
           const asset = get().assetForType(type);
           if (!asset) return;
@@ -575,7 +579,7 @@ export const useBorrow = create<BorrowStore>()(
           }
         },
 
-        async updateVault() {
+        async updateVault(vaultAddress) {
           const debt = get().debt?.currency;
           if (!debt) return;
           set({ availableVaultsStatus: FetchStatus.Loading });
@@ -613,8 +617,13 @@ export const useBorrow = create<BorrowStore>()(
             return;
           }
 
+          const activeVault =
+            availableVaults.find(
+              (v) => v.vault.address.value === vaultAddress
+            ) ?? availableVaults[0];
+
           set({ availableVaults });
-          get().changeActiveVault(availableVaults[0]);
+          get().changeActiveVault(activeVault);
 
           get().updateTransactionMeta();
           set({ availableVaultsStatus: FetchStatus.Ready });

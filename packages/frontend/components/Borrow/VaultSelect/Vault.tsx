@@ -10,7 +10,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import { VaultWithFinancials } from '@x-fuji/sdk';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { createRef, useState } from 'react';
 
 import { chainName } from '../../../helpers/chains';
 import { RouteMeta } from '../../../helpers/routing';
@@ -23,9 +23,9 @@ import SafetyRating from '../../Shared/Table/SafetyRating';
 
 type VaultProps = {
   selected: boolean;
-  data: VaultWithFinancials & { route: RouteMeta };
+  data: VaultWithFinancials & { route: RouteMeta } & { index: number };
   onChange: () => void;
-  setOpened: () => void;
+  setOpened: (props: { height: number; index: number }) => void;
   opened: boolean;
   isMobile: boolean;
 };
@@ -39,8 +39,19 @@ function Vault({
   isMobile,
 }: VaultProps) {
   const { palette } = useTheme();
+  const ref = createRef<HTMLElement>();
+  const [height, setHeight] = useState(0);
 
   const [isHovered, setHovered] = useState(false);
+
+  const handleOpen = (e: { stopPropagation: () => void }) => {
+    e.stopPropagation();
+    setHeight(ref.current!.clientHeight);
+    setOpened({
+      index: data.index,
+      height: height || ref.current!.clientHeight,
+    });
+  };
 
   const borderStyle = `1px solid ${
     selected ? alpha(palette.secondary.light, 0.5) : 'transparent'
@@ -138,10 +149,7 @@ function Vault({
               fullWidth
               variant="secondary"
               sx={{ p: '0 0.5rem' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpened();
-              }}
+              onClick={handleOpen}
             >
               <Typography variant="small">
                 {opened ? 'Close' : 'See Route'}
@@ -188,6 +196,7 @@ function Vault({
         >
           <Collapse in={opened}>
             <Stack
+              ref={ref}
               gap={1}
               sx={{
                 pb: '0.75rem',

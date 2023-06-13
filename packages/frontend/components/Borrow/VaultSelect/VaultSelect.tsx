@@ -29,6 +29,7 @@ function VaultSelect() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(0);
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
+  const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
 
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
@@ -71,6 +72,11 @@ function VaultSelect() {
       ...aggregatedData.filter((data) => data.index !== selected?.index),
     ];
   }, [aggregatedData, isUnFolded, selectedRoute]);
+
+  const onOpen = ({ height, index }: { height: number; index: number }) => {
+    handleOpen(index);
+    setOpenedHeight(height);
+  };
 
   const handleToggleFolded = () => {
     if (!isUnFolded) {
@@ -136,7 +142,13 @@ function VaultSelect() {
           ) : (
             <Collapse
               in={isUnFolded}
-              collapsedSize={filteredRoutes.length > 1 ? '150px' : '108px'}
+              collapsedSize={
+                filteredRoutes.length > 1
+                  ? openedRoute !== null
+                    ? `${150 + openedRouteHeight}px`
+                    : '150px'
+                  : '108px'
+              }
               timeout={{ enter: 500, exit: 500 }}
             >
               <TableContainer
@@ -230,7 +242,7 @@ function VaultSelect() {
                               data={item}
                               onChange={() => didSelectRoute(item.index)}
                               opened={item.index === openedRoute}
-                              setOpened={() => handleOpen(item.index)}
+                              setOpened={onOpen}
                               isMobile={isMobile}
                             />
                           )

@@ -40,7 +40,7 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
     entry.status === HistoryEntryStatus.ONGOING ? (
       <CircularProgress size={16} sx={commonListActionStyle} />
     ) : entry.status === HistoryEntryStatus.FAILURE ? (
-      <ErrorOutlineIcon sx={commonListActionStyle} />
+      <ErrorOutlineIcon sx={{ ...commonListActionStyle, mr: '-2px' }} />
     ) : (
       <CheckIcon
         sx={{
