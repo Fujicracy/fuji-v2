@@ -20,7 +20,7 @@ import { aprData, MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
 import AprValue from '../Shared/AprValue';
 import BestLabel from '../Shared/BestLabel';
-import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
+import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
@@ -39,7 +39,7 @@ function MarketsTableRow({
   const { palette } = useTheme();
   const [expandRow, setExpandRow] = useState(openedByDefault);
 
-  const apr = aprData(row.borrowAprBase.value, row.borrowAprReward.value);
+  const borrowApr = aprData(row.borrowAprBase.value, row.borrowAprReward.value);
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation();
@@ -161,9 +161,9 @@ function MarketsTableRow({
           {loaderOrError(row.borrowApr.status)}
           {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
             <AprValue
-              base={apr.base}
-              reward={apr.reward}
-              positive={apr.positive}
+              base={borrowApr.base}
+              reward={borrowApr.reward}
+              positive={borrowApr.positive}
             />
           )}
         </SizableTableCell>
@@ -174,23 +174,11 @@ function MarketsTableRow({
         >
           {loaderOrError(row.depositApr.status)}
           {row.depositApr.status === MarketRowStatus.Ready && !expandRow && (
-            <Stack direction="row" alignItems="center" justifyContent="right">
-              {row.depositAprReward?.value > 0 && (
-                <Tooltip
-                  title={`${row.depositAprBase.value.toFixed(
-                    2
-                  )}% (base) + ${row.depositAprReward.value.toFixed(
-                    2
-                  )}% (reward)`}
-                  arrow
-                >
-                  <IconButton>
-                    <DropletIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {row.depositApr.value.toFixed(2)}%
-            </Stack>
+            <AprValue
+              base={row.depositAprBase.value}
+              reward={row.depositAprReward.value}
+              positive
+            />
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
