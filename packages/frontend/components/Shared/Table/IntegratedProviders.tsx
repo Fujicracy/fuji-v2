@@ -35,7 +35,12 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
                 }}
               >
                 {i <= 2 && (
-                  <ProviderIcon provider={name} height={24} width={24} />
+                  <ProviderIcon
+                    sx={i === 0 ? {} : { filter: 'blur(0.75px)' }} // This is going to be more complex in the future
+                    provider={name}
+                    height={24}
+                    width={24}
+                  />
                 )}
               </Box>
             </Tooltip>
