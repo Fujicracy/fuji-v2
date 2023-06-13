@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import BorrowWrapper from '../components/Borrow/Wrapper';
 import { AssetType } from '../helpers/assets';
-import { delayTaskBecauseOfNavigation } from '../helpers/navigation';
+import { navigationalTaskDelay } from '../helpers/navigation';
 import { useAuth } from '../store/auth.store';
 import { FormType, useBorrow } from '../store/borrow.store';
 
@@ -11,13 +11,15 @@ const formType = FormType.Create;
 
 const BorrowPage: NextPage = () => {
   const chainId = useAuth((state) => state.chainId);
-  const shouldResetPage = useBorrow((state) => state.shouldResetPage);
+  const shouldResetPage = useBorrow(
+    (state) => state.borrowingNavigation.shouldReset
+  );
 
   const changeFormType = useBorrow((state) => state.changeFormType);
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
   const changeInputValues = useBorrow((state) => state.changeInputValues);
   const changeShouldPageReset = useBorrow(
-    (state) => state.changeShouldPageReset
+    (state) => state.changeBorrowPageShouldReset
   );
   const clearDebt = useBorrow((state) => state.clearDebt);
 
@@ -26,7 +28,7 @@ const BorrowPage: NextPage = () => {
   if (shouldResetPage) {
     clearDebt();
     changeInputValues('', '');
-    delayTaskBecauseOfNavigation(() => changeShouldPageReset(false));
+    navigationalTaskDelay(() => changeShouldPageReset(false));
   }
 
   useEffect(() => {

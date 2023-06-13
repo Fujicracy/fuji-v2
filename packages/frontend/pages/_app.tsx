@@ -20,10 +20,7 @@ import {
   stopPolling,
 } from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
-import {
-  delayTaskBecauseOfNavigation,
-  isTopLevelUrl,
-} from '../helpers/navigation';
+import { isTopLevelUrl, navigationalTaskDelay } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
 import { useHistory } from '../store/history.store';
@@ -47,9 +44,11 @@ function MyApp({ Component, pageProps }: AppProps) {
   const closeModal = useHistory((state) => state.closeModal);
 
   const changeShouldPageReset = useBorrow(
-    (state) => state.changeShouldPageReset
+    (state) => state.changeBorrowPageShouldReset
   );
-  const changeWillLoadBorrow = useBorrow((state) => state.changeWillLoadBorrow);
+  const changeWillLoadBorrow = useBorrow(
+    (state) => state.changeBorrowPageWillLoadBorrow
+  );
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
@@ -113,7 +112,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       if (router.asPath === PATH.BORROW) {
         changeShouldPageReset(routeIsBorrow);
       } else {
-        delayTaskBecauseOfNavigation(() => changeShouldPageReset(true));
+        navigationalTaskDelay(() => changeShouldPageReset(true));
       }
     };
     router.events.on('routeChangeStart', handleRouteChange);

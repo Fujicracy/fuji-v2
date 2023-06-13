@@ -48,6 +48,10 @@ import { isSupported, testChains } from '../helpers/chains';
 import { isBridgeable } from '../helpers/currencies';
 import { handleTransactionError } from '../helpers/errors';
 import {
+  BorrowPageNavigation,
+  navigationalRunAndResetWithDelay,
+} from '../helpers/navigation';
+import {
   dismiss,
   getTransactionLink,
   NotificationDuration,
@@ -97,8 +101,7 @@ type BorrowState = {
 
   isExecuting: boolean;
 
-  shouldResetPage: boolean;
-  willLoadBorrow: boolean;
+  borrowingNavigation: BorrowPageNavigation;
 };
 
 type BorrowActions = {
@@ -149,8 +152,8 @@ type BorrowActions = {
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
 
-  changeShouldPageReset: (reset: boolean) => void;
-  changeWillLoadBorrow: (willLoadBorrow: boolean) => void;
+  changeBorrowPageShouldReset: (reset: boolean, lock?: boolean) => void;
+  changeBorrowPageWillLoadBorrow: (willLoadBorrow: boolean) => void;
 };
 
 type BorrowStore = BorrowState & BorrowActions;
@@ -196,8 +199,11 @@ const initialState: BorrowState = {
   isSigning: false,
   isExecuting: false,
 
-  shouldResetPage: true,
-  willLoadBorrow: false,
+  borrowingNavigation: {
+    shouldReset: true,
+    willLoadBorrow: false,
+    lock: false,
+  },
 };
 
 export const useBorrow = create<BorrowStore>()(
@@ -967,17 +973,32 @@ export const useBorrow = create<BorrowStore>()(
           }
         },
 
-        changeShouldPageReset(shouldResetPage) {
-          set({ shouldResetPage });
+        changeBorrowPageShouldReset(shouldReset, lock) {
+          if (get().borrowingNavigation.lock) return;
+          if (lock !== undefined) {
+            navigationalRunAndResetWithDelay((newValue: boolean) => {
+              set(
+                produce((state: BorrowState) => {
+                  state.borrowingNavigation.lock = newValue;
+                })
+              );
+            }, lock);
+          }
+          set(
+            produce((state: BorrowState) => {
+              state.borrowingNavigation.shouldReset = shouldReset;
+            })
+          );
         },
 
-        changeWillLoadBorrow(willLoadBorrow) {
-          set({ willLoadBorrow });
-          if (willLoadBorrow) {
-            setTimeout(() => {
-              set({ willLoadBorrow: false });
-            }, 1000);
-          }
+        changeBorrowPageWillLoadBorrow(willLoadBorrow) {
+          navigationalRunAndResetWithDelay((newValue: boolean) => {
+            set(
+              produce((state: BorrowState) => {
+                state.borrowingNavigation.willLoadBorrow = newValue;
+              })
+            );
+          }, willLoadBorrow);
         },
       }),
       storeOptions('borrow')

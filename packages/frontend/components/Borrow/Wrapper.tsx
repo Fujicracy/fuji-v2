@@ -48,7 +48,9 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const baseDebt = useBorrow((state) => state.debt);
   const baseLtv = useBorrow((state) => state.ltv);
   const mode = useBorrow((state) => state.mode);
-  const willLoadBorrow = useBorrow((state) => state.willLoadBorrow);
+  const willLoadBorrow = useBorrow(
+    (state) => state.borrowingNavigation.willLoadBorrow
+  );
 
   const isEditing = formType !== FormType.Create;
 

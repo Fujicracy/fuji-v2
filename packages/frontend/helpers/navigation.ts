@@ -65,16 +65,31 @@ export const showPosition = async (
 };
 
 export const showBorrow = async (router: NextRouter, override = true) => {
-  const borrowStore = useBorrow.getState();
   // I'm not exactly thrilled about this solution, but it works for now
-  borrowStore.changeShouldPageReset(override);
-  if (override) {
-    borrowStore.changeInputValues('', '');
-    borrowStore.clearDebt();
-  }
+  useBorrow
+    .getState()
+    .changeBorrowPageShouldReset(override, !override ? true : undefined);
   router.push(PATH.BORROW);
 };
 
-export const delayTaskBecauseOfNavigation = (func: () => void) => {
+export type BorrowPageNavigation = {
+  shouldReset: boolean;
+  willLoadBorrow: boolean;
+  lock: boolean;
+};
+
+export const navigationalTaskDelay = (func: () => void) => {
   setTimeout(func, NAVIGATION_TASK_DELAY);
+};
+
+export const navigationalRunAndResetWithDelay = (
+  callback: (value: boolean) => void,
+  value: boolean
+) => {
+  callback(value);
+  if (value) {
+    setTimeout(() => {
+      callback(false);
+    }, NAVIGATION_TASK_DELAY * 2);
+  }
 };
