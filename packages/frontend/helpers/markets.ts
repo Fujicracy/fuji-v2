@@ -276,35 +276,10 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
   return grouped;
 };
 
-const groupByChain = (rows: MarketRow[]): MarketRow[] => {
-  const done = new Set<string>();
-  const grouped: MarketRow[] = [];
-
-  for (const row of rows) {
-    const key = row.chain.value;
-    if (done.has(key)) continue;
-    done.add(key);
-
-    const entries = rows.filter((r) => r.chain.value === row.chain.value);
-    if (entries.length > 1) {
-      const sorted = entries.sort(sortBy.descending);
-      const children = sorted.map((r) => ({
-        ...r,
-        isChild: true,
-      }));
-      grouped.push({ ...sorted[0], children });
-    } else {
-      grouped.push(entries[0]);
-    }
-  }
-
-  return grouped;
-};
-
-export function filterMarketRows(
+export const filterMarketRows = (
   rows: MarketRow[],
   filters: MarketFilters
-): MarketRow[] {
+): MarketRow[] => {
   if (!filters.searchQuery && filters.chains.length === chains.length)
     return groupByPair(rows);
   const filteredRows: MarketRow[] = [];
@@ -335,10 +310,50 @@ export function filterMarketRows(
   filterRows(rows, filters);
 
   return groupByPair(filteredRows);
-}
+};
+
+export type BorrowApr = {
+  value: number;
+  positive: boolean;
+};
+
+export const borrowApr = (row: MarketRow): BorrowApr => {
+  const base = row.borrowAprBase.value;
+  const reward = row.borrowAprReward.value;
+  const value = Math.abs(base - (isNaN(reward) ? 0 : reward));
+  return {
+    value,
+    positive: reward > base,
+  };
+};
 
 type SortBy = 'descending' | 'ascending';
 type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;
+
+const groupByChain = (rows: MarketRow[]): MarketRow[] => {
+  const done = new Set<string>();
+  const grouped: MarketRow[] = [];
+
+  for (const row of rows) {
+    const key = row.chain.value;
+    if (done.has(key)) continue;
+    done.add(key);
+
+    const entries = rows.filter((r) => r.chain.value === row.chain.value);
+    if (entries.length > 1) {
+      const sorted = entries.sort(sortBy.descending);
+      const children = sorted.map((r) => ({
+        ...r,
+        isChild: true,
+      }));
+      grouped.push({ ...sorted[0], children });
+    } else {
+      grouped.push(entries[0]);
+    }
+  }
+
+  return grouped;
+};
 
 const sortBy: Record<SortBy, CompareFn> = {
   ascending: (a, b) => (a.borrowApr.value < b.borrowApr.value ? 1 : -1),

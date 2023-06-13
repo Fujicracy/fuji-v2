@@ -16,7 +16,7 @@ import {
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { MarketRow, MarketRowStatus } from '../../helpers/markets';
+import { borrowApr, MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
 import BestLabel from '../Shared/BestLabel';
 import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
@@ -37,6 +37,8 @@ function MarketsTableRow({
 }: MarketsTableRowProps) {
   const { palette } = useTheme();
   const [expandRow, setExpandRow] = useState(openedByDefault);
+
+  const apr = borrowApr(row);
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation();
@@ -157,7 +159,9 @@ function MarketsTableRow({
         <SizableTableCell
           align="right"
           width="140px"
-          sx={{ color: palette.warning.main }}
+          sx={{
+            color: apr.positive ? palette.success.main : palette.warning.main,
+          }}
         >
           {loaderOrError(row.borrowApr.status)}
           {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
@@ -176,7 +180,7 @@ function MarketsTableRow({
                   </IconButton>
                 </Tooltip>
               )}
-              {row.borrowApr.value.toFixed(2)} %
+              {apr.value.toFixed(2)}%
             </Stack>
           )}
         </SizableTableCell>
@@ -202,7 +206,7 @@ function MarketsTableRow({
                   </IconButton>
                 </Tooltip>
               )}
-              {row.depositApr.value.toFixed(2)} %
+              {row.depositApr.value.toFixed(2)}%
             </Stack>
           )}
         </SizableTableCell>
