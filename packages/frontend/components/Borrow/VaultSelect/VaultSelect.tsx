@@ -93,17 +93,16 @@ function VaultSelect() {
   };
 
   useEffect(() => {
-    if (started) return;
+    if (started || availableVaults.length === 0) return;
     setStarted(true);
     setIsLoading(true);
     let selected = 0;
     if (!override) {
-      for (let i = 0; i < filteredRoutes.length; i++) {
+      for (let i = 0; i < availableVaults.length; i++) {
         if (
-          activeVault?.address.value === filteredRoutes[i]?.vault.address.value
+          activeVault?.address.value === availableVaults[i]?.vault.address.value
         ) {
           selected = i;
-          return;
         }
       }
     }
@@ -114,7 +113,7 @@ function VaultSelect() {
     started,
     collateral.chainId,
     activeVault,
-    filteredRoutes,
+    availableVaults,
     debt?.chainId,
   ]);
 
