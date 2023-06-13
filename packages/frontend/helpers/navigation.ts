@@ -11,6 +11,7 @@ import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
+import { vaultFromEntity } from './markets';
 
 type Page = {
   title: string;
@@ -38,7 +39,7 @@ export const showPosition = async (
   entity?: BorrowingVault | VaultWithFinancials,
   walletChainId?: ChainId
 ) => {
-  const vault = entity instanceof BorrowingVault ? entity : entity?.vault;
+  const vault = vaultFromEntity(entity);
   if (!vault) return;
 
   const changeAll = useBorrow.getState().changeAll;

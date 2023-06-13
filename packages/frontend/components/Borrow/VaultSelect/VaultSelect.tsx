@@ -93,7 +93,7 @@ function VaultSelect() {
   };
 
   useEffect(() => {
-    if (started || filteredRoutes.length === 0) return;
+    if (started) return;
     setStarted(true);
     setIsLoading(true);
     let selected = 0;

@@ -113,6 +113,15 @@ const defaultRow: MarketRow = {
   isBest: false,
 };
 
+export const vaultFromEntity = (
+  entity?: BorrowingVault | VaultWithFinancials
+): BorrowingVault | undefined =>
+  entity
+    ? entity instanceof BorrowingVault
+      ? entity
+      : entity.vault
+    : undefined;
+
 export const setBase = (v: BorrowingVault): MarketRow => ({
   ...defaultRow,
   entity: v,
@@ -312,18 +321,22 @@ export const filterMarketRows = (
   return groupByPair(filteredRows);
 };
 
-export type BorrowApr = {
+export type AprData = {
   value: number;
   positive: boolean;
+  base: number;
+  reward?: number;
 };
 
-export const borrowApr = (row: MarketRow): BorrowApr => {
-  const base = row.borrowAprBase.value;
-  const reward = row.borrowAprReward.value;
-  const value = Math.abs(base - (isNaN(reward) ? 0 : reward));
+export const aprData = (base: number, reward?: number): AprData => {
+  const value = Math.abs(
+    base - (reward === undefined || isNaN(reward) ? 0 : reward)
+  );
   return {
     value,
-    positive: reward > base,
+    positive: reward !== undefined && reward > base,
+    reward,
+    base,
   };
 };
 

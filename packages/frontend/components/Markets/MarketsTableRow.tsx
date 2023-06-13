@@ -16,8 +16,9 @@ import {
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { borrowApr, MarketRow, MarketRowStatus } from '../../helpers/markets';
+import { aprData, MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
+import AprValue from '../Shared/AprValue';
 import BestLabel from '../Shared/BestLabel';
 import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
@@ -38,7 +39,7 @@ function MarketsTableRow({
   const { palette } = useTheme();
   const [expandRow, setExpandRow] = useState(openedByDefault);
 
-  const apr = borrowApr(row);
+  const apr = aprData(row.borrowAprBase.value, row.borrowAprReward.value);
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation();
@@ -156,32 +157,15 @@ function MarketsTableRow({
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell
-          align="right"
-          width="140px"
-          sx={{
-            color: apr.positive ? palette.success.main : palette.warning.main,
-          }}
-        >
+        <SizableTableCell align="right" width="140px">
           {loaderOrError(row.borrowApr.status)}
           {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
-            <Stack direction="row" alignItems="center" justifyContent="right">
-              {row.borrowAprReward?.value > 0 && (
-                <Tooltip
-                  title={`${row.borrowAprBase.value.toFixed(
-                    2
-                  )}% (base) - ${row.borrowAprReward.value.toFixed(
-                    2
-                  )}% (reward)`}
-                  arrow
-                >
-                  <IconButton>
-                    <DropletIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {apr.value.toFixed(2)}%
-            </Stack>
+            <AprValue
+              base={apr.base}
+              reward={apr.reward}
+              value={apr.value}
+              positive={apr.positive}
+            />
           )}
         </SizableTableCell>
         <SizableTableCell

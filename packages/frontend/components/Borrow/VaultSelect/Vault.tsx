@@ -10,11 +10,14 @@ import {
 import { alpha } from '@mui/material/styles';
 import { VaultWithFinancials } from '@x-fuji/sdk';
 import Image from 'next/image';
-import React, { createRef, useState } from 'react';
+import React, { createRef, useEffect, useRef, useState } from 'react';
 
 import { chainName } from '../../../helpers/chains';
+import { AprData, aprData, vaultFromEntity } from '../../../helpers/markets';
 import { RouteMeta } from '../../../helpers/routing';
 import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
+import { useMarkets } from '../../../store/markets.store';
+import AprValue from '../../Shared/AprValue';
 import BestLabel from '../../Shared/BestLabel';
 import { NetworkIcon } from '../../Shared/Icons';
 import RoutesSteps from '../../Shared/RoutesSteps';
@@ -41,15 +44,37 @@ function Vault({
   const { palette } = useTheme();
   const ref = createRef<HTMLElement>();
   const [height, setHeight] = useState(0);
-
   const [isHovered, setHovered] = useState(false);
 
+  const markets = useMarkets((state) => state.rows);
+
+  const aprRef = useRef<AprData>(
+    aprData(
+      data.activeProvider.borrowAprBase || 0,
+      data.activeProvider.borrowAprReward
+    )
+  );
+
+  useEffect(() => {
+    const match = markets.find((m) => {
+      const vault = vaultFromEntity(m.entity);
+      return vault?.address.value === data.vault.address.value;
+    });
+    if (match) {
+      aprRef.current = aprData(
+        match.borrowAprBase.value,
+        match.borrowAprReward.value
+      );
+    }
+  }, [markets, data, aprRef]);
+
   const handleOpen = (e: { stopPropagation: () => void }) => {
+    if (!ref.current) return;
     e.stopPropagation();
-    setHeight(ref.current!.clientHeight);
+    setHeight(ref.current.clientHeight);
     setOpened({
       index: data.index,
-      height: height || ref.current!.clientHeight,
+      height: height || ref.current.clientHeight,
     });
   };
 
@@ -138,9 +163,11 @@ function Vault({
           </>
         )}
         <TableCell align="right">
-          <Typography variant="small" color={palette.warning.main}>
-            {data.activeProvider.borrowAprBase?.toFixed(2)}%
-          </Typography>
+          <AprValue
+            base={aprRef.current.base}
+            reward={aprRef.current.reward}
+            positive={aprRef.current.positive}
+          />
         </TableCell>
         {!isMobile && (
           <TableCell>
