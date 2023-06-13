@@ -322,18 +322,13 @@ export const filterMarketRows = (
 };
 
 export type AprData = {
-  value: number;
   positive: boolean;
   base: number;
   reward?: number;
 };
 
 export const aprData = (base: number, reward?: number): AprData => {
-  const value = Math.abs(
-    base - (reward === undefined || isNaN(reward) ? 0 : reward)
-  );
   return {
-    value,
     positive: reward !== undefined && reward > base,
     reward,
     base,

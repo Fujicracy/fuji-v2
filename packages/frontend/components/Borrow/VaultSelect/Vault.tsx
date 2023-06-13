@@ -58,7 +58,10 @@ function Vault({
   useEffect(() => {
     const match = markets.find((m) => {
       const vault = vaultFromEntity(m.entity);
-      return vault?.address.value === data.vault.address.value;
+      return (
+        vault?.address.value === data.vault.address.value &&
+        vault?.chainId === data.vault.chainId
+      );
     });
     if (match) {
       aprRef.current = aprData(

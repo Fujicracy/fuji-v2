@@ -163,7 +163,6 @@ function MarketsTableRow({
             <AprValue
               base={apr.base}
               reward={apr.reward}
-              value={apr.value}
               positive={apr.positive}
             />
           )}

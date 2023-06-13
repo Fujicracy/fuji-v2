@@ -1,15 +1,11 @@
 import { IconButton, Stack, Tooltip, useTheme } from '@mui/material';
 
+import { AprData } from '../../helpers/markets';
 import { DropletIcon } from './Icons';
 
-type BorrowAprProps = {
-  base: number;
-  reward?: number;
-  value?: number;
-  positive: boolean;
-};
+type BorrowAprProps = AprData;
 
-function AprValue({ base, reward, value, positive }: BorrowAprProps) {
+function AprValue({ base, reward, positive }: BorrowAprProps) {
   const { palette } = useTheme();
   return (
     <Stack
@@ -30,7 +26,7 @@ function AprValue({ base, reward, value, positive }: BorrowAprProps) {
           </IconButton>
         </Tooltip>
       )}
-      {(value ?? base).toFixed(2)}%
+      {base.toFixed(2)}%
     </Stack>
   );
 }
