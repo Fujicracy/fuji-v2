@@ -33,7 +33,7 @@ function Title({ providers, vault }: TitleProps) {
         {providers && vault && (
           <Stack direction="row" alignItems="center">
             <DocsTooltip />
-            <Typography variant="smallDark" ml={0.5} mr={1}>
+            <Typography variant="smallDark" mr={1}>
               Safety rating:
             </Typography>
             <Stack direction="row" alignItems="center" spacing={1}>
