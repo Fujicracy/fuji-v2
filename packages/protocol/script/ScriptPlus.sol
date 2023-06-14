@@ -386,13 +386,14 @@ contract ScriptPlus is Script {
       if (!vault.initialized() && address(vault.oracle()) != address(0)) {
         console.log(string.concat("Initializing: ", name, " ..."));
         uint256 decimals = IERC20Metadata(debt).decimals();
-        uint256 debtShares = 10 ** (decimals / 2 < 1e6 ? 1e6 : decimals / 2);
-        uint256 price = oracle.getPriceOf(debt, collateral, vault.debtDecimals());
-        uint256 minCollateral = (debtShares * 1e18 * 10 ** vault.decimals()) / (maxLtv * price) + 1;
-        uint256 colShares = minCollateral < debtShares ? debtShares : minCollateral;
+        /*uint256 pow = decimals < 6 ? 6 : decimals;*/
+        uint256 debtShares = 10 ** decimals;
+        uint256 minCollateral = 0.0015 ether;
+        /*uint256 price = oracle.getPriceOf(debt, collateral, vault.debtDecimals());*/
+        /*uint256 minCollateral = (debtShares * 1e18 * 10 ** vault.decimals()) / (maxLtv * price);*/
 
-        SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), colShares);
-        vault.initializeVaultShares(colShares, debtShares);
+        SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), minCollateral);
+        vault.initializeVaultShares(minCollateral, debtShares);
       } else {
         console.log(string.concat("Skip initializing ", name));
       }
