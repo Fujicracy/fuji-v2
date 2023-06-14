@@ -95,12 +95,8 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
               );
             });
             const apr = match
-              ? aprData(
-                  match.borrowAprBase.value,
-                  match.borrowAprReward.value,
-                  true
-                )
-              : aprData(Number(row.apr), 0, true);
+              ? aprData(match.borrowAprBase.value, match.borrowAprReward.value)
+              : aprData(Number(row.apr));
             return (
               <TableRow
                 key={i}
@@ -170,7 +166,6 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
                     reward={apr.reward}
                     positive={apr.positive}
                     providerName={row.activeProvidersNames[0]}
-                    isBorrow
                   />
                 </TableCell>
                 <TableCell align="right">

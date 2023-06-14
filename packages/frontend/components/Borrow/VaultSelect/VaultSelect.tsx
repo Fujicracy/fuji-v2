@@ -270,7 +270,6 @@ function VaultSelect() {
                               opened={item.index === openedRoute}
                               setOpened={onOpen}
                               isMobile={isMobile}
-                              providerName={item.activeProvider.name}
                             />
                           )
                         );

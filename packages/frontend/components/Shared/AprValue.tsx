@@ -1,5 +1,6 @@
 import { IconButton, Stack, Tooltip, useTheme } from '@mui/material';
 
+import { AssetType } from '../../helpers/assets';
 import { AprData } from '../../helpers/markets';
 import { DropletIcon } from './Icons';
 import { TooltipWrapper } from './Tooltips';
@@ -10,7 +11,7 @@ function AprValue({
   base,
   reward,
   positive,
-  isBorrow,
+  type,
   providerName,
 }: BorrowAprProps) {
   const { palette } = useTheme();
@@ -20,7 +21,7 @@ function AprValue({
     .split(' ')
     .some((word) => ['compound', 'dforce'].includes(word));
 
-  const diff = (Number(reward) || 0) * (isBorrow ? 1 : -1);
+  const diff = (Number(reward) || 0) * (type === AssetType.Collateral ? 1 : -1);
   const resultAPR = Math.abs(base - diff);
 
   return (

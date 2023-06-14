@@ -16,6 +16,7 @@ import {
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
+import { AssetType } from '../../helpers/assets';
 import { aprData, MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
 import AprValue from '../Shared/AprValue';
@@ -39,11 +40,7 @@ function MarketsTableRow({
   const { palette } = useTheme();
   const [expandRow, setExpandRow] = useState(openedByDefault);
 
-  const borrowApr = aprData(
-    row.borrowAprBase.value,
-    row.borrowAprReward.value,
-    true
-  );
+  const borrowApr = aprData(row.borrowAprBase.value, row.borrowAprReward.value);
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation();
@@ -169,7 +166,6 @@ function MarketsTableRow({
               reward={borrowApr.reward}
               positive={borrowApr.positive}
               providerName={row.integratedProviders.value[0]}
-              isBorrow
             />
           )}
         </SizableTableCell>
@@ -184,6 +180,7 @@ function MarketsTableRow({
               base={row.depositAprBase.value}
               reward={row.depositAprReward.value}
               providerName={row.integratedProviders.value[0]}
+              type={AssetType.Debt}
               positive
             />
           )}

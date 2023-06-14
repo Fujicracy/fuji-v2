@@ -12,6 +12,7 @@ import { VaultWithFinancials } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 
+import { AssetType } from '../../../helpers/assets';
 import { chainName } from '../../../helpers/chains';
 import { AprData, aprData, vaultFromEntity } from '../../../helpers/markets';
 import { RouteMeta } from '../../../helpers/routing';
@@ -31,7 +32,6 @@ type VaultProps = {
   setOpened: (props: { height: number; index: number }) => void;
   opened: boolean;
   isMobile: boolean;
-  providerName: string;
 };
 
 function Vault({
@@ -41,7 +41,6 @@ function Vault({
   setOpened,
   opened,
   isMobile,
-  providerName,
 }: VaultProps) {
   const { palette } = useTheme();
 
@@ -49,13 +48,12 @@ function Vault({
   const [isHovered, setHovered] = useState(false);
 
   const markets = useMarkets((state) => state.rows);
-
-  const stackRef = createRef<HTMLElement>();
+  const stackRef = createRef<HTMLDivElement>();
   const aprRef = useRef<Partial<AprData>>(
     aprData(
       data.activeProvider.borrowAprBase || 0,
       data.activeProvider.borrowAprReward,
-      true
+      AssetType.Collateral
     )
   );
 
@@ -70,8 +68,7 @@ function Vault({
     if (match) {
       aprRef.current = aprData(
         match.borrowAprBase.value,
-        match.borrowAprReward.value,
-        true
+        match.borrowAprReward.value
       );
     }
   }, [markets, data, aprRef]);
@@ -164,22 +161,18 @@ function Vault({
               align="right"
               sx={{ display: { xs: 'none', lg: 'table-cell' } }}
             >
-              <AprValue
-                base={data.activeProvider.depositAprBase || 0}
-                reward={data.activeProvider.depositAprReward}
-                providerName={providerName}
-                positive
-              />
+              <Typography variant="small" color={palette.success.main}>
+                {data.activeProvider.depositAprBase?.toFixed(2)}%
+              </Typography>
             </TableCell>
           </>
         )}
         <TableCell align="right">
           <AprValue
-            base={aprRef.current.base || 0}
+            base={aprRef.current.base ?? 0}
             reward={aprRef.current.reward}
             positive={aprRef.current.positive}
-            providerName={providerName}
-            isBorrow
+            providerName={data.activeProvider.name}
           />
         </TableCell>
         {!isMobile && (

@@ -1,6 +1,7 @@
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 
 import { MarketFilters } from '../components/Markets/MarketFiltersHeader';
+import { AssetType } from './assets';
 import { chainName, chains } from './chains';
 
 export enum MarketRowStatus {
@@ -325,20 +326,21 @@ export type AprData = {
   positive: boolean;
   base: number;
   providerName: string;
-  isBorrow?: boolean;
+  type?: AssetType;
   reward?: number;
 };
 
 export const aprData = (
   base: number,
   reward?: number,
-  isBorrow: boolean = false
+  type: AssetType = AssetType.Collateral
 ): Partial<AprData> => {
   return {
-    positive: !isBorrow || (reward !== undefined && reward > base),
+    positive:
+      type === AssetType.Collateral || (reward !== undefined && reward > base),
     reward,
     base,
-    isBorrow,
+    type,
   };
 };
 
