@@ -44,6 +44,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
 
   // Filters original rows depends on search or chain
   useEffect(() => {
+    console.log(filterMarketRows(rows.slice(), filters));
     setFilteredRows(filterMarketRows(rows.slice(), filters));
   }, [filters, rows]);
 
