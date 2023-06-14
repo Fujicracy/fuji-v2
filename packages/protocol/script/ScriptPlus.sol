@@ -381,7 +381,7 @@ contract ScriptPlus is Script {
 
       vault = BorrowingVault2(payable(getAddress(name)));
 
-      if (!vault.initialized()) {
+      if (!vault.initialized() && address(vault.oracle()) != address(0)) {
         console.log(string.concat("Initializing: ", name, " ..."));
         uint256 debtShares = 1e6;
         uint256 price = oracle.getPriceOf(debt, collateral, vault.debtDecimals());
@@ -391,7 +391,7 @@ contract ScriptPlus is Script {
         SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), colShares);
         vault.initializeVaultShares(colShares, debtShares);
       } else {
-        console.log(string.concat(name, " already initialized."));
+        console.log(string.concat("Skip initializing ", name));
       }
       console.log("============");
     }
