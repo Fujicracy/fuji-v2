@@ -115,6 +115,7 @@ function VaultSelect() {
     }
 
     didSelectRoute(selected);
+    setIsLoading(false);
   }, [override, activeVault, availableVaults, didSelectRoute]);
 
   useEffect(() => {
