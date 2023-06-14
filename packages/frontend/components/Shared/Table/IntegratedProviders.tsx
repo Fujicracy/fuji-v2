@@ -36,7 +36,9 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
               >
                 {i <= 2 && (
                   <ProviderIcon
-                    sx={i === 0 ? {} : { filter: 'blur(0.75px)' }} // This is going to be more complex in the future
+                    sx={
+                      i === 0 ? {} : { filter: 'blur(0.75px) grayscale(70%)' }
+                    } // This is going to be more complex in the future
                     provider={name}
                     height={24}
                     width={24}

@@ -2,11 +2,27 @@ import { IconButton, Stack, Tooltip, useTheme } from '@mui/material';
 
 import { AprData } from '../../helpers/markets';
 import { DropletIcon } from './Icons';
+import { TooltipWrapper } from './Tooltips';
 
 type BorrowAprProps = AprData;
 
-function AprValue({ base, reward, positive }: BorrowAprProps) {
+function AprValue({
+  base,
+  reward,
+  positive,
+  isBorrow,
+  providerName,
+}: BorrowAprProps) {
   const { palette } = useTheme();
+
+  const isHiddenReward = providerName
+    .toLowerCase()
+    .split(' ')
+    .some((word) => ['compound', 'dforce'].includes(word));
+
+  const diff = (Number(reward) || 0) * (isBorrow ? 1 : -1);
+  const resultAPR = Math.abs(base - diff);
+
   return (
     <Stack
       direction="row"
@@ -26,7 +42,18 @@ function AprValue({ base, reward, positive }: BorrowAprProps) {
           </IconButton>
         </Tooltip>
       )}
-      {base.toFixed(2)}%
+      {isHiddenReward && !reward ? (
+        <TooltipWrapper
+          title={
+            'There are rewards for this vault that are not displayed here but are taken into account.'
+          }
+          placement={'top'}
+        >
+          <>{resultAPR.toFixed(2)}%</>
+        </TooltipWrapper>
+      ) : (
+        <>{resultAPR.toFixed(2)}%</>
+      )}
     </Stack>
   );
 }

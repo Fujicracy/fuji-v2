@@ -324,14 +324,21 @@ export const filterMarketRows = (
 export type AprData = {
   positive: boolean;
   base: number;
+  providerName: string;
+  isBorrow?: boolean;
   reward?: number;
 };
 
-export const aprData = (base: number, reward?: number): AprData => {
+export const aprData = (
+  base: number,
+  reward?: number,
+  isBorrow: boolean = false
+): Partial<AprData> => {
   return {
-    positive: reward !== undefined && reward > base,
+    positive: !isBorrow || (reward !== undefined && reward > base),
     reward,
     base,
+    isBorrow,
   };
 };
 

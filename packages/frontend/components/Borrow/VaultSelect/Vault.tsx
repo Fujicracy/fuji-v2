@@ -31,6 +31,7 @@ type VaultProps = {
   setOpened: (props: { height: number; index: number }) => void;
   opened: boolean;
   isMobile: boolean;
+  providerName: string;
 };
 
 function Vault({
@@ -40,6 +41,7 @@ function Vault({
   setOpened,
   opened,
   isMobile,
+  providerName,
 }: VaultProps) {
   const { palette } = useTheme();
 
@@ -49,10 +51,11 @@ function Vault({
   const markets = useMarkets((state) => state.rows);
 
   const stackRef = createRef<HTMLElement>();
-  const aprRef = useRef<AprData>(
+  const aprRef = useRef<Partial<AprData>>(
     aprData(
       data.activeProvider.borrowAprBase || 0,
-      data.activeProvider.borrowAprReward
+      data.activeProvider.borrowAprReward,
+      true
     )
   );
 
@@ -67,7 +70,8 @@ function Vault({
     if (match) {
       aprRef.current = aprData(
         match.borrowAprBase.value,
-        match.borrowAprReward.value
+        match.borrowAprReward.value,
+        true
       );
     }
   }, [markets, data, aprRef]);
@@ -160,17 +164,22 @@ function Vault({
               align="right"
               sx={{ display: { xs: 'none', lg: 'table-cell' } }}
             >
-              <Typography variant="small" color={palette.success.main}>
-                {data.activeProvider.depositAprBase?.toFixed(2)}%
-              </Typography>
+              <AprValue
+                base={data.activeProvider.depositAprBase || 0}
+                reward={data.activeProvider.depositAprReward}
+                providerName={providerName}
+                positive
+              />
             </TableCell>
           </>
         )}
         <TableCell align="right">
           <AprValue
-            base={aprRef.current.base}
+            base={aprRef.current.base || 0}
             reward={aprRef.current.reward}
             positive={aprRef.current.positive}
+            providerName={providerName}
+            isBorrow
           />
         </TableCell>
         {!isMobile && (

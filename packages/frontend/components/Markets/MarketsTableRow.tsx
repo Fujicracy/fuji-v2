@@ -39,7 +39,11 @@ function MarketsTableRow({
   const { palette } = useTheme();
   const [expandRow, setExpandRow] = useState(openedByDefault);
 
-  const borrowApr = aprData(row.borrowAprBase.value, row.borrowAprReward.value);
+  const borrowApr = aprData(
+    row.borrowAprBase.value,
+    row.borrowAprReward.value,
+    true
+  );
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation();
@@ -161,9 +165,11 @@ function MarketsTableRow({
           {loaderOrError(row.borrowApr.status)}
           {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
             <AprValue
-              base={borrowApr.base}
+              base={borrowApr.base || 0}
               reward={borrowApr.reward}
               positive={borrowApr.positive}
+              providerName={row.integratedProviders.value[0]}
+              isBorrow
             />
           )}
         </SizableTableCell>
@@ -177,6 +183,7 @@ function MarketsTableRow({
             <AprValue
               base={row.depositAprBase.value}
               reward={row.depositAprReward.value}
+              providerName={row.integratedProviders.value[0]}
               positive
             />
           )}
@@ -236,8 +243,6 @@ function MarketsTableRow({
   );
 }
 
-export default MarketsTableRow;
-
 type ToggleProps = {
   expandRow: boolean;
   isVisible: boolean;
@@ -260,3 +265,5 @@ function Toggle(props: ToggleProps) {
     </IconButton>
   );
 }
+
+export default MarketsTableRow;
