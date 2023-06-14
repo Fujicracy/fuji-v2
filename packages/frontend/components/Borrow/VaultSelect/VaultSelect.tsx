@@ -25,7 +25,6 @@ function VaultSelect() {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
-  const [started, setStarted] = useState(false);
   const [isUnFolded, setUnFolded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(0);
@@ -102,8 +101,7 @@ function VaultSelect() {
   }, [collateral.chainId, debt?.chainId]);
 
   useEffect(() => {
-    if (started || availableVaults.length === 0) return;
-    setStarted(true);
+    if (availableVaults.length === 0) return;
     setIsLoading(true);
     let selected = 0;
     if (!override) {
@@ -117,7 +115,7 @@ function VaultSelect() {
     }
 
     didSelectRoute(selected);
-  }, [override, started, activeVault, availableVaults, didSelectRoute]);
+  }, [override, activeVault, availableVaults, didSelectRoute]);
 
   useEffect(() => {
     setIsLoading(false);
