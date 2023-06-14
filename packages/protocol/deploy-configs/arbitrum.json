@@ -68,5 +68,51 @@
       "name": "Compound_V3_Arbitrum"
     }
   ],
-  "borrowing-vaults": []
+  "borrowing-vaults": [
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 780000000000000000,
+      "name": "BorrowingVault-WETHUSDC-1",
+      "providers": ["Compound_V3_Arbitrum", "Aave_V3_Arbitrum"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 780000000000000000,
+      "name": "BorrowingVault-WETHUSDC-2",
+      "providers": ["Compound_V3_Arbitrum", "Aave_V3_Arbitrum", "DForce_Arbitrum"],
+      "rating": 80
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-1",
+      "providers": ["Aave_V3_Polygon"],
+      "rating": 95
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-2",
+      "providers": ["DForce_Arbitrum", "Aave_V3_Arbirtum"],
+      "rating": 80
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDT",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHUSDT-1",
+      "providers": ["DForce_Arbitrum", "Aave_V3_Arbirtum"],
+      "rating": 80
+    }
+  ]
 }
