@@ -26,6 +26,7 @@ import {
   LendingProviderWithFinancials,
   PermitParams,
   RouterActionParams,
+  XTransferWithCallParams,
 } from '../types';
 import {
   BorrowingVault as BorrowingVaultContract,
@@ -461,9 +462,15 @@ export class BorrowingVault {
     }
 
     const nonce: BigNumber = await this.contract.nonces(owner.value);
+    const xcall = actionParams.find(
+      (p) => p.action === RouterAction.X_TRANSFER_WITH_CALL
+    );
+    const params = xcall
+      ? (xcall as XTransferWithCallParams).innerActions
+      : actionParams;
 
-    const actions = actionParams.map(({ action }) => BigNumber.from(action));
-    const result = actionParams.map((p) => encodeActionArgs(p, true));
+    const actions = params.map(({ action }) => BigNumber.from(action));
+    const result = params.map((p) => encodeActionArgs(p, true));
 
     const error = result.find((r): r is FujiResultError => !r.success);
     if (error)
