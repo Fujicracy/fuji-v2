@@ -5,10 +5,10 @@
 import type { Provider } from "@ethersproject/providers";
 import { Contract, Signer, utils } from "ethers";
 import type {
-  RebalancerManager,
-  RebalancerManagerInterface,
-  RebalancerManagerMulticall,
-} from "../../src/RebalancerManager";
+  LiquidationManager,
+  LiquidationManagerInterface,
+  LiquidationManagerMulticall,
+} from "../../src/LiquidationManager";
 import { Contract as MulticallContract } from "@hovoh/ethcall";
 const _abi = [
   {
@@ -18,63 +18,63 @@ const _abi = [
         name: "chief_",
         type: "address",
       },
+      {
+        internalType: "address",
+        name: "treasury_",
+        type: "address",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
   },
   {
     inputs: [],
-    name: "RebalancerManager__allowExecutor_noAllowChange",
+    name: "LiquidationManager__allowExecutor_noAllowChange",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__checkAssetsAmount_invalidAmount",
+    name: "LiquidationManager__completeLiquidation_invalidEntryPoint",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__checkDebtAmount_invalidAmount",
+    name: "LiquidationManager__getFlashloan_flashloanFailed",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__checkLtvChange_invalidAmount",
+    name: "LiquidationManager__getFlashloan_notEmptyEntryPoint",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__completeRebalance_invalidEntryPoint",
+    name: "LiquidationManager__liquidate_invalidNumberOfUsers",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__getFlashloan_flashloanFailed",
+    name: "LiquidationManager__liquidate_noUsersToLiquidate",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__getFlashloan_notEmptyEntryPoint",
+    name: "LiquidationManager__liquidate_notValidExecutor",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__rebalanceVault_invalidAmount",
+    name: "LiquidationManager__liquidate_notValidFlasher",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__rebalanceVault_notValidExecutor",
+    name: "LiquidationManager__liquidate_notValidSwapper",
     type: "error",
   },
   {
     inputs: [],
-    name: "RebalancerManager__rebalanceVault_notValidFlasher",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "RebalancerManager__zeroAddress",
+    name: "LiquidationManager__zeroAddress",
     type: "error",
   },
   {
@@ -253,29 +253,19 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address[]",
+        name: "users",
+        type: "address[]",
+      },
+      {
         internalType: "contract IVault",
         name: "vault",
         type: "address",
       },
       {
         internalType: "uint256",
-        name: "assets",
+        name: "debtAmount",
         type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "debt",
-        type: "uint256",
-      },
-      {
-        internalType: "contract ILendingProvider",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "contract ILendingProvider",
-        name: "to",
-        type: "address",
       },
       {
         internalType: "contract IFlasher",
@@ -283,12 +273,12 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "bool",
-        name: "setToAsActiveProvider",
-        type: "bool",
+        internalType: "contract ISwapper",
+        name: "swapper",
+        type: "address",
       },
     ],
-    name: "completeRebalance",
+    name: "completeLiquidation",
     outputs: [
       {
         internalType: "bool",
@@ -302,29 +292,19 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address[]",
+        name: "users",
+        type: "address[]",
+      },
+      {
         internalType: "contract IVault",
         name: "vault",
         type: "address",
       },
       {
         internalType: "uint256",
-        name: "assets",
+        name: "debtToCover",
         type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "debt",
-        type: "uint256",
-      },
-      {
-        internalType: "contract ILendingProvider",
-        name: "from",
-        type: "address",
-      },
-      {
-        internalType: "contract ILendingProvider",
-        name: "to",
-        type: "address",
       },
       {
         internalType: "contract IFlasher",
@@ -332,38 +312,45 @@ const _abi = [
         type: "address",
       },
       {
-        internalType: "bool",
-        name: "setToAsActiveProvider",
-        type: "bool",
+        internalType: "contract ISwapper",
+        name: "swapper",
+        type: "address",
       },
     ],
-    name: "rebalanceVault",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "success",
-        type: "bool",
-      },
-    ],
+    name: "liquidate",
+    outputs: [],
     stateMutability: "nonpayable",
     type: "function",
   },
+  {
+    inputs: [],
+    name: "treasury",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
 ];
-export class RebalancerManager__factory {
+export class LiquidationManager__factory {
   static readonly abi = _abi;
-  static createInterface(): RebalancerManagerInterface {
-    return new utils.Interface(_abi) as RebalancerManagerInterface;
+  static createInterface(): LiquidationManagerInterface {
+    return new utils.Interface(_abi) as LiquidationManagerInterface;
   }
   static connect(
     address: string,
     signerOrProvider: Signer | Provider
-  ): RebalancerManager {
-    return new Contract(address, _abi, signerOrProvider) as RebalancerManager;
+  ): LiquidationManager {
+    return new Contract(address, _abi, signerOrProvider) as LiquidationManager;
   }
-  static multicall(address: string): RebalancerManagerMulticall {
+  static multicall(address: string): LiquidationManagerMulticall {
     return new MulticallContract(
       address,
       _abi
-    ) as unknown as RebalancerManagerMulticall;
+    ) as unknown as LiquidationManagerMulticall;
   }
 }

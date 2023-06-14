@@ -21,6 +21,7 @@ export { IERC20Mintable__factory } from "./IERC20Mintable__factory";
 export { IFlasher__factory } from "./IFlasher__factory";
 export { IFujiOracle__factory } from "./IFujiOracle__factory";
 export { ILendingProvider__factory } from "./ILendingProvider__factory";
+export { ILiquidationManager__factory } from "./ILiquidationManager__factory";
 export { IPausableVault__factory } from "./IPausableVault__factory";
 export { IRebalancerManager__factory } from "./IRebalancerManager__factory";
 export { IRouter__factory } from "./IRouter__factory";
