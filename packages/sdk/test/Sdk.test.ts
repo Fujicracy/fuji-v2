@@ -354,13 +354,11 @@ describe('Sdk', () => {
       expect(preview.success).toBeTruthy();
       if (!preview.success) return;
       const { actions } = preview.data;
-      const permitBorrow = actions.find(
-        (a) => a.action === RouterAction.PERMIT_BORROW
-      ) as PermitParams;
-      const { digest } = await vault.signPermitFor(permitBorrow);
+      const r = await vault.signPermitFor(actions);
+      if (!r.success) return;
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
-      const signature = skey.signDigest(digest);
+      const signature = skey.signDigest(r.data.digest);
       const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
@@ -397,11 +395,11 @@ describe('Sdk', () => {
       if (!preview.success) return;
       const { actions } = preview.data;
 
-      const permitBorrow = Sdk.findPermitAction(actions) as PermitParams;
-      const { digest } = await vault.signPermitFor(permitBorrow);
+      const r = await vault.signPermitFor(actions);
+      if (!r.success) return;
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
-      const signature = skey.signDigest(digest);
+      const signature = skey.signDigest(r.data.digest);
       const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
@@ -434,11 +432,11 @@ describe('Sdk', () => {
       if (!preview.success) return;
       const { actions } = preview.data;
 
-      const permitBorrow = Sdk.findPermitAction(actions) as PermitParams;
-      const { digest } = await vault.signPermitFor(permitBorrow);
+      const r = await vault.signPermitFor(actions);
+      if (!r.success) return;
 
       const skey = new utils.SigningKey(`0x${JUNK_KEY}`);
-      const signature = skey.signDigest(digest);
+      const signature = skey.signDigest(r.data.digest);
       const result = sdk.getTxDetails(
         actions,
         ChainId.MATIC,
