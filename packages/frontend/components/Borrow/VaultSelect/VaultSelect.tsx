@@ -16,7 +16,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
 import Vault from './Vault';
@@ -50,18 +50,21 @@ function VaultSelect() {
     setOpenedRoute(i === openedRoute ? null : i);
   }
 
-  function didSelectRoute(i: number) {
-    if (selectedRoute !== i) {
-      const vault = availableVaults.find(
-        (v) => v.vault.address.value === availableRoutes[i]?.address
-      );
-      if (!vault) return;
-      changeActiveVault(vault);
-    }
-    setSelectedRoute(i);
-    setOpenedRoute(null);
-    setUnFolded(false);
-  }
+  const didSelectRoute = useCallback(
+    (i: number) => {
+      if (selectedRoute !== i) {
+        const vault = availableVaults.find(
+          (v) => v.vault.address.value === availableRoutes[i]?.address
+        );
+        if (!vault) return;
+        changeActiveVault(vault);
+      }
+      setSelectedRoute(i);
+      setOpenedRoute(null);
+      setUnFolded(false);
+    },
+    [availableVaults, availableRoutes, changeActiveVault, selectedRoute]
+  );
 
   const filteredRoutes = useMemo(() => {
     if (!aggregatedData.length) return [];
@@ -93,6 +96,12 @@ function VaultSelect() {
   };
 
   useEffect(() => {
+    setIsLoading(true);
+    setSelectedRoute(0);
+    setOpenedRoute(null);
+  }, [collateral.chainId, debt?.chainId]);
+
+  useEffect(() => {
     if (started || availableVaults.length === 0) return;
     setStarted(true);
     setIsLoading(true);
@@ -106,16 +115,9 @@ function VaultSelect() {
         }
       }
     }
-    setSelectedRoute(selected);
-    setOpenedRoute(null);
-  }, [
-    override,
-    started,
-    collateral.chainId,
-    activeVault,
-    availableVaults,
-    debt?.chainId,
-  ]);
+
+    didSelectRoute(selected);
+  }, [override, started, activeVault, availableVaults, didSelectRoute]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -170,6 +172,8 @@ function VaultSelect() {
                   ? openedRoute !== null
                     ? `${150 + openedRouteHeight}px`
                     : '150px'
+                  : openedRoute !== null
+                  ? `${108 + openedRouteHeight}px`
                   : '108px'
               }
               timeout={{ enter: 500, exit: 500 }}
