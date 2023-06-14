@@ -16,7 +16,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
 import Vault from './Vault';
@@ -33,9 +33,12 @@ function VaultSelect() {
 
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
+  const activeVault = useBorrow((state) => state.activeVault);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
   const availableVaults = useBorrow((state) => state.availableVaults);
+  const override = useBorrow((state) => state.borrowingNavigation.shouldReset);
   const changeActiveVault = useBorrow((state) => state.changeActiveVault);
+
   const aggregatedData = availableVaults.map((vault, i) => ({
     ...vault,
     route: availableRoutes[i],
@@ -46,18 +49,21 @@ function VaultSelect() {
     setOpenedRoute(i === openedRoute ? null : i);
   }
 
-  function didSelectRoute(i: number) {
-    if (selectedRoute !== i) {
-      const vault = availableVaults.find(
-        (v) => v.vault.address.value === availableRoutes[i]?.address
-      );
-      if (!vault) return;
-      changeActiveVault(vault);
-    }
-    setSelectedRoute(i);
-    setOpenedRoute(null);
-    setUnFolded(false);
-  }
+  const didSelectRoute = useCallback(
+    (i: number) => {
+      if (selectedRoute !== i) {
+        const vault = availableVaults.find(
+          (v) => v.vault.address.value === availableRoutes[i]?.address
+        );
+        if (!vault) return;
+        changeActiveVault(vault);
+      }
+      setSelectedRoute(i);
+      setOpenedRoute(null);
+      setUnFolded(false);
+    },
+    [availableVaults, availableRoutes, changeActiveVault, selectedRoute]
+  );
 
   const filteredRoutes = useMemo(() => {
     if (!aggregatedData.length) return [];
@@ -93,6 +99,24 @@ function VaultSelect() {
     setSelectedRoute(0);
     setOpenedRoute(null);
   }, [collateral.chainId, debt?.chainId]);
+
+  useEffect(() => {
+    if (availableVaults.length === 0) return;
+    setIsLoading(true);
+    let selected = 0;
+    if (!override) {
+      for (let i = 0; i < availableVaults.length; i++) {
+        if (
+          activeVault?.address.value === availableVaults[i]?.vault.address.value
+        ) {
+          selected = i;
+        }
+      }
+    }
+
+    didSelectRoute(selected);
+    setIsLoading(false);
+  }, [override, activeVault, availableVaults, didSelectRoute]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -147,6 +171,8 @@ function VaultSelect() {
                   ? openedRoute !== null
                     ? `${150 + openedRouteHeight}px`
                     : '150px'
+                  : openedRoute !== null
+                  ? `${108 + openedRouteHeight}px`
                   : '108px'
               }
               timeout={{ enter: 500, exit: 500 }}

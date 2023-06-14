@@ -1,6 +1,7 @@
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 
 import { MarketFilters } from '../components/Markets/MarketFiltersHeader';
+import { AssetType } from './assets';
 import { chainName, chains } from './chains';
 
 export enum MarketRowStatus {
@@ -112,6 +113,15 @@ const defaultRow: MarketRow = {
   isGrandChild: false,
   isBest: false,
 };
+
+export const vaultFromEntity = (
+  entity?: BorrowingVault | VaultWithFinancials
+): BorrowingVault | undefined =>
+  entity
+    ? entity instanceof BorrowingVault
+      ? entity
+      : entity.vault
+    : undefined;
 
 export const setBase = (v: BorrowingVault): MarketRow => ({
   ...defaultRow,
@@ -276,35 +286,10 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
   return grouped;
 };
 
-const groupByChain = (rows: MarketRow[]): MarketRow[] => {
-  const done = new Set<string>();
-  const grouped: MarketRow[] = [];
-
-  for (const row of rows) {
-    const key = row.chain.value;
-    if (done.has(key)) continue;
-    done.add(key);
-
-    const entries = rows.filter((r) => r.chain.value === row.chain.value);
-    if (entries.length > 1) {
-      const sorted = entries.sort(sortBy.descending);
-      const children = sorted.map((r) => ({
-        ...r,
-        isChild: true,
-      }));
-      grouped.push({ ...sorted[0], children });
-    } else {
-      grouped.push(entries[0]);
-    }
-  }
-
-  return grouped;
-};
-
-export function filterMarketRows(
+export const filterMarketRows = (
   rows: MarketRow[],
   filters: MarketFilters
-): MarketRow[] {
+): MarketRow[] => {
   if (!filters.searchQuery && filters.chains.length === chains.length)
     return groupByPair(rows);
   const filteredRows: MarketRow[] = [];
@@ -335,12 +320,67 @@ export function filterMarketRows(
   filterRows(rows, filters);
 
   return groupByPair(filteredRows);
-}
+};
+
+export type AprData = {
+  positive: boolean;
+  base: number;
+  providerName: string;
+  type?: AssetType;
+  reward?: number;
+};
+
+export const aprData = (
+  base: number,
+  reward?: number,
+  type: AssetType = AssetType.Collateral
+): Partial<AprData> => {
+  return {
+    positive:
+      type === AssetType.Collateral || (reward !== undefined && reward > base),
+    reward,
+    base,
+    type,
+  };
+};
 
 type SortBy = 'descending' | 'ascending';
 type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;
 
+const groupByChain = (rows: MarketRow[]): MarketRow[] => {
+  const done = new Set<string>();
+  const grouped: MarketRow[] = [];
+
+  for (const row of rows) {
+    const key = row.chain.value;
+    if (done.has(key)) continue;
+    done.add(key);
+
+    const entries = rows.filter((r) => r.chain.value === row.chain.value);
+    if (entries.length > 1) {
+      const sorted = entries.sort(sortBy.descending);
+      const children = sorted.map((r) => ({
+        ...r,
+        isChild: true,
+      }));
+      grouped.push({ ...sorted[0], children });
+    } else {
+      grouped.push(entries[0]);
+    }
+  }
+
+  return grouped;
+};
+
 const sortBy: Record<SortBy, CompareFn> = {
-  ascending: (a, b) => (a.borrowApr.value < b.borrowApr.value ? 1 : -1),
-  descending: (a, b) => (a.borrowApr.value > b.borrowApr.value ? 1 : -1),
+  ascending: (a, b) =>
+    a.borrowApr.value - a.borrowAprReward.value <
+    b.borrowApr.value - b.borrowAprReward.value
+      ? 1
+      : -1,
+  descending: (a, b) =>
+    a.borrowApr.value - a.borrowAprReward.value >
+    b.borrowApr.value - b.borrowAprReward.value
+      ? 1
+      : -1,
 };

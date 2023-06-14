@@ -11,6 +11,7 @@ import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
+import { vaultFromEntity } from './markets';
 
 type Page = {
   title: string;
@@ -38,7 +39,7 @@ export const showPosition = async (
   entity?: BorrowingVault | VaultWithFinancials,
   walletChainId?: ChainId
 ) => {
-  const vault = entity instanceof BorrowingVault ? entity : entity?.vault;
+  const vault = vaultFromEntity(entity);
   if (!vault) return;
 
   const changeAll = useBorrow.getState().changeAll;
@@ -65,16 +66,31 @@ export const showPosition = async (
 };
 
 export const showBorrow = async (router: NextRouter, override = true) => {
-  const borrowStore = useBorrow.getState();
   // I'm not exactly thrilled about this solution, but it works for now
-  borrowStore.changeShouldPageReset(override);
-  if (override) {
-    borrowStore.changeInputValues('', '');
-    borrowStore.clearDebt();
-  }
+  useBorrow
+    .getState()
+    .changeBorrowPageShouldReset(override, !override ? true : undefined);
   router.push(PATH.BORROW);
 };
 
-export const delayTaskBecauseOfNavigation = (func: () => void) => {
+export type BorrowPageNavigation = {
+  shouldReset: boolean;
+  willLoadBorrow: boolean;
+  lock: boolean;
+};
+
+export const navigationalTaskDelay = (func: () => void) => {
   setTimeout(func, NAVIGATION_TASK_DELAY);
+};
+
+export const navigationalRunAndResetWithDelay = (
+  callback: (value: boolean) => void,
+  value: boolean
+) => {
+  callback(value);
+  if (value) {
+    setTimeout(() => {
+      callback(false);
+    }, NAVIGATION_TASK_DELAY * 2);
+  }
 };

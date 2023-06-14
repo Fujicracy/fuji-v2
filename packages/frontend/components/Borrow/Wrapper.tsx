@@ -48,7 +48,9 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const baseDebt = useBorrow((state) => state.debt);
   const baseLtv = useBorrow((state) => state.ltv);
   const mode = useBorrow((state) => state.mode);
-  const willLoadBorrow = useBorrow((state) => state.willLoadBorrow);
+  const willLoadBorrow = useBorrow(
+    (state) => state.borrowingNavigation.willLoadBorrow
+  );
 
   const isEditing = formType !== FormType.Create;
 
@@ -195,14 +197,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
               timeout={{ enter: isEditing ? 0 : ANIMATION_DURATION }}
             >
               {basePosition ? (
-                <Grid
-                  item
-                  xs={12}
-                  sm={9.5}
-                  md={7}
-                  order={{ xs: 2, md: 1 }}
-                  sx={{}}
-                >
+                <Grid item xs={12} sm={9.5} md={7} order={{ xs: 2, md: 1 }}>
                   {!isEditing && <VaultSelect />}
                   <Overview isEditing={isEditing} basePosition={basePosition} />
                 </Grid>
