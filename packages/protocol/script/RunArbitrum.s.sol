@@ -8,11 +8,13 @@ import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {AaveV3Arbitrum} from "../src/providers/arbitrum/AaveV3Arbitrum.sol";
 import {RadiantArbitrum} from "../src/providers/arbitrum/RadiantArbitrum.sol";
 import {DForceArbitrum} from "../src/providers/arbitrum/DForceArbitrum.sol";
+import {CompoundV3Arbitrum} from "../src/providers/arbitrum/CompoundV3Arbitrum.sol";
 
 contract RunArbitrum is ScriptPlus {
   AaveV3Arbitrum aaveV3;
   RadiantArbitrum radiant;
   DForceArbitrum dforce;
+  CompoundV3Arbitrum compound;
 
   function setUp() public {
     setUpOn("arbitrum");
@@ -45,17 +47,21 @@ contract RunArbitrum is ScriptPlus {
   }
 
   function _setLendingProviders() internal {
-    aaveV3 = AaveV3Arbitrum(getAddress("AaveV3Arbitrum"));
+    aaveV3 = AaveV3Arbitrum(getAddress("Aave_V3_Arbitrum"));
     /*aaveV3 = new AaveV3Arbitrum();*/
-    /*saveAddress("AaveV3Arbitrum", address(aaveV3));*/
+    /*saveAddress("Aave_V3_Arbitrum", address(aaveV3));*/
 
-    radiant = RadiantArbitrum(getAddress("RadiantArbitrum"));
+    radiant = RadiantArbitrum(getAddress("Radiant_Arbitrum"));
     /*radiant = new RadiantArbitrum();*/
-    /*saveAddress("RadiantArbitrum", address(radiant));*/
+    /*saveAddress("Radiant_Arbitrum", address(radiant));*/
 
-    dforce = DForceArbitrum(getAddress("DForceArbitrum"));
+    dforce = DForceArbitrum(getAddress("DForce_Arbitrum"));
     /*dforce = new DForceArbitrum();*/
-    /*saveAddress("DForceArbitrum", address(dforce));*/
+    /*saveAddress("DForce_Arbitrum", address(dforce));*/
+
+    compound = CompoundV3Arbitrum(getAddress("Compound_V3_Arbitrum"));
+    /*compound = new CompoundV3Arbitrum();*/
+    /*saveAddress("Compound_V3_Arbitrum", address(compound));*/
   }
 
   function _setVaultNewProviders(string memory vaultName) internal {

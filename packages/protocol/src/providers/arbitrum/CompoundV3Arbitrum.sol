@@ -25,7 +25,7 @@ contract CompoundV3Arbitrum is ILendingProvider {
    * @notice Returns the {AddrMapper} contract applicable to this provider.
    */
   function getMapper() public pure returns (IAddrMapper) {
-    return IAddrMapper(0x9907F34FbA2336C3Ce8758dd80c301BFf921dEc2);
+    return IAddrMapper(0x66211Ab72fB0a06e9E6eD8b21Aa3c1a01F171521);
   }
 
   /// @inheritdoc ILendingProvider
