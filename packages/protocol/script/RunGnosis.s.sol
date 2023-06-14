@@ -23,11 +23,15 @@ contract RunGnosis is ScriptPlus {
     setOrDeployBorrowingVaultFactory2(false, false);
     /*setOrDeployAddrMapper(false);*/
 
-    agave = AgaveGnosis(getAddress("AgaveGnosis"));
+    agave = AgaveGnosis(getAddress("Agave_Gnosis"));
     /*agave = new AgaveGnosis();*/
-    /*saveAddress("AgaveGnosis", address(agave));*/
+    /*saveAddress("Agave_Gnosis", address(agave));*/
 
-    /*_deployVault("WETH", "USDC", "BorrowingVault-WETHUSDC-1", 90);*/
+    if (chief.allowedVaultFactory(address(factory))) {
+      deployBorrowingVaults2();
+      setBorrowingVaults2();
+      initBorrowingVaults2();
+    }
 
     /*_setVaultNewProviders("BorrowingVault-WETHUSDC");*/
     /*_setVaultNewRating("BorrowingVault-WETHUSDC", 55);*/
@@ -51,28 +55,5 @@ contract RunGnosis is ScriptPlus {
     bytes memory callData =
       abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
     callWithTimelock(address(chief), callData);
-  }
-
-  function _deployVault(
-    string memory collateralAddr,
-    string memory debtAddr,
-    string memory name,
-    uint256 rating
-  )
-    internal
-  {
-    address collateral = readAddrFromConfig(collateralAddr);
-    address debt = readAddrFromConfig(debtAddr);
-    uint256 maxLtv = 750000000000000000;
-    uint256 liqRatio = 800000000000000000;
-
-    ILendingProvider[] memory providers = new ILendingProvider[](1);
-    providers[0] = agave;
-    address vault = chief.deployVault(
-      address(factory),
-      abi.encode(collateral, debt, address(oracle), providers, maxLtv, liqRatio),
-      rating
-    );
-    saveAddress(name, vault);
   }
 }

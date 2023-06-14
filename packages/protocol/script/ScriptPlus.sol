@@ -8,6 +8,8 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from
+  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
@@ -333,21 +335,28 @@ contract ScriptPlus is Script {
       vault = BorrowingVault2(payable(getAddress(name)));
 
       if (address(vault.oracle()) == address(0)) {
-        console.log(string.concat("Setting ", name, "..."));
+        console.log(string.concat("Setting oracle for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setOracle.selector, address(oracle)));
         timelockValues.push(0);
+      }
+      if (vault.getProviders().length == 0) {
+        console.log(string.concat("Setting providers for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setProviders.selector, providers));
         timelockValues.push(0);
+      }
+      if (address(vault.activeProvider()) == address(0)) {
+        console.log(string.concat("Setting activeProvider for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setActiveProvider.selector, providers[0]));
         timelockValues.push(0);
+      }
+      if (vault.maxLtv() != maxLtv || vault.liqRatio() != liqRatio) {
+        console.log(string.concat("Setting ltv factors for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setLtvFactors.selector, maxLtv, liqRatio));
         timelockValues.push(0);
-      } else {
-        console.log(string.concat(name, " already set."));
       }
       console.log("============");
     }
@@ -374,17 +383,19 @@ contract ScriptPlus is Script {
 
       vault = BorrowingVault2(payable(getAddress(name)));
 
-      if (!vault.initialized()) {
+      if (!vault.initialized() && address(vault.oracle()) != address(0)) {
         console.log(string.concat("Initializing: ", name, " ..."));
-        uint256 debtShares = 1e6;
-        uint256 price = oracle.getPriceOf(debt, collateral, vault.debtDecimals());
-        uint256 minCollateral = (debtShares * 1e18 * 10 ** vault.decimals()) / (maxLtv * price) + 1;
-        uint256 colShares = minCollateral < debtShares ? debtShares : minCollateral;
+        uint256 decimals = IERC20Metadata(debt).decimals();
+        /*uint256 pow = decimals < 6 ? 6 : decimals;*/
+        uint256 debtShares = 10 ** decimals;
+        uint256 minCollateral = 0.0015 ether;
+        /*uint256 price = oracle.getPriceOf(debt, collateral, vault.debtDecimals());*/
+        /*uint256 minCollateral = (debtShares * 1e18 * 10 ** vault.decimals()) / (maxLtv * price);*/
 
-        SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), colShares);
-        vault.initializeVaultShares(colShares, debtShares);
+        SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), minCollateral);
+        vault.initializeVaultShares(minCollateral, debtShares);
       } else {
-        console.log(string.concat(name, " already initialized."));
+        console.log(string.concat("Skip initializing ", name));
       }
       console.log("============");
     }

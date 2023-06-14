@@ -798,8 +798,8 @@ contract BorrowingVault2 is BaseVault {
    */
   function setLtvFactors(uint256 maxLtv_, uint256 liqRatio_) external onlyTimelock {
     if (
-      liqRatio_ <= maxLtv || liqRatio_ < 2e16 || liqRatio_ >= 1e18 || maxLtv_ < 1e16
-        || maxLtv_ >= 1e18
+      liqRatio_ <= maxLtv_ || liqRatio_ <= maxLtv || liqRatio_ < 2e16 || liqRatio_ >= 1e18
+        || maxLtv_ < 1e16 || maxLtv_ >= 1e18
     ) {
       revert BaseVault__setter_invalidInput();
     }

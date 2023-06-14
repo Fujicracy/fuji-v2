@@ -36,7 +36,7 @@ contract DForceOptimism is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
-    return IAddrMapper(0x4dCC76FfFD9b8345B8dAa15414fbd787A3B226DB);
+    return IAddrMapper(0x4158bb5FDb8151C754a4d25eD93B61A80c855621);
   }
 
   /**
