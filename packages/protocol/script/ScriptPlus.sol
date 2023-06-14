@@ -333,21 +333,28 @@ contract ScriptPlus is Script {
       vault = BorrowingVault2(payable(getAddress(name)));
 
       if (address(vault.oracle()) == address(0)) {
-        console.log(string.concat("Setting ", name, "..."));
+        console.log(string.concat("Setting oracle for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setOracle.selector, address(oracle)));
         timelockValues.push(0);
+      }
+      if (vault.getProviders().length == 0) {
+        console.log(string.concat("Setting providers for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setProviders.selector, providers));
         timelockValues.push(0);
+      }
+      if (address(vault.activeProvider()) == address(0)) {
+        console.log(string.concat("Setting activeProvider for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setActiveProvider.selector, providers[0]));
         timelockValues.push(0);
+      }
+      if (vault.maxLtv() != maxLtv || vault.liqRatio() != liqRatio) {
+        console.log(string.concat("Setting ltv factors for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setLtvFactors.selector, maxLtv, liqRatio));
         timelockValues.push(0);
-      } else {
-        console.log(string.concat(name, " already set."));
       }
       console.log("============");
     }
