@@ -12,7 +12,7 @@ export const DEBT_LIST: ChainTokenList = {
     DAI[ChainId.MATIC_MUMBAI],
   ],
   [ChainId.FANTOM]: [USDC[ChainId.FANTOM], DAI[ChainId.FANTOM]],
-  [ChainId.ARBITRUM]: [USDC[ChainId.ARBITRUM]],
+  [ChainId.ARBITRUM]: [USDC[ChainId.ARBITRUM], DAI[ChainId.ARBITRUM]],
   [ChainId.OPTIMISM]: [USDC[ChainId.OPTIMISM], DAI[ChainId.OPTIMISM]],
   [ChainId.OPTIMISM_GOERLI]: [
     USDC[ChainId.OPTIMISM_GOERLI],
