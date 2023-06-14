@@ -417,10 +417,10 @@ contract Chief is CoreRoles, AccessControl, IChief {
       revert Chief__setVaultStatus_noStatusChange();
     }
     isVaultActive[vault] = active;
-    vaultSafetyRating[vault] = 0;
 
     // Pause Deposit and Borrow actions if corresponding and applicable to `vault`.
     if (active == false) {
+      vaultSafetyRating[vault] = 0;
       IPausableVault(vault).pause(IPausableVault.VaultActions.Deposit);
 
       // If `vault` is a {BorrowingVault}.
