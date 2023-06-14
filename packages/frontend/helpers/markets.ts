@@ -337,7 +337,7 @@ export const aprData = (
 ): Partial<AprData> => {
   return {
     positive:
-      type === AssetType.Collateral || (reward !== undefined && reward > base),
+      type === AssetType.Debt || (reward !== undefined && reward > base),
     reward,
     base,
     type,
