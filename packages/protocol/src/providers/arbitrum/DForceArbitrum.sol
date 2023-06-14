@@ -36,8 +36,7 @@ contract DForceArbitrum is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5);
+    return IAddrMapper(0x66211Ab72fB0a06e9E6eD8b21Aa3c1a01F171521);
   }
 
   /**
@@ -67,7 +66,7 @@ contract DForceArbitrum is ILendingProvider {
    * @param asset address of the token to be used as collateral/debt
    */
   function _getiToken(address asset) internal view returns (address iToken) {
-    iToken = _getAddrmapper().getAddressMapping("DForce", asset);
+    iToken = _getAddrmapper().getAddressMapping(providerName(), asset);
   }
 
   /// @inheritdoc ILendingProvider

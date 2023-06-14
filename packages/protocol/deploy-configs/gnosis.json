@@ -1,0 +1,44 @@
+{
+  "WBTC": "0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252",
+  "WETH": "0x6A023CCd1ff6F2045C3309768eAd9E68F978f6e1",
+  "USDC": "0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83",
+  "DAI": "0x44fA8E6f47987339850636F88629646662444217",
+  "USDT": "0x4ECaBa5870353805a9F068101A40E0f32ed605C6",
+  "ConnextCore": "0x5bB83e95f63217CDa6aE3D181BA580Ef377D2109",
+  "price-feeds": [
+    {
+      "asset": "WBTC",
+      "chainlink": "0x6C1d7e76EF7304a40e8456ce883BC56d3dEA3F7d"
+    },
+    {
+      "asset": "WETH",
+      "chainlink": "0xa767f745331D267c7751297D982b050c93985627"
+    },
+    {
+      "asset": "USDC",
+      "chainlink": "0x26C31ac71010aF62E6B486D1132E266D6298857D"
+    },
+    {
+      "asset": "DAI",
+      "chainlink": "0x678df3415fc31947dA4324eC63212874be5a82f8"
+    },
+    {
+      "asset": "USDT",
+      "chainlink": "0x68811D7DF835B1c33e6EEae8E7C141eF48d48cc7"
+    }
+  ],
+  "simple-mappings": [],
+  "nested-mappings": [],
+  "borrowing-vaults": [
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 800000000000000000,
+      "maxLtv": 750000000000000000,
+      "name": "BorrowingVault-WETHUSDC-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
+    }
+  ]
+}
+

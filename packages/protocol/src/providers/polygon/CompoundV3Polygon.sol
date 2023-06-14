@@ -25,13 +25,12 @@ contract CompoundV3Polygon is ILendingProvider {
    * @notice Returns the {AddrMapper} contract applicable to this provider.
    */
   function getMapper() public pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0xe7Aa20127f910dC20492B320f1c0CaB12DFD4153);
+    return IAddrMapper(0xCC1cF8f5f32ce55B6E798c8122d841e957077C59);
   }
 
   /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "COMPOUND_V3_POLYGON";
+    return "Compound_V3_Polygon";
   }
 
   /// @inheritdoc ILendingProvider
@@ -110,7 +109,11 @@ contract CompoundV3Polygon is ILendingProvider {
   /// @inheritdoc ILendingProvider
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
-    return cMarketV3.collateralBalanceOf(user, asset);
+    if (asset == cMarketV3.baseToken()) {
+      balance = cMarketV3.balanceOf(user);
+    } else {
+      balance = cMarketV3.collateralBalanceOf(user, asset);
+    }
   }
 
   /// @inheritdoc ILendingProvider
