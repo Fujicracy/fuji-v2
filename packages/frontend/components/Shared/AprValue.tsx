@@ -23,11 +23,6 @@ function AprValue({
 
   const diff = (Number(reward) || 0) * (type === AssetType.Collateral ? 1 : -1);
   const resultAPR = Math.abs(base - diff);
-  console.log(type);
-  if (type === AssetType.Collateral) {
-    console.log('base', base);
-    console.log('diff', diff);
-  }
 
   return (
     <Stack
