@@ -375,13 +375,13 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
 
 const sortBy: Record<SortBy, CompareFn> = {
   ascending: (a, b) =>
-    a.borrowAprBase.value - a.borrowAprReward.value <
-    b.borrowAprBase.value - b.borrowAprReward.value
+    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) <
+    b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
       ? 1
       : -1,
   descending: (a, b) =>
-    a.borrowAprBase.value - a.borrowAprReward.value >
-    b.borrowAprBase.value - b.borrowAprReward.value
+    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) >
+    b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
       ? 1
       : -1,
 };
