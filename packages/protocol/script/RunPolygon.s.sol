@@ -3,9 +3,6 @@ pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
 import {ScriptPlus} from "./ScriptPlus.sol";
-import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
-import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
-import {IVault} from "../src/interfaces/IVault.sol";
 import {AaveV3Polygon} from "../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../src/providers/polygon/AaveV2Polygon.sol";
 import {DForcePolygon} from "../src/providers/polygon/DForcePolygon.sol";
@@ -40,10 +37,10 @@ contract RunPolygon is ScriptPlus {
       initBorrowingVaults2();
     }
 
-    /*_setVaultNewProviders("BorrowingVault-WETHUSDC-2");*/
-    /*_setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
+    /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
+    /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
-    // If setting all routers at once, call after deploying all chians
+    // If setting all routers at once, call after deploying all chains
     /*setRouters();*/
 
     vm.stopBroadcast();
@@ -65,22 +62,5 @@ contract RunPolygon is ScriptPlus {
     compound = CompoundV3Polygon(getAddress("Compound_V3_Polygon"));
     /*compound = new CompoundV3Polygon();*/
     /*saveAddress("Compound_V3_Polygon", address(compound));*/
-  }
-
-  function _setVaultNewProviders(string memory vaultName) internal {
-    BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
-
-    ILendingProvider[] memory providers = new ILendingProvider[](3);
-    providers[0] = aaveV2;
-    providers[1] = aaveV3;
-    providers[2] = compound;
-    bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-    callWithTimelock(address(vault), callData);
-  }
-
-  function _setVaultNewRating(string memory vaultName, uint256 rating) internal {
-    bytes memory callData =
-      abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
-    callWithTimelock(address(chief), callData);
   }
 }
