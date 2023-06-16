@@ -20,8 +20,11 @@ import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
+import {CoreRoles} from "../src/access/CoreRoles.sol";
+import {RebalancerManager} from "../src/RebalancerManager.sol";
+import {FlasherBalancer} from "../src/flashloans/FlasherBalancer.sol";
 
-contract ScriptPlus is Script {
+contract ScriptPlus is Script, CoreRoles {
   struct PriceFeed {
     string asset;
     address chainlink;
@@ -56,6 +59,8 @@ contract ScriptPlus is Script {
   BorrowingVaultFactory2 factory;
   FujiOracle oracle;
   ConnextRouter connextRouter;
+  RebalancerManager rebalancer;
+  FlasherBalancer flasherBalancer;
 
   // https://docs.connext.network/resources/deployments
   uint32 public constant MAINNET_DOMAIN = 6648936;
@@ -398,6 +403,46 @@ contract ScriptPlus is Script {
         console.log(string.concat("Skip initializing ", name));
       }
       console.log("============");
+    }
+
+    callBatchWithTimelock();
+  }
+
+  function setOrDeployFlasherBalancer(bool deploy) internal {
+    if (deploy) {
+      flasherBalancer = new FlasherBalancer(readAddrFromConfig("Balancer"));
+      saveAddress("FlasherBalancer", address(flasherBalancer));
+    } else {
+      flasherBalancer = FlasherBalancer(getAddress("FlasherBalancer"));
+    }
+  }
+
+  function setOrDeployRebalancer(bool deploy) internal {
+    if (deploy) {
+      rebalancer = new RebalancerManager(address(chief));
+      saveAddress("RebalancerManager", address(rebalancer));
+    } else {
+      rebalancer = RebalancerManager(getAddress("RebalancerManager"));
+    }
+
+    if (!chief.hasRole(REBALANCER_ROLE, address(rebalancer))) {
+      timelockTargets.push(address(chief));
+      timelockDatas.push(
+        abi.encodeWithSelector(chief.grantRole.selector, REBALANCER_ROLE, address(rebalancer))
+      );
+      timelockValues.push(0);
+    }
+    if (!rebalancer.allowedExecutor(deployer)) {
+      timelockTargets.push(address(rebalancer));
+      timelockDatas.push(abi.encodeWithSelector(rebalancer.allowExecutor.selector, deployer, true));
+      timelockValues.push(0);
+    }
+    if (!chief.allowedFlasher(address(flasherBalancer))) {
+      timelockTargets.push(address(chief));
+      timelockDatas.push(
+        abi.encodeWithSelector(chief.allowFlasher.selector, address(flasherBalancer), true)
+      );
+      timelockValues.push(0);
     }
 
     callBatchWithTimelock();
