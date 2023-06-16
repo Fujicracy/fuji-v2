@@ -59,6 +59,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const allow = useBorrow((state) => state.allow);
   const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
+  const changeActiveVault = useBorrow((state) => state.changeActiveVault);
 
   const position = basePosition ? basePosition.position : undefined;
   const dynamicLtvMeta = ltvMeta(basePosition);
@@ -138,6 +139,24 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
     updateCurrencyPrice(AssetType.Collateral);
     updateCurrencyPrice(AssetType.Debt);
   }, [updateCurrencyPrice]);
+
+  const resetData = () => {
+    const defaultVault = walletChainId
+      ? availableVaults.find(
+          (vaultItem) => vaultItem.vault.chainId === walletChainId
+        )
+      : availableVaults[0];
+
+    defaultVault && changeActiveVault(defaultVault);
+    walletChainId &&
+      changeAssetChain(AssetType.Collateral, walletChainId, true);
+  };
+
+  useEffect(() => {
+    return () => {
+      resetData();
+    };
+  }, []); // eslint-disable-line
 
   useEffect(() => {
     if (prevActionType.current !== actionType) {
