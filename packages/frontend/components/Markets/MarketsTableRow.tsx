@@ -185,7 +185,11 @@ function MarketsTableRow({
             />
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="130px">
+        <SizableTableCell
+          align="right"
+          width="130px"
+          data-cy="market-row-providers"
+        >
           {loaderOrError(row.integratedProviders.status)}
           {!expandRow && (
             <IntegratedProviders providers={row.integratedProviders} />

@@ -109,24 +109,23 @@ describe('Markets', () => {
       })
       .click();
     // checking rows count changes.
-    cy.get('[data-cy="market-row"]')
-      .then((value) => {
-        resultLength = value.length;
-        expect(resultLength).to.not.eq(startLength);
-      })
-      .first()
-      .find('[data-cy="market-row-network"]')
-      .first()
-      .then((network) => {
-        // checking rows filtered by network properly.
-        expect(network).to.have.text(chainName);
-        // clicking first network filter button which is ALL.
-        cy.get('[data-cy="market-network-filter"]').first().click();
-        // checking rows count is same as in default state.
-        cy.get('[data-cy="market-row"]').then((value) => {
-          expect(value.length).to.eq(startLength);
+    cy.get('[data-cy="market-row"]').then((value) => {
+      resultLength = value.length;
+      expect(resultLength).to.not.eq(startLength);
+      cy.get('[data-cy="market-row"]')
+        .find('[data-cy="market-row-network"]')
+        .first()
+        .then((network) => {
+          // checking rows filtered by network properly.
+          expect(network).to.include.text(chainName);
+          // clicking first network filter button which is ALL.
+          cy.get('[data-cy="market-network-filter"]').first().click();
+          // checking rows count is same as in default state.
+          cy.get('[data-cy="market-row"]').then((value) => {
+            expect(value.length).to.eq(startLength);
+          });
         });
-      });
+    });
   });
   it('should toggle first high-level row', () => {
     // finding first row.
@@ -146,7 +145,7 @@ describe('Markets', () => {
       .should('not.exist');
   });
   it('should redirect after click with correct currency prefill', () => {
-    let collateralCurrency, debtCurrency;
+    let collateralCurrency, debtCurrency, provider;
     // finding first row.
     cy.get('[data-cy="market-row"]').first().as('firstRow', { type: 'static' });
     cy.get('@firstRow')
@@ -165,8 +164,19 @@ describe('Markets', () => {
             collateralCurrency = collateral;
           })
           .then(() => {
-            // clicking on first row.
-            cy.get('@firstRow').first().click();
+            cy.get('[data-cy="market-row"]')
+              .next()
+              .find('[data-cy="market-row-providers"]')
+              .first()
+              .find('img')
+              .first()
+              .debug()
+              .invoke('attr', 'provider')
+              .then((text) => {
+                provider = text;
+              });
+            // clicking on first second row.
+            cy.get('@firstRow').next().click();
             // checking redirect to borrow page.
             cy.location('pathname').should('eq', '/borrow');
             // checking prefilled collateral currency.
@@ -177,6 +187,8 @@ describe('Markets', () => {
             cy.get('[data-cy="currency-select"]')
               .last()
               .should('have.text', debtCurrency);
+
+            expect(provider).to.include.text('Agave');
           });
       });
   });
