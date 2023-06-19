@@ -55,9 +55,9 @@ export type HistoryEntry = {
   connext?: HistoryEntryConnext;
   vaultAddress?: string;
   sourceChain: HistoryEntryChain;
-  secondChain?: HistoryEntryChain | undefined;
-  thirdChain?: HistoryEntryChain | undefined;
   chainCount: number;
+  secondChain?: HistoryEntryChain;
+  thirdChain?: HistoryEntryChain;
   error?: string;
 };
 
@@ -151,7 +151,7 @@ export const stepForFinishing = (entry: HistoryEntry) => {
 const connextLinkify = (id: string) => `https://amarok.connextscan.io/tx/${id}`;
 
 export const connextLinksForEntry = (entry: HistoryEntry) => {
-  const links: string[] | undefined = entry.connext && [
+  const links: undefined | string[] = entry.connext && [
     connextLinkify(entry.connext.transferId),
   ];
   if (links && entry.connext?.secondTransferId) {

@@ -33,7 +33,22 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseRouter__bundleInternal_insufficientFlashloanBalance",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseRouter__bundleInternal_noBalanceChange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_notAllowedFlasher",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_notAllowedSwapper",
     type: "error",
   },
   {
@@ -48,7 +63,22 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseRouter__bundleInternal_swapNotFirstAction",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__checkVaultInput_notActiveVault",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseRouter__fallback_notAllowed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__handlePermit_notPermitAction",
     type: "error",
   },
   {
@@ -227,6 +257,25 @@ const _abi = [
         internalType: "contract IChief",
         name: "",
         type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "isAllowedCaller",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
     stateMutability: "view",

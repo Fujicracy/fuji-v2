@@ -113,7 +113,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       usdc: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,
       dai: address(0),
       wmatic: address(0),
-      connext: address(0)
+      connext: 0x8898B472C54c31894e3B9bb83cEA802a5d0e63C6
     });
     registry[MAINNET_DOMAIN] = mainnet;
 
@@ -122,7 +122,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       usdc: 0x7F5c764cBc14f9669B88837ca1490cCa17c31607,
       dai: address(0),
       wmatic: address(0),
-      connext: address(0)
+      connext: 0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA
     });
     registry[OPTIMISM_DOMAIN] = optimism;
 
@@ -131,7 +131,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       usdc: 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8,
       wmatic: address(0),
       dai: address(0),
-      connext: address(0)
+      connext: 0xEE9deC2712cCE65174B561151701Bf54b99C24C8
     });
     registry[ARBITRUM_DOMAIN] = arbitrum;
 
@@ -140,7 +140,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       usdc: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174,
       dai: 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063,
       wmatic: 0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270,
-      connext: address(0)
+      connext: 0x11984dc4465481512eb5b777E44061C158CF2259
     });
     registry[POLYGON_DOMAIN] = polygon;
 
@@ -149,7 +149,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       usdc: 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83,
       dai: 0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d,
       wmatic: address(0),
-      connext: address(0)
+      connext: 0x5bB83e95f63217CDa6aE3D181BA580Ef377D2109
     });
     registry[GNOSIS_DOMAIN] = gnosis;
   }
@@ -296,18 +296,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     SafeERC20.safeIncreaseAllowance(IERC20(collatAsset_), vault_, assets);
     SafeERC20.safeIncreaseAllowance(IERC20(debtAsset_), vault_, debt);
     bVault.initializeVaultShares(assets, debt);
-    vm.stopPrank();
-  }
-
-  function _initalizeYieldVault(address vault_, address initializer, uint256 assets) internal {
-    YieldVault yvault = YieldVault(payable(vault_));
-    address collatAsset_ = yvault.asset();
-
-    deal(collatAsset_, initializer, assets /*,true*/ );
-
-    vm.startPrank(initializer);
-    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, assets);
-    yvault.initializeVaultShares(assets, 0);
     vm.stopPrank();
   }
 

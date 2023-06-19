@@ -1,0 +1,119 @@
+{
+  "WBTC": "0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6",
+  "WETH": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619",
+  "USDC": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+  "DAI": "0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063",
+  "USDT": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
+  "MATICX": "0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6",
+  "ConnextCore": "0x11984dc4465481512eb5b777E44061C158CF2259",
+  "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  "price-feeds": [
+    {
+      "asset": "WBTC",
+      "chainlink": "0xc907e116054ad103354f2d350fd2514433d57f6f"
+    },
+    {
+      "asset": "WETH",
+      "chainlink": "0xf9680d99d6c9589e2a93a78a04a279e509205945"
+    },
+    {
+      "asset": "USDC",
+      "chainlink": "0xfe4a8cc5b5b2366c1b58bea3858e81843581b2f7"
+    },
+    {
+      "asset": "DAI",
+      "chainlink": "0x4746dec9e833a82ec7c2c1356372ccf2cfcd2f3d"
+    },
+    {
+      "asset": "USDT",
+      "chainlink": "0x0a6513e40db6eb1b165753ad52e80663aea50545"
+    },
+    {
+      "asset": "MATICX",
+      "chainlink": "0x5d37E4b374E6907de8Fc7fb33EE3b0af403C7403"
+    }
+  ],
+  "simple-mappings": [
+    {
+      "asset": "WBTC",
+      "market": "0x94a14Ba6E59f4BE36a77041Ef5590Fe24445876A",
+      "name": "DForce_Polygon"
+    },
+    {
+      "asset": "WETH",
+      "market": "0x0c92617dF0753Af1CaB2d9Cc6A56173970d81740",
+      "name": "DForce_Polygon"
+    },
+    {
+      "asset": "USDC",
+      "market": "0x5268b3c4afb0860D365a093C184985FCFcb65234",
+      "name": "DForce_Polygon"
+    },
+    {
+      "asset": "DAI",
+      "market": "0xec85F77104Ffa35a5411750d70eDFf8f1496d95b",
+      "name": "DForce_Polygon"
+    }
+  ],
+  "nested-mappings": [
+    {
+      "asset1": "WBTC",
+      "asset2": "USDC",
+      "market": "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+      "name": "Compound_V3_Polygon"
+    },
+    {
+      "asset1": "WETH",
+      "asset2": "USDC",
+      "market": "0xF25212E676D1F7F89Cd72fFEe66158f541246445",
+      "name": "Compound_V3_Polygon"
+    }
+  ],
+  "borrowing-vaults": [
+    {
+      "collateral": "MATICX",
+      "debt": "USDC",
+      "liqRatio": 670000000000000000,
+      "maxLtv": 560000000000000000,
+      "name": "BorrowingVault-MATICXUSDC-1",
+      "providers": ["Aave_V3_Polygon"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 770000000000000000,
+      "name": "BorrowingVault-WETHUSDC-1",
+      "providers": ["Compound_V3_Polygon", "Aave_V3_Polygon", "Aave_V2_Polygon"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 770000000000000000,
+      "name": "BorrowingVault-WETHUSDC-2",
+      "providers": ["Compound_V3_Polygon", "DForce_Polygon"],
+      "rating": 85
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-1",
+      "providers": ["Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 95
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-2",
+      "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 85
+    }
+  ]
+}

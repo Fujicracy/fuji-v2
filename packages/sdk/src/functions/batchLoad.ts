@@ -103,14 +103,16 @@ const setResults = (
       borrowAprBase: rateToFloat(rates[2 * i + 1]),
     };
   });
+  const nonActives = providers.filter((_, i) => i !== apIndex);
+  const active = providers[apIndex];
   return new FujiResultSuccess({
     vault: v,
     depositBalance: detailsBatch[6] as BigNumber,
     borrowBalance: detailsBatch[7] as BigNumber,
     collateralPriceUSD: detailsBatch[8] as BigNumber,
     debtPriceUSD: detailsBatch[9] as BigNumber,
-    allProviders: providers,
-    activeProvider: providers[apIndex],
+    allProviders: [active, ...nonActives],
+    activeProvider: active,
   });
 };
 

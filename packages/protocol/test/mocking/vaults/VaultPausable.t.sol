@@ -23,10 +23,6 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
   uint256 public constant BORROW_AMOUNT = 1000e18;
 
-  // WETH and DAI prices in 1e18: 2000 DAI/WETH
-  uint256 public constant TEST_USD_PER_ETH_PRICE = 2000e18;
-  uint256 public constant TEST_ETH_PER_USD_PRICE = 5e14;
-
   function setUp() public {
     _grantRoleChief(PAUSER_ROLE, CHARLIE);
     _grantRoleChief(UNPAUSER_ROLE, CHARLIE);
@@ -45,6 +41,9 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
             DEFAULT_MAX_LTV,
             DEFAULT_LIQ_RATIO
         );
+
+    // Initialize vaults
+    _initalizeVault(address(vault2), INITIALIZER, initVaultShares, initVaultDebtShares);
 
     // Set up {Chief-_vaults} manually to bypass vault factory set-up.
     IPausableVault[] memory vaults_ = new IPausableVault[](2);

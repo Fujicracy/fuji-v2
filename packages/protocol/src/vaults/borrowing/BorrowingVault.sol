@@ -824,7 +824,7 @@ contract BorrowingVault is BaseVault {
 
     if (healthFactor >= 1e18) {
       liquidationFactor = 0;
-    } else if (FULL_LIQUIDATION_THRESHOLD <= healthFactor) {
+    } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt
     } else {
       liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100% of owner's debt
@@ -910,10 +910,10 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - Must be called from a timelock.
    * - Must be at least 1% (1e16).
-   * - Must be less than 100% (1e18).
+   * - Must be less than 100% (1e18)
    */
   function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
-    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18 || maxLtv_ >= liqRatio) {
+    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18) {
       revert BaseVault__setter_invalidInput();
     }
     maxLtv = maxLtv_;
@@ -928,13 +928,11 @@ contract BorrowingVault is BaseVault {
    * @dev See factor
    * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    * Restrictions:
-   * - Must be greater than 'maxLTV'.
-   * - Must be at least 2% (2e16).
-   * - Must be less than 100% (1e18).
+   * - Must be greater than 'maxLTV', and non zero.
    * - Must be called from a timelock.
    */
   function setLiqRatio(uint256 liqRatio_) external onlyTimelock {
-    if (liqRatio_ <= maxLtv || liqRatio_ < 2e16 || liqRatio_ >= 1e18) {
+    if (liqRatio_ < maxLtv || liqRatio_ == 0) {
       revert BaseVault__setter_invalidInput();
     }
     liqRatio = liqRatio_;

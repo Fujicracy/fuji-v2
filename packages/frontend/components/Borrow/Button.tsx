@@ -19,12 +19,7 @@ import { TransactionMeta } from '../../helpers/transactions';
 import { Position } from '../../store/models/Position';
 
 type BorrowButtonProps = {
-  address: string | undefined;
   collateral: AssetChange;
-  debt: AssetChange;
-  position: Position;
-  walletChainId: ChainId | undefined;
-  ltvMeta: LtvMeta;
   metaStatus: FetchStatus;
   needsSignature: boolean;
   isSigning: boolean;
@@ -40,6 +35,11 @@ type BorrowButtonProps = {
   onRedirectClick: (position: boolean) => void;
   onClick: () => void;
   withConfirmation: (action?: () => void) => void;
+  debt?: AssetChange;
+  position?: Position;
+  walletChainId?: ChainId;
+  ltvMeta?: LtvMeta;
+  address?: string;
 };
 
 function BorrowButton({
@@ -65,39 +65,7 @@ function BorrowButton({
   onClick,
   withConfirmation,
 }: BorrowButtonProps) {
-  const collateralAmount = parseFloat(collateral.input);
-  const debtAmount = parseFloat(debt.input);
-  const collateralBalance = collateral.balances[collateral.currency.symbol];
-  const debtBalance = debt.balances[debt.currency.symbol];
-
-  const executionStep = needsSignature ? 2 : 1;
-  const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
-    mode === Mode.DEPOSIT_AND_BORROW
-      ? `${needsSignature ? '' : 'Deposit & '}Borrow`
-      : mode === Mode.BORROW
-      ? 'Borrow'
-      : mode === Mode.DEPOSIT
-      ? 'Deposit'
-      : mode === Mode.PAYBACK_AND_WITHDRAW
-      ? 'Payback & Withdraw'
-      : mode === Mode.WITHDRAW
-      ? 'Withdraw'
-      : 'Payback'
-  }`;
-
-  const loadingButtonTitle =
-    (collateral.allowance.status === AllowanceStatus.Approving &&
-      'Approving...') ||
-    (debt.allowance.status === AllowanceStatus.Approving && 'Approving...') ||
-    (isSigning && '(1/2) Signing...') ||
-    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
-    actionTitle;
-
-  const regularButton = (
-    title: string,
-    onClick: () => void,
-    data: string | undefined = undefined
-  ) => {
+  const regularButton = (title: string, onClick: () => void, data?: string) => {
     return (
       <Button
         variant="gradient"
@@ -142,13 +110,45 @@ function BorrowButton({
     </LoadingButton>
   );
 
+  if (!address) {
+    return regularButton('Connect wallet', onLoginClick, 'borrow-login');
+  }
+  if (!debt || !position || !ltvMeta) {
+    return disabledButton('Select a network to borrow on');
+  }
+  const collateralAmount = parseFloat(collateral.input);
+  const debtAmount = parseFloat(debt.input);
+  const collateralBalance = collateral.balances[collateral.currency.symbol];
+  const debtBalance = debt.balances[debt.currency.symbol];
+
+  const executionStep = needsSignature ? 2 : 1;
+  const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
+    mode === Mode.DEPOSIT_AND_BORROW
+      ? `${needsSignature ? '' : 'Deposit & '}Borrow`
+      : mode === Mode.BORROW
+      ? 'Borrow'
+      : mode === Mode.DEPOSIT
+      ? 'Deposit'
+      : mode === Mode.PAYBACK_AND_WITHDRAW
+      ? 'Payback & Withdraw'
+      : mode === Mode.WITHDRAW
+      ? 'Withdraw'
+      : 'Payback'
+  }`;
+
+  const loadingButtonTitle =
+    (collateral.allowance.status === AllowanceStatus.Approving &&
+      'Approving...') ||
+    (debt.allowance.status === AllowanceStatus.Approving && 'Approving...') ||
+    (isSigning && '(1/2) Signing...') ||
+    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
+    actionTitle;
+
   const firstStep = transactionMeta.steps[0];
   const bridgeStep = transactionMeta.steps.find(
     (s) => s.step === RoutingStep.X_TRANSFER
   );
-  if (!address) {
-    return regularButton('Connect wallet', onLoginClick, 'borrow-login');
-  } else if (
+  if (
     collateral.allowance.status === AllowanceStatus.Approving ||
     debt.allowance.status === AllowanceStatus.Approving
   ) {

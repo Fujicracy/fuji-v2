@@ -49,6 +49,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "FlasherEuler__initiateFlashloan_invalidInput",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "EULER_MARKETS",
     outputs: [
       {

@@ -13,8 +13,6 @@ import {BaseVault} from "../../../src/abstracts/BaseVault.sol";
 
 contract VaultUnitTests is MockingSetup, MockRoutines {
   event MinAmountChanged(uint256 newMinAmount);
-  event MaxLtvChanged(uint256 newMaxLtv);
-  event LiqRatioChanged(uint256 newLiqRatio);
   event DepositCapChanged(uint256 newDepositCap);
 
   uint8 public constant DEBT_DECIMALS = 18;
@@ -257,32 +255,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.setMinAmount(min);
   }
 
-  function test_setLiqRatio(uint256 newLiqRatio_) public {
-    if (newLiqRatio_ <= DEFAULT_MAX_LTV || newLiqRatio_ < 2e16 || newLiqRatio_ >= 1e18) {
-      vm.prank(chief.timelock());
-      vm.expectRevert();
-      vault.setLiqRatio(newLiqRatio_);
-    } else {
-      vm.expectEmit(true, false, false, false);
-      emit LiqRatioChanged(newLiqRatio_);
-      vm.prank(chief.timelock());
-      vault.setLiqRatio(newLiqRatio_);
-    }
-  }
-
-  function test_setMaxLtv(uint256 newMaxLTV_) public {
-    if (newMaxLTV_ < 1e16 || newMaxLTV_ >= 1e18 || newMaxLTV_ >= DEFAULT_LIQ_RATIO) {
-      vm.prank(chief.timelock());
-      vm.expectRevert();
-      vault.setMaxLtv(newMaxLTV_);
-    } else {
-      vm.expectEmit(true, false, false, false);
-      emit MaxLtvChanged(newMaxLTV_);
-      vm.prank(chief.timelock());
-      vault.setMaxLtv(newMaxLTV_);
-    }
-  }
-
   function test_tryLessThanMinAmount(uint128 min, uint128 amount) public {
     vm.assume(min > 0 && amount > 0 && amount < min);
     bytes memory encodedWithSelectorData = abi.encodeWithSelector(vault.setMinAmount.selector, min);
@@ -420,8 +392,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
       price - ((100e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
 
     //priceDrop between thresholds
-    priceDrop =
-      bound(priceDrop, priceDropThresholdToDiscountLiq + 1, priceDropThresholdToMaxLiq - 1);
+    priceDrop = bound(priceDrop, priceDropThresholdToDiscountLiq, priceDropThresholdToMaxLiq - 1250);
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 

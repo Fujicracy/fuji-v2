@@ -65,13 +65,13 @@ export const usePositions = create<PositionsStore>()(
         const totalAccrued = positions.reduce((acc, p) => {
           const accrueCollateral = getAccrual(
             p.collateral.amount * p.collateral.usdPrice,
-            p.collateral.baseAPR,
-            AssetType.Collateral
+            AssetType.Collateral,
+            p.collateral.baseAPR
           );
           const accrueDebt = getAccrual(
             p.debt.amount * p.debt.usdPrice,
-            p.debt.baseAPR,
-            AssetType.Debt
+            AssetType.Debt,
+            p.debt.baseAPR
           );
           return accrueCollateral + accrueDebt + acc;
         }, 0);

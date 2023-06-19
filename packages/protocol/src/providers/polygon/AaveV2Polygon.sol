@@ -24,7 +24,7 @@ contract AaveV2Polygon is ILendingProvider {
 
   /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "Aave_V2";
+    return "Aave_V2_Polygon";
   }
 
   /// @inheritdoc ILendingProvider

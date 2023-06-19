@@ -48,7 +48,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    showPosition(router, walletChainId, entity);
+    showPosition(router, true, entity, walletChainId);
   };
 
   return (
@@ -106,7 +106,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="130px" align="right">
-              Collateral APY
+              Supply APY
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
               <Stack direction="row" alignItems="center" justifyContent="right">
@@ -176,10 +176,9 @@ function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
   return (
     <TableRow>
       <TableCell
-        sx={{
-          height: '10rem',
-        }}
         colSpan={8}
+        align="center"
+        sx={{ m: '0', textAlign: 'center', p: 0, height: '10rem' }}
       >
         <Stack
           data-cy="market-empty-state"
@@ -187,6 +186,8 @@ function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
           justifyContent="center"
           sx={{
             width: '100%',
+            overflow: 'hidden',
+            maxWidth: '100vw',
           }}
         >
           <Typography variant="body" fontWeight={500}>

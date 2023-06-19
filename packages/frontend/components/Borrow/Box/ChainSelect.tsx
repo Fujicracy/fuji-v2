@@ -1,6 +1,6 @@
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Fade, Grid, MenuItem, Select, Stack, Typography } from '@mui/material';
-import { ChainId } from '@x-fuji/sdk';
+import { Chain, ChainId } from '@x-fuji/sdk';
 
 import { AssetType } from '../../../helpers/assets';
 import { chains } from '../../../helpers/chains';
@@ -9,9 +9,9 @@ import { NetworkIcon } from '../../Shared/Icons';
 type ChainSelectProps = {
   label: string;
   type: AssetType;
-  value: ChainId;
   disabled: boolean;
   onChange: (chainId: ChainId) => void;
+  value?: ChainId | undefined;
 };
 const ChainSelect = ({
   value,
@@ -53,39 +53,52 @@ function ChainSelectContent({
   onChange,
 }: {
   type: AssetType;
-  value: ChainId;
+  value?: ChainId;
   disabled: boolean;
   labelId: string;
   onChange: (chainId: ChainId) => void;
 }) {
   const selectId = `${type}-chain-select`;
   const menuId = `${type}-chain-menu`;
+
+  const renderItem = (chain: Chain) => (
+    <Grid container alignItems="center">
+      <NetworkIcon network={chain.name} height={18} width={18} />
+      <span style={{ marginLeft: '0.5rem' }}>
+        <Typography variant="small">{chain.name}</Typography>
+      </span>
+    </Grid>
+  );
+
   return (
     <Select
       data-cy="borrow-chain-select"
       labelId={labelId}
       id={selectId}
-      value={value}
+      value={value || ''}
+      displayEmpty={true}
       disabled={disabled}
       onChange={(e) => onChange(e.target.value as ChainId)}
       IconComponent={KeyboardArrowDownIcon}
       variant="standard"
+      renderValue={(chainId) => {
+        const chain = chains.find((c) => c.chainId === chainId);
+        if (!chain) {
+          return <Typography>Select a network</Typography>;
+        }
+        return renderItem(chain);
+      }}
       disableUnderline
       MenuProps={{ TransitionComponent: Fade, id: menuId }}
     >
       {chains.map((chain) => {
         return (
           <MenuItem
+            data-cy="borrow-chain-select-item"
             key={chain.chainId}
             value={chain.chainId}
-            data-cy="borrow-chain-select-item"
           >
-            <Grid container alignItems="center">
-              <NetworkIcon network={chain.name} height={18} width={18} />
-              <span style={{ marginLeft: '0.5rem' }}>
-                <Typography variant="small">{chain.name}</Typography>
-              </span>
-            </Grid>
+            {renderItem(chain)}
           </MenuItem>
         );
       })}

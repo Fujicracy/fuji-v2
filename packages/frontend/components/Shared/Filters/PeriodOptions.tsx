@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 
 import { TabOption } from '../../../constants';
 import { Period } from '../../../helpers/charts';
-import TabSwitch from '../TabSwitch';
+import TabSwitch from '../TabSwitch/TabSwitch';
 
 const periodOptions: TabOption[] = [
   { label: '1D', value: Period.DAY },

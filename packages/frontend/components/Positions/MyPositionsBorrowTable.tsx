@@ -8,13 +8,13 @@ import {
   TableHead,
   TableRow,
   Typography,
-  useTheme,
 } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 import { recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
+import { aprData, vaultFromEntity } from '../../helpers/markets';
 import { showPosition } from '../../helpers/navigation';
 import {
   getRows,
@@ -23,7 +23,9 @@ import {
 } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
+import { useMarkets } from '../../store/markets.store';
 import { usePositions } from '../../store/positions.store';
+import AprValue from '../Shared/AprValue';
 import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
@@ -36,11 +38,15 @@ type PositionsBorrowTableProps = {
   loading: boolean;
 };
 
+const NUMBER_OF_COLUMNS = 8;
+
 function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
-  const { palette } = useTheme();
   const router = useRouter();
+
   const account = useAuth((state) => state.address);
+  const markets = useMarkets((state) => state.rows);
   const positions = usePositions((state) => state.positions);
+
   const [rows, setRows] = useState<PositionRow[]>([]);
 
   useEffect(() => {
@@ -53,7 +59,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   if (!account) {
     return (
       <MyPositionsBorrowTableContainer>
-        <EmptyState reason="no-wallet" />
+        <EmptyState reason="no-wallet" columnsCount={NUMBER_OF_COLUMNS} />
       </MyPositionsBorrowTableContainer>
     );
   }
@@ -61,7 +67,7 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
     return (
       <MyPositionsBorrowTableContainer>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(8).fill('').map((_, index) => (
+          {new Array(NUMBER_OF_COLUMNS).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
@@ -73,109 +79,125 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
 
   function handleClick(row: PositionRow) {
     const entity = vaultFromAddress(row.address);
-    showPosition(router, entity?.chainId, entity);
+    showPosition(router, true, entity, entity?.chainId);
   }
 
   return (
     <MyPositionsBorrowTableContainer>
       {rows.length > 0 ? (
         <>
-          {rows.map((row, i) => (
-            <TableRow
-              key={i}
-              sx={{
-                cursor: 'pointer',
-                height: '3.375rem',
-                '&:hover': {
-                  '& .MuiTableCell-root': { background: '#34363E' },
-                },
-              }}
-              onClick={() => handleClick(row)}
-            >
-              <TableCell>
-                <Stack direction="row" alignItems="center" gap="0.5rem">
-                  <NetworkIcon
-                    network={chainName(row.chainId)}
-                    width={24}
-                    height={24}
+          {rows.map((row, i) => {
+            const match = markets.find((m) => {
+              const vault = vaultFromEntity(m.entity);
+              return (
+                vault?.address.value === row.address &&
+                vault?.chainId === row.chainId
+              );
+            });
+            const apr = match
+              ? aprData(match.borrowAprBase.value, match.borrowAprReward.value)
+              : aprData(Number(row.apr));
+            return (
+              <TableRow
+                key={i}
+                sx={{
+                  cursor: 'pointer',
+                  height: '3.375rem',
+                  '&:hover': {
+                    '& .MuiTableCell-root': { background: '#34363E' },
+                  },
+                }}
+                onClick={() => handleClick(row)}
+              >
+                <TableCell>
+                  <Stack direction="row" alignItems="center" gap="0.5rem">
+                    <NetworkIcon
+                      network={chainName(row.chainId)}
+                      width={24}
+                      height={24}
+                    />
+                    {chainName(row.chainId)}
+                  </Stack>
+                </TableCell>
+                <TableCell>
+                  <Stack direction="row" alignItems="center">
+                    <CurrencyIcon
+                      currency={row.debt.symbol}
+                      width={24}
+                      height={24}
+                    />
+                    <Typography variant="small" fontWeight={500} ml="0.5rem">
+                      {formatValue(row.debt.amount)} {row.debt.symbol}
+                    </Typography>
+                    <Typography variant="xsmall" ml="0.25rem">
+                      (
+                      {formatValue(row.debt.usdValue, {
+                        style: 'currency',
+                        minimumFractionDigits: 2,
+                      })}
+                      )
+                    </Typography>
+                  </Stack>
+                </TableCell>
+                <TableCell>
+                  <Stack direction="row" alignItems="center">
+                    <CurrencyIcon
+                      currency={row.collateral.symbol}
+                      width={24}
+                      height={24}
+                    />
+                    <Typography variant="small" fontWeight={500} ml="0.5rem">
+                      {formatValue(row.collateral.amount)}{' '}
+                      {row.collateral.symbol}
+                    </Typography>
+                    <Typography variant="xsmall" ml="0.25rem">
+                      (
+                      {formatValue(row.collateral.usdValue, {
+                        style: 'currency',
+                        maximumFractionDigits: 2,
+                      })}
+                      )
+                    </Typography>
+                  </Stack>
+                </TableCell>
+                <TableCell align="right">
+                  <AprValue
+                    base={apr.base || 0}
+                    reward={apr.reward}
+                    positive={apr.positive}
+                    providerName={row.activeProvidersNames[0]}
                   />
-                  {chainName(row.chainId)}
-                </Stack>
-              </TableCell>
-              <TableCell>
-                <Stack direction="row" alignItems="center">
-                  <CurrencyIcon
-                    currency={row.debt.symbol}
-                    width={24}
-                    height={24}
+                </TableCell>
+                <TableCell align="right">
+                  <IntegratedProviders
+                    providers={{
+                      status: 0,
+                      value: row.activeProvidersNames || [],
+                    }}
                   />
-                  <Typography variant="small" fontWeight={500} ml="0.5rem">
-                    {formatValue(row.debt.amount)} {row.debt.symbol}
-                  </Typography>
-                  <Typography variant="xsmall" ml="0.25rem">
-                    (
-                    {formatValue(row.debt.usdValue, {
-                      style: 'currency',
-                      minimumFractionDigits: 2,
-                    })}
-                    )
-                  </Typography>
-                </Stack>
-              </TableCell>
-              <TableCell>
-                <Stack direction="row" alignItems="center">
-                  <CurrencyIcon
-                    currency={row.collateral.symbol}
-                    width={24}
-                    height={24}
-                  />
-                  <Typography variant="small" fontWeight={500} ml="0.5rem">
-                    {formatValue(row.collateral.amount)} {row.collateral.symbol}
-                  </Typography>
-                  <Typography variant="xsmall" ml="0.25rem">
-                    (
-                    {formatValue(row.collateral.usdValue, {
-                      style: 'currency',
-                      maximumFractionDigits: 2,
-                    })}
-                    )
-                  </Typography>
-                </Stack>
-              </TableCell>
-              <TableCell align="center">
-                <Typography variant="small" color={palette.warning.main}>
-                  {row.apr}%
-                </Typography>
-              </TableCell>
-              <TableCell align="right">
-                <IntegratedProviders
-                  providers={{
-                    status: 0,
-                    value: row.activeProvidersNames || [],
-                  }}
+                </TableCell>
+                <TableCell align="right">
+                  <SafetyRating rating={row.safetyRating} />
+                </TableCell>
+                <TableCell align="right">
+                  {formatValue(row.oraclePrice, {
+                    style: 'currency',
+                    minimumFractionDigits: 0,
+                  })}
+                </TableCell>
+                <LiquidationBox
+                  liquidationPrice={row.liquidationPrice}
+                  percentPriceDiff={row.percentPriceDiff}
+                  ltv={row.ltv}
+                  recommendedLtv={recommendedLTV(row.ltvMax)}
                 />
-              </TableCell>
-              <TableCell align="center">
-                <SafetyRating rating={row.safetyRating} />
-              </TableCell>
-              <TableCell align="center">
-                {formatValue(row.oraclePrice, {
-                  style: 'currency',
-                  minimumFractionDigits: 0,
-                })}
-              </TableCell>
-              <LiquidationBox
-                liquidationPrice={row.liquidationPrice}
-                percentPriceDiff={row.percentPriceDiff}
-                ltv={row.ltv}
-                recommendedLtv={recommendedLTV(row.ltvMax)}
-              />
-            </TableRow>
-          ))}
+              </TableRow>
+            );
+          })}
           <ExtraTableSpace colSpan={7} itemLength={rows.length} max={5} />
         </>
       ) : (
-        <EmptyState reason="no-positions" />
+        <EmptyState reason="no-positions" columnsCount={NUMBER_OF_COLUMNS} />
       )}
     </MyPositionsBorrowTableContainer>
   );
