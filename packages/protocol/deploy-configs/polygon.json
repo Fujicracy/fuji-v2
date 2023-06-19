@@ -7,6 +7,7 @@
   "MATICX": "0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6",
   "ConnextCore": "0x11984dc4465481512eb5b777E44061C158CF2259",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  "FujiRelayer": "0xdaa792add8a6c6c12ad0e7c7afa88c50ee291811",
   "price-feeds": [
     {
       "asset": "WBTC",

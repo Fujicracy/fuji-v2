@@ -7,6 +7,7 @@
   "WSTETH": "0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb",
   "ConnextCore": "0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  "FujiRelayer": "0x5c118479d6d1740f4c1026e920a3a1188a412ee4",
   "price-feeds": [
     {
       "asset": "WBTC",
