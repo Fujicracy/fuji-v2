@@ -314,8 +314,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       minCollateralAmount = vault_.minAmount();
     }
 
-    // Multiply by two to ensure a healthier ltv.
-    return 2 * minCollateralAmount;
+    return minCollateralAmount;
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {
