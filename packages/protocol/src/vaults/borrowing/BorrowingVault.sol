@@ -910,10 +910,11 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - Must be called from a timelock.
    * - Must be at least 1% (1e16).
-   * - Must be less than 100% (1e18)
+   * - Must be less than 100% (1e18).
+   * - Must be less than `liqRation`.
    */
   function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
-    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18) {
+    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18 || maxLtv_ >= liqRatio) {
       revert BaseVault__setter_invalidInput();
     }
     maxLtv = maxLtv_;
