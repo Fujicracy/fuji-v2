@@ -1,4 +1,5 @@
 import {
+  BorrowingVault,
   ChainId,
   ConnextTxStatus,
   FujiError,
@@ -15,6 +16,7 @@ import {
   TX_WATCHING_POLLING_INTERVAL,
 } from '../constants';
 import { chainName } from '../helpers/chains';
+import { sendToSentry } from '../helpers/errors';
 import {
   chainCompleted,
   HistoryEntry,
@@ -35,7 +37,6 @@ import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { usePositions } from './positions.store';
-import { sendToSentry } from '../helpers/errors';
 
 export type HistoryStore = HistoryState & HistoryActions;
 
@@ -54,7 +55,7 @@ type HistoryActions = {
   add: (
     hash: string,
     address: string,
-    vaultAddress: string,
+    vault: BorrowingVault,
     steps: RoutingStepDetails[]
   ) => void;
   update: (hash: string, patch: Partial<HistoryEntry>) => void;
@@ -85,7 +86,7 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        async add(hash, address, vaultAddress, steps) {
+        async add(hash, address, vault, steps) {
           const distinctChains = steps
             .map((s) => s.chainId)
             .reduce((acc: ChainId[], current: ChainId, i: number) => {
@@ -119,7 +120,8 @@ export const useHistory = create<HistoryStore>()(
             : undefined;
 
           const entry: HistoryEntry = {
-            vaultAddress,
+            vaultAddress: vault.address.value,
+            vaultChainId: vault.chainId,
             hash,
             address,
             sourceChain,

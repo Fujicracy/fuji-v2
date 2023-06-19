@@ -1,14 +1,9 @@
-import {
-  ChainId,
-  FujiError,
-  RoutingStep,
-  RoutingStepDetails,
-} from '@x-fuji/sdk';
+import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import { BigNumber } from 'ethers';
 
 import { useBorrow } from '../store/borrow.store';
 import { AssetType } from './assets';
 import { updateNativeBalance } from './balances';
-import { BigNumber } from 'ethers';
 
 export type HistoryTransaction = {
   address: string;
@@ -54,6 +49,7 @@ export type HistoryEntry = {
   status: HistoryEntryStatus;
   connext?: HistoryEntryConnext;
   vaultAddress?: string;
+  vaultChainId?: ChainId;
   sourceChain: HistoryEntryChain;
   chainCount: number;
   secondChain?: HistoryEntryChain;
