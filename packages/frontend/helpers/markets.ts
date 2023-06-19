@@ -359,6 +359,7 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
     const entries = rows.filter((r) => r.chain.value === row.chain.value);
     if (entries.length > 1) {
       const sorted = entries.sort(sortBy.descending);
+
       const children = sorted.map((r) => ({
         ...r,
         isChild: true,
@@ -374,13 +375,13 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
 
 const sortBy: Record<SortBy, CompareFn> = {
   ascending: (a, b) =>
-    a.borrowApr.value - a.borrowAprReward.value <
-    b.borrowApr.value - b.borrowAprReward.value
+    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) <
+    b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
       ? 1
       : -1,
   descending: (a, b) =>
-    a.borrowApr.value - a.borrowAprReward.value >
-    b.borrowApr.value - b.borrowAprReward.value
+    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) >
+    b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
       ? 1
       : -1,
 };

@@ -61,11 +61,13 @@ export class Sdk {
    */
   private _configParams: ChainConfig;
 
-  constructor(config: ChainConfig) {
+  constructor(config: ChainConfig, chainType: ChainType = ChainType.MAINNET) {
     this.previews = new Previews();
     this._configParams = config;
 
-    Object.values(CHAIN).forEach((c) => c.setConnection(this._configParams));
+    Object.values(CHAIN)
+      .filter((c) => c.chainType === chainType && c.isDeployed)
+      .forEach((c) => c.setConnection(this._configParams));
   }
 
   /**

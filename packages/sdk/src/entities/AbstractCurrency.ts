@@ -1,6 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 import { AddressZero } from '@ethersproject/constants';
-import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
+import { JsonRpcProvider } from '@ethersproject/providers';
 import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
@@ -65,11 +65,6 @@ export abstract class AbstractCurrency {
    * The RPC provider for the specific chain
    */
   rpcProvider?: JsonRpcProvider;
-
-  /**
-   * The RPC provider for the specific chain
-   */
-  wssProvider?: WebSocketProvider;
 
   /**
    * The multicall RPC provider for the specific chain
@@ -188,7 +183,6 @@ export abstract class AbstractCurrency {
       .connection as ChainConnectionDetails;
 
     this.rpcProvider = connection.rpcProvider;
-    this.wssProvider = connection.wssProvider;
     this.multicallRpcProvider = connection.multicallRpcProvider;
 
     return this;

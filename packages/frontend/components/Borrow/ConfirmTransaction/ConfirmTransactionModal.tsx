@@ -252,13 +252,16 @@ export function ConfirmTransactionModal({
           }
         />
 
-        {dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5 && (
+        {/*I did this (check) just to exclude weird error we got before*/}
+        {dynamicLtvMeta.ltv !== undefined &&
+        dynamicLtvMeta.ltvMax !== undefined &&
+        dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5 ? (
           <Box mt="1rem">
             <WarningInfo text="Warning: Your Loan-to-Value ratio is very close to the maximum allowed. Your position risks being liquidated if the price of the collateral changes." />
           </Box>
-        )}
+        ) : null}
 
-        {isCrossChain && isEstimatedSlippageBiggerThanSelected && (
+        {isCrossChain && isEstimatedSlippageBiggerThanSelected ? (
           <Box mt="1rem">
             <WarningInfo
               text={
@@ -280,7 +283,7 @@ export function ConfirmTransactionModal({
               }
             />
           </Box>
-        )}
+        ) : null}
 
         <Button
           variant="gradient"

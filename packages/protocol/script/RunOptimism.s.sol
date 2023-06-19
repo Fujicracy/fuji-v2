@@ -3,8 +3,6 @@ pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
 import {ScriptPlus} from "./ScriptPlus.sol";
-import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
-import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {AaveV3Optimism} from "../src/providers/optimism/AaveV3Optimism.sol";
 import {DForceOptimism} from "../src/providers/optimism/DForceOptimism.sol";
 import {WePiggyOptimism} from "../src/providers/optimism/WePiggyOptimism.sol";
@@ -26,6 +24,8 @@ contract RunOptimism is ScriptPlus {
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory2(false, false);
     setOrDeployAddrMapper(false);
+    setOrDeployFlasherBalancer(false);
+    setOrDeployRebalancer(false);
 
     _setLendingProviders();
 
@@ -35,8 +35,8 @@ contract RunOptimism is ScriptPlus {
       initBorrowingVaults2();
     }
 
-    /*_setVaultNewProviders("BorrowingVault-WETHUSDC-2");*/
-    /*_setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
+    /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
+    /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
     // If setting all routers at once, call after deploying all chians
     /*setRouters();*/
@@ -56,22 +56,5 @@ contract RunOptimism is ScriptPlus {
     wePiggy = WePiggyOptimism(getAddress("We_Piggy_Optimism"));
     /*wePiggy = new WePiggyOptimism();*/
     /*saveAddress("We_Piggy_Optimism", address(wePiggy));*/
-  }
-
-  function _setVaultNewProviders(string memory vaultName) internal {
-    BorrowingVault vault = BorrowingVault(payable(getAddress(vaultName)));
-
-    ILendingProvider[] memory providers = new ILendingProvider[](3);
-    providers[0] = aaveV3;
-    providers[1] = wePiggy;
-    providers[2] = dforce;
-    bytes memory callData = abi.encodeWithSelector(vault.setProviders.selector, providers);
-    callWithTimelock(address(vault), callData);
-  }
-
-  function _setVaultNewRating(string memory vaultName, uint256 rating) internal {
-    bytes memory callData =
-      abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
-    callWithTimelock(address(chief), callData);
   }
 }

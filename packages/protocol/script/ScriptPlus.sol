@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
 
+import {ScriptUtilities} from "./ScriptUtilities.s.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -12,6 +13,7 @@ import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
+import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVaultFactory2} from "../src/vaults/borrowing/BorrowingVaultFactory2.sol";
 import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
@@ -20,8 +22,11 @@ import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
+import {CoreRoles} from "../src/access/CoreRoles.sol";
+import {RebalancerManager} from "../src/RebalancerManager.sol";
+import {FlasherBalancer} from "../src/flashloans/FlasherBalancer.sol";
 
-contract ScriptPlus is Script {
+contract ScriptPlus is ScriptUtilities, CoreRoles {
   struct PriceFeed {
     string asset;
     address chainlink;
@@ -56,17 +61,10 @@ contract ScriptPlus is Script {
   BorrowingVaultFactory2 factory;
   FujiOracle oracle;
   ConnextRouter connextRouter;
-
-  // https://docs.connext.network/resources/deployments
-  uint32 public constant MAINNET_DOMAIN = 6648936;
-  uint32 public constant OPTIMISM_DOMAIN = 1869640809;
-  uint32 public constant ARBITRUM_DOMAIN = 1634886255;
-  uint32 public constant POLYGON_DOMAIN = 1886350457;
-  uint32 public constant GNOSIS_DOMAIN = 6778479;
+  RebalancerManager rebalancer;
+  FlasherBalancer flasherBalancer;
 
   address deployer;
-  string configJson;
-  string chainName;
 
   address[] timelockTargets;
   bytes[] timelockDatas;
@@ -403,6 +401,79 @@ contract ScriptPlus is Script {
     callBatchWithTimelock();
   }
 
+  function setOrDeployFlasherBalancer(bool deploy) internal {
+    if (deploy) {
+      flasherBalancer = new FlasherBalancer(readAddrFromConfig("Balancer"));
+      saveAddress("FlasherBalancer", address(flasherBalancer));
+    } else {
+      flasherBalancer = FlasherBalancer(getAddress("FlasherBalancer"));
+    }
+  }
+
+  function setOrDeployRebalancer(bool deploy) internal {
+    if (deploy) {
+      rebalancer = new RebalancerManager(address(chief));
+      saveAddress("RebalancerManager", address(rebalancer));
+    } else {
+      rebalancer = RebalancerManager(getAddress("RebalancerManager"));
+    }
+
+    if (!chief.hasRole(REBALANCER_ROLE, address(rebalancer))) {
+      timelockTargets.push(address(chief));
+      timelockDatas.push(
+        abi.encodeWithSelector(chief.grantRole.selector, REBALANCER_ROLE, address(rebalancer))
+      );
+      timelockValues.push(0);
+    }
+    if (!rebalancer.allowedExecutor(deployer)) {
+      timelockTargets.push(address(rebalancer));
+      timelockDatas.push(abi.encodeWithSelector(rebalancer.allowExecutor.selector, deployer, true));
+      timelockValues.push(0);
+    }
+    if (!chief.allowedFlasher(address(flasherBalancer))) {
+      timelockTargets.push(address(chief));
+      timelockDatas.push(
+        abi.encodeWithSelector(chief.allowFlasher.selector, address(flasherBalancer), true)
+      );
+      timelockValues.push(0);
+    }
+
+    callBatchWithTimelock();
+  }
+
+  /**
+   * VAULTS MANAGEMENT ****************************
+   */
+
+  function rebalanceVault(
+    string memory vaultName,
+    ILendingProvider from,
+    ILendingProvider to
+  )
+    internal
+  {
+    address vault = getAddress(vaultName);
+
+    // leave a small amount if there's any debt left
+    uint256 assets = from.getDepositBalance(vault, IVault(vault)) - 0.001 ether;
+    uint256 debt = from.getBorrowBalance(vault, IVault(vault));
+    console.log(string.concat("Rebalancing: ", vaultName));
+    console.log(assets);
+    console.log(debt);
+
+    rebalancer.rebalanceVault(IVault(vault), assets, debt, from, to, flasherBalancer, true);
+  }
+
+  function setVaultNewRating(string memory vaultName, uint256 rating) internal {
+    bytes memory callData =
+      abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
+    callWithTimelock(address(chief), callData);
+  }
+
+  /**
+   * TIMELOCK ****************************
+   */
+
   function callWithTimelock(address target, bytes memory callData) internal {
     bytes32 hash = timelock.hashOperation(target, 0, callData, 0x00, 0x00);
 
@@ -441,135 +512,5 @@ contract ScriptPlus is Script {
     delete timelockTargets;
     delete timelockDatas;
     delete timelockValues;
-  }
-
-  /* UTILITIES */
-
-  function readAddrFromConfig(string memory key) internal returns (address) {
-    return vm.parseJsonAddress(configJson, string.concat(".", key));
-  }
-
-  function saveAddress(string memory contractName, address addr) internal {
-    require(bytes(chainName).length != 0, "Set 'chainName' in setUp()");
-
-    string memory path = string.concat("deployments/", chainName, "/", contractName);
-
-    _saveAddress(path, addr);
-  }
-
-  function _saveAddress(string memory path, address addr) internal {
-    try vm.removeFile(path) {}
-    catch {
-      console.log(string(abi.encodePacked("Creating a new record at ", path)));
-    }
-    vm.writeLine(path, vm.toString(addr));
-  }
-
-  function getAddress(string memory contractName) internal view returns (address addr) {
-    require(bytes(chainName).length != 0, "Set 'chainName' in setUp()");
-
-    addr = _getAddress(string.concat("deployments/", chainName, "/", contractName));
-  }
-
-  function getAddressAt(
-    string memory contractName,
-    string memory _chainName
-  )
-    internal
-    view
-    returns (address addr)
-  {
-    addr = _getAddress(string.concat("deployments/", _chainName, "/", contractName));
-  }
-
-  function _getAddress(string memory path) internal view returns (address addr) {
-    string memory content = vm.readFile(path);
-    addr = vm.parseAddress(content);
-  }
-
-  function getPrivKey() internal view returns (uint256 key) {
-    bytes32 k = vm.envBytes32("PRIVATE_KEY");
-    key = uint256(k);
-  }
-
-  function saveSig(string memory sigName, uint256 deadline, uint8 v, bytes32 r, bytes32 s) internal {
-    require(bytes(chainName).length != 0, "Set 'chainName' in setUp()");
-
-    string memory path = string(abi.encodePacked(".local/", chainName, "/sig_", sigName));
-
-    string memory deadline_path = string(abi.encodePacked(path, "_deadline"));
-    try vm.removeFile(deadline_path) {} catch {}
-    vm.writeLine(deadline_path, vm.toString(deadline));
-
-    string memory v_path = string(abi.encodePacked(path, "_v"));
-    try vm.removeFile(v_path) {} catch {}
-    vm.writeLine(v_path, vm.toString(v));
-
-    string memory r_path = string(abi.encodePacked(path, "_r"));
-    try vm.removeFile(r_path) {} catch {}
-    vm.writeLine(r_path, vm.toString(uint256(r)));
-
-    string memory s_path = string(abi.encodePacked(path, "_s"));
-    try vm.removeFile(s_path) {} catch {}
-    vm.writeLine(s_path, vm.toString(uint256(s)));
-  }
-
-  function getSigAt(
-    string memory sigName,
-    string memory _chainName
-  )
-    internal
-    view
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-  {
-    string memory path = string(abi.encodePacked(".local/", _chainName, "/sig_", sigName));
-
-    string memory deadline_path = string(abi.encodePacked(path, "_deadline"));
-    string memory v_path = string(abi.encodePacked(path, "_v"));
-    string memory r_path = string(abi.encodePacked(path, "_r"));
-    string memory s_path = string(abi.encodePacked(path, "_s"));
-
-    string memory _deadline = vm.readLine(deadline_path);
-    string memory _v = vm.readLine(v_path);
-    string memory _r = vm.readLine(r_path);
-    string memory _s = vm.readLine(s_path);
-
-    deadline = strToUint(_deadline);
-    v = uint8(strToUint(_v));
-    r = bytes32(strToUint(_r));
-    s = bytes32(strToUint(_s));
-  }
-
-  function getDomainByChainName(string memory name) internal pure returns (uint32 domain) {
-    if (areEq(name, "gnosis")) {
-      domain = GNOSIS_DOMAIN;
-    } else if (areEq(name, "polygon")) {
-      domain = POLYGON_DOMAIN;
-    } else if (areEq(name, "optimism")) {
-      domain = OPTIMISM_DOMAIN;
-    } else if (areEq(name, "arbitrum")) {
-      domain = ARBITRUM_DOMAIN;
-    } else {
-      revert("Unsupported chain!");
-    }
-  }
-
-  function strToUint(string memory _str) public pure returns (uint256 res) {
-    for (uint256 i = 0; i < bytes(_str).length; i++) {
-      if ((uint8(bytes(_str)[i]) - 48) < 0 || (uint8(bytes(_str)[i]) - 48) > 9) {
-        return 0;
-      }
-      res += (uint8(bytes(_str)[i]) - 48) * 10 ** (bytes(_str).length - i - 1);
-    }
-
-    return res;
-  }
-
-  function areEq(string memory a, string memory b) internal pure returns (bool) {
-    if (bytes(a).length != bytes(b).length) {
-      return false;
-    } else {
-      return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
-    }
   }
 }

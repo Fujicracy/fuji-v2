@@ -1,6 +1,6 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
+import { JsonRpcProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
@@ -161,11 +161,6 @@ export class BorrowingVault {
   rpcProvider?: JsonRpcProvider;
 
   /**
-   * The RPC provider for the specific chain
-   */
-  wssProvider?: WebSocketProvider;
-
-  /**
    * The multicall RPC provider for the specific chain
    */
   multicallRpcProvider?: IMulticallProvider;
@@ -193,7 +188,6 @@ export class BorrowingVault {
       .connection as ChainConnectionDetails;
 
     this.rpcProvider = connection.rpcProvider;
-    this.wssProvider = connection.wssProvider;
     this.multicallRpcProvider = connection.multicallRpcProvider;
 
     this.contract = BorrowingVault__factory.connect(

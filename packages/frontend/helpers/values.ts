@@ -8,11 +8,11 @@ export const validAmount = (
   decimals: number
 ): string => {
   const value = typeof amount === 'number' ? amount.toString() : amount;
-  if (value.indexOf('.') === -1) return value;
+  if (value.indexOf('.') === -1) return value.replace('-', '');
 
   const arr = value.split('.');
   const fraction = arr[1].substring(0, decimals);
-  return arr[0] + '.' + fraction;
+  return arr[0].replace('-', '') + '.' + fraction;
 };
 
 export const validBigNumberAmount = (
