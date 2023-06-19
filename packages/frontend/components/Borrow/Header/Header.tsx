@@ -73,6 +73,7 @@ function BorrowHeader({
             isCrossChainOperation={isCrossChainOperation}
             chainName={chainName}
             tooltipMessage={networkMessage}
+            defaultOpen={true}
           />
         </Stack>
       ) : (
@@ -88,6 +89,7 @@ function BorrowHeader({
           <HeaderInfo
             isCrossChainOperation={isCrossChainOperation}
             chainName={chainName}
+            tooltipMessage="The network where you deposit to and borrow from"
           />
         </Stack>
       )}
