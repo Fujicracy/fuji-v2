@@ -25,6 +25,7 @@ import { useRouter } from 'next/router';
 import React, { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
+import { userHasFundsInVault } from '../../helpers/borrow';
 import {
   connextLinksForEntry,
   HistoryEntry,
@@ -59,6 +60,7 @@ function TransactionModal({
 
   const activeChainId = useAuth((state) => state.chainId);
   const activeVault = useBorrow((state) => state.activeVault);
+  const availableVaults = useBorrow((state) => state.availableVaults);
   const positions = usePositions((state) => state.positions);
 
   const closeModal = useHistory((state) => state.closeModal);
@@ -105,20 +107,30 @@ function TransactionModal({
   const steps = transactionSteps(entry, connextScanLinks);
 
   const onClick = async () => {
+    // TODO: Update available vaults in order to get the latest data
     closeModal();
+    let showPositions = false;
+    // If the user is not on the my-positions/[pid] page
     if (!(currentPage === myPositionPage.path && isCurrentPosition)) {
-      // get vault
       const vault = vaultFromPosition(
         entry.vaultAddress as string,
         entry.vaultChainId
       );
-
-      if (vault) {
-        // Get vaults and check dust
+      // If the user has no funds in the vault, redirect to the my-positions page
+      if (vault && !userHasFundsInVault(vault, availableVaults)) {
         showPosition(router, true, vault, undefined);
       } else {
-        router.push(PATH.MY_POSITIONS);
+        showPositions = true;
       }
+      // Same for the active vault in case the user is on the my-positions/[pid] page and there are no longer funds after closing the position
+    } else if (
+      activeVault &&
+      !userHasFundsInVault(activeVault, availableVaults)
+    ) {
+      showPositions = true;
+    }
+    if (showPositions) {
+      router.push(PATH.MY_POSITIONS);
     }
   };
 
