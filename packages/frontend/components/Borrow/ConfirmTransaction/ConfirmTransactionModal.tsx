@@ -108,17 +108,27 @@ export function ConfirmTransactionModal({
           textAlign: 'center',
         }}
       >
-        <CloseIcon
+        <Box
+          width="2rem"
+          height="2rem"
           sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: palette.secondary.main,
+            borderRadius: '100px',
             cursor: 'pointer',
-            position: 'absolute',
-            right: '3%',
+            float: 'right',
           }}
           onClick={onClose}
-        />
-        <Typography mb="1rem" variant="h5" color={palette.text.primary}>
-          Confirm Transaction
-        </Typography>
+        >
+          <CloseIcon fontSize="small" />
+        </Box>
+        <Box mb="2rem" sx={{ textAlign: { xs: 'left', sm: 'center' } }}>
+          <Typography variant="h6" fontWeight={500}>
+            Confirm Transaction
+          </Typography>
+        </Box>
 
         {steps && steps.length > 0 && (
           <RouteBox steps={steps} isCrossChain={isCrossChain} />
