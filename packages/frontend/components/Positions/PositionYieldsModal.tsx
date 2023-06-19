@@ -42,9 +42,9 @@ export function PositionYieldsModal({
   const [estEarnings, setEstEarnings] = useState(0);
 
   useEffect(() => {
-    // if (!account || positions.length === 0) {
-    //   onClose();
-    // }
+    if (!account || positions.length === 0) {
+      onClose();
+    }
   }, [account, positions, onClose]);
 
   return (
