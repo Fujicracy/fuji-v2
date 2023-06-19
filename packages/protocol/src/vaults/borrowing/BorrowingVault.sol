@@ -929,11 +929,13 @@ contract BorrowingVault is BaseVault {
    * @dev See factor
    * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    * Restrictions:
-   * - Must be greater than 'maxLTV', and non zero.
    * - Must be called from a timelock.
+   * - Must be greater than 'maxLTV', and non zero.
+   * - Must be greater than 2% (2e16).
+   * - Must be less than 100% (1e18).
    */
   function setLiqRatio(uint256 liqRatio_) external onlyTimelock {
-    if (liqRatio_ < maxLtv || liqRatio_ == 0) {
+    if (liqRatio_ <= maxLtv || liqRatio_ < 2e16 || liqRatio_ >= 1e18) {
       revert BaseVault__setter_invalidInput();
     }
     liqRatio = liqRatio_;
