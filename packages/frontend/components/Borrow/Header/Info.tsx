@@ -43,7 +43,9 @@ function HeaderInfo({
                 width: '12rem',
               }}
             >
-              <Typography variant="small">{tooltipMessage}</Typography>
+              <Typography variant="small" fontSize="0.75rem">
+                {tooltipMessage}
+              </Typography>
             </Box>
           }
         >

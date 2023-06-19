@@ -100,7 +100,7 @@ function Vault({
             background: selected
               ? `${palette.secondary.light}`
               : isHovered
-              ? '#34363E'
+              ? '#35353B'
               : 'transparent',
             borderTop: borderStyle,
             '&:first-of-type': {
@@ -202,7 +202,7 @@ function Vault({
             background: selected
               ? `${palette.secondary.light}`
               : isHovered
-              ? '#34363E'
+              ? '#35353B'
               : 'transparent',
             borderBottom: opened ? borderStyle : 'none',
             '&:first-of-type': {
