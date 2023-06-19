@@ -1,6 +1,7 @@
 import { Palette } from '@mui/material';
 import {
   Address,
+  ChainId,
   FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
@@ -318,10 +319,14 @@ export function getEstimatedEarnings({
   );
 }
 
-export function vaultFromAddress(address?: string) {
+export function vaultFromPosition(address: string, chainId?: ChainId) {
   if (!address) return undefined;
   const positions = usePositions.getState().positions;
-  return positions.find((pos) => pos.vault?.address.value === address)?.vault;
+  return positions.find((pos) =>
+    chainId !== undefined
+      ? pos.vault?.address.value === address && pos.vault?.chainId === chainId
+      : pos.vault?.address.value === address
+  )?.vault;
 }
 
 export function liquidationColor(
