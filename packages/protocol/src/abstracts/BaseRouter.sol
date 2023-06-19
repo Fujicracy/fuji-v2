@@ -290,7 +290,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
         );
 
-        beneficiary = _getBeneficiaryFromCalldata(innerActions, innerArgs);
+        beneficiary =
+          _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(innerActions, innerArgs));
 
         // Call Flasher.
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
