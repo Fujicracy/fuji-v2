@@ -93,7 +93,7 @@ function BorrowHeader({
           />
         </Stack>
       )}
-      <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
+      <Divider sx={{ m: '0.5rem 0' }} />
       {isEditing && (
         <TabSwitch
           size="large"

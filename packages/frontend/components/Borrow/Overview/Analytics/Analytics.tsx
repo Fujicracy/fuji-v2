@@ -106,7 +106,7 @@ function Analytics() {
       sx={{
         flexDirection: 'column',
         alignItems: 'center',
-        p: '1.5rem 2rem',
+        p: '1.5rem',
         width: '100%',
         overflow: 'visible',
         mt: '2rem',

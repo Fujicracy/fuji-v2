@@ -141,13 +141,13 @@ function VaultSelect() {
           alignItems: 'start',
           p: isMobile
             ? `1rem 0.5rem ${isUnFolded ? '2.5' : '1'}rem 0.5rem`
-            : `1.5rem 1.7rem ${
+            : `1.5rem 1.5rem ${
                 filteredRoutes.length === 1
                   ? '1rem'
                   : isUnFolded
                   ? '2.5rem'
                   : '0'
-              } 1.7rem`,
+              } 1.5rem`,
           width: '100%',
           mt: '1rem',
           position: 'relative',

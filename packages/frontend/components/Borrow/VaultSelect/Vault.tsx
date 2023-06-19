@@ -184,7 +184,7 @@ function Vault({
               sx={{ p: '0 0.5rem' }}
               onClick={handleOpen}
             >
-              <Typography variant="small">
+              <Typography variant="small" fontSize="0.75rem">
                 {opened ? 'Close' : 'See Route'}
               </Typography>
             </Button>
