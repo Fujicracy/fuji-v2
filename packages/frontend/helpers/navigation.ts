@@ -58,7 +58,13 @@ export const showPosition = async (
   }
 
   const positions = usePositions.getState().positions;
-  if (positions?.some((p) => p.vault?.address.value === vault.address.value)) {
+  if (
+    positions?.some(
+      (p) =>
+        p.vault?.address.value === vault.address.value &&
+        p.vault?.chainId === vault.chainId
+    )
+  ) {
     router.push(`${PATH.MY_POSITIONS}/${vault.address.value}-${vault.chainId}`);
   } else {
     showBorrow(router, false);

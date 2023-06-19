@@ -31,10 +31,12 @@ import {
   HistoryEntryStatus,
 } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
-import { vaultFromAddress } from '../../helpers/positions';
+import { vaultFromPosition } from '../../helpers/positions';
 import { transactionSteps } from '../../helpers/transactions';
 import { useAuth } from '../../store/auth.store';
+import { useBorrow } from '../../store/borrow.store';
 import { useHistory } from '../../store/history.store';
+import { usePositions } from '../../store/positions.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import LinkIcon from '../Shared/Icons/LinkIcon';
 import { stepIcon } from '../Shared/RoutesSteps';
@@ -56,10 +58,13 @@ function TransactionModal({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const activeChainId = useAuth((state) => state.chainId);
+  const activeVault = useBorrow((state) => state.activeVault);
+  const positions = usePositions((state) => state.positions);
 
   const closeModal = useHistory((state) => state.closeModal);
 
   const [isDetailsShown, setIsDetailsShown] = useState(isHistoricalTransaction);
+  const [isCurrentPosition, setIsCurrentPosition] = useState(false);
   const [gif, setGif] = useState('');
 
   useEffect(() => {
@@ -81,6 +86,15 @@ function TransactionModal({
     }, 4000);
   }, [entry.status, isHistoricalTransaction]);
 
+  useEffect(() => {
+    const isCurrentPosition =
+      entry.vaultChainId !== undefined
+        ? activeVault?.address.value === entry.vaultAddress &&
+          activeVault?.chainId === entry.vaultChainId
+        : activeVault?.address.value === entry.vaultAddress;
+    setIsCurrentPosition(isCurrentPosition);
+  }, [positions, activeVault, currentPage, entry]);
+
   if (!entry) return <></>;
 
   const action =
@@ -91,19 +105,21 @@ function TransactionModal({
   const steps = transactionSteps(entry, connextScanLinks);
 
   const onClick = async () => {
-    // If the user is editing a position, we just need to close the modal
-    if (currentPage === myPositionPage.path) {
-      closeModal();
-      return;
-    }
-
     closeModal();
-    const vault = vaultFromAddress(entry.vaultAddress);
-    if (!vault) {
-      router.push(PATH.MY_POSITIONS);
-      return;
+    if (!(currentPage === myPositionPage.path && isCurrentPosition)) {
+      // get vault
+      const vault = vaultFromPosition(
+        entry.vaultAddress as string,
+        entry.vaultChainId
+      );
+
+      if (vault) {
+        // Get vaults and check dust
+        showPosition(router, true, vault, undefined);
+      } else {
+        router.push(PATH.MY_POSITIONS);
+      }
     }
-    showPosition(router, true, vault, undefined);
   };
 
   const handleChange = (evt: MouseEvent) => {
@@ -363,7 +379,7 @@ function TransactionModal({
               size="medium"
               onClick={onClick}
             >
-              View Position
+              {`${isCurrentPosition ? 'Close' : 'View Position'}`}
             </Button>
             {action?.token && action?.token?.chainId === activeChainId && (
               <Box textAlign="center">
