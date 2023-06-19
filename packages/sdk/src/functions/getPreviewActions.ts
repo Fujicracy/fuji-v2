@@ -276,17 +276,17 @@ function borrowOrWithdraw(
     slippage,
   } = params;
   const unwrap = tokenOut.isNative;
+  const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
 
   if (op === OperationType.ONE_CHAIN) {
     // everything happens on the same chain
+    const receiver = unwrap ? connextRouter : account;
     return [
-      _permit(action, vault, amountOut, account, account, deadline),
+      _permit(action, vault, amountOut, receiver, account, deadline),
       ..._borrowOrWithdraw(action, vault, amountOut, account, account, unwrap),
     ];
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_SRC) {
     // start from chain A, borrow on chain A and transfer to chain B
-    const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
-
     return [
       _permit(action, vault, amountOut, connextRouter, account, deadline),
       ..._borrowOrWithdraw(
@@ -309,7 +309,6 @@ function borrowOrWithdraw(
     ];
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_DEST) {
     // start from chain A and borrow/withdraw on chain B where's also the position
-    const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
     const innerActions = [
       _permit(action, vault, amountOut, connextRouter, account, deadline),
       ..._borrowOrWithdraw(
@@ -335,7 +334,6 @@ function borrowOrWithdraw(
     ];
   } else {
     // start from chain A, borrow/withdraw on chain B where's also the position and transfer to chain C
-    const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
     const innerActions = [
       _permit(action, vault, amountOut, connextRouter, account, deadline),
       ..._borrowOrWithdraw(
@@ -397,9 +395,10 @@ function depositAndBorrow(
 
   if (op === OperationType.ONE_CHAIN) {
     // everything happens on the same chain
+    const receiver = unwrap ? CONNEXT_ROUTER_ADDRESS[vault.chainId] : account;
     return [
       ..._depositOrPayback(DEPOSIT, vault, amountIn, account, account, wrap),
-      _permit(BORROW, vault, amountOut, account, account, deadline),
+      _permit(BORROW, vault, amountOut, receiver, account, deadline),
       ..._borrowOrWithdraw(BORROW, vault, amountOut, account, account, unwrap),
     ];
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_SRC) {
@@ -429,6 +428,7 @@ function depositAndBorrow(
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_DEST) {
     // transfer from chain A and deposit and borrow on chain B
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
+    const receiver = unwrap ? connextRouter : account;
     const innerActions = [
       ..._depositOrPayback(
         DEPOSIT,
@@ -438,7 +438,7 @@ function depositAndBorrow(
         connextRouter,
         false
       ),
-      _permit(BORROW, vault, amountOut, account, account, deadline),
+      _permit(BORROW, vault, amountOut, receiver, account, deadline),
       ..._borrowOrWithdraw(BORROW, vault, amountOut, account, account, unwrap),
     ];
     return [
@@ -522,9 +522,10 @@ function paybackAndWithdraw(
 
   if (op === OperationType.ONE_CHAIN) {
     // everything happens on the same chain
+    const receiver = unwrap ? CONNEXT_ROUTER_ADDRESS[vault.chainId] : account;
     return [
       ..._depositOrPayback(PAYBACK, vault, amountIn, account, account, wrap),
-      _permit(WITHDRAW, vault, amountOut, account, account, deadline),
+      _permit(WITHDRAW, vault, amountOut, receiver, account, deadline),
       ..._borrowOrWithdraw(
         WITHDRAW,
         vault,
@@ -561,6 +562,7 @@ function paybackAndWithdraw(
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_DEST) {
     // transfer from chain A and payback and withdraw on chain B
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[destChainId];
+    const receiver = unwrap ? connextRouter : account;
     const innerActions = [
       ..._depositOrPayback(
         PAYBACK,
@@ -570,7 +572,7 @@ function paybackAndWithdraw(
         connextRouter,
         false
       ),
-      _permit(WITHDRAW, vault, amountOut, account, account, deadline),
+      _permit(WITHDRAW, vault, amountOut, receiver, account, deadline),
       ..._borrowOrWithdraw(
         WITHDRAW,
         vault,
