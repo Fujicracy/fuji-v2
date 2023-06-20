@@ -947,6 +947,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     for (uint256 i = 0; i < len;) {
       if (provider == address(_providers[i])) {
         check = true;
+        break;
       }
       unchecked {
         ++i;
