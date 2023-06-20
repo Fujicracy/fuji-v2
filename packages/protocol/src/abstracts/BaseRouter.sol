@@ -68,6 +68,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_notAllowedFlasher();
   error BaseRouter__handlePermit_notPermitAction();
   error BaseRouter__safeTransferETH_transferFailed();
+  error BaseRouter__safeTransferETH_zeroAddress();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
   error BaseRouter__allowCaller_zeroAddress();
@@ -521,6 +522,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param amount amount to be transferred
    */
   function _safeTransferETH(address receiver, uint256 amount) internal {
+    if (receiver == address(0)) {
+      revert BaseRouter__safeTransferETH_zeroAddress();
+    }
     (bool success,) = receiver.call{value: amount}(new bytes(0));
     if (!success) {
       revert BaseRouter__safeTransferETH_transferFailed();

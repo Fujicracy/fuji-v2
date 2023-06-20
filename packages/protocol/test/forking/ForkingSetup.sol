@@ -323,10 +323,9 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     uint256 minCollateralAmount =
       (debt * 1e18 * 10 ** vault_.decimals()) / (vault_.maxLtv() * price) + 1;
     if (minCollateralAmount < vault_.minAmount()) {
-      return vault_.minAmount();
+      minCollateralAmount = vault_.minAmount();
     }
 
-    // Multiply by two to ensure a healthier ltv.
     return minCollateralAmount;
   }
 
