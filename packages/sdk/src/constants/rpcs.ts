@@ -32,7 +32,7 @@ export const INFURA_RPC_URL: Record<ChainId, (id: string) => string> = {
     `https://polygon-mumbai.infura.io/v3/${id}`,
   [ChainId.OPTIMISM_GOERLI]: (id: string) =>
     `https://optimism-goerli.infura.io/v3/${id}`,
-  [ChainId.GNOSIS]: (_: string) => `https://rpc.gnosischainn.com/`,
+  [ChainId.GNOSIS]: (_: string) => `https://rpc.gnosischain.com/`,
 };
 
 export const INFURA_WSS_URL: Record<ChainId, (id: string) => string | null> = {
