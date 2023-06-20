@@ -107,7 +107,6 @@ function TransactionModal({
   const steps = transactionSteps(entry, connextScanLinks);
 
   const onClick = async () => {
-    // TODO: Update available vaults in order to get the latest data
     closeModal();
     let showPositions = false;
     // If the user is not on the my-positions/[pid] page
@@ -116,6 +115,9 @@ function TransactionModal({
         entry.vaultAddress as string,
         entry.vaultChainId
       );
+
+      // We might have to fetch available vaults in order to get the latest data
+
       // If the user has no funds in the vault, redirect to the my-positions page
       if (vault && !userHasFundsInVault(vault, availableVaults)) {
         showPosition(router, true, vault, undefined);
