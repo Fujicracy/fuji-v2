@@ -9,6 +9,7 @@ import { NextRouter } from 'next/router';
 import { NAVIGATION_TASK_DELAY, PATH } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
+import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
 import { vaultFromEntity } from './markets';
@@ -72,6 +73,10 @@ export const showBorrow = async (router: NextRouter, override = true) => {
     .changeBorrowPageShouldReset(override, !override ? true : undefined);
   router.push(PATH.BORROW);
 };
+
+export const shouldShowStoreNotification = (type: 'markets' | 'positions') =>
+  useNavigation.getState().currentPath ===
+  (type === 'markets' ? PATH.MARKETS : PATH.MARKETS);
 
 export type BorrowPageNavigation = {
   shouldReset: boolean;

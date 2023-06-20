@@ -24,6 +24,7 @@ import { isTopLevelUrl, navigationalTaskDelay } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
 import { useHistory } from '../store/history.store';
+import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { theme } from '../styles/theme';
 
@@ -42,6 +43,8 @@ function MyApp({ Component, pageProps }: AppProps) {
   const entries = useHistory((state) => state.entries);
   const watchAll = useHistory((state) => state.watchAll);
   const closeModal = useHistory((state) => state.closeModal);
+
+  const changePath = useNavigation((state) => state.changePath);
 
   const changeShouldPageReset = useBorrow(
     (state) => state.changeBorrowPageShouldReset
@@ -114,6 +117,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       } else {
         navigationalTaskDelay(() => changeShouldPageReset(true));
       }
+      changePath(url);
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {

@@ -8,7 +8,6 @@ import {
 } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 
-import { NOTIFICATION_MESSAGES } from '../constants';
 import { useBorrow } from '../store/borrow.store';
 import { AssetMeta, Position } from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
@@ -17,7 +16,8 @@ import {
   getAllBorrowingVaultFinancials,
   vaultsFromFinancialsOrError,
 } from './borrow';
-import { notify } from './notifications';
+import { shouldShowStoreNotification } from './navigation';
+import { showOnchainErrorNotification } from './notifications';
 import { bigToFloat, formatNumber } from './values';
 
 export type BasePosition = {
@@ -31,7 +31,6 @@ export const getTotalSum = (
 ): number => {
   return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0);
 };
-
 export const getPositionsWithBalance = async (
   addr: string
 ): FujiResultPromise<Position[]> => {
@@ -44,10 +43,8 @@ export const getPositionsWithBalance = async (
   if (errors.length > 0) {
     const firstError = errors[0] as FujiError;
     if (allVaults.length > 0) {
-      notify({
-        type: 'error',
-        message: NOTIFICATION_MESSAGES.POSITIONS_FAILURE,
-      });
+      if (shouldShowStoreNotification('positions'))
+        showOnchainErrorNotification(firstError);
     } else {
       return new FujiResultError(
         firstError.message,

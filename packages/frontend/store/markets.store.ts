@@ -2,7 +2,6 @@ import { Address, BorrowingVault, FujiError } from '@x-fuji/sdk';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { NOTIFICATION_MESSAGES } from '../constants';
 import {
   FinancialsOrError,
   getAllBorrowingVaultFinancials,
@@ -16,7 +15,8 @@ import {
   setFinancials,
   setLlamas,
 } from '../helpers/markets';
-import { notify } from '../helpers/notifications';
+import { shouldShowStoreNotification } from '../helpers/navigation';
+import { notify, showOnchainErrorNotification } from '../helpers/notifications';
 import { storeOptions } from '../helpers/stores';
 import { sdk } from '../services/sdk';
 
@@ -58,14 +58,16 @@ export const useMarkets = create<MarketsStore>()(
         const result = await getAllBorrowingVaultFinancials(
           address ? Address.from(address) : undefined
         );
-        const errors = result.data.filter((d) => d instanceof FujiError);
+        const errors: FujiError[] = result.data.filter(
+          (d) => d instanceof FujiError
+        ) as FujiError[];
         const allVaults = vaultsFromFinancialsOrError(result.data);
-        if (errors.length > 0) {
-          notify({
-            type: 'error',
-            message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
+        if (shouldShowStoreNotification('markets')) {
+          errors.forEach((error) => {
+            showOnchainErrorNotification(error);
           });
         }
+
         if (allVaults.length === 0) {
           const rows = rowsBase
             .map((r) => setFinancials(r, MarketRowStatus.Error))
