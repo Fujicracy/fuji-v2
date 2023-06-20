@@ -8,9 +8,9 @@ import {
 import { NextPage } from 'next';
 import Head from 'next/head';
 
+import Lending from '../components/Lending/Lending';
 import Footer from '../components/Shared/Footer';
 import Header from '../components/Shared/Header/Header';
-import Lending from '../components/Shared/Lending';
 
 const LendingPage: NextPage = () => {
   const { breakpoints } = useTheme();

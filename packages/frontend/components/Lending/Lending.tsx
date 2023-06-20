@@ -6,13 +6,15 @@ import React, { useState } from 'react';
 import { PATH } from '../../constants';
 import { BasePosition, viewDynamicPosition } from '../../helpers/positions';
 import { useBorrow } from '../../store/borrow.store';
-import LendingDetails from '../Lending/LendingDetails';
-import LendingForm from '../Lending/LendingForm';
+import InfoBlock from '../Shared/Analytics/InfoBlock';
+import LendingDetails from './LendingDetails';
+import LendingForm from './LendingForm';
 
 function Lending() {
   const { palette } = useTheme();
   const router = useRouter();
   const formType = useBorrow((state) => state.formType);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const isEditing = formType !== 'create';
 
@@ -50,6 +52,24 @@ function Lending() {
           <LendingDetails />
         </Grid>
         <Grid item xs={12} md={4.5} order={{ xs: 1, md: 2 }}>
+          <Grid container spacing={2} mb={2}>
+            <Grid item xs={12} sm={6}>
+              <InfoBlock
+                label="My Deposits"
+                value={'0'}
+                loading={loading}
+                contrast
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <InfoBlock
+                label="Rewards"
+                value={'0'}
+                loading={loading}
+                contrast
+              />
+            </Grid>
+          </Grid>
           <LendingForm isEditing={false} basePosition={basePosition} />
         </Grid>
       </Grid>
