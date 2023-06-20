@@ -68,7 +68,7 @@ export const showPosition = async (
 
 export const showBorrow = async (router: NextRouter, override = true) => {
   // I'm not exactly thrilled about this solution, but it works for now
-  useBorrow
+  useNavigation
     .getState()
     .changeBorrowPageShouldReset(override, !override ? true : undefined);
   router.push(PATH.BORROW);
@@ -80,7 +80,7 @@ export const shouldShowStoreNotification = (type: 'markets' | 'positions') =>
 
 export type BorrowPageNavigation = {
   shouldReset: boolean;
-  willLoadBorrow: boolean;
+  willLoad: boolean;
   lock: boolean;
 };
 

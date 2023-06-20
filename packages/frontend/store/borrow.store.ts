@@ -48,10 +48,6 @@ import { isSupported, testChains } from '../helpers/chains';
 import { isBridgeable } from '../helpers/currencies';
 import { handleTransactionError } from '../helpers/errors';
 import {
-  BorrowPageNavigation,
-  navigationalRunAndResetWithDelay,
-} from '../helpers/navigation';
-import {
   dismiss,
   getTransactionLink,
   NotificationDuration,
@@ -100,8 +96,6 @@ type BorrowState = {
   actions?: RouterActionParams[];
 
   isExecuting: boolean;
-
-  borrowingNavigation: BorrowPageNavigation;
 };
 
 type BorrowActions = {
@@ -151,9 +145,6 @@ type BorrowActions = {
   sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
-
-  changeBorrowPageShouldReset: (reset: boolean, lock?: boolean) => void;
-  changeBorrowPageWillLoadBorrow: (willLoadBorrow: boolean) => void;
 };
 
 type BorrowStore = BorrowState & BorrowActions;
@@ -198,12 +189,6 @@ const initialState: BorrowState = {
   needsSignature: true,
   isSigning: false,
   isExecuting: false,
-
-  borrowingNavigation: {
-    shouldReset: true,
-    willLoadBorrow: false,
-    lock: false,
-  },
 };
 
 export const useBorrow = create<BorrowStore>()(
@@ -968,34 +953,6 @@ export const useBorrow = create<BorrowStore>()(
 
             get().changeInputValues('', '');
           }
-        },
-
-        changeBorrowPageShouldReset(shouldReset, lock) {
-          if (get().borrowingNavigation.lock) return;
-          if (lock !== undefined) {
-            navigationalRunAndResetWithDelay((newValue: boolean) => {
-              set(
-                produce((state: BorrowState) => {
-                  state.borrowingNavigation.lock = newValue;
-                })
-              );
-            }, lock);
-          }
-          set(
-            produce((state: BorrowState) => {
-              state.borrowingNavigation.shouldReset = shouldReset;
-            })
-          );
-        },
-
-        changeBorrowPageWillLoadBorrow(willLoadBorrow) {
-          navigationalRunAndResetWithDelay((newValue: boolean) => {
-            set(
-              produce((state: BorrowState) => {
-                state.borrowingNavigation.willLoadBorrow = newValue;
-              })
-            );
-          }, willLoadBorrow);
         },
       }),
       storeOptions('borrow')

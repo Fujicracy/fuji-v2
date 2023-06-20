@@ -23,6 +23,7 @@ import {
 import { useAuth } from '../../store/auth.store';
 import { FormType, useBorrow } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
+import { useNavigation } from '../../store/navigation.store';
 import { usePositions } from '../../store/positions.store';
 import Footer from '../App/Footer';
 import Overview from './Overview/Overview';
@@ -48,9 +49,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const baseDebt = useBorrow((state) => state.debt);
   const baseLtv = useBorrow((state) => state.ltv);
   const mode = useBorrow((state) => state.mode);
-  const willLoadBorrow = useBorrow(
-    (state) => state.borrowingNavigation.willLoadBorrow
-  );
+  const willLoadBorrow = useNavigation((state) => state.borrowPage.willLoad);
 
   const isEditing = formType !== FormType.Create;
 
