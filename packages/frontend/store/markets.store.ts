@@ -1,9 +1,13 @@
-import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { Address, BorrowingVault, FujiError } from '@x-fuji/sdk';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { NOTIFICATION_MESSAGES } from '../constants';
-import { getAllBorrowingVaultFinancials } from '../helpers/borrow';
+import {
+  FinancialsOrError,
+  getAllBorrowingVaultFinancials,
+  vaultsFromFinancialsOrError,
+} from '../helpers/borrow';
 import {
   MarketRow,
   MarketRowStatus,
@@ -19,7 +23,7 @@ import { sdk } from '../services/sdk';
 type MarketsState = {
   rows: MarketRow[];
   vaults: BorrowingVault[];
-  vaultsWithFinancials: VaultWithFinancials[];
+  vaultsWithFinancials: FinancialsOrError[];
   loading: boolean;
 };
 
@@ -54,14 +58,15 @@ export const useMarkets = create<MarketsStore>()(
         const result = await getAllBorrowingVaultFinancials(
           address ? Address.from(address) : undefined
         );
-
-        if (result.errors.length > 0) {
+        const errors = result.data.filter((d) => d instanceof FujiError);
+        const allVaults = vaultsFromFinancialsOrError(result.data);
+        if (errors.length > 0) {
           notify({
             type: 'error',
             message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
           });
         }
-        if (result.data.length === 0) {
+        if (allVaults.length === 0) {
           const rows = rowsBase
             .map((r) => setFinancials(r, MarketRowStatus.Error))
             .map((r) => setLlamas(r, MarketRowStatus.Error));
@@ -69,16 +74,27 @@ export const useMarkets = create<MarketsStore>()(
         }
 
         const vaultsWithFinancials = result.data;
-        const rowsFin = vaultsWithFinancials.map((fin, i) =>
-          setFinancials(rowsBase[i], MarketRowStatus.Ready, fin)
-        );
+        const rowsFin = vaultsWithFinancials.map((obj, i) => {
+          const fin = obj instanceof FujiError ? undefined : obj;
+          const status =
+            obj instanceof FujiError
+              ? MarketRowStatus.Error
+              : MarketRowStatus.Ready;
+          return setFinancials(rowsBase[i], status, fin);
+        });
 
-        if (result.data.length === 0) {
+        const currentFinancials = vaultsFromFinancialsOrError(
+          get().vaultsWithFinancials
+        );
+        if (
+          currentFinancials.length === 0 ||
+          currentFinancials.length !== allVaults.length
+        ) {
           set({ rows: setBest(rowsFin) });
           set({ vaultsWithFinancials });
         }
 
-        const llamaResult = await sdk.getLlamaFinancials(vaultsWithFinancials);
+        const llamaResult = await sdk.getLlamaFinancials(allVaults);
         if (!llamaResult.success) {
           notify({
             type: 'error',
@@ -89,9 +105,19 @@ export const useMarkets = create<MarketsStore>()(
           return;
         }
         const vaultsWithLlamas = llamaResult.data;
-        const rowsLlama = vaultsWithLlamas.map((llama, i) =>
-          setLlamas(rowsFin[i], MarketRowStatus.Ready, llama)
-        );
+        const rowsLlama = vaultsWithFinancials.map((obj, i) => {
+          const llama =
+            obj instanceof FujiError
+              ? undefined
+              : vaultsWithLlamas.find(
+                  (l) => l.vault.address.value === obj.vault.address.value
+                );
+          return setLlamas(
+            rowsFin[i],
+            llama ? MarketRowStatus.Ready : MarketRowStatus.Error,
+            llama
+          );
+        });
         set({
           rows: setBest(rowsLlama),
           vaultsWithFinancials: vaultsWithLlamas,
