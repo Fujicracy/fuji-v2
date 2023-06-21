@@ -33,8 +33,7 @@ type AprData = AprResult[] | undefined;
 
 function Analytics() {
   const { palette } = useTheme();
-  const collateral = useBorrow((state) => state.collateral);
-  const debt = useBorrow((state) => state.debt);
+
   const vault = useBorrow((state) => state.activeVault);
   const activeProvider = useBorrow((state) => state.activeProvider);
 
@@ -59,26 +58,24 @@ function Analytics() {
   useEffect(() => {
     if (vault && vault.address !== prevVault.current?.address) {
       (async () => {
-        if (borrowData === undefined || depositData === undefined) {
-          setLoading(true);
-        }
         prevVault.current = vault;
 
-        const borrowResult =
-          debt && (await vault.getProvidersStatsFor(debt.currency.wrapped));
-        setBorrowData(
-          borrowResult && borrowResult.success ? borrowResult.data : undefined
+        setLoading(true);
+
+        const borrowResult = await vault.getProvidersStatsFor(
+          vault.debt.wrapped
         );
+        setBorrowData(borrowResult.success ? borrowResult.data : undefined);
 
         const depositResult = await vault.getProvidersStatsFor(
-          collateral.currency.wrapped
+          vault.collateral.wrapped
         );
         setDepositData(depositResult.success ? depositResult.data : undefined);
 
         setLoading(false);
       })();
     }
-  }, [borrowData, depositData, collateral, debt, vault]);
+  }, [borrowData, depositData, vault]);
 
   useEffect(() => {
     const currentApr = (
@@ -88,6 +85,8 @@ function Analytics() {
     )?.toFixed(2);
     setCurrentApr(currentApr);
   }, [activeProvider, selectedTab]);
+
+  console.log(currentData);
 
   const loadingSkeleton = (
     <>
@@ -101,7 +100,7 @@ function Analytics() {
     </>
   );
 
-  return currentData ? (
+  return (
     <Card
       sx={{
         flexDirection: 'column',
@@ -220,7 +219,7 @@ function Analytics() {
         )}
       </CardContent>
     </Card>
-  ) : null;
+  );
 }
 
 export default Analytics;
