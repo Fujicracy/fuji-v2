@@ -1,5 +1,4 @@
 import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -16,7 +15,6 @@ import {
   Paper,
   Stack,
   Typography,
-  useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
@@ -40,6 +38,7 @@ import { useHistory } from '../../store/history.store';
 import { usePositions } from '../../store/positions.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import LinkIcon from '../Shared/Icons/LinkIcon';
+import ModalHeader from '../Shared/ModalHeader';
 import { stepIcon } from '../Shared/RoutesSteps';
 import WarningInfo from '../Shared/WarningInfo';
 
@@ -56,7 +55,6 @@ function TransactionModal({
 }: TransactionModalProps) {
   const theme = useTheme();
   const router = useRouter();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const activeChainId = useAuth((state) => state.chainId);
   const activeVault = useBorrow((state) => state.activeVault);
@@ -165,32 +163,13 @@ function TransactionModal({
       open={true}
       onClose={closeModal}
       sx={{
-        '.MuiPaper-root': { width: isMobile ? '100%' : '480px' },
+        '.MuiPaper-root': { width: { xs: '100%', sm: '480px' } },
         backdropFilter: { xs: 'blur(0.313rem)', sm: 'none' },
       }}
     >
       <Paper variant="outlined" sx={{ p: { xs: '1rem', sm: '1.5rem' } }}>
-        <Box
-          width="2rem"
-          height="2rem"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: theme.palette.secondary.main,
-            borderRadius: '100px',
-            cursor: 'pointer',
-            float: 'right',
-          }}
-          onClick={closeModal}
-        >
-          <CloseIcon fontSize="small" />
-        </Box>
-        <Box textAlign={isMobile ? 'left' : 'center'} mb="2rem">
-          <Typography variant="h6" fontWeight={500}>
-            Transaction Status
-          </Typography>
-        </Box>
+        <ModalHeader title="Transaction Status" onClose={() => closeModal()} />
+
         {!isHistoricalTransaction && gif && (
           <img
             src={gif}

@@ -23,7 +23,7 @@ const LendingPage: NextPage = () => {
 
       <Container
         sx={{
-          mt: { xs: '0', sm: '5rem' },
+          mt: { xs: '0', sm: '4rem' },
           mb: { xs: '7rem', sm: '0' },
           pl: { xs: '0.25rem', sm: '1rem' },
           pr: { xs: '0.25rem', sm: '1rem' },

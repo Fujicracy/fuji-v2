@@ -2,6 +2,7 @@ import { Palette } from '@mui/material';
 import {
   Address,
   ChainId,
+  FujiError,
   FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
@@ -12,7 +13,12 @@ import { useBorrow } from '../store/borrow.store';
 import { AssetMeta, Position } from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
 import { AssetChange, AssetType, debtForCurrency, Mode } from './assets';
-import { getAllBorrowingVaultFinancials } from './borrow';
+import {
+  getAllBorrowingVaultFinancials,
+  vaultsFromFinancialsOrError,
+} from './borrow';
+import { shouldShowStoreNotification } from './navigation';
+import { showOnchainErrorNotification } from './notifications';
 import { bigToFloat, formatNumber } from './values';
 
 export type BasePosition = {
@@ -26,25 +32,29 @@ export const getTotalSum = (
 ): number => {
   return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0);
 };
-
 export const getPositionsWithBalance = async (
   addr: string
 ): FujiResultPromise<Position[]> => {
   const account = Address.from(addr);
 
   const result = await getAllBorrowingVaultFinancials(account);
+  const errors = result.data.filter((d) => d instanceof FujiError);
+  const allVaults = vaultsFromFinancialsOrError(result.data);
 
-  if (result.errors.length > 0) {
-    // Should we keep going with the returned vaults? Don't think so
-    const firstError = result.errors[0];
-    return new FujiResultError(
-      firstError.message,
-      firstError.code,
-      firstError.info
-    );
+  if (errors.length > 0) {
+    const firstError = errors[0] as FujiError;
+    if (allVaults.length > 0) {
+      if (shouldShowStoreNotification('positions'))
+        showOnchainErrorNotification(firstError);
+    } else {
+      return new FujiResultError(
+        firstError.message,
+        firstError.code,
+        firstError.info
+      );
+    }
   }
 
-  const allVaults = result.data;
   const vaultsWithBalance = allVaults.filter((v) =>
     v.depositBalance.gt(BigNumber.from('0'))
   );

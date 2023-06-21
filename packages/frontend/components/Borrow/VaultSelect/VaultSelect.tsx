@@ -19,6 +19,7 @@ import { useTheme } from '@mui/material/styles';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
+import { useNavigation } from '../../../store/navigation.store';
 import Vault from './Vault';
 
 function VaultSelect() {
@@ -36,7 +37,7 @@ function VaultSelect() {
   const activeVault = useBorrow((state) => state.activeVault);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
   const availableVaults = useBorrow((state) => state.availableVaults);
-  const override = useBorrow((state) => state.borrowingNavigation.shouldReset);
+  const override = useNavigation((state) => state.borrowPage.shouldReset);
   const changeActiveVault = useBorrow((state) => state.changeActiveVault);
 
   const aggregatedData = availableVaults.map((vault, i) => ({
@@ -141,13 +142,13 @@ function VaultSelect() {
           alignItems: 'start',
           p: isMobile
             ? `1rem 0.5rem ${isUnFolded ? '2.5' : '1'}rem 0.5rem`
-            : `1.5rem 1.7rem ${
+            : `1.5rem 1.5rem ${
                 filteredRoutes.length === 1
                   ? '1rem'
                   : isUnFolded
                   ? '2.5rem'
                   : '0'
-              } 1.7rem`,
+              } 1.5rem`,
           width: '100%',
           mt: '1rem',
           position: 'relative',

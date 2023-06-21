@@ -10,10 +10,11 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
-import { ChangeEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 
 import { acceptTermsOfUse, getOnboardStatus } from '../../../helpers/auth';
 import { useAuth } from '../../../store/auth.store';
+import ModalHeaderTitle from '../../Shared/ModalHeaderTitle';
 
 type AgreementBox = { checked: boolean; text: string };
 
@@ -89,11 +90,9 @@ export function DisclaimerModal() {
           },
         }}
       >
-        <Typography variant="h5" color={palette.text.primary}>
-          Disclaimer
-        </Typography>
+        <ModalHeaderTitle title="Disclaimer" />
 
-        <Box mt="1.5rem" sx={{ display: 'flex', flexDirection: 'row' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
           <FormControlLabel
             label={
               <Typography

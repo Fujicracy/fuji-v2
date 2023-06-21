@@ -299,6 +299,18 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     vm.stopPrank();
   }
 
+  function _initalizeYieldVault(address vault_, address initializer, uint256 assets) internal {
+    YieldVault yvault = YieldVault(payable(vault_));
+    address collatAsset_ = yvault.asset();
+
+    deal(collatAsset_, initializer, assets /*,true*/ );
+
+    vm.startPrank(initializer);
+    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, assets);
+    yvault.initializeVaultShares(assets, 0);
+    vm.stopPrank();
+  }
+
   function _getMinCollateralAmount(
     BorrowingVault vault_,
     uint256 debt

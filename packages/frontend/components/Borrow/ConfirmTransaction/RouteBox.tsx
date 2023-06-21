@@ -23,6 +23,7 @@ function RouteBox({
         borderColor: palette.secondary.light,
         m: '0.5rem 0 1rem 0',
         width: '100%',
+        borderRadius: '0.5rem !important',
       }}
     >
       <Stack
