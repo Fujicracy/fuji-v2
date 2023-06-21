@@ -62,14 +62,9 @@ function Analytics() {
 
         setLoading(true);
 
-        const borrowResult = await vault.getProvidersStatsFor(
-          vault.debt.wrapped
-        );
+        const borrowResult = await vault.getBorrowProviderStats();
+        const depositResult = await vault.getSupplyProviderStats();
         setBorrowData(borrowResult.success ? borrowResult.data : undefined);
-
-        const depositResult = await vault.getProvidersStatsFor(
-          vault.collateral.wrapped
-        );
         setDepositData(depositResult.success ? depositResult.data : undefined);
 
         setLoading(false);
