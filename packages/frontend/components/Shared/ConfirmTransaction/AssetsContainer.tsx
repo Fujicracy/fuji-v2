@@ -6,7 +6,7 @@ import React from 'react';
 
 import { chainName } from '../../../helpers/chains';
 import { toNotSoFixed } from '../../../helpers/values';
-import { CurrencyIcon, NetworkIcon } from '../Icons';
+import { CurrencyIcon, NetworkIcon } from '../../Shared/Icons';
 
 const routingSteps = [
   RoutingStep.DEPOSIT,

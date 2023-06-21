@@ -7,7 +7,6 @@ import {
 } from '@x-fuji/sdk';
 
 import { DUST_AMOUNT_IN_WEI } from '../constants';
-// import { DUST_AMOUNT_IN_WEI } from '../constants';
 import { sdk } from '../services/sdk';
 import { ActionType, Mode } from './assets';
 import { chains } from './chains';
