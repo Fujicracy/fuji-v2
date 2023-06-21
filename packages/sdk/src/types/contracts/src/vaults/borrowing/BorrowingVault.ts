@@ -53,11 +53,14 @@ export interface BorrowingVaultInterface extends utils.Interface {
     "borrow(uint256,address,address,uint256)": FunctionFragment;
     "borrow(uint256,address,address)": FunctionFragment;
     "borrowAllowance(address,address,address)": FunctionFragment;
+    "burnDebt(uint256,address)": FunctionFragment;
+    "burnDebt(uint256,address,uint256)": FunctionFragment;
     "chief()": FunctionFragment;
     "convertDebtToShares(uint256)": FunctionFragment;
     "convertToAssets(uint256)": FunctionFragment;
     "convertToDebt(uint256)": FunctionFragment;
     "convertToShares(uint256)": FunctionFragment;
+    "correctDebt(address)": FunctionFragment;
     "debtAsset()": FunctionFragment;
     "debtDecimals()": FunctionFragment;
     "debtSharesSupply()": FunctionFragment;
@@ -67,24 +70,30 @@ export interface BorrowingVaultInterface extends utils.Interface {
     "decreaseWithdrawAllowance(address,address,uint256)": FunctionFragment;
     "deposit(uint256,address)": FunctionFragment;
     "deposit(uint256,address,uint256)": FunctionFragment;
-    "depositCap()": FunctionFragment;
     "getHealthFactor(address)": FunctionFragment;
     "getLiquidationFactor(address)": FunctionFragment;
     "getProviders()": FunctionFragment;
     "increaseAllowance(address,uint256)": FunctionFragment;
     "increaseBorrowAllowance(address,address,uint256)": FunctionFragment;
     "increaseWithdrawAllowance(address,address,uint256)": FunctionFragment;
+    "initializeVaultShares(uint256,uint256)": FunctionFragment;
+    "initialized()": FunctionFragment;
     "liqRatio()": FunctionFragment;
     "liquidate(address,address)": FunctionFragment;
     "maxBorrow(address)": FunctionFragment;
+    "maxBurnDebt(address)": FunctionFragment;
     "maxDeposit(address)": FunctionFragment;
     "maxLtv()": FunctionFragment;
     "maxMint(address)": FunctionFragment;
+    "maxMintDebt(address)": FunctionFragment;
+    "maxPayback(address)": FunctionFragment;
     "maxRedeem(address)": FunctionFragment;
     "maxWithdraw(address)": FunctionFragment;
     "minAmount()": FunctionFragment;
     "mint(uint256,address,uint256)": FunctionFragment;
     "mint(uint256,address)": FunctionFragment;
+    "mintDebt(uint256,address,address,uint256)": FunctionFragment;
+    "mintDebt(uint256,address,address)": FunctionFragment;
     "name()": FunctionFragment;
     "nonces(address)": FunctionFragment;
     "oracle()": FunctionFragment;
@@ -93,17 +102,20 @@ export interface BorrowingVaultInterface extends utils.Interface {
     "paused(uint8)": FunctionFragment;
     "payback(uint256,address,uint256)": FunctionFragment;
     "payback(uint256,address)": FunctionFragment;
-    "permitBorrow(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "permitWithdraw(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "permitBorrow(address,address,uint256,uint256,bytes32,uint8,bytes32,bytes32)": FunctionFragment;
+    "permitWithdraw(address,address,uint256,uint256,bytes32,uint8,bytes32,bytes32)": FunctionFragment;
+    "previewBorrow(uint256)": FunctionFragment;
+    "previewBurnDebt(uint256)": FunctionFragment;
     "previewDeposit(uint256)": FunctionFragment;
     "previewMint(uint256)": FunctionFragment;
+    "previewMintDebt(uint256)": FunctionFragment;
+    "previewPayback(uint256)": FunctionFragment;
     "previewRedeem(uint256)": FunctionFragment;
     "previewWithdraw(uint256)": FunctionFragment;
     "rebalance(uint256,uint256,address,address,uint256,bool)": FunctionFragment;
     "redeem(uint256,address,address,uint256)": FunctionFragment;
     "redeem(uint256,address,address)": FunctionFragment;
     "setActiveProvider(address)": FunctionFragment;
-    "setDepositCap(uint256)": FunctionFragment;
     "setLiqRatio(uint256)": FunctionFragment;
     "setMaxLtv(uint256)": FunctionFragment;
     "setMinAmount(uint256)": FunctionFragment;
@@ -147,11 +159,14 @@ export interface BorrowingVaultInterface extends utils.Interface {
       | "borrow(uint256,address,address,uint256)"
       | "borrow(uint256,address,address)"
       | "borrowAllowance"
+      | "burnDebt(uint256,address)"
+      | "burnDebt(uint256,address,uint256)"
       | "chief"
       | "convertDebtToShares"
       | "convertToAssets"
       | "convertToDebt"
       | "convertToShares"
+      | "correctDebt"
       | "debtAsset"
       | "debtDecimals"
       | "debtSharesSupply"
@@ -161,24 +176,30 @@ export interface BorrowingVaultInterface extends utils.Interface {
       | "decreaseWithdrawAllowance"
       | "deposit(uint256,address)"
       | "deposit(uint256,address,uint256)"
-      | "depositCap"
       | "getHealthFactor"
       | "getLiquidationFactor"
       | "getProviders"
       | "increaseAllowance"
       | "increaseBorrowAllowance"
       | "increaseWithdrawAllowance"
+      | "initializeVaultShares"
+      | "initialized"
       | "liqRatio"
       | "liquidate"
       | "maxBorrow"
+      | "maxBurnDebt"
       | "maxDeposit"
       | "maxLtv"
       | "maxMint"
+      | "maxMintDebt"
+      | "maxPayback"
       | "maxRedeem"
       | "maxWithdraw"
       | "minAmount"
       | "mint(uint256,address,uint256)"
       | "mint(uint256,address)"
+      | "mintDebt(uint256,address,address,uint256)"
+      | "mintDebt(uint256,address,address)"
       | "name"
       | "nonces"
       | "oracle"
@@ -189,15 +210,18 @@ export interface BorrowingVaultInterface extends utils.Interface {
       | "payback(uint256,address)"
       | "permitBorrow"
       | "permitWithdraw"
+      | "previewBorrow"
+      | "previewBurnDebt"
       | "previewDeposit"
       | "previewMint"
+      | "previewMintDebt"
+      | "previewPayback"
       | "previewRedeem"
       | "previewWithdraw"
       | "rebalance"
       | "redeem(uint256,address,address,uint256)"
       | "redeem(uint256,address,address)"
       | "setActiveProvider"
-      | "setDepositCap"
       | "setLiqRatio"
       | "setMaxLtv"
       | "setMinAmount"
@@ -299,6 +323,14 @@ export interface BorrowingVaultInterface extends utils.Interface {
     functionFragment: "borrowAllowance",
     values: [string, string, string]
   ): string;
+  encodeFunctionData(
+    functionFragment: "burnDebt(uint256,address)",
+    values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "burnDebt(uint256,address,uint256)",
+    values: [BigNumberish, string, BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "convertDebtToShares",
@@ -316,6 +348,7 @@ export interface BorrowingVaultInterface extends utils.Interface {
     functionFragment: "convertToShares",
     values: [BigNumberish]
   ): string;
+  encodeFunctionData(functionFragment: "correctDebt", values: [string]): string;
   encodeFunctionData(functionFragment: "debtAsset", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "debtDecimals",
@@ -347,10 +380,6 @@ export interface BorrowingVaultInterface extends utils.Interface {
     values: [BigNumberish, string, BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "depositCap",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
     functionFragment: "getHealthFactor",
     values: [string]
   ): string;
@@ -374,15 +403,26 @@ export interface BorrowingVaultInterface extends utils.Interface {
     functionFragment: "increaseWithdrawAllowance",
     values: [string, string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "initializeVaultShares",
+    values: [BigNumberish, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "initialized",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "liqRatio", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "liquidate",
     values: [string, string]
   ): string;
   encodeFunctionData(functionFragment: "maxBorrow", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxBurnDebt", values: [string]): string;
   encodeFunctionData(functionFragment: "maxDeposit", values: [string]): string;
   encodeFunctionData(functionFragment: "maxLtv", values?: undefined): string;
   encodeFunctionData(functionFragment: "maxMint", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxMintDebt", values: [string]): string;
+  encodeFunctionData(functionFragment: "maxPayback", values: [string]): string;
   encodeFunctionData(functionFragment: "maxRedeem", values: [string]): string;
   encodeFunctionData(functionFragment: "maxWithdraw", values: [string]): string;
   encodeFunctionData(functionFragment: "minAmount", values?: undefined): string;
@@ -393,6 +433,14 @@ export interface BorrowingVaultInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "mint(uint256,address)",
     values: [BigNumberish, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintDebt(uint256,address,address,uint256)",
+    values: [BigNumberish, string, string, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "mintDebt(uint256,address,address)",
+    values: [BigNumberish, string, string]
   ): string;
   encodeFunctionData(functionFragment: "name", values?: undefined): string;
   encodeFunctionData(functionFragment: "nonces", values: [string]): string;
@@ -421,6 +469,7 @@ export interface BorrowingVaultInterface extends utils.Interface {
       string,
       BigNumberish,
       BigNumberish,
+      BytesLike,
       BigNumberish,
       BytesLike,
       BytesLike
@@ -433,10 +482,19 @@ export interface BorrowingVaultInterface extends utils.Interface {
       string,
       BigNumberish,
       BigNumberish,
+      BytesLike,
       BigNumberish,
       BytesLike,
       BytesLike
     ]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewBorrow",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewBurnDebt",
+    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "previewDeposit",
@@ -444,6 +502,14 @@ export interface BorrowingVaultInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "previewMint",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewMintDebt",
+    values: [BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "previewPayback",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
@@ -469,10 +535,6 @@ export interface BorrowingVaultInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "setActiveProvider",
     values: [string]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "setDepositCap",
-    values: [BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "setLiqRatio",
@@ -607,6 +669,14 @@ export interface BorrowingVaultInterface extends utils.Interface {
     functionFragment: "borrowAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "burnDebt(uint256,address)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "burnDebt(uint256,address,uint256)",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "convertDebtToShares",
@@ -622,6 +692,10 @@ export interface BorrowingVaultInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "convertToShares",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "correctDebt",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "debtAsset", data: BytesLike): Result;
@@ -654,7 +728,6 @@ export interface BorrowingVaultInterface extends utils.Interface {
     functionFragment: "deposit(uint256,address,uint256)",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "depositCap", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getHealthFactor",
     data: BytesLike
@@ -679,12 +752,29 @@ export interface BorrowingVaultInterface extends utils.Interface {
     functionFragment: "increaseWithdrawAllowance",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "initializeVaultShares",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "initialized",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "liqRatio", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxBorrow", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxBurnDebt",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "maxDeposit", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxLtv", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxMint", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "maxMintDebt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(functionFragment: "maxPayback", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "maxRedeem", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "maxWithdraw",
@@ -697,6 +787,14 @@ export interface BorrowingVaultInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "mint(uint256,address)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintDebt(uint256,address,address,uint256)",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "mintDebt(uint256,address,address)",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "name", data: BytesLike): Result;
@@ -725,11 +823,27 @@ export interface BorrowingVaultInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "previewBorrow",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewBurnDebt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "previewDeposit",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "previewMint",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewMintDebt",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "previewPayback",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -751,10 +865,6 @@ export interface BorrowingVaultInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "setActiveProvider",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "setDepositCap",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -823,6 +933,7 @@ export interface BorrowingVaultInterface extends utils.Interface {
     "Transfer(address,address,uint256)": EventFragment;
     "Unpaused(address,uint8)": EventFragment;
     "UnpausedForceAll(address)": EventFragment;
+    "VaultInitialized(address)": EventFragment;
     "VaultRebalance(uint256,uint256,address,address)": EventFragment;
     "Withdraw(address,address,address,uint256,uint256)": EventFragment;
     "WithdrawApproval(address,address,address,uint256)": EventFragment;
@@ -846,6 +957,7 @@ export interface BorrowingVaultInterface extends utils.Interface {
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Unpaused"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "UnpausedForceAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "VaultInitialized"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "VaultRebalance"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Withdraw"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "WithdrawApproval"): EventFragment;
@@ -1052,6 +1164,17 @@ export type UnpausedForceAllEvent = TypedEvent<
 export type UnpausedForceAllEventFilter =
   TypedEventFilter<UnpausedForceAllEvent>;
 
+export interface VaultInitializedEventObject {
+  initializer: string;
+}
+export type VaultInitializedEvent = TypedEvent<
+  [string],
+  VaultInitializedEventObject
+>;
+
+export type VaultInitializedEventFilter =
+  TypedEventFilter<VaultInitializedEvent>;
+
 export interface VaultRebalanceEventObject {
   assets: BigNumber;
   debt: BigNumber;
@@ -1203,6 +1326,19 @@ export interface BorrowingVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    "burnDebt(uint256,address)"(
+      shares: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "burnDebt(uint256,address,uint256)"(
+      shares: BigNumberish,
+      owner: string,
+      maxAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     chief(overrides?: CallOverrides): Promise<[string]>;
 
     convertDebtToShares(
@@ -1224,6 +1360,11 @@ export interface BorrowingVault extends BaseContract {
       assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { shares: BigNumber }>;
+
+    correctDebt(
+      treasury: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     debtAsset(overrides?: CallOverrides): Promise<[string]>;
 
@@ -1266,8 +1407,6 @@ export interface BorrowingVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    depositCap(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     getHealthFactor(
       owner: string,
       overrides?: CallOverrides
@@ -1302,6 +1441,14 @@ export interface BorrowingVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    initializeVaultShares(
+      assets: BigNumberish,
+      debt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    initialized(overrides?: CallOverrides): Promise<[boolean]>;
+
     liqRatio(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     liquidate(
@@ -1315,11 +1462,26 @@ export interface BorrowingVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
 
+    maxBurnDebt(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     maxDeposit(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     maxLtv(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     maxMint(arg0: string, overrides?: CallOverrides): Promise<[BigNumber]>;
+
+    maxMintDebt(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
+    maxPayback(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     maxRedeem(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
@@ -1337,6 +1499,21 @@ export interface BorrowingVault extends BaseContract {
     "mint(uint256,address)"(
       shares: BigNumberish,
       receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "mintDebt(uint256,address,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      minDebt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    "mintDebt(uint256,address,address)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1375,6 +1552,7 @@ export interface BorrowingVault extends BaseContract {
       receiver: string,
       value: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -1386,11 +1564,22 @@ export interface BorrowingVault extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    previewBorrow(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { shares: BigNumber }>;
+
+    previewBurnDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { debt: BigNumber }>;
 
     previewDeposit(
       assets: BigNumberish,
@@ -1401,6 +1590,16 @@ export interface BorrowingVault extends BaseContract {
       shares: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[BigNumber]>;
+
+    previewMintDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { debt: BigNumber }>;
+
+    previewPayback(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber] & { shares: BigNumber }>;
 
     previewRedeem(
       shares: BigNumberish,
@@ -1439,11 +1638,6 @@ export interface BorrowingVault extends BaseContract {
 
     setActiveProvider(
       activeProvider_: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
-    setDepositCap(
-      newCap: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -1602,6 +1796,19 @@ export interface BorrowingVault extends BaseContract {
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
+  "burnDebt(uint256,address)"(
+    shares: BigNumberish,
+    owner: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "burnDebt(uint256,address,uint256)"(
+    shares: BigNumberish,
+    owner: string,
+    maxAmount: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   chief(overrides?: CallOverrides): Promise<string>;
 
   convertDebtToShares(
@@ -1623,6 +1830,11 @@ export interface BorrowingVault extends BaseContract {
     assets: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
+
+  correctDebt(
+    treasury: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   debtAsset(overrides?: CallOverrides): Promise<string>;
 
@@ -1665,8 +1877,6 @@ export interface BorrowingVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  depositCap(overrides?: CallOverrides): Promise<BigNumber>;
-
   getHealthFactor(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   getLiquidationFactor(
@@ -1696,6 +1906,14 @@ export interface BorrowingVault extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  initializeVaultShares(
+    assets: BigNumberish,
+    debt: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  initialized(overrides?: CallOverrides): Promise<boolean>;
+
   liqRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
   liquidate(
@@ -1706,11 +1924,17 @@ export interface BorrowingVault extends BaseContract {
 
   maxBorrow(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+  maxBurnDebt(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
+
   maxDeposit(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   maxLtv(overrides?: CallOverrides): Promise<BigNumber>;
 
   maxMint(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxMintDebt(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+  maxPayback(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -1728,6 +1952,21 @@ export interface BorrowingVault extends BaseContract {
   "mint(uint256,address)"(
     shares: BigNumberish,
     receiver: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "mintDebt(uint256,address,address,uint256)"(
+    shares: BigNumberish,
+    receiver: string,
+    owner: string,
+    minDebt: BigNumberish,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  "mintDebt(uint256,address,address)"(
+    shares: BigNumberish,
+    receiver: string,
+    owner: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1766,6 +2005,7 @@ export interface BorrowingVault extends BaseContract {
     receiver: string,
     value: BigNumberish,
     deadline: BigNumberish,
+    actionArgsHash: BytesLike,
     v: BigNumberish,
     r: BytesLike,
     s: BytesLike,
@@ -1777,11 +2017,22 @@ export interface BorrowingVault extends BaseContract {
     receiver: string,
     amount: BigNumberish,
     deadline: BigNumberish,
+    actionArgsHash: BytesLike,
     v: BigNumberish,
     r: BytesLike,
     s: BytesLike,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  previewBorrow(
+    debt: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewBurnDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
 
   previewDeposit(
     assets: BigNumberish,
@@ -1790,6 +2041,16 @@ export interface BorrowingVault extends BaseContract {
 
   previewMint(
     shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewMintDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
+  previewPayback(
+    debt: BigNumberish,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
 
@@ -1830,11 +2091,6 @@ export interface BorrowingVault extends BaseContract {
 
   setActiveProvider(
     activeProvider_: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
-
-  setDepositCap(
-    newCap: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -1994,6 +2250,19 @@ export interface BorrowingVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    "burnDebt(uint256,address)"(
+      shares: BigNumberish,
+      owner: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "burnDebt(uint256,address,uint256)"(
+      shares: BigNumberish,
+      owner: string,
+      maxAmount: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     chief(overrides?: CallOverrides): Promise<string>;
 
     convertDebtToShares(
@@ -2015,6 +2284,8 @@ export interface BorrowingVault extends BaseContract {
       assets: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    correctDebt(treasury: string, overrides?: CallOverrides): Promise<void>;
 
     debtAsset(overrides?: CallOverrides): Promise<string>;
 
@@ -2057,8 +2328,6 @@ export interface BorrowingVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    depositCap(overrides?: CallOverrides): Promise<BigNumber>;
-
     getHealthFactor(
       owner: string,
       overrides?: CallOverrides
@@ -2091,6 +2360,14 @@ export interface BorrowingVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    initializeVaultShares(
+      assets: BigNumberish,
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
+    initialized(overrides?: CallOverrides): Promise<boolean>;
+
     liqRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
     liquidate(
@@ -2101,11 +2378,23 @@ export interface BorrowingVault extends BaseContract {
 
     maxBorrow(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    maxBurnDebt(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     maxDeposit(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxLtv(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxMint(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxMintDebt(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxPayback(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -2123,6 +2412,21 @@ export interface BorrowingVault extends BaseContract {
     "mint(uint256,address)"(
       shares: BigNumberish,
       receiver: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "mintDebt(uint256,address,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      minDebt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    "mintDebt(uint256,address,address)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2156,6 +2460,7 @@ export interface BorrowingVault extends BaseContract {
       receiver: string,
       value: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -2167,11 +2472,22 @@ export interface BorrowingVault extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    previewBorrow(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewBurnDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     previewDeposit(
       assets: BigNumberish,
@@ -2180,6 +2496,16 @@ export interface BorrowingVault extends BaseContract {
 
     previewMint(
       shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewMintDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewPayback(
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2220,11 +2546,6 @@ export interface BorrowingVault extends BaseContract {
 
     setActiveProvider(
       activeProvider_: string,
-      overrides?: CallOverrides
-    ): Promise<void>;
-
-    setDepositCap(
-      newCap: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -2434,6 +2755,11 @@ export interface BorrowingVault extends BaseContract {
     "UnpausedForceAll(address)"(account?: null): UnpausedForceAllEventFilter;
     UnpausedForceAll(account?: null): UnpausedForceAllEventFilter;
 
+    "VaultInitialized(address)"(
+      initializer?: null
+    ): VaultInitializedEventFilter;
+    VaultInitialized(initializer?: null): VaultInitializedEventFilter;
+
     "VaultRebalance(uint256,uint256,address,address)"(
       assets?: null,
       debt?: null,
@@ -2555,6 +2881,19 @@ export interface BorrowingVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    "burnDebt(uint256,address)"(
+      shares: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "burnDebt(uint256,address,uint256)"(
+      shares: BigNumberish,
+      owner: string,
+      maxAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     chief(overrides?: CallOverrides): Promise<BigNumber>;
 
     convertDebtToShares(
@@ -2575,6 +2914,11 @@ export interface BorrowingVault extends BaseContract {
     convertToShares(
       assets: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    correctDebt(
+      treasury: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     debtAsset(overrides?: CallOverrides): Promise<BigNumber>;
@@ -2618,8 +2962,6 @@ export interface BorrowingVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    depositCap(overrides?: CallOverrides): Promise<BigNumber>;
-
     getHealthFactor(
       owner: string,
       overrides?: CallOverrides
@@ -2652,6 +2994,14 @@ export interface BorrowingVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    initializeVaultShares(
+      assets: BigNumberish,
+      debt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    initialized(overrides?: CallOverrides): Promise<BigNumber>;
+
     liqRatio(overrides?: CallOverrides): Promise<BigNumber>;
 
     liquidate(
@@ -2662,11 +3012,23 @@ export interface BorrowingVault extends BaseContract {
 
     maxBorrow(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
+    maxBurnDebt(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     maxDeposit(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxLtv(overrides?: CallOverrides): Promise<BigNumber>;
 
     maxMint(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    maxMintDebt(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    maxPayback(borrower: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     maxRedeem(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -2684,6 +3046,21 @@ export interface BorrowingVault extends BaseContract {
     "mint(uint256,address)"(
       shares: BigNumberish,
       receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "mintDebt(uint256,address,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      minDebt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    "mintDebt(uint256,address,address)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2722,6 +3099,7 @@ export interface BorrowingVault extends BaseContract {
       receiver: string,
       value: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -2733,10 +3111,21 @@ export interface BorrowingVault extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    previewBorrow(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewBurnDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<BigNumber>;
 
     previewDeposit(
@@ -2746,6 +3135,16 @@ export interface BorrowingVault extends BaseContract {
 
     previewMint(
       shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewMintDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
+    previewPayback(
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
@@ -2786,11 +3185,6 @@ export interface BorrowingVault extends BaseContract {
 
     setActiveProvider(
       activeProvider_: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
-    setDepositCap(
-      newCap: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -2963,6 +3357,19 @@ export interface BorrowingVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    "burnDebt(uint256,address)"(
+      shares: BigNumberish,
+      owner: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "burnDebt(uint256,address,uint256)"(
+      shares: BigNumberish,
+      owner: string,
+      maxAmount: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     convertDebtToShares(
@@ -2983,6 +3390,11 @@ export interface BorrowingVault extends BaseContract {
     convertToShares(
       assets: BigNumberish,
       overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    correctDebt(
+      treasury: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     debtAsset(overrides?: CallOverrides): Promise<PopulatedTransaction>;
@@ -3026,8 +3438,6 @@ export interface BorrowingVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    depositCap(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     getHealthFactor(
       owner: string,
       overrides?: CallOverrides
@@ -3060,6 +3470,14 @@ export interface BorrowingVault extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    initializeVaultShares(
+      assets: BigNumberish,
+      debt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    initialized(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     liqRatio(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     liquidate(
@@ -3073,6 +3491,11 @@ export interface BorrowingVault extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    maxBurnDebt(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     maxDeposit(
       arg0: string,
       overrides?: CallOverrides
@@ -3082,6 +3505,16 @@ export interface BorrowingVault extends BaseContract {
 
     maxMint(
       arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxMintDebt(
+      borrower: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    maxPayback(
+      borrower: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -3107,6 +3540,21 @@ export interface BorrowingVault extends BaseContract {
     "mint(uint256,address)"(
       shares: BigNumberish,
       receiver: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "mintDebt(uint256,address,address,uint256)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
+      minDebt: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    "mintDebt(uint256,address,address)"(
+      shares: BigNumberish,
+      receiver: string,
+      owner: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -3151,6 +3599,7 @@ export interface BorrowingVault extends BaseContract {
       receiver: string,
       value: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -3162,10 +3611,21 @@ export interface BorrowingVault extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
       overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    previewBorrow(
+      debt: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewBurnDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
     previewDeposit(
@@ -3175,6 +3635,16 @@ export interface BorrowingVault extends BaseContract {
 
     previewMint(
       shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewMintDebt(
+      shares: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    previewPayback(
+      debt: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -3215,11 +3685,6 @@ export interface BorrowingVault extends BaseContract {
 
     setActiveProvider(
       activeProvider_: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
-    setDepositCap(
-      newCap: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -3389,8 +3854,6 @@ export interface BorrowingVaultMulticall {
 
   decimals(overrides?: CallOverrides): Call<number>;
 
-  depositCap(overrides?: CallOverrides): Call<BigNumber>;
-
   getHealthFactor(owner: string, overrides?: CallOverrides): Call<BigNumber>;
 
   getLiquidationFactor(
@@ -3400,15 +3863,23 @@ export interface BorrowingVaultMulticall {
 
   getProviders(overrides?: CallOverrides): Call<string[]>;
 
+  initialized(overrides?: CallOverrides): Call<boolean>;
+
   liqRatio(overrides?: CallOverrides): Call<BigNumber>;
 
   maxBorrow(borrower: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxBurnDebt(borrower: string, overrides?: CallOverrides): Call<BigNumber>;
 
   maxDeposit(arg0: string, overrides?: CallOverrides): Call<BigNumber>;
 
   maxLtv(overrides?: CallOverrides): Call<BigNumber>;
 
   maxMint(arg0: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxMintDebt(borrower: string, overrides?: CallOverrides): Call<BigNumber>;
+
+  maxPayback(borrower: string, overrides?: CallOverrides): Call<BigNumber>;
 
   maxRedeem(owner: string, overrides?: CallOverrides): Call<BigNumber>;
 
@@ -3424,12 +3895,29 @@ export interface BorrowingVaultMulticall {
 
   paused(action: BigNumberish, overrides?: CallOverrides): Call<boolean>;
 
+  previewBorrow(debt: BigNumberish, overrides?: CallOverrides): Call<BigNumber>;
+
+  previewBurnDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
   previewDeposit(
     assets: BigNumberish,
     overrides?: CallOverrides
   ): Call<BigNumber>;
 
   previewMint(shares: BigNumberish, overrides?: CallOverrides): Call<BigNumber>;
+
+  previewMintDebt(
+    shares: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
+
+  previewPayback(
+    debt: BigNumberish,
+    overrides?: CallOverrides
+  ): Call<BigNumber>;
 
   previewRedeem(
     shares: BigNumberish,

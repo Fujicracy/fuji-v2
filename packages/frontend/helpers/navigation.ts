@@ -1,16 +1,24 @@
-import { BorrowingVault, Token, VaultWithFinancials } from '@x-fuji/sdk';
+import {
+  BorrowingVault,
+  ChainId,
+  Currency,
+  VaultWithFinancials,
+} from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
 
-import { PATH } from '../constants';
+import { NAVIGATION_TASK_DELAY, PATH } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
+import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
+import { vaultFromEntity } from './markets';
 
 type Page = {
   title: string;
   path: string;
 };
+
 export const topLevelPages: Page[] = [
   { title: 'Markets', path: PATH.MARKETS },
   { title: 'Borrow', path: PATH.BORROW },
@@ -28,20 +36,20 @@ export const isTopLevelUrl = (url: string) =>
 
 export const showPosition = async (
   router: NextRouter,
-  walletChainId: string | undefined,
+  reset = true,
   entity?: BorrowingVault | VaultWithFinancials,
-  reset = true
+  walletChainId?: ChainId
 ) => {
-  const vault = entity instanceof BorrowingVault ? entity : entity?.vault;
+  const vault = vaultFromEntity(entity);
   if (!vault) return;
 
   const changeAll = useBorrow.getState().changeAll;
-  if (walletChainId && isSupported(Number(walletChainId))) {
-    const collaterals = sdk.getCollateralForChain(Number(walletChainId));
-    const collateralToken = collaterals.find(
-      (t: Token) => t.symbol === vault.collateral.symbol
+  if (walletChainId && isSupported(walletChainId)) {
+    const collaterals = sdk.getCollateralForChain(walletChainId);
+    const collateralCurrency = collaterals.find(
+      (t: Currency) => t.symbol === vault.collateral.symbol
     );
-    changeAll(collateralToken ?? vault.collateral, vault.debt, vault);
+    changeAll(collateralCurrency ?? vault.collateral, vault.debt, vault);
   } else {
     changeAll(vault.collateral, vault.debt, vault);
   }
@@ -51,15 +59,49 @@ export const showPosition = async (
   }
 
   const positions = usePositions.getState().positions;
-  if (positions?.some((p) => p.vault?.address.value === vault.address.value)) {
+  if (
+    positions?.some(
+      (p) =>
+        p.vault?.address.value === vault.address.value &&
+        p.vault?.chainId === vault.chainId
+    )
+  ) {
     router.push(`${PATH.MY_POSITIONS}/${vault.address.value}-${vault.chainId}`);
   } else {
     showBorrow(router, false);
   }
 };
 
-export const showBorrow = (router: NextRouter, override = true) => {
+export const showBorrow = async (router: NextRouter, override = true) => {
   // I'm not exactly thrilled about this solution, but it works for now
-  useBorrow.getState().changeChainOverride(override);
+  useNavigation
+    .getState()
+    .changeBorrowPageShouldReset(override, !override ? true : undefined);
   router.push(PATH.BORROW);
+};
+
+export const shouldShowStoreNotification = (type: 'markets' | 'positions') =>
+  useNavigation.getState().currentPath ===
+  (type === 'markets' ? PATH.MARKETS : PATH.MARKETS);
+
+export type BorrowPageNavigation = {
+  shouldReset: boolean;
+  willLoad: boolean;
+  lock: boolean;
+};
+
+export const navigationalTaskDelay = (func: () => void) => {
+  setTimeout(func, NAVIGATION_TASK_DELAY);
+};
+
+export const navigationalRunAndResetWithDelay = (
+  callback: (value: boolean) => void,
+  value: boolean
+) => {
+  callback(value);
+  if (value) {
+    setTimeout(() => {
+      callback(false);
+    }, NAVIGATION_TASK_DELAY * 2);
+  }
 };

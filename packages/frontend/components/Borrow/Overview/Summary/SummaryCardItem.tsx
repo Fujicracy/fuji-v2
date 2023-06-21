@@ -23,9 +23,40 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
 
   if (isMobile) {
     const shouldHaveParenthesis = title !== 'Current Price';
-    const content = `${amount} ${shouldHaveParenthesis ? '(' : ''}${footer}${
-      shouldHaveParenthesis ? ')' : ''
-    }`;
+    let content: JSX.Element | string = `${amount} ${
+      shouldHaveParenthesis ? '(' : ''
+    }${footer}${shouldHaveParenthesis ? ')' : ''}`;
+
+    if (footer.includes('below current price')) {
+      const coloredFooter = (
+        <span
+          style={{
+            color: palette.info.dark,
+            marginLeft: '5px',
+          }}
+        >
+          (
+          <span
+            style={{
+              color: data?.amount
+                ? belowPriceColor(data.amount, palette, data.recommended)
+                : palette.info.dark,
+            }}
+          >
+            {' '}
+            {footer.split('below current price')[0]}{' '}
+          </span>
+          {footer.split('%')[1]})
+        </span>
+      );
+
+      content = (
+        <span>
+          {amount}
+          {coloredFooter}
+        </span>
+      );
+    }
 
     return (
       <Grid item sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -46,7 +77,11 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
           justifyContent="start"
           sx={{ textAlign: 'left' }}
         >
-          <Typography variant="regularH4" mb="0.5rem">
+          <Typography
+            variant="regularH4"
+            mb="0.5rem"
+            data-cy="borrow-summary-amount"
+          >
             {amount}
           </Typography>
           {extra && (
@@ -63,7 +98,7 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
             mb="1rem"
             sx={{
               color: data.amount
-                ? belowPriceColor(data.amount, data.recommended, palette)
+                ? belowPriceColor(data.amount, palette, data.recommended)
                 : palette.info.dark,
             }}
           >

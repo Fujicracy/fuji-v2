@@ -1,9 +1,10 @@
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 
-import { chainName, chains } from './chains';
 import { MarketFilters } from '../components/Markets/MarketFiltersHeader';
+import { AssetType } from './assets';
+import { chainName, chains } from './chains';
 
-export enum Status {
+export enum MarketRowStatus {
   Ready,
   Loading,
   Error,
@@ -15,47 +16,47 @@ export type MarketRow = {
   collateral: string;
   debt: string;
   safetyRating: {
-    status: Status;
+    status: MarketRowStatus;
     value: number;
   };
 
   chain: {
-    status: Status;
+    status: MarketRowStatus;
     value: string;
   };
 
   depositApr: {
-    status: Status;
+    status: MarketRowStatus;
     value: number;
   };
   depositAprBase: {
-    status: Status;
+    status: MarketRowStatus;
     value: number;
   };
   depositAprReward: {
-    status: Status;
+    status: MarketRowStatus;
     value: number;
   };
 
   borrowApr: {
-    status: Status;
+    status: MarketRowStatus;
     value: number;
   };
   borrowAprBase: {
-    status: Status;
+    status: MarketRowStatus;
     value: number;
   };
   borrowAprReward: {
-    status: Status;
+    status: MarketRowStatus;
     value: number;
   };
 
-  integratedProtocols: {
-    status: Status;
+  integratedProviders: {
+    status: MarketRowStatus;
     value: string[];
   };
   liquidity: {
-    status: Status;
+    status: MarketRowStatus;
     value: number;
   };
 
@@ -69,43 +70,43 @@ const defaultRow: MarketRow = {
   collateral: '',
   debt: '',
   safetyRating: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: 0,
   },
   chain: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: '',
   },
   depositApr: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: 0,
   },
   depositAprBase: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: 0,
   },
   depositAprReward: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: 0,
   },
   borrowApr: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: 0,
   },
   borrowAprBase: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: 0,
   },
   borrowAprReward: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: 0,
   },
-  integratedProtocols: {
-    status: Status.Loading,
+  integratedProviders: {
+    status: MarketRowStatus.Loading,
     value: [],
   },
   liquidity: {
-    status: Status.Loading,
+    status: MarketRowStatus.Loading,
     value: 0,
   },
   isChild: false,
@@ -113,13 +114,22 @@ const defaultRow: MarketRow = {
   isBest: false,
 };
 
+export const vaultFromEntity = (
+  entity?: BorrowingVault | VaultWithFinancials
+): BorrowingVault | undefined =>
+  entity
+    ? entity instanceof BorrowingVault
+      ? entity
+      : entity.vault
+    : undefined;
+
 export const setBase = (v: BorrowingVault): MarketRow => ({
   ...defaultRow,
   entity: v,
   collateral: v.collateral.symbol,
   debt: v.debt.symbol,
   chain: {
-    status: Status.Ready,
+    status: MarketRowStatus.Ready,
     value: chainName(v.chainId),
   },
 });
@@ -128,7 +138,7 @@ export const setBase = (v: BorrowingVault): MarketRow => ({
 // and re-set later when data gets fetched from the Llama API
 export const setFinancials = (
   r: MarketRow,
-  status: Status,
+  status: MarketRowStatus,
   f?: VaultWithFinancials
 ): MarketRow => ({
   ...r,
@@ -152,7 +162,7 @@ export const setFinancials = (
     status,
     value: f?.activeProvider.borrowAprBase ?? 0,
   },
-  integratedProtocols: {
+  integratedProviders: {
     status,
     value: f?.allProviders.map((p) => p.name) ?? [],
   },
@@ -160,10 +170,10 @@ export const setFinancials = (
 
 export const setLlamas = (
   r: MarketRow,
-  status: Status,
+  status: MarketRowStatus,
   f?: VaultWithFinancials
 ): MarketRow => {
-  if (status === Status.Ready) {
+  if (status === MarketRowStatus.Ready) {
     return {
       ...r,
       depositApr: {
@@ -175,7 +185,7 @@ export const setLlamas = (
       depositAprReward: {
         status:
           f?.activeProvider.depositAprReward === undefined
-            ? Status.Error
+            ? MarketRowStatus.Error
             : status,
         value: Number(f?.activeProvider.depositAprReward),
       },
@@ -188,14 +198,14 @@ export const setLlamas = (
       borrowAprReward: {
         status:
           f?.activeProvider.borrowAprReward === undefined
-            ? Status.Error
+            ? MarketRowStatus.Error
             : status,
         value: Number(f?.activeProvider.borrowAprReward),
       },
       liquidity: {
         status:
           f?.activeProvider.availableToBorrowUSD === undefined
-            ? Status.Error
+            ? MarketRowStatus.Error
             : status,
         value: f?.activeProvider.availableToBorrowUSD ?? 0,
       },
@@ -240,7 +250,7 @@ export const setBest = (rows: MarketRow[]): MarketRow[] => {
       }
       result.push(...children);
     } else {
-      result.push(entries[0]);
+      result.push({ ...entries[0], isBest: true });
     }
   }
 
@@ -262,7 +272,7 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
     if (entries.length > 1) {
       const sorted = entries.sort(sortBy.descending);
       const children = groupByChain(
-        sorted.map((r, i) => ({
+        sorted.map((r) => ({
           ...r,
           isChild: true,
         }))
@@ -276,35 +286,10 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
   return grouped;
 };
 
-const groupByChain = (rows: MarketRow[]): MarketRow[] => {
-  const done = new Set<string>();
-  const grouped: MarketRow[] = [];
-
-  for (const row of rows) {
-    const key = row.chain.value;
-    if (done.has(key)) continue;
-    done.add(key);
-
-    const entries = rows.filter((r) => r.chain.value === row.chain.value);
-    if (entries.length > 1) {
-      const sorted = entries.sort(sortBy.descending);
-      const children = sorted.map((r, i) => ({
-        ...r,
-        isChild: true,
-      }));
-      grouped.push({ ...sorted[0], children });
-    } else {
-      grouped.push(entries[0]);
-    }
-  }
-
-  return grouped;
-};
-
-export function filterMarketRows(
+export const filterMarketRows = (
   rows: MarketRow[],
   filters: MarketFilters
-): MarketRow[] {
+): MarketRow[] => {
   if (!filters.searchQuery && filters.chains.length === chains.length)
     return groupByPair(rows);
   const filteredRows: MarketRow[] = [];
@@ -322,8 +307,8 @@ export function filterMarketRows(
           .toLowerCase()
           .includes(filters.searchQuery.toLowerCase()) ||
           row.debt.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
-          row.integratedProtocols.value.some((protocol) =>
-            protocol.toLowerCase().includes(filters.searchQuery.toLowerCase())
+          row.integratedProviders.value.some((provider) =>
+            provider.toLowerCase().includes(filters.searchQuery.toLowerCase())
           ));
 
       if (chainMatch && (!filters.searchQuery || searchQueryMatch)) {
@@ -335,12 +320,68 @@ export function filterMarketRows(
   filterRows(rows, filters);
 
   return groupByPair(filteredRows);
-}
+};
+
+export type AprData = {
+  positive: boolean;
+  base: number;
+  providerName: string;
+  type?: AssetType;
+  reward?: number;
+};
+
+export const aprData = (
+  base: number,
+  reward?: number,
+  type: AssetType = AssetType.Collateral
+): Partial<AprData> => {
+  return {
+    positive:
+      type === AssetType.Debt || (reward !== undefined && reward > base),
+    reward,
+    base,
+    type,
+  };
+};
 
 type SortBy = 'descending' | 'ascending';
 type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;
 
+const groupByChain = (rows: MarketRow[]): MarketRow[] => {
+  const done = new Set<string>();
+  const grouped: MarketRow[] = [];
+
+  for (const row of rows) {
+    const key = row.chain.value;
+    if (done.has(key)) continue;
+    done.add(key);
+
+    const entries = rows.filter((r) => r.chain.value === row.chain.value);
+    if (entries.length > 1) {
+      const sorted = entries.sort(sortBy.descending);
+
+      const children = sorted.map((r) => ({
+        ...r,
+        isChild: true,
+      }));
+      grouped.push({ ...sorted[0], children });
+    } else {
+      grouped.push(entries[0]);
+    }
+  }
+
+  return grouped;
+};
+
 const sortBy: Record<SortBy, CompareFn> = {
-  ascending: (a, b) => (a.borrowApr.value < b.borrowApr.value ? 1 : -1),
-  descending: (a, b) => (a.borrowApr.value > b.borrowApr.value ? 1 : -1),
+  ascending: (a, b) =>
+    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) <
+    b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
+      ? 1
+      : -1,
+  descending: (a, b) =>
+    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) >
+    b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
+      ? 1
+      : -1,
 };

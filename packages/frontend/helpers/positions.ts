@@ -1,6 +1,8 @@
 import { Palette } from '@mui/material';
 import {
   Address,
+  ChainId,
+  FujiError,
   FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
@@ -10,9 +12,19 @@ import { BigNumber } from 'ethers';
 import { useBorrow } from '../store/borrow.store';
 import { AssetMeta, Position } from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
-import { AssetChange, AssetType, Mode } from './assets';
-import { getAllBorrowingVaultFinancials } from './borrow';
+import { AssetChange, AssetType, debtForCurrency, Mode } from './assets';
+import {
+  getAllBorrowingVaultFinancials,
+  vaultsFromFinancialsOrError,
+} from './borrow';
+import { shouldShowStoreNotification } from './navigation';
+import { showOnchainErrorNotification } from './notifications';
 import { bigToFloat, formatNumber } from './values';
+
+export type BasePosition = {
+  position: Position;
+  editedPosition?: Position;
+};
 
 export const getTotalSum = (
   positions: Position[],
@@ -20,25 +32,29 @@ export const getTotalSum = (
 ): number => {
   return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0);
 };
-
 export const getPositionsWithBalance = async (
   addr: string
 ): FujiResultPromise<Position[]> => {
   const account = Address.from(addr);
 
   const result = await getAllBorrowingVaultFinancials(account);
+  const errors = result.data.filter((d) => d instanceof FujiError);
+  const allVaults = vaultsFromFinancialsOrError(result.data);
 
-  if (result.errors.length > 0) {
-    // Should we keep going with the returnd vaults? Don't think so
-    const firstError = result.errors[0];
-    return new FujiResultError(
-      firstError.message,
-      firstError.code,
-      firstError.info
-    );
+  if (errors.length > 0) {
+    const firstError = errors[0] as FujiError;
+    if (allVaults.length > 0) {
+      if (shouldShowStoreNotification('positions'))
+        showOnchainErrorNotification(firstError);
+    } else {
+      return new FujiResultError(
+        firstError.message,
+        firstError.code,
+        firstError.info
+      );
+    }
   }
 
-  const allVaults = result.data;
   const vaultsWithBalance = allVaults.filter((v) =>
     v.depositBalance.gt(BigNumber.from('0'))
   );
@@ -47,17 +63,17 @@ export const getPositionsWithBalance = async (
     const p = {} as Position;
     p.vault = v.vault;
     p.collateral = {
-      amount: bigToFloat(v.depositBalance, v.vault.collateral.decimals),
-      token: v.vault.collateral,
-      usdPrice: bigToFloat(v.collateralPriceUSD, v.vault.collateral.decimals),
+      amount: bigToFloat(v.vault.collateral.decimals, v.depositBalance),
+      currency: v.vault.collateral,
+      usdPrice: bigToFloat(v.vault.collateral.decimals, v.collateralPriceUSD),
       get baseAPR() {
         return v.activeProvider.depositAprBase;
       },
     };
     p.debt = {
-      amount: bigToFloat(v.borrowBalance, v.vault.debt.decimals),
-      token: v.vault.debt,
-      usdPrice: bigToFloat(v.debtPriceUSD, v.vault.debt.decimals),
+      amount: bigToFloat(v.vault.debt.decimals, v.borrowBalance),
+      currency: v.vault.debt,
+      usdPrice: bigToFloat(v.vault.debt.decimals, v.debtPriceUSD),
       get baseAPR() {
         return v.activeProvider.borrowAprBase;
       },
@@ -65,8 +81,11 @@ export const getPositionsWithBalance = async (
     p.ltv =
       (p.debt.amount * p.debt.usdPrice) /
       (p.collateral.amount * p.collateral.usdPrice);
-    p.ltvMax = bigToFloat(v.vault.maxLtv, 18);
-    p.ltvThreshold = bigToFloat(v.vault.liqRatio, 18);
+    p.ltvMax = bigToFloat(p.collateral.currency.decimals, v.vault.maxLtv);
+    p.ltvThreshold = bigToFloat(
+      p.collateral.currency.decimals,
+      v.vault.liqRatio
+    );
     p.liquidationPrice =
       p.debt.usdPrice === 0
         ? 0
@@ -76,6 +95,7 @@ export const getPositionsWithBalance = async (
       p.liquidationPrice === 0
         ? 0
         : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
+    p.activeProvidersNames = v.allProviders.map((provider) => provider.name);
     return p;
   });
 
@@ -84,11 +104,11 @@ export const getPositionsWithBalance = async (
 
 export const getAccrual = (
   usdBalance: number,
-  baseAPR: number | undefined,
-  param: 'collateral' | 'debt'
+  type: AssetType,
+  baseAPR?: number
 ): number => {
-  const factor = param === 'debt' ? -1 : 1;
-  // `baseAPR` returned bu SDK is formated in %, therefore to get decimal we divide by 100.
+  const factor = type === AssetType.Debt ? -1 : 1;
+  // `baseAPR` returned bu SDK is formatted in %, therefore to get decimal we divide by 100.
   const aprDecimal = baseAPR ? baseAPR / 100 : 0;
   // Blockchain APR compounds per block, and daily compounding is a close estimation for APY
   const apyDecimal = (1 + aprDecimal / 365) ** 365 - 1;
@@ -106,7 +126,6 @@ export const getCurrentAvailableBorrowingPower = (
 };
 
 export type PositionRow = {
-  chainId: number | undefined;
   debt: {
     symbol: string | '-';
     amount: number | '-';
@@ -123,45 +142,52 @@ export type PositionRow = {
   liquidationPrice: number | '-';
   oraclePrice: number | '-';
   percentPriceDiff: number | '-';
-  address: string | undefined;
   ltv: number | 0;
   ltvMax: number | 0;
+  safetyRating: number | 0;
+  activeProvidersNames: string[];
+  chainId?: number;
+  address?: string;
 };
 
 export function getRows(positions: Position[]): PositionRow[] {
   if (positions.length === 0) {
     return [];
   } else {
-    return positions.map((pos: Position) => ({
-      address: pos.vault?.address.value,
-      chainId: pos.vault?.chainId,
-      debt: {
-        symbol: pos.vault?.debt.symbol || '',
-        amount: pos.debt.amount,
-        usdValue: pos.debt.amount * pos.debt.usdPrice,
-        baseAPR: pos.debt.baseAPR,
-      },
-      collateral: {
-        symbol: pos.vault?.collateral.symbol || '',
-        amount: pos.collateral.amount,
-        usdValue: pos.collateral.amount * pos.collateral.usdPrice,
-        baseAPR: pos.collateral.baseAPR,
-      },
-      apr: formatNumber(pos.debt.baseAPR, 2),
-      liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
-      oraclePrice: pos.collateral.usdPrice,
-      percentPriceDiff: pos.liquidationDiff,
-      ltv: pos.ltv * 100,
-      ltvMax: pos.ltvMax * 100,
-    }));
+    return positions.map((pos: Position) => {
+      return {
+        safetyRating: Number(pos.vault?.safetyRating?.toString()) ?? 0,
+        address: pos.vault?.address.value,
+        chainId: pos.vault?.chainId,
+        debt: {
+          symbol: pos.vault?.debt.symbol || '',
+          amount: pos.debt.amount,
+          usdValue: pos.debt.amount * pos.debt.usdPrice,
+          baseAPR: pos.debt.baseAPR,
+        },
+        collateral: {
+          symbol: pos.vault?.collateral.symbol || '',
+          amount: pos.collateral.amount,
+          usdValue: pos.collateral.amount * pos.collateral.usdPrice,
+          baseAPR: pos.collateral.baseAPR,
+        },
+        apr: formatNumber(pos.debt.baseAPR, 2),
+        liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
+        oraclePrice: pos.collateral.usdPrice,
+        percentPriceDiff: pos.liquidationDiff,
+        ltv: pos.ltv * 100,
+        ltvMax: pos.ltvMax * 100,
+        activeProvidersNames: pos.activeProvidersNames,
+      };
+    });
   }
 }
 
-function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
+function handleDisplayLiquidationPrice(liqPrice?: number) {
   if (liqPrice === undefined || liqPrice === 0) {
     return '-';
   } else {
-    return formatNumber(liqPrice, 0);
+    return formatNumber(liqPrice, liqPrice < 10 ? 2 : 0);
   }
 }
 
@@ -170,7 +196,7 @@ function handleDisplayLiquidationPrice(liqPrice: number | undefined) {
  *
  * @param collateral input changes as `AssetChange`
  * @param debt input changes as `AssetChange`
- * @param position
+ * @param current
  * @param mode
  */
 export function viewEditedPosition(
@@ -212,7 +238,6 @@ export function viewEditedPosition(
   const debtUsdValue = future.debt.amount * future.debt.usdPrice;
   const collatUsdValue = future.collateral.amount * future.collateral.usdPrice;
 
-  future.ltvMax = future.ltvMax;
   future.ltv = (debtUsdValue / collatUsdValue) * 100;
 
   future.liquidationPrice =
@@ -225,18 +250,26 @@ export function viewEditedPosition(
   return future;
 }
 
-export type BasePosition = {
-  position: Position;
-  editedPosition?: Position;
-};
-
 export function viewDynamicPosition(
-  dynamic: boolean,
-  position: Position | undefined,
-  editedPosition: Position | undefined = undefined
-): BasePosition {
+  isEditing: boolean,
+  allowSettingDebt: boolean,
+  position?: Position,
+  editedPosition?: Position
+): BasePosition | undefined {
+  const dynamic = !isEditing;
   const baseCollateral = useBorrow.getState().collateral;
-  const baseDebt = useBorrow.getState().debt;
+  let baseDebt = useBorrow.getState().debt;
+
+  if (!baseDebt && isEditing && position && !allowSettingDebt) {
+    const debt = debtForCurrency(position.debt.currency);
+    useBorrow.getState().changeDebt(debt);
+    baseDebt = debt;
+  }
+
+  if (!baseDebt) {
+    return undefined;
+  }
+
   const baseLtv = useBorrow.getState().ltv;
   const baseLiquidation = useBorrow.getState().liquidationMeta;
   return {
@@ -259,6 +292,7 @@ export function viewDynamicPosition(
       liquidationPrice: position
         ? position.liquidationPrice
         : baseLiquidation.liquidationPrice,
+      activeProvidersNames: position?.activeProvidersNames || [],
     },
     editedPosition,
   };
@@ -267,13 +301,13 @@ export function viewDynamicPosition(
 export function dynamicPositionMeta(
   dynamic: boolean, // If tue, it means we need to show data the user is inputting
   source: AssetChange,
-  positionMeta: AssetMeta | undefined = undefined
+  positionMeta?: AssetMeta
 ): AssetMeta {
   if (positionMeta) return positionMeta;
   return {
     amount: dynamic ? Number(source.input) : source.amount,
     usdPrice: source.usdPrice,
-    token: source.token,
+    currency: source.currency,
   };
 }
 
@@ -295,16 +329,20 @@ export function getEstimatedEarnings({
   );
 }
 
-export function vaultFromAddress(address: string | undefined) {
+export function vaultFromPosition(address: string, chainId?: ChainId) {
   if (!address) return undefined;
   const positions = usePositions.getState().positions;
-  return positions.find((pos) => pos.vault?.address.value === address)?.vault;
+  return positions.find((pos) =>
+    chainId !== undefined
+      ? pos.vault?.address.value === address && pos.vault?.chainId === chainId
+      : pos.vault?.address.value === address
+  )?.vault;
 }
 
 export function liquidationColor(
   percentage: number | string,
-  recommended: number | undefined,
-  palette: Palette
+  palette: Palette,
+  recommended?: number
 ) {
   if (typeof percentage === 'string' || !recommended) return palette.info.main;
   return percentage <= recommended
@@ -314,8 +352,8 @@ export function liquidationColor(
 
 export function belowPriceColor(
   percentage: number | string,
-  min: number | undefined,
-  palette: Palette
+  palette: Palette,
+  min?: number
 ) {
   if (typeof percentage === 'string' || !min) return palette.info.main;
   if (percentage <= 5) return palette.error.main;

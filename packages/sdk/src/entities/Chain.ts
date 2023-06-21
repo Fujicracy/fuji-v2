@@ -1,7 +1,4 @@
-import {
-  StaticJsonRpcProvider,
-  WebSocketProvider,
-} from '@ethersproject/providers';
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import { IMulticallProvider, initSyncMulticallProvider } from '@hovoh/ethcall';
 
 import {
@@ -10,12 +7,7 @@ import {
   CHAIN_LLAMA_KEY,
   CHAIN_NAME,
 } from '../constants/chain-properties';
-import {
-  ALCHEMY_WSS_URL,
-  INFURA_RPC_URL,
-  INFURA_WSS_URL,
-  POKT_RPC_URL,
-} from '../constants/rpcs';
+import { INFURA_RPC_URL, POKT_RPC_URL } from '../constants/rpcs';
 import { ChainId, ChainType, ConnextDomain } from '../enums';
 import { ChainConfig } from '../types/ChainConfig';
 import { ChainConnectionDetails } from '../types/ChainConnectionDetails';
@@ -82,17 +74,9 @@ export class Chain {
       const multicallRpcProvider: IMulticallProvider =
         initSyncMulticallProvider(rpcProvider, this.chainId);
 
-      let wss: string | null = INFURA_WSS_URL[this.chainId](params.infuraId);
-      if (!wss) {
-        const alchemyId = params.alchemy[this.chainId];
-        wss = alchemyId ? ALCHEMY_WSS_URL[this.chainId](alchemyId) : null;
-      }
-      const wssProvider = wss ? new WebSocketProvider(wss) : undefined;
-
       this.connection = {
         rpcProvider,
         multicallRpcProvider,
-        wssProvider,
       };
     }
 

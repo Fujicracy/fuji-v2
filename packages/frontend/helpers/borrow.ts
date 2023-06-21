@@ -1,10 +1,13 @@
 import {
   Address,
+  BorrowingVault,
   FujiError,
-  LendingProviderDetails,
+  // LendingProviderDetails,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 
+import { DUST_AMOUNT_IN_WEI } from '../constants';
+// import { DUST_AMOUNT_IN_WEI } from '../constants';
 import { sdk } from '../services/sdk';
 import { ActionType, Mode } from './assets';
 import { chains } from './chains';
@@ -13,9 +16,9 @@ export function modeForContext(
   isEditing: boolean,
   actionType: ActionType,
   collateral: number,
-  debt: number
+  debt?: number
 ): Mode {
-  if (!isEditing) return Mode.DEPOSIT_AND_BORROW;
+  if (!isEditing || debt === undefined) return Mode.DEPOSIT_AND_BORROW;
   if ((collateral > 0 && debt > 0) || (collateral === 0 && debt === 0)) {
     return ActionType.ADD === actionType
       ? Mode.DEPOSIT_AND_BORROW
@@ -30,8 +33,8 @@ export function modeForContext(
 
 export const failureForMode = (
   mode: Mode,
-  collateral: string | undefined,
-  debt: string | undefined
+  collateral?: string,
+  debt?: string
 ): boolean => {
   return (
     ((mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
@@ -41,15 +44,18 @@ export const failureForMode = (
   );
 };
 
+export type FinancialsOrError = VaultWithFinancials | FujiError;
+
 /*
   Convenience function that calls the SDK to get all the vaults with
   financials and returns both the data and errors.
 */
 export const getAllBorrowingVaultFinancials = async (
-  address: Address | undefined
-): Promise<{ data: VaultWithFinancials[]; errors: FujiError[] }> => {
-  const data: VaultWithFinancials[] = [];
-  const errors: FujiError[] = [];
+  address?: Address
+): Promise<{
+  data: FinancialsOrError[];
+}> => {
+  const data: FinancialsOrError[] = [];
 
   for (let index = 0; index < chains.length; index++) {
     const chain = chains[index];
@@ -60,31 +66,26 @@ export const getAllBorrowingVaultFinancials = async (
     if (result.success) {
       data.push(...result.data);
     } else {
-      errors.push(result.error);
+      data.push(
+        new FujiError(result.error.message, result.error.code, {
+          chain: chain.name,
+        })
+      );
     }
   }
 
-  return { data, errors };
+  return { data };
 };
 
-export function rearrangeProvidersWithActiveInCenter(
-  array: LendingProviderDetails[]
-): LendingProviderDetails[] {
-  const activeItem = array.find((item) => item.active);
-  if (!activeItem || array.length === 1) {
-    // No active item found, return the original array
-    return array;
-  }
+export const userHasFundsInVault = (
+  vault: BorrowingVault,
+  list: VaultWithFinancials[]
+) => {
+  const match = list.find((v) => v.vault.address.equals(vault.address));
+  return match && match.depositBalance.gt(DUST_AMOUNT_IN_WEI);
+};
 
-  const middleIndex = (array.length - 1) / 2;
-  const activeIndex = array.indexOf(activeItem);
-  array.splice(activeIndex, 1);
-
-  let leftArray: LendingProviderDetails[] = [];
-  let rightArray: LendingProviderDetails[] = [];
-
-  leftArray = array.slice(0, middleIndex);
-  rightArray = array.slice(middleIndex);
-
-  return [...leftArray, activeItem, ...rightArray];
-}
+export const vaultsFromFinancialsOrError = (
+  data: FinancialsOrError[]
+): VaultWithFinancials[] =>
+  data.filter((d) => !(d instanceof FujiError)) as VaultWithFinancials[];

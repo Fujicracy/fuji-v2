@@ -1,44 +1,50 @@
 import { NextPage } from 'next';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import BorrowWrapper from '../components/Borrow/Wrapper';
-import { hexToChainId } from '../helpers/chains';
+import { AssetType } from '../helpers/assets';
+import { navigationalTaskDelay } from '../helpers/navigation';
 import { useAuth } from '../store/auth.store';
-import { useBorrow } from '../store/borrow.store';
+import { FormType, useBorrow } from '../store/borrow.store';
+import { useNavigation } from '../store/navigation.store';
+
+const formType = FormType.Create;
 
 const BorrowPage: NextPage = () => {
-  const changeFormType = useBorrow((state) => state.changeFormType);
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
+  const chainId = useAuth((state) => state.chainId);
+  const shouldResetPage = useNavigation(
+    (state) => state.borrowPage.shouldReset
   );
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
 
-  const allowChainOverride = useBorrow((state) => state.allowChainOverride);
+  const changeFormType = useBorrow((state) => state.changeFormType);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
+  const changeInputValues = useBorrow((state) => state.changeInputValues);
+  const changeShouldPageReset = useNavigation(
+    (state) => state.changeBorrowPageShouldReset
+  );
+  const clearDebt = useBorrow((state) => state.clearDebt);
 
-  const walletChain = useAuth((state) => state.chain);
   const [hasChain, setHasChain] = useState(false);
 
+  if (shouldResetPage) {
+    clearDebt();
+    changeInputValues('', '');
+    navigationalTaskDelay(() => changeShouldPageReset(false));
+  }
+
   useEffect(() => {
-    changeFormType('create');
+    changeFormType(formType);
   }, [changeFormType]);
 
   useEffect(() => {
-    if (walletChain && !hasChain) {
+    if (chainId && !hasChain) {
       setHasChain(true);
-      const chainId = hexToChainId(walletChain.id);
-      if (!allowChainOverride || !chainId) return;
-      changeCollateralChain(chainId, false);
-      changeDebtChain(chainId, true);
+      if (!shouldResetPage || !chainId) return;
+      changeAssetChain(AssetType.Collateral, chainId, false);
     }
-  }, [
-    allowChainOverride,
-    hasChain,
-    walletChain,
-    changeCollateralChain,
-    changeDebtChain,
-  ]);
+  }, [shouldResetPage, hasChain, chainId, changeAssetChain]);
 
-  return <BorrowWrapper />;
+  return <BorrowWrapper formType={formType} />;
 };
 
 export default BorrowPage;

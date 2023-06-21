@@ -1,17 +1,14 @@
 import React, { useMemo, useState } from 'react';
 
-import TabSwitch from '../TabSwitch';
+import { TabOption } from '../../../constants';
+import { Period } from '../../../helpers/charts';
+import TabSwitch from '../TabSwitch/TabSwitch';
 
-type PeriodOption = {
-  label: string;
-  value: number;
-};
-
-const periodOptions: PeriodOption[] = [
-  { label: '1D', value: 1 },
-  { label: '7D', value: 7 },
-  { label: '30D', value: 30 },
-  { label: '365D', value: 365 },
+const periodOptions: TabOption[] = [
+  { label: '1D', value: Period.DAY },
+  { label: '7D', value: Period.WEEK },
+  { label: '30D', value: Period.MONTH },
+  { label: '365D', value: Period.YEAR },
 ];
 
 export function PeriodOptions({
@@ -33,7 +30,7 @@ export function PeriodOptions({
 
   return (
     <TabSwitch
-      actions={options}
+      options={options}
       selected={daysPeriod}
       onChange={onPeriodChange}
       width="13.6rem"

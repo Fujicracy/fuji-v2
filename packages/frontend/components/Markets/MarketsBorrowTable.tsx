@@ -9,30 +9,18 @@ import {
   TableRow,
   useTheme,
 } from '@mui/material';
-import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-import { NOTIFICATION_MESSAGES } from '../../constants';
-import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import { chains } from '../../helpers/chains';
-import {
-  filterMarketRows,
-  MarketRow,
-  setBase,
-  setBest,
-  setFinancials,
-  setLlamas,
-  Status,
-} from '../../helpers/markets';
+import { filterMarketRows, MarketRow } from '../../helpers/markets';
 import { showPosition } from '../../helpers/navigation';
-import { notify } from '../../helpers/notifications';
-import { sdk } from '../../services/sdk';
 import { useAuth } from '../../store/auth.store';
+import { useMarkets } from '../../store/markets.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import EmptyRowsState from '../Shared/Table/EmptyRowsState';
-import { DocsTooltip } from '../Shared/Tooltips';
-import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import { DocsTooltip, RebalanceTooltip } from '../Shared/Tooltips';
 import { MarketFilters } from './MarketFiltersHeader';
 import MarketsBorrowTableRow from './MarketsBorrowTableRow';
 
@@ -40,63 +28,19 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   const { palette } = useTheme();
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
-  const [rows, setRows] = useState<MarketRow[]>([]);
   const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  const walletChain = useAuth((state) => state.chain);
+  const isLoading = useMarkets((state) => state.loading);
+  const vaults = useMarkets((state) => state.vaults);
+  const rows = useMarkets((state) => state.rows);
+  const fetchMarkets = useMarkets((state) => state.fetchMarkets);
+
+  const walletChainId = useAuth((state) => state.chainId);
 
   useEffect(() => {
-    const addr = address ? Address.from(address) : undefined;
-
-    const vaults = sdk.getAllBorrowingVaults();
-    const rowsBase = vaults.map(setBase);
-    setRows(rowsBase);
-
-    (async () => {
-      const result = await getAllBorrowingVaultFinancials(addr);
-
-      if (result.errors.length > 0) {
-        notify({
-          type: 'error',
-          message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
-        });
-      }
-
-      if (result.data.length === 0) {
-        const rows = rowsBase
-          .map((r) => setFinancials(r, Status.Error))
-          .map((r) => setLlamas(r, Status.Error));
-        setRows(setBest(rows));
-        return;
-      }
-
-      const financials = result.data;
-      const rowsFin = financials.map((fin, i) =>
-        setFinancials(rowsBase[i], Status.Ready, fin)
-      );
-      setRows(setBest(rowsFin));
-
-      const llamaResult = await sdk.getLlamaFinancials(financials);
-      if (!llamaResult.success) {
-        notify({
-          type: 'error',
-          message: llamaResult.error.message,
-        });
-        const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
-        setRows(setBest(rows));
-        return;
-      }
-
-      const rowsLlama = llamaResult.data.map((llama, i) =>
-        setLlamas(rowsFin[i], Status.Ready, llama)
-      );
-      setRows(setBest(rowsLlama));
-    })().finally(() => {
-      setIsLoading(false);
-    });
-  }, [address]);
+    fetchMarkets(address);
+  }, [address, fetchMarkets]);
 
   // Filters original rows depends on search or chain
   useEffect(() => {
@@ -104,7 +48,7 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    showPosition(router, walletChain?.id as string, entity);
+    showPosition(router, true, entity, walletChainId);
   };
 
   return (
@@ -149,7 +93,7 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
                 //   )
                 // }
               >
-                <span>Borrow APR</span>
+                Borrow APR
                 {/* {appSorting === "descending" ? (
                   <KeyboardArrowUpIcon
                     sx={{ color: palette.info.main, fontSize: "0.875rem" }}
@@ -162,22 +106,12 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="130px" align="right">
-              Collateral APY
+              Supply APY
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing="0.0rem"
-                justifyContent="right"
-              >
-                <InfoTooltip
-                  title={
-                    'In the background, Fuji rebalances between these protocols to provide the best terms.'
-                  }
-                  isLeft
-                />
-                <span>Protocols</span>
+              <Stack direction="row" alignItems="center" justifyContent="right">
+                <RebalanceTooltip />
+                Protocols
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="140px">
@@ -188,7 +122,7 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
                 justifyContent="right"
               >
                 <DocsTooltip />
-                <span>Safety Rating</span>
+                Safety Rating
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="140px" align="right">
@@ -197,7 +131,7 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {isLoading ? (
+          {isLoading && vaults.length === 0 ? (
             <TableRow>
               {new Array(8).fill('').map((_, index) => (
                 <TableCell

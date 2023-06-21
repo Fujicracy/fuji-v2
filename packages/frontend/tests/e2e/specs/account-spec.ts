@@ -5,12 +5,12 @@ describe('Account', () => {
   before(() => {
     cy.visit('/');
   });
-  it('should display the disclaimer modal', () => {
-    cy.get('[data-cy="disclaimer-modal"]').should('exist');
+  it('should display the explore carousel modal', () => {
+    cy.get('[data-cy="explore-carousel"]').should('exist');
   });
-  it('should accept the disclaimer', () => {
-    cy.dismissDisclaimer();
-    cy.get('[data-cy=disclaimer-modal').should('not.exist');
+  it('should skip onboarding', () => {
+    cy.skipOnboarding();
+    cy.get('[data-cy="explore-carousel"]').should('not.exist');
   });
   it('should display a connect button if the user is not connected', () => {
     cy.get('[data-cy="header-login"]')
@@ -18,7 +18,8 @@ describe('Account', () => {
       .and('contain.text', 'Connect wallet');
   });
   it('should login', () => {
-    cy.get('[data-cy="header-login"]').click({ force: true });
+    cy.login();
+    cy.dismissDisclaimer();
     cy.acceptMetamaskAccess().then((connected) => {
       expect(connected).to.be.true;
     });

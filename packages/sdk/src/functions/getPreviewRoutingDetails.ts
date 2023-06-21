@@ -2,15 +2,13 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import { BN_ZERO } from '../constants';
 import { CHAIN } from '../constants/chains';
-import { FujiErrorCode } from '../constants/errors';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import {
   Chain,
-  FujiError,
+  Currency,
   FujiResultError,
   FujiResultSuccess,
 } from '../entities';
-import { Token } from '../entities/Token';
 import { ChainId, OperationType, PreviewName, RoutingStep } from '../enums';
 import { Nxtp } from '../Nxtp';
 import { PreviewNxtpResult } from '../types';
@@ -35,14 +33,14 @@ function _step(
   step: RoutingStep,
   chainId: ChainId,
   amount?: BigNumber,
-  token?: Token,
+  currency?: Currency,
   lendingProvider?: string
 ): RoutingStepDetails {
   return {
     step,
     amount,
     chainId,
-    token,
+    token: currency?.wrapped,
     lendingProvider: lendingProvider
       ? LENDING_PROVIDERS[chainId][lendingProvider]
       : undefined,
@@ -52,15 +50,15 @@ function _step(
 async function _callNxtp(
   srcChain: Chain,
   destChain: Chain,
-  token: Token,
+  currency: Currency,
   amount: BigNumber
 ): FujiResultPromise<PreviewNxtpResult> {
+  const token = currency.wrapped;
   if (amount.eq(0)) {
-    const zero = BigNumber.from(0);
     return new FujiResultSuccess({
-      received: zero,
-      estimateSlippage: zero,
-      bridgeFee: zero,
+      received: BN_ZERO,
+      estimateSlippage: BN_ZERO,
+      bridgeFee: BN_ZERO,
     });
   }
   try {
@@ -93,8 +91,11 @@ async function _callNxtp(
       bridgeFee: routerFee as BigNumber,
     });
   } catch (e) {
-    const message = FujiError.messageFromUnknownError(e);
-    return new FujiResultError(message, FujiErrorCode.CONNEXT);
+    return new FujiResultSuccess({
+      received: amount,
+      estimateSlippage: BN_ZERO,
+      bridgeFee: BN_ZERO,
+    });
   }
 }
 

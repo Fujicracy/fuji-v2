@@ -13,22 +13,22 @@ import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
-import { ActionType, needsAllowance } from '../../helpers/assets';
+import {
+  ActionType,
+  AssetType,
+  FetchStatus,
+  needsAllowance,
+} from '../../helpers/assets';
 import { modeForContext } from '../../helpers/borrow';
-import { chainName, hexToChainId } from '../../helpers/chains';
-import { showBorrow, showPosition } from '../../helpers/navigation';
+import { chainName } from '../../helpers/chains';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import BorrowBox from '../Borrow/Box/Box';
-import BorrowButton from '../Borrow/Button';
 import ConnextFooter from '../Borrow/ConnextFooter';
 import Fees from '../Borrow/Fees';
-import RoutingModal from '../Borrow/Routing/RoutingModal';
-import ConfirmTransactionModal from '../Shared/ConfirmTransactionModal';
-import TabSwitch from '../Shared/TabSwitch';
-import SignTooltip from '../Shared/Tooltips/SignTooltip';
+import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 
 type BorrowProps = {
@@ -41,7 +41,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const onMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const address = useAuth((state) => state.address);
-  const walletChain = useAuth((state) => state.chain);
+  const walletChain = useAuth((state) => state.chainId);
   const changeChain = useAuth((state) => state.changeChain);
   const login = useAuth((state) => state.login);
 
@@ -63,7 +63,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const updateVault = useBorrow((state) => state.updateVault);
   const allow = useBorrow((state) => state.allow);
   const updateAllowance = useBorrow((state) => state.updateAllowance);
-  const updateTokenPrice = useBorrow((state) => state.updateTokenPrice);
+  const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
 
   const { position, editedPosition } = basePosition;
@@ -93,7 +93,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
     const collateralAmount = parseFloat(collateral.input);
     const collateralAllowance = needsAllowance(
       mode,
-      'collateral',
+      AssetType.Collateral,
       collateral,
       collateralAmount
     );
@@ -102,9 +102,9 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
     return (
       collateralAmount &&
       !collateralAllowance &&
-      availableVaultStatus === 'ready' &&
+      availableVaultStatus === FetchStatus.Ready &&
       !(!isEditing && hasBalanceInVault) &&
-      startChainId === hexToChainId(walletChain?.id) &&
+      startChainId === walletChain &&
       needsSignature
     );
   }, [
@@ -120,8 +120,8 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
 
   useEffect(() => {
     if (address) {
-      updateBalances('collateral');
-      updateAllowance('collateral');
+      updateBalances(AssetType.Collateral);
+      updateAllowance(AssetType.Collateral);
       if (!vault) {
         updateVault();
       }
@@ -129,8 +129,8 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   }, [address, vault, updateBalances, updateAllowance, updateVault]);
 
   useEffect(() => {
-    updateTokenPrice('collateral');
-  }, [updateTokenPrice]);
+    updateCurrencyPrice(AssetType.Collateral);
+  }, [updateCurrencyPrice]);
 
   useEffect(() => {
     if (prevActionType.current !== actionType) {
@@ -206,15 +206,15 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
 
   const shouldWarningBeDisplayed =
     !isEditing &&
-    availableVaultStatus === 'ready' &&
-    transactionMeta.status === 'ready' &&
+    availableVaultStatus === FetchStatus.Ready &&
+    transactionMeta.status === FetchStatus.Ready &&
     hasBalanceInVault;
 
   return (
     <>
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
         <CardContent sx={{ width: '100%', p: '0 2rem 1.5rem 2rem' }}>
-          {true && (
+          {/* {true && (
             <TabSwitch
               size="large"
               actions={[
@@ -224,16 +224,16 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
               selected={actionType}
               onChange={(type) => setActionType(type)}
             />
-          )}
+          )} */}
           {[collateral].map((assetChange, index) => {
             const collateralIndex = actionType === ActionType.ADD ? 0 : 1;
             const type = index === collateralIndex ? 'collateral' : 'debt';
-            const maxAmount = assetChange.balances[assetChange.token.symbol];
+            const maxAmount = assetChange.balances[assetChange.currency.symbol];
             return (
               <BorrowBox
                 key={type}
                 index={index}
-                type={'collateral'}
+                type={AssetType.Collateral}
                 showMax={true}
                 maxAmount={maxAmount}
                 assetChange={assetChange}
@@ -288,7 +288,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
             </Box>
           )}
 
-          <BorrowButton
+          {/* <BorrowButton
             address={address}
             collateral={collateral}
             debt={collateral}
@@ -311,22 +311,22 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
               if (borrow) {
                 showBorrow(router);
               } else {
-                showPosition(router, walletChain?.id, vault, false);
+                showPosition(router, walletChain, vault, false);
               }
             }}
             onClick={signAndExecute}
             withConfirmation={proceedWithConfirmation}
-          />
+          /> */}
 
           <ConnextFooter />
         </CardContent>
       </Card>
-      <RoutingModal
+      {/* <RoutingModal
         isEditing={isEditing}
         open={showRoutingModal}
         handleClose={() => setShowRoutingModal(false)}
-      />
-      <ConfirmTransactionModal
+      /> */}
+      {/* <ConfirmTransactionModal
         open={isConfirmationModalShown}
         onClose={() => setIsConfirmationModalShown(false)}
         basePosition={basePosition}
@@ -337,7 +337,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
           setIsConfirmationModalShown(false);
           confirmationModalAction && confirmationModalAction();
         }}
-      />
+      /> */}
     </>
   );
 }

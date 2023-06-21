@@ -2,6 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { AaveV2 } from "./AaveV2";
+export type { AaveV3 } from "./AaveV3";
 export type { CompoundV2 } from "./CompoundV2";
 export type { CompoundV3 } from "./CompoundV3";
 export type { DForce } from "./DForce";

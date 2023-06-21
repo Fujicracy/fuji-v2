@@ -15,11 +15,10 @@ import {
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { MarketRow, Status } from '../../helpers/markets';
+import { MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
-import { DropletIcon, NetworkIcon, TokenIcon } from '../Shared/Icons';
+import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
-import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
 import Toggle from '../Shared/Table/Toggle';
 
 type MarketsTableRowProps = {
@@ -45,10 +44,10 @@ function MarketsDepositTableRow({
     setExpandRow(openedByDefault);
   }, [openedByDefault]);
 
-  const loaderOrError = (status: Status) =>
-    status === Status.Loading ? (
+  const loaderOrError = (status: MarketRowStatus) =>
+    status === MarketRowStatus.Loading ? (
       <Skeleton />
-    ) : status === Status.Error ? (
+    ) : status === MarketRowStatus.Error ? (
       <Tooltip title="Error loading data" arrow>
         <ErrorOutlineIcon />
       </Tooltip>
@@ -58,7 +57,7 @@ function MarketsDepositTableRow({
 
   const isHighLevelRow = !row.isChild && !row.isGrandChild;
   const shouldNetworkColumnBeShown =
-    row.chain.status === Status.Ready &&
+    row.chain.status === MarketRowStatus.Ready &&
     (!isHighLevelRow || (isHighLevelRow && !expandRow));
 
   return (
@@ -93,7 +92,11 @@ function MarketsDepositTableRow({
                 flexWrap="nowrap"
                 data-cy="market-row-collateral"
               >
-                <TokenIcon token={row.collateral} height={32} width={32} />
+                <CurrencyIcon
+                  currency={row.collateral}
+                  height={32}
+                  width={32}
+                />
                 <Typography ml="0.5rem" variant="small">
                   {row.collateral}
                 </Typography>
@@ -135,7 +138,7 @@ function MarketsDepositTableRow({
           sx={{ color: palette.success.main }}
         >
           {loaderOrError(row.depositApr.status)}
-          {row.depositApr.status === Status.Ready && !expandRow && (
+          {row.depositApr.status === MarketRowStatus.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
               {row.depositAprReward?.value > 0 && (
                 <Tooltip
@@ -155,19 +158,19 @@ function MarketsDepositTableRow({
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="130px">
+        {/* <SizableTableCell align="right" width="130px">
           {loaderOrError(row.integratedProtocols.status)}
-          {row.integratedProtocols.status === Status.Ready && !expandRow && (
+          {row.integratedProtocols.status === Market.Ready && !expandRow && (
             <IntegratedProtocols
               integratedProtocols={row.integratedProtocols.value}
             />
           )}
-        </SizableTableCell>
+        </SizableTableCell> */}
         <SizableTableCell align="right" width="140px">
           {!expandRow && (
             <>
               {loaderOrError(row.safetyRating.status)}
-              {row.safetyRating.status === Status.Ready && (
+              {row.safetyRating.status === MarketRowStatus.Ready && (
                 <Chip
                   variant={row.safetyRating?.value > 75 ? 'success' : 'warning'}
                   label={ratingToNote(row.safetyRating?.value)}

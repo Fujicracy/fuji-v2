@@ -8,25 +8,13 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { Address, BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-import { NOTIFICATION_MESSAGES } from '../../constants';
-import { getAllBorrowingVaultFinancials } from '../../helpers/borrow';
 import { chains } from '../../helpers/chains';
-import {
-  filterMarketRows,
-  MarketRow,
-  setBase,
-  setBest,
-  setFinancials,
-  setLlamas,
-  Status,
-} from '../../helpers/markets';
+import { filterMarketRows, MarketRow } from '../../helpers/markets';
 import { showPosition } from '../../helpers/navigation';
-import { notify } from '../../helpers/notifications';
-import { sdk } from '../../services/sdk';
 import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import EmptyRowsState from '../Shared/Table/EmptyRowsState';
@@ -42,58 +30,59 @@ function MarketsDepositTable({ filters }: { filters: MarketFilters }) {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  const walletChain = useAuth((state) => state.chain);
+  const walletChain = useAuth((state) => state.chainId);
 
-  useEffect(() => {
-    const addr = address ? Address.from(address) : undefined;
+  // useEffect(() => {
+  //   const addr = address ? Address.from(address) : undefined;
 
-    const vaults = sdk.getAllBorrowingVaults();
-    const rowsBase = vaults.map(setBase);
-    setRows(rowsBase);
+  //   const vaults = sdk.getAllBorrowingVaults();
+  //   const rowsBase = vaults.map(setBase);
+  //   setRows(rowsBase);
 
-    (async () => {
-      const result = await getAllBorrowingVaultFinancials(addr);
+  //   (async () => {
+  //     // TODO: take from main
+  //     const result = await getAllBorrowingVaultFinancials(addr);
 
-      if (result.errors.length > 0) {
-        notify({
-          type: 'error',
-          message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
-        });
-      }
+  //     if (result.errors.length > 0) {
+  //       notify({
+  //         type: 'error',
+  //         message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
+  //       });
+  //     }
 
-      if (result.data.length === 0) {
-        const rows = rowsBase
-          .map((r) => setFinancials(r, Status.Error))
-          .map((r) => setLlamas(r, Status.Error));
-        setRows(setBest(rows));
-        return;
-      }
+  //     if (result.data.length === 0) {
+  //       const rows = rowsBase
+  //         .map((r) => setFinancials(r, Status.Error))
+  //         .map((r) => setLlamas(r, Status.Error));
+  //       setRows(setBest(rows));
+  //       return;
+  //     }
 
-      const financials = result.data;
-      const rowsFin = financials.map((fin, i) =>
-        setFinancials(rowsBase[i], Status.Ready, fin)
-      );
-      setRows(setBest(rowsFin));
+  //     const financials = result.data;
+  //     const rowsFin = financials.map((fin, i) =>
+  //       setFinancials(rowsBase[i], Status.Ready, fin)
+  //     );
+  //     setRows(setBest(rowsFin));
 
-      const llamaResult = await sdk.getLlamaFinancials(financials);
-      if (!llamaResult.success) {
-        notify({
-          type: 'error',
-          message: llamaResult.error.message,
-        });
-        const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
-        setRows(setBest(rows));
-        return;
-      }
+  //     const llamaResult = await sdk.getLlamaFinancials(financials);
+  //     if (!llamaResult.success) {
+  //       notify({
+  //         type: 'error',
+  //         message: llamaResult.error.message,
+  //       });
+  //       const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
+  //       setRows(setBest(rows));
+  //       return;
+  //     }
 
-      const rowsLlama = llamaResult.data.map((llama, i) =>
-        setLlamas(rowsFin[i], Status.Ready, llama)
-      );
-      setRows(setBest(rowsLlama));
-    })().finally(() => {
-      setIsLoading(false);
-    });
-  }, [address]);
+  //     const rowsLlama = llamaResult.data.map((llama, i) =>
+  //       setLlamas(rowsFin[i], Status.Ready, llama)
+  //     );
+  //     setRows(setBest(rowsLlama));
+  //   })().finally(() => {
+  //     setIsLoading(false);
+  //   });
+  // }, [address]);
 
   // Filters original rows depends on search or chain
   useEffect(() => {
@@ -101,7 +90,8 @@ function MarketsDepositTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    showPosition(router, walletChain?.id as string, entity);
+    if (!walletChain) return;
+    showPosition(router, true, entity);
   };
 
   return (

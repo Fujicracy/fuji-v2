@@ -2,63 +2,32 @@ import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { linearGradientDef } from '@nivo/core';
 import { LineSvgProps, ResponsiveLine } from '@nivo/line';
+import { AprResult } from '@x-fuji/sdk';
 import React from 'react';
 
-import APYChartTooltip from '../Analytics/APYChartTooltip';
+import {
+  ChartTab,
+  normalizeChartData,
+  Period,
+  xAxisValues,
+} from '../../../helpers/charts';
+import { APYChartTooltip } from '../Tooltips';
 
-const testData = [
-  {
-    id: 'line1',
-    data: [
-      { x: 1, y: 0.25, date: 'Mar 10, 2023' },
-      { x: 2, y: 0.75, date: 'Mar 10, 2023' },
-      { x: 3, y: 0.2, date: 'Mar 10, 2023' },
-      { x: 4, y: 0.25, date: 'Mar 10, 2023' },
-      { x: 5, y: 0.1, date: 'Mar 10, 2023' },
-      { x: 6, y: 0.4, date: 'Mar 10, 2023' },
-      { x: 7, y: 0.5, date: 'Mar 10, 2023' },
-      { x: 8, y: 0.25, date: 'Mar 10, 2023' },
-      { x: 9, y: 0.5, date: 'Mar 10, 2023' },
-      { x: 10, y: 0.6, date: 'Mar 10, 2023' },
-      { x: 11, y: 0.7, date: 'Mar 10, 2023' },
-      { x: 12, y: 0.8, date: 'Mar 10, 2023' },
-      { x: 13, y: 1, date: 'Mar 10, 2023' },
-      { x: 14, y: 1.2, date: 'Mar 10, 2023' },
-      { x: 15, y: 0.7, date: 'Mar 10, 2023' },
-      { x: 16, y: 0.5, date: 'Mar 10, 2023' },
-      { x: 17, y: 1.25, date: 'Mar 10, 2023' },
-    ],
-  },
-  {
-    id: 'line2',
-    data: [
-      { x: 1, y: 0.35, date: 'Mar 10, 2023' },
-      { x: 2, y: 0.85, date: 'Mar 10, 2023' },
-      { x: 3, y: 0.4, date: 'Mar 10, 2023' },
-      { x: 4, y: 0.35, date: 'Mar 10, 2023' },
-      { x: 5, y: 0.2, date: 'Mar 10, 2023' },
-      { x: 6, y: 0.7, date: 'Mar 10, 2023' },
-      { x: 7, y: 0.7, date: 'Mar 10, 2023' },
-      { x: 8, y: 0.4, date: 'Mar 10, 2023' },
-      { x: 9, y: 0.8, date: 'Mar 10, 2023' },
-      { x: 10, y: 0.9, date: 'Mar 10, 2023' },
-      { x: 11, y: 1, date: 'Mar 10, 2023' },
-      { x: 12, y: 1.1, date: 'Mar 10, 2023' },
-      { x: 13, y: 1, date: 'Mar 10, 2023' },
-      { x: 14, y: 1.3, date: 'Mar 10, 2023' },
-      { x: 15, y: 0.9, date: 'Mar 10, 2023' },
-      { x: 16, y: 1, date: 'Mar 10, 2023' },
-      { x: 17, y: 1.7, date: 'Mar 10, 2023' },
-    ],
-  },
-];
+type APYChartProps = {
+  data: AprResult[];
+  period: Period;
+  tab: ChartTab;
+};
 
-function APYChart() {
+function APYChart({ data, period, tab }: APYChartProps) {
   const { palette } = useTheme();
 
+  const normalizedData = normalizeChartData(data, tab, period);
+  const valuesToShow = xAxisValues(normalizedData, period);
+
   const config: LineSvgProps = {
-    data: testData,
-    layers: ['markers', 'areas', 'crosshair', 'lines', 'axes', 'mesh'],
+    data: normalizedData,
+    layers: ['markers', 'crosshair', 'lines', 'axes', 'mesh'],
     defs: [
       linearGradientDef('gradientA', [
         { offset: 0, color: '#4556DC', opacity: 1 },
@@ -67,14 +36,13 @@ function APYChart() {
       ]),
     ],
     fill: [{ match: '*', id: 'gradientA' }],
-    tooltip: APYChartTooltip,
-    margin: { top: 0, right: 10, bottom: 50, left: 30 },
+    margin: { top: 10, right: 20, bottom: 35, left: 50 },
     xScale: { type: 'point' },
-    yScale: { type: 'linear', min: 0, max: 'auto' },
+    yScale: { type: 'linear', min: 'auto', max: 'auto' },
     enableArea: true,
     areaOpacity: 0.2,
     axisBottom: {
-      tickSize: 5,
+      tickSize: 0,
       tickPadding: 5,
       tickRotation: 0,
     },
@@ -82,6 +50,7 @@ function APYChart() {
       tickSize: 5,
       tickPadding: 5,
       tickRotation: 0,
+      format: ' >-.1%',
     },
     theme: {
       axis: {
@@ -108,13 +77,28 @@ function APYChart() {
     pointBorderColor: { from: 'serieColor' },
     useMesh: true,
     crosshairType: 'x',
-    animate: true,
-    curve: 'linear',
+    animate: false,
+    curve: 'monotoneX',
   };
 
+  if (!valuesToShow.length) return null;
+
   return (
-    <Box width="100%" height={400}>
-      <ResponsiveLine {...config} />
+    <Box width="100%" height={400} padding={'1rem 0rem'}>
+      <ResponsiveLine
+        {...config}
+        axisLeft={{
+          tickValues: 5,
+          format: (v) => `${v}%`,
+        }}
+        axisBottom={{
+          tickValues: valuesToShow,
+          format: (v) => `${v.split(',')[0]}`,
+        }}
+        tooltip={({ point }) => {
+          return <APYChartTooltip point={point} />;
+        }}
+      />
     </Box>
   );
 }

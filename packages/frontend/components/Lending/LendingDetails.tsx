@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 
 import { useBorrow } from '../../store/borrow.store';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
-import APYChart from '../Shared/Charts/APYChart';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
 import RiskBlock from './RiskBlock';
@@ -81,7 +80,7 @@ function LendingDetails() {
             }}
           />
         ) : !data ? (
-          <APYChart />
+          <></> // TODO:
         ) : (
           <EmptyChartState />
         )}

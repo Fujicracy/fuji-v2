@@ -43,6 +43,11 @@ const _abi = [
         name: "vault_",
         type: "address",
       },
+      {
+        internalType: "bytes32",
+        name: "actionArgsHash",
+        type: "bytes32",
+      },
     ],
     name: "buildPermitStruct",
     outputs: [
@@ -83,6 +88,11 @@ const _abi = [
             name: "deadline",
             type: "uint256",
           },
+          {
+            internalType: "bytes32",
+            name: "actionArgsHash",
+            type: "bytes32",
+          },
         ],
         internalType: "struct LibSigUtils.Permit",
         name: "permit",
@@ -90,6 +100,30 @@ const _abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum IRouter.Action[]",
+        name: "actions",
+        type: "IRouter.Action[]",
+      },
+      {
+        internalType: "bytes[]",
+        name: "args",
+        type: "bytes[]",
+      },
+    ],
+    name: "getActionArgsHash",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -155,6 +189,11 @@ const _abi = [
             name: "deadline",
             type: "uint256",
           },
+          {
+            internalType: "bytes32",
+            name: "actionArgsHash",
+            type: "bytes32",
+          },
         ],
         internalType: "struct LibSigUtils.Permit",
         name: "permit",
@@ -211,6 +250,11 @@ const _abi = [
             name: "deadline",
             type: "uint256",
           },
+          {
+            internalType: "bytes32",
+            name: "actionArgsHash",
+            type: "bytes32",
+          },
         ],
         internalType: "struct LibSigUtils.Permit",
         name: "permit",
@@ -223,6 +267,40 @@ const _abi = [
         internalType: "bytes32",
         name: "",
         type: "bytes32",
+      },
+    ],
+    stateMutability: "pure",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "vault",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "getZeroPermitEncodedArgs",
+    outputs: [
+      {
+        internalType: "bytes",
+        name: "",
+        type: "bytes",
       },
     ],
     stateMutability: "pure",

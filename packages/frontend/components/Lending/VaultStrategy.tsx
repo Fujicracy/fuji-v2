@@ -3,9 +3,8 @@ import { useTheme } from '@mui/material/styles';
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 
-import { rearrangeProvidersWithActiveInCenter } from '../../helpers/borrow';
+// import { rearrangeProvidersWithActiveInCenter } from '../../helpers/borrow';
 import { useBorrow } from '../../store/borrow.store';
-import { ProviderIcon } from '../Shared/Icons';
 
 function VaultStrategy() {
   const { palette } = useTheme();
@@ -13,9 +12,9 @@ function VaultStrategy() {
   const allProviders = useBorrow((state) => state.allProviders);
 
   const rearrangedProviders = useMemo(() => {
-    const array = allProviders[vault?.address?.value || 0] || [];
-    return rearrangeProvidersWithActiveInCenter(array);
-  }, [allProviders, vault]);
+    // const array = allProviders[vault?.address?.value || 0] || [];
+    return []; //rearrangeProvidersWithActiveInCenter(array);
+  }, []);
 
   return (
     <>
@@ -57,7 +56,7 @@ function VaultStrategy() {
               mt: '0.5rem',
             }}
           >
-            {rearrangedProviders.map((provider) => (
+            {/* {rearrangedProviders.map((provider) => (
               <Box
                 key={provider.name}
                 sx={{
@@ -88,7 +87,7 @@ function VaultStrategy() {
                   height={31}
                 />
               </Box>
-            ))}
+            ))} */}
           </Stack>
           <Image
             src={'/assets/images/shared/vaultsSummary.svg'}

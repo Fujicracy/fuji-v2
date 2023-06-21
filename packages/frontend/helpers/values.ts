@@ -1,17 +1,18 @@
 import { BigNumber } from 'ethers';
 import { BigNumberish } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
+import moment from 'moment';
 
 export const validAmount = (
   amount: string | number,
   decimals: number
 ): string => {
   const value = typeof amount === 'number' ? amount.toString() : amount;
-  if (value.indexOf('.') === -1) return value;
+  if (value.indexOf('.') === -1) return value.replace('-', '');
 
   const arr = value.split('.');
   const fraction = arr[1].substring(0, decimals);
-  return arr[0] + '.' + fraction;
+  return arr[0].replace('-', '') + '.' + fraction;
 };
 
 export const validBigNumberAmount = (
@@ -23,8 +24,8 @@ export const validBigNumberAmount = (
 };
 
 export const bigToFloat = (
-  big: BigNumberish | undefined,
-  decimals: number | BigNumberish
+  decimals: number | BigNumberish,
+  big?: BigNumberish
 ): number => {
   const value = big ?? parseUnits('0', 18);
   return parseFloat(formatUnits(value, decimals));
@@ -46,8 +47,8 @@ export const formatValue = (
   Else, eth based tokens use 4 digits
 */
 export const formatBalance = (
-  balance: number | string | undefined,
-  rounding: boolean | undefined = undefined
+  balance?: number | string,
+  rounding?: boolean
 ): string => {
   return (
     formatValue(balance, { notation: rounding ? 'compact' : 'standard' }) ?? '0'
@@ -104,3 +105,11 @@ export const camelize = (str: string) => {
 
 export const hiddenAddress = (address: string | undefined) =>
   address?.substring(0, 5) + '...' + address?.substring(address?.length - 4);
+
+export enum DateFormat {
+  YEAR = 'MMM D, YYYY',
+  MONTH = 'MMM D',
+}
+
+export const formattedDate = (format: DateFormat, date?: string) =>
+  moment(date).format(format.toString());

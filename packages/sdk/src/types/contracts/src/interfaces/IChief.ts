@@ -31,9 +31,11 @@ export interface IChiefInterface extends utils.Interface {
   functions: {
     "addrMapper()": FunctionFragment;
     "allowedFlasher(address)": FunctionFragment;
+    "allowedSwapper(address)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
+    "isVaultActive(address)": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "timelock()": FunctionFragment;
@@ -43,9 +45,11 @@ export interface IChiefInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "addrMapper"
       | "allowedFlasher"
+      | "allowedSwapper"
       | "getRoleAdmin"
       | "grantRole"
       | "hasRole"
+      | "isVaultActive"
       | "renounceRole"
       | "revokeRole"
       | "timelock"
@@ -60,6 +64,10 @@ export interface IChiefInterface extends utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
+    functionFragment: "allowedSwapper",
+    values: [string]
+  ): string;
+  encodeFunctionData(
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
   ): string;
@@ -70,6 +78,10 @@ export interface IChiefInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "hasRole",
     values: [BytesLike, string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "isVaultActive",
+    values: [string]
   ): string;
   encodeFunctionData(
     functionFragment: "renounceRole",
@@ -87,11 +99,19 @@ export interface IChiefInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "allowedSwapper",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isVaultActive",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "renounceRole",
     data: BytesLike
@@ -181,6 +201,11 @@ export interface IChief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
+    allowedSwapper(
+      swapper: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
     grantRole(
@@ -194,6 +219,8 @@ export interface IChief extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<[boolean]>;
+
+    isVaultActive(vault: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     renounceRole(
       role: BytesLike,
@@ -214,6 +241,8 @@ export interface IChief extends BaseContract {
 
   allowedFlasher(flasher: string, overrides?: CallOverrides): Promise<boolean>;
 
+  allowedSwapper(swapper: string, overrides?: CallOverrides): Promise<boolean>;
+
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
   grantRole(
@@ -227,6 +256,8 @@ export interface IChief extends BaseContract {
     account: string,
     overrides?: CallOverrides
   ): Promise<boolean>;
+
+  isVaultActive(vault: string, overrides?: CallOverrides): Promise<boolean>;
 
   renounceRole(
     role: BytesLike,
@@ -250,6 +281,11 @@ export interface IChief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
+    allowedSwapper(
+      swapper: string,
+      overrides?: CallOverrides
+    ): Promise<boolean>;
+
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
     grantRole(
@@ -263,6 +299,8 @@ export interface IChief extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<boolean>;
+
+    isVaultActive(vault: string, overrides?: CallOverrides): Promise<boolean>;
 
     renounceRole(
       role: BytesLike,
@@ -322,6 +360,11 @@ export interface IChief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    allowedSwapper(
+      swapper: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -338,6 +381,8 @@ export interface IChief extends BaseContract {
       account: string,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
+
+    isVaultActive(vault: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceRole(
       role: BytesLike,
@@ -362,6 +407,11 @@ export interface IChief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    allowedSwapper(
+      swapper: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getRoleAdmin(
       role: BytesLike,
       overrides?: CallOverrides
@@ -376,6 +426,11 @@ export interface IChief extends BaseContract {
     hasRole(
       role: BytesLike,
       account: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    isVaultActive(
+      vault: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
@@ -404,6 +459,8 @@ export interface IChiefMulticall {
 
   allowedFlasher(flasher: string, overrides?: CallOverrides): Call<boolean>;
 
+  allowedSwapper(swapper: string, overrides?: CallOverrides): Call<boolean>;
+
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Call<string>;
 
   hasRole(
@@ -411,6 +468,8 @@ export interface IChiefMulticall {
     account: string,
     overrides?: CallOverrides
   ): Call<boolean>;
+
+  isVaultActive(vault: string, overrides?: CallOverrides): Call<boolean>;
 
   timelock(overrides?: CallOverrides): Call<string>;
 }

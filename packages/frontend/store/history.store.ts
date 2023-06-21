@@ -1,4 +1,10 @@
-import { ChainId, ConnextTxStatus, RoutingStepDetails } from '@x-fuji/sdk';
+import {
+  BorrowingVault,
+  ChainId,
+  ConnextTxStatus,
+  FujiError,
+  RoutingStepDetails,
+} from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -10,7 +16,9 @@ import {
   TX_WATCHING_POLLING_INTERVAL,
 } from '../constants';
 import { chainName } from '../helpers/chains';
+import { sendToSentry } from '../helpers/errors';
 import {
+  chainCompleted,
   HistoryEntry,
   HistoryEntryStatus,
   HistoryTransaction,
@@ -24,6 +32,7 @@ import {
   NotificationDuration,
   notify,
 } from '../helpers/notifications';
+import { storeOptions } from '../helpers/stores';
 import { watchTransaction } from '../helpers/transactions';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -46,7 +55,7 @@ type HistoryActions = {
   add: (
     hash: string,
     address: string,
-    vaultAddress: string,
+    vault: BorrowingVault,
     steps: RoutingStepDetails[]
   ) => void;
   update: (hash: string, patch: Partial<HistoryEntry>) => void;
@@ -55,6 +64,10 @@ type HistoryActions = {
   watch: (transaction: HistoryTransaction) => void;
   clearStore: () => void;
 
+  changeTxHash: (
+    currentTxHash: string,
+    isHistoricalTransaction?: boolean
+  ) => void;
   openModal: (hash: string, isHistorical?: boolean) => void;
   closeModal: () => void;
 };
@@ -73,7 +86,7 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        async add(hash, address, vaultAddress, steps) {
+        async add(hash, address, vault, steps) {
           const distinctChains = steps
             .map((s) => s.chainId)
             .reduce((acc: ChainId[], current: ChainId, i: number) => {
@@ -107,7 +120,8 @@ export const useHistory = create<HistoryStore>()(
             : undefined;
 
           const entry: HistoryEntry = {
-            vaultAddress,
+            vaultAddress: vault.address.value,
+            vaultChainId: vault.chainId,
             hash,
             address,
             sourceChain,
@@ -162,7 +176,8 @@ export const useHistory = create<HistoryStore>()(
             return;
           }
 
-          const finish = (success: boolean) => {
+          const finish = (error?: unknown) => {
+            const success = error === undefined;
             const address = useAuth.getState().address;
             if (address === entry.address) {
               triggerUpdatesFromSteps(entry.steps);
@@ -178,11 +193,26 @@ export const useHistory = create<HistoryStore>()(
                 const entry = s.entries[hash];
                 entry.status = status;
                 if (!success) {
-                  if (currentStep === 0) {
+                  entry.error =
+                    error instanceof FujiError
+                      ? error.info
+                        ? String(error.info.message)
+                        : error.message
+                      : error instanceof Error
+                      ? error.message
+                      : String(error);
+
+                  if (!chainCompleted(entry.sourceChain)) {
                     entry.sourceChain.status = HistoryEntryStatus.FAILURE;
-                  } else if (entry.secondChain && currentStep === 1) {
+                  } else if (
+                    entry.secondChain &&
+                    !chainCompleted(entry.secondChain)
+                  ) {
                     entry.secondChain.status = HistoryEntryStatus.FAILURE;
-                  } else if (entry.thirdChain && currentStep === 2) {
+                  } else if (
+                    entry.thirdChain &&
+                    !chainCompleted(entry.thirdChain)
+                  ) {
                     entry.thirdChain.status = HistoryEntryStatus.FAILURE;
                   }
                 }
@@ -223,12 +253,12 @@ export const useHistory = create<HistoryStore>()(
 
           try {
             const updateIfNeeded = (
-              address: string | undefined,
-              shown: boolean | undefined,
+              first: boolean,
+              txHash: string,
               firstChainId: ChainId,
               secondChainId: ChainId,
-              txHash: string,
-              first: boolean
+              address?: string,
+              shown?: boolean
             ) => {
               if (address !== entry.address) return;
 
@@ -273,6 +303,7 @@ export const useHistory = create<HistoryStore>()(
                   txHash
                 );
                 if (!crosschainResult.success) {
+                  sendToSentry(crosschainResult.error); // TODO: let's add smth to reconize it
                   throw crosschainResult.error;
                 }
                 if (crosschainResult.data.status === ConnextTxStatus.EXECUTED) {
@@ -344,17 +375,17 @@ export const useHistory = create<HistoryStore>()(
               })
             );
             if (entry.chainCount === 1 || !entry.secondChain) {
-              finish(true);
+              finish();
               return;
             }
 
             updateIfNeeded(
-              useAuth.getState().address,
-              entry.sourceChain.shown,
+              true,
+              entry.hash,
               entry.sourceChain.chainId,
               entry.secondChain.chainId,
-              entry.hash,
-              true
+              useAuth.getState().address,
+              entry.sourceChain.shown
             );
             if (entry.secondChain.status !== HistoryEntryStatus.SUCCESS) {
               await crossChainWatch(
@@ -364,7 +395,7 @@ export const useHistory = create<HistoryStore>()(
               );
             }
             if (!entry.thirdChain) {
-              finish(true);
+              finish();
               return;
             }
 
@@ -372,19 +403,19 @@ export const useHistory = create<HistoryStore>()(
             if (!secondChain || !secondChain.hash) return;
 
             updateIfNeeded(
-              useAuth.getState().address,
-              secondChain.shown,
+              false,
+              secondChain.hash,
               secondChain.chainId,
               entry.thirdChain.chainId,
-              secondChain.hash,
-              false
+              useAuth.getState().address,
+              secondChain.shown
             );
 
             await crossChainWatch(secondChain.chainId, secondChain.hash, false);
-            finish(true);
+            finish();
           } catch (e) {
             console.error(e);
-            finish(false);
+            finish(e);
           } finally {
             remove();
           }
@@ -428,18 +459,19 @@ export const useHistory = create<HistoryStore>()(
           });
         },
 
+        changeTxHash(currentTxHash, isHistoricalTransaction) {
+          set({ currentTxHash, isHistoricalTransaction });
+        },
+
         openModal(hash, isHistorical = false) {
-          set({ currentTxHash: hash, isHistoricalTransaction: isHistorical });
+          get().changeTxHash(hash, isHistorical);
         },
 
         closeModal() {
-          set({ currentTxHash: '', isHistoricalTransaction: false });
+          get().changeTxHash('', false);
         },
       }),
-      {
-        enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
-        name: 'xFuji/history',
-      }
+      storeOptions('history')
     ),
 
     {

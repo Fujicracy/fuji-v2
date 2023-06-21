@@ -96,11 +96,16 @@ export interface IConnextInterface extends utils.Interface {
   functions: {
     "bumpTransfer(bytes32)": FunctionFragment;
     "execute(((uint32,uint32,uint32,address,address,bool,bytes,uint256,address,uint256,uint256,uint256,bytes32),address[],bytes[],address,bytes))": FunctionFragment;
+    "forceUpdateSlippage((uint32,uint32,uint32,address,address,bool,bytes,uint256,address,uint256,uint256,uint256,bytes32),uint256)": FunctionFragment;
     "xcall(uint32,address,address,address,uint256,uint256,bytes)": FunctionFragment;
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "bumpTransfer" | "execute" | "xcall"
+    nameOrSignatureOrTopic:
+      | "bumpTransfer"
+      | "execute"
+      | "forceUpdateSlippage"
+      | "xcall"
   ): FunctionFragment;
 
   encodeFunctionData(
@@ -110,6 +115,10 @@ export interface IConnextInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "execute",
     values: [ExecuteArgsStruct]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "forceUpdateSlippage",
+    values: [TransferInfoStruct, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "xcall",
@@ -129,6 +138,10 @@ export interface IConnextInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "execute", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "forceUpdateSlippage",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "xcall", data: BytesLike): Result;
 
   events: {};
@@ -171,6 +184,12 @@ export interface IConnext extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    forceUpdateSlippage(
+      _params: TransferInfoStruct,
+      _slippage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     xcall(
       _destination: BigNumberish,
       _to: string,
@@ -190,6 +209,12 @@ export interface IConnext extends BaseContract {
 
   execute(
     _args: ExecuteArgsStruct,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  forceUpdateSlippage(
+    _params: TransferInfoStruct,
+    _slippage: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -214,6 +239,12 @@ export interface IConnext extends BaseContract {
       _args: ExecuteArgsStruct,
       overrides?: CallOverrides
     ): Promise<[boolean, string] & { success: boolean; returnData: string }>;
+
+    forceUpdateSlippage(
+      _params: TransferInfoStruct,
+      _slippage: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     xcall(
       _destination: BigNumberish,
@@ -240,6 +271,12 @@ export interface IConnext extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    forceUpdateSlippage(
+      _params: TransferInfoStruct,
+      _slippage: BigNumberish,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     xcall(
       _destination: BigNumberish,
       _to: string,
@@ -260,6 +297,12 @@ export interface IConnext extends BaseContract {
 
     execute(
       _args: ExecuteArgsStruct,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    forceUpdateSlippage(
+      _params: TransferInfoStruct,
+      _slippage: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 

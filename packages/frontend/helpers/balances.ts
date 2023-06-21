@@ -1,9 +1,9 @@
 import {
   Address,
   ChainId,
+  Currency,
   FujiResultPromise,
   FujiResultSuccess,
-  Token,
 } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
@@ -14,12 +14,12 @@ import { useBorrow } from '../store/borrow.store';
 import { AssetChange, AssetType } from './assets';
 
 export const fetchBalances = async (
-  tokens: Token[],
+  currencies: Currency[],
   address: string,
   chainId: ChainId
 ): FujiResultPromise<Record<string, number>> => {
-  const result = await sdk.getTokenBalancesFor(
-    tokens,
+  const result = await sdk.getBalancesFor(
+    currencies,
     Address.from(address),
     chainId
   );
@@ -31,8 +31,8 @@ export const fetchBalances = async (
 
   const balances: Record<string, number> = {};
   rawBalances.forEach((b, i) => {
-    const value = parseFloat(formatUnits(b, tokens[i].decimals));
-    balances[tokens[i].symbol] = value;
+    const value = parseFloat(formatUnits(b, currencies[i].decimals));
+    balances[currencies[i].symbol] = value;
   });
   return new FujiResultSuccess(balances);
 };
@@ -56,8 +56,8 @@ export const checkBalances = async () => {
   const collateral = useBorrow.getState().collateral;
   const debt = useBorrow.getState().debt;
 
-  await checkBalance(address, 'collateral', collateral);
-  await checkBalance(address, 'debt', debt);
+  await checkBalance(address, AssetType.Collateral, collateral);
+  if (debt) await checkBalance(address, AssetType.Debt, debt);
 };
 
 const checkBalance = async (
@@ -66,9 +66,9 @@ const checkBalance = async (
   asset: AssetChange
 ) => {
   const result = await fetchBalances(
-    asset.selectableTokens,
+    asset.selectableCurrencies,
     address,
-    asset.token.chainId
+    asset.currency.chainId
   );
 
   // Check if the call was successful and if we're now executing a tx
@@ -80,13 +80,14 @@ const checkBalance = async (
 
   // Grab again in case it changed while we were fetching
   const current =
-    type === 'collateral'
+    type === AssetType.Collateral
       ? useBorrow.getState().collateral
       : useBorrow.getState().debt;
 
   // Check if balances changed but don't even get there if chain changed
   if (
-    current.token.chainId === asset.token.chainId &&
+    current &&
+    current.currency.chainId === asset.currency.chainId &&
     balancesDiffer(current.balances, balances)
   ) {
     useBorrow.getState().changeBalances(type, balances);

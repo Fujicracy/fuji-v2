@@ -40,6 +40,7 @@ export interface BaseRouterInterface extends utils.Interface {
     "WETH9()": FunctionFragment;
     "allowCaller(address,bool)": FunctionFragment;
     "chief()": FunctionFragment;
+    "isAllowedCaller(address)": FunctionFragment;
     "sweepETH(address)": FunctionFragment;
     "sweepToken(address,address)": FunctionFragment;
     "xBundle(uint8[],bytes[])": FunctionFragment;
@@ -56,6 +57,7 @@ export interface BaseRouterInterface extends utils.Interface {
       | "WETH9"
       | "allowCaller"
       | "chief"
+      | "isAllowedCaller"
       | "sweepETH"
       | "sweepToken"
       | "xBundle"
@@ -91,6 +93,10 @@ export interface BaseRouterInterface extends utils.Interface {
     values: [string, boolean]
   ): string;
   encodeFunctionData(functionFragment: "chief", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "isAllowedCaller",
+    values: [string]
+  ): string;
   encodeFunctionData(functionFragment: "sweepETH", values: [string]): string;
   encodeFunctionData(
     functionFragment: "sweepToken",
@@ -131,6 +137,10 @@ export interface BaseRouterInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "chief", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "isAllowedCaller",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "sweepETH", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "sweepToken", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "xBundle", data: BytesLike): Result;
@@ -202,6 +212,11 @@ export interface BaseRouter extends BaseContract {
 
     chief(overrides?: CallOverrides): Promise<[string]>;
 
+    isAllowedCaller(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<[boolean]>;
+
     sweepETH(
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -242,6 +257,8 @@ export interface BaseRouter extends BaseContract {
 
   chief(overrides?: CallOverrides): Promise<string>;
 
+  isAllowedCaller(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
   sweepETH(
     receiver: string,
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -281,6 +298,8 @@ export interface BaseRouter extends BaseContract {
     ): Promise<void>;
 
     chief(overrides?: CallOverrides): Promise<string>;
+
+    isAllowedCaller(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     sweepETH(receiver: string, overrides?: CallOverrides): Promise<void>;
 
@@ -328,6 +347,11 @@ export interface BaseRouter extends BaseContract {
 
     chief(overrides?: CallOverrides): Promise<BigNumber>;
 
+    isAllowedCaller(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     sweepETH(
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -369,6 +393,11 @@ export interface BaseRouter extends BaseContract {
 
     chief(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    isAllowedCaller(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     sweepETH(
       receiver: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -408,4 +437,6 @@ export interface BaseRouterMulticall {
   WETH9(overrides?: CallOverrides): Call<string>;
 
   chief(overrides?: CallOverrides): Call<string>;
+
+  isAllowedCaller(arg0: string, overrides?: CallOverrides): Call<boolean>;
 }

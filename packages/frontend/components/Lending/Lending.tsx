@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 
 import { PATH } from '../../constants';
 import { BasePosition, viewDynamicPosition } from '../../helpers/positions';
-import { useBorrow } from '../../store/borrow.store';
+import { FormType, useBorrow } from '../../store/borrow.store';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
 import LendingDetails from './LendingDetails';
 import LendingForm from './LendingForm';
@@ -16,11 +16,14 @@ function Lending() {
   const formType = useBorrow((state) => state.formType);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const isEditing = formType !== 'create';
+  const isEditing = formType === FormType.Edit;
 
-  const [basePosition, setBasePosition] = useState<BasePosition>(
-    viewDynamicPosition(false, undefined)
+  const [basePosition, setBasePosition] = useState<BasePosition | undefined>(
+    viewDynamicPosition(isEditing, false)
   );
+
+  // TODO: basePosition can now be undefined, so we need to handle that either here or in the form
+  if (basePosition === undefined) return <></>;
 
   return (
     <Container>

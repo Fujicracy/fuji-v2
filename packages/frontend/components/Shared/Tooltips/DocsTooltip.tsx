@@ -25,12 +25,12 @@ function DocsTooltip({ fontSize }: DocsTooltipProps) {
             rel="noreferrer"
           >
             <u> Learn more</u>
-          </Linka > */}
+          </Link> */}
         </span>
       }
       placement="top"
     >
-      <InfoOutlinedIcon sx={{ fontSize, color: palette.info.main }} />
+      <InfoOutlinedIcon sx={{ fontSize, color: palette.info.main, mr: 0.5 }} />
     </Tooltip>
   );
 }

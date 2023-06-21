@@ -15,21 +15,15 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 import { chainName } from '../../helpers/chains';
-import { showPosition } from '../../helpers/navigation';
-import {
-  getRows,
-  PositionRow,
-  vaultFromAddress,
-} from '../../helpers/positions';
+import { getRows, PositionRow } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
-import { NetworkIcon, TokenIcon } from '../Shared/Icons';
+import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
 import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
-import EmptyState from './EmptyState';
 
 function MyPositionsLendingTable() {
   const { palette } = useTheme();
@@ -51,7 +45,7 @@ function MyPositionsLendingTable() {
   if (!account) {
     return (
       <MyPositionsLendingTableContainer>
-        <EmptyState reason="no-wallet" />
+        {/* <EmptyState reason="no-wallet" /> */}
       </MyPositionsLendingTableContainer>
     );
   }
@@ -70,15 +64,16 @@ function MyPositionsLendingTable() {
   }
 
   function handleClick(row: PositionRow) {
-    const entity = vaultFromAddress(row.address);
-    showPosition(router, String(entity?.chainId), entity);
+    // const entity = vaultFromAddress(row.address);
+    // showPosition(router, String(entity?.chainId), entity);
   }
 
   return (
     <MyPositionsLendingTableContainer>
       {rows.length === 0 && positions.length === 0 ? (
-        <EmptyState reason="no-positions" />
+        <></>
       ) : (
+        // <EmptyState reason="no-positions" />
         <>
           {rows.map((row, i) => (
             <TableRow
@@ -104,8 +99,8 @@ function MyPositionsLendingTable() {
               </TableCell>
               <TableCell>
                 <Stack direction="row" alignItems="center">
-                  <TokenIcon
-                    token={row.collateral.symbol}
+                  <CurrencyIcon
+                    currency={row.collateral.symbol}
                     width={24}
                     height={24}
                   />

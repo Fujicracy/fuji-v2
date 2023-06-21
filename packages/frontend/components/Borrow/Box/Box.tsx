@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
+import React from 'react';
 
 import {
   ActionType,
@@ -10,21 +11,21 @@ import {
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
-import TokenCard from './TokenCard';
+import CurrencyCard from './CurrencyCard';
 
 type BorrowBoxProps = {
   isEditing: boolean;
   actionType: ActionType;
   type: AssetType;
-  chainId: ChainId;
   isExecuting: boolean;
-  value: string;
-  assetChange: AssetChange;
   showMax: boolean;
   maxAmount: number;
-  ltvMeta: LtvMeta;
-  basePosition: BasePosition;
   index: number;
+  assetChange?: AssetChange;
+  value?: string;
+  ltvMeta?: LtvMeta;
+  chainId?: ChainId;
+  basePosition?: BasePosition;
 };
 
 function BorrowBox({
@@ -41,32 +42,23 @@ function BorrowBox({
   basePosition,
   index,
 }: BorrowBoxProps) {
-  const changeCollateralChain = useBorrow(
-    (state) => state.changeCollateralChain
-  );
-  const changeCollateralToken = useBorrow(
-    (state) => state.changeCollateralToken
-  );
-  const changeCollateralValue = useBorrow(
-    (state) => state.changeCollateralValue
-  );
-  const changeDebtChain = useBorrow((state) => state.changeDebtChain);
-  const changeDebtToken = useBorrow((state) => state.changeDebtToken);
-  const changeDebtValue = useBorrow((state) => state.changeDebtValue);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
+  const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
+  const changeAssetValue = useBorrow((state) => state.changeAssetValue);
 
   return (
     <Box
       mb={
         (isEditing && actionType === ActionType.REMOVE
-          ? 'debt'
-          : 'collateral') === type
+          ? AssetType.Debt
+          : AssetType.Collateral) === type
           ? '1rem'
           : undefined
       }
     >
       <ChainSelect
         label={
-          type === 'collateral'
+          type === AssetType.Collateral
             ? actionType === ActionType.ADD
               ? 'Collateral from'
               : 'Withdraw to'
@@ -77,13 +69,11 @@ function BorrowBox({
         type={type}
         value={chainId}
         disabled={isExecuting}
-        onChange={(chainId) =>
-          type === 'collateral'
-            ? changeCollateralChain(chainId, !isEditing)
-            : changeDebtChain(chainId, !isEditing)
-        }
+        onChange={(chainId) => {
+          changeAssetChain(type, chainId, !isEditing, assetChange?.currency);
+        }}
       />
-      <TokenCard
+      <CurrencyCard
         type={type}
         showMax={showMax}
         maxAmount={maxAmount}
@@ -96,16 +86,10 @@ function BorrowBox({
         ltvMeta={ltvMeta}
         basePosition={basePosition}
         isFocusedByDefault={index === 0}
-        onTokenChange={(token) =>
-          type === 'collateral'
-            ? changeCollateralToken(token)
-            : changeDebtToken(token)
-        }
-        onInputChange={(value) =>
-          type === 'collateral'
-            ? changeCollateralValue(value)
-            : changeDebtValue(value)
-        }
+        onCurrencyChange={(currency, updateVault) => {
+          changeAssetCurrency(type, currency, updateVault);
+        }}
+        onInputChange={(value) => changeAssetValue(type, value)}
       />
     </Box>
   );

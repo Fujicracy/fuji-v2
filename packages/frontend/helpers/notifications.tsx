@@ -1,6 +1,6 @@
 import LaunchIcon from '@mui/icons-material/Launch';
 import { Link, Stack, Typography, useTheme } from '@mui/material';
-import { ChainId } from '@x-fuji/sdk';
+import { ChainId, FujiError } from '@x-fuji/sdk';
 import Image from 'next/image';
 import {
   CloseButtonProps,
@@ -10,6 +10,7 @@ import {
   ToastOptions,
 } from 'react-toastify';
 
+import { formatOnchainNotificationMessage } from '../constants';
 import { transactionUrl } from './chains';
 
 type NotificationType = 'error' | 'info' | 'success';
@@ -32,7 +33,7 @@ export enum NotificationDuration {
 type NotificationArguments = {
   message: string;
   type: NotificationType;
-  link?: NotificationLink | undefined;
+  link?: NotificationLink;
   sticky?: boolean;
   duration?: NotificationDuration;
 };
@@ -76,6 +77,15 @@ const CloseButton = ({ closeToast }: CloseButtonProps) => (
   />
 );
 
+export const showOnchainErrorNotification = (error: FujiError) => {
+  const chain =
+    typeof error.info?.chain === 'string' ? error.info.chain : undefined;
+  notify({
+    type: 'error',
+    message: formatOnchainNotificationMessage(chain),
+  });
+};
+
 export function notify({
   message,
   type,
@@ -92,7 +102,6 @@ export function notify({
     icon: null,
     closeButton: CloseButton,
   };
-
   return toast(
     <CustomToast link={link} message={message} type={type} />,
     options

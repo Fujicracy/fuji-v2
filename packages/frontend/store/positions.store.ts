@@ -1,14 +1,17 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { DUST_AMOUNT, NOTIFICATION_MESSAGES } from '../constants';
-import { notify } from '../helpers/notifications';
+import { DUST_AMOUNT } from '../constants';
+import { AssetType } from '../helpers/assets';
+import { shouldShowStoreNotification } from '../helpers/navigation';
+import { showOnchainErrorNotification } from '../helpers/notifications';
 import {
   getAccrual,
   getCurrentAvailableBorrowingPower,
   getPositionsWithBalance,
   getTotalSum,
 } from '../helpers/positions';
+import { storeOptions } from '../helpers/stores';
 import { useAuth } from './auth.store';
 import { Position } from './models/Position';
 
@@ -46,10 +49,9 @@ export const usePositions = create<PositionsStore>()(
 
         if (!result.success) {
           console.error(result.error?.message);
-          notify({
-            type: 'error',
-            message: NOTIFICATION_MESSAGES.POSITIONS_FAILURE,
-          });
+          if (shouldShowStoreNotification('positions') && result.error) {
+            showOnchainErrorNotification(result.error);
+          }
         }
         const positions = result.success
           ? (result.data as Position[]).filter(
@@ -57,19 +59,19 @@ export const usePositions = create<PositionsStore>()(
             )
           : [];
 
-        const totalDepositsUSD = getTotalSum(positions, 'collateral');
-        const totalDebtUSD = getTotalSum(positions, 'debt');
+        const totalDepositsUSD = getTotalSum(positions, AssetType.Collateral);
+        const totalDebtUSD = getTotalSum(positions, AssetType.Debt);
 
         const totalAccrued = positions.reduce((acc, p) => {
           const accrueCollateral = getAccrual(
             p.collateral.amount * p.collateral.usdPrice,
-            p.collateral.baseAPR,
-            'collateral'
+            AssetType.Collateral,
+            p.collateral.baseAPR
           );
           const accrueDebt = getAccrual(
             p.debt.amount * p.debt.usdPrice,
-            p.debt.baseAPR,
-            'debt'
+            AssetType.Debt,
+            p.debt.baseAPR
           );
           return accrueCollateral + accrueDebt + acc;
         }, 0);
@@ -93,9 +95,6 @@ export const usePositions = create<PositionsStore>()(
         });
       },
     }),
-    {
-      enabled: process.env.NEXT_PUBLIC_APP_ENV !== 'production',
-      name: 'fuji-v2/positions',
-    }
+    storeOptions('positions')
   )
 );

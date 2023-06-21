@@ -54,7 +54,22 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseRouter__bundleInternal_insufficientFlashloanBalance",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseRouter__bundleInternal_noBalanceChange",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_notAllowedFlasher",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__bundleInternal_notAllowedSwapper",
     type: "error",
   },
   {
@@ -69,7 +84,22 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseRouter__bundleInternal_swapNotFirstAction",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__checkVaultInput_notActiveVault",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "BaseRouter__fallback_notAllowed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "BaseRouter__handlePermit_notPermitAction",
     type: "error",
   },
   {
@@ -99,7 +129,12 @@ const _abi = [
   },
   {
     inputs: [],
-    name: "ConnnextRouter__checkSlippage_outOfBounds",
+    name: "ConnextRouter__xReceiver_noValueTransferUseXbundle",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "ConnnextRouter__xBundleConnext_notSelfCalled",
     type: "error",
   },
   {
@@ -411,6 +446,38 @@ const _abi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "handler",
+    outputs: [
+      {
+        internalType: "contract ConnextHandler",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "isAllowedCaller",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
@@ -492,6 +559,29 @@ const _abi = [
       },
     ],
     name: "xBundle",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "enum IRouter.Action[]",
+        name: "actions",
+        type: "uint8[]",
+      },
+      {
+        internalType: "bytes[]",
+        name: "args",
+        type: "bytes[]",
+      },
+      {
+        internalType: "uint256",
+        name: "beforeSlipped",
+        type: "uint256",
+      },
+    ],
+    name: "xBundleConnext",
     outputs: [],
     stateMutability: "payable",
     type: "function",

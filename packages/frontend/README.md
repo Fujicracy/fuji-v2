@@ -74,7 +74,7 @@ The major drawback is, compared to writing logic in a component: when an action 
 
 ```ts
 changeAssetChain(type, chainId, updateVault) {
-  const tokens =
+  const currencies =
     type === "debt"
       ? sdk.getDebtForChain(chainId)
       : sdk.getCollateralForChain(chainId)
@@ -83,11 +83,11 @@ changeAssetChain(type, chainId, updateVault) {
     produce((state: BorrowState) => {
       const t = type === "debt" ? state.debt : state.collateral
       t.chainId = chainId
-      t.selectableTokens = tokens
-      t.token = tokens[0]
+      t.selectableCurrencies = currencies
+      t.currency = currencies[0]
     })
   )
-  get().updateTokenPrice(type)
+  get().updateCurrencyPrice(type)
   get().updateBalances(type)
 
   if (updateVault) {
@@ -124,9 +124,12 @@ We had some problems (like [this one](https://github.com/pmndrs/zustand/discussi
 
 ```
 stores
+├── access
 ├── auth
 ├── borrow
 ├── history
+├── markets
+├── navigation
 └── positions
 ```
 
@@ -138,16 +141,17 @@ So we tried to follow a modular approach:
 
 ```
 components
+├── App/
 ├── Borrow/
 ├── Markets/
 ├── Shared/
-└── Theming/
 ```
 
-- `Borrow/` is a folder that contains all the components specific to the `/borrow` page. You can think of it as a "module", but without encapsulation (components are simply exported).
-- `Markets/` contains all the components specific to the `/markets` page. Same as above.
+- `App/` is a folder that contains all the app wide components like header, footer and notification handler. You can think of it as a "module", but without encapsulation (components are simply exported).
+- `Borrow/` contains all the components specific to the `/borrow` page. Same as above.
+- `Markets/` contains all the components specific to the `/markets` page.
+- `Positions/` contains all the components specific to the `/my-positions` page.
 - `Shared/` are big or small shared component.
-- `Theming/` is a legacy we built at the beginning of the app, this way we can visualize the components of the design system. We will probably replace with `Storybook`.
 
 ## SDK
 

@@ -10,7 +10,7 @@ import React, { ReactNode } from 'react';
 import InfoTooltip from '../Tooltips/InfoTooltip';
 
 function PoolInfo() {
-  const { palette, breakpoints } = useTheme();
+  const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
   function PoolInfoDivider() {

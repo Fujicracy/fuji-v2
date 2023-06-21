@@ -1,12 +1,10 @@
-import { BigNumber } from '@ethersproject/bignumber';
-
-// TODO: deprecate
-export type LendingProviderDetails = {
-  name: string;
-  borrowRate: BigNumber;
-  depositRate: BigNumber;
-  active: boolean;
+export type AprStat = {
+  timestamp: string;
+  aprBase: number;
+  aprReward: number;
 };
+
+export type AprResult = { name: string; aprStats: AprStat[] };
 
 export type LendingProviderBase = {
   name: string;

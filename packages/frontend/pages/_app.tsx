@@ -7,9 +7,12 @@ import { useRouter } from 'next/router';
 import Script from 'next/script';
 import { useEffect, useRef } from 'react';
 
-import TransactionModal from '../components/Borrow/TransactionModal';
-import SafetyNoticeModal from '../components/Onboarding/SafetyNoticeModal';
-import Notification from '../components/Shared/Notification';
+import { GuildAccess } from '../components/App/GuildAccess';
+import Header from '../components/App/Header/Header';
+import Notification from '../components/App/Notification';
+import DisclaimerModal from '../components/App/Onboarding/DisclaimerModal';
+import ExploreCarousel from '../components/App/Onboarding/ExploreCarousel';
+import TransactionModal from '../components/App/TransactionModal';
 import { PATH } from '../constants';
 import {
   changeERC20PollingPolicy,
@@ -17,11 +20,14 @@ import {
   stopPolling,
 } from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
-import { isTopLevelUrl } from '../helpers/navigation';
+import { isTopLevelUrl, navigationalTaskDelay } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
+import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { theme } from '../styles/theme';
+
+const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV;
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -33,18 +39,32 @@ function MyApp({ Component, pageProps }: AppProps) {
   const isHistoricalTransaction = useHistory(
     (state) => state.isHistoricalTransaction
   );
-  const ongoingTransactions = useHistory((state) => state.ongoingTransactions);
   const entries = useHistory((state) => state.entries);
   const watchAll = useHistory((state) => state.watchAll);
+  const closeModal = useHistory((state) => state.closeModal);
+
+  const changePath = useNavigation((state) => state.changePath);
+
+  const changeShouldPageReset = useNavigation(
+    (state) => state.changeBorrowPageShouldReset
+  );
+  const changeWillLoadBorrow = useNavigation(
+    (state) => state.changeBorrowPageWillLoad
+  );
 
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
   const entry = address && currentTxHash && entries[currentTxHash];
   const prevAddressRef = useRef<string | undefined>(undefined);
 
+  const startedRef = useRef(false);
+
   useEffect(() => {
-    initErrorReporting();
-    initAuth();
+    if (!startedRef.current) {
+      startedRef.current = true;
+      initErrorReporting();
+      initAuth();
+    }
   }, [initAuth]);
 
   useEffect(() => {
@@ -58,7 +78,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       watchAll(address);
     }
     prevAddressRef.current = address;
-  }, [address, ongoingTransactions, watchAll]);
+  }, [address, watchAll]);
+
+  useEffect(() => {
+    if (
+      currentTxHash &&
+      ((address && prevAddressRef.current !== address) ||
+        (!address && prevAddressRef.current))
+    ) {
+      closeModal(); // Makes sure the modal is closed when the user changes address
+    }
+  }, [address, currentTxHash, closeModal]);
 
   useEffect(() => {
     if (address) {
@@ -79,6 +109,14 @@ function MyApp({ Component, pageProps }: AppProps) {
         fetchPositions();
       }
       updatePollingPolicy(url);
+      const routeIsBorrow = url === PATH.BORROW;
+      changeWillLoadBorrow(routeIsBorrow);
+      if (router.asPath === PATH.BORROW) {
+        changeShouldPageReset(routeIsBorrow);
+      } else {
+        navigationalTaskDelay(() => changeShouldPageReset(true));
+      }
+      changePath(url);
     };
     router.events.on('routeChangeStart', handleRouteChange);
     return () => {
@@ -91,7 +129,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       url === PATH.BORROW || url.includes(PATH.POSITION.split('[pid]')[0]);
     changeERC20PollingPolicy(should);
   }
-
+  if (!startedRef.current) return <></>;
   return (
     <>
       <Script id="google-tag-manager" strategy="afterInteractive">
@@ -107,6 +145,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <Web3OnboardProvider web3Onboard={onboard}>
         <ThemeProvider theme={theme}>
           <div className="backdrop"></div>
+          <Header />
           <Component {...pageProps} />
           {entry && entry.address === address && (
             <TransactionModal
@@ -115,7 +154,9 @@ function MyApp({ Component, pageProps }: AppProps) {
               isHistoricalTransaction={isHistoricalTransaction}
             />
           )}
-          <SafetyNoticeModal />
+          {APP_ENV === 'production' && <GuildAccess />}
+          <DisclaimerModal />
+          <ExploreCarousel />
           <Notification />
         </ThemeProvider>
       </Web3OnboardProvider>

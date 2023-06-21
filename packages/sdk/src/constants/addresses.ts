@@ -40,6 +40,22 @@ export const WNATIVE_ADDRESS: AddressMap = {
   [ChainId.GNOSIS]: Address.from('0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d'),
 };
 
+export const WSTETH_ADDRESS: AddressMap = {
+  [ChainId.ETHEREUM]: Address.from(AddressZero),
+  [ChainId.MATIC]: Address.from(AddressZero),
+  [ChainId.FANTOM]: Address.from(AddressZero),
+  [ChainId.ARBITRUM]: Address.from(
+    '0x5979D7b546E38E414F7E9822514be443A4800529'
+  ),
+  [ChainId.OPTIMISM]: Address.from(
+    '0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb'
+  ),
+  [ChainId.GOERLI]: Address.from(AddressZero),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
+  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
+  [ChainId.GNOSIS]: Address.from(AddressZero),
+};
+
 export const DAI_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(
     '0x6B175474E89094C44Da98b954EedeAC495271d0F'
@@ -109,13 +125,13 @@ export const USDT_ADDRESS: AddressMap = {
 export const FUJI_ORACLE_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(
-    '0xb2f151D71BD0396891A68C15BF608445a6aC835e'
+    '0x527B279fe61E459e0c0a0a1bb9De08a49Cdc689a'
   ),
   [ChainId.OPTIMISM]: Address.from(
-    '0x9DE0CE8Aaa2772f9DB00D223ce9CA17fc430943B'
+    '0xb71073364B78Debe996d041Bb340ff4F03Ff23D9'
   ),
   [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from('0xcC4f2BccB7dd92b0DEa098a8D2F0eF079F68b10E'),
+  [ChainId.MATIC]: Address.from('0x3d140C9208330aC0d2b3aB4922dD4Bb9B119111F'),
   [ChainId.GOERLI]: Address.from('0x4f1A1C86849104c4d92810F7CdD127FbaCF98301'),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
     '0xE4903ba1b082b678bd5C935f43988811eE85aD48'
@@ -123,19 +139,19 @@ export const FUJI_ORACLE_ADDRESS: AddressMap = {
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0x5DA1DAAeBe3bc266fa34FFc22F233b07C2F8658C'
   ),
-  [ChainId.GNOSIS]: Address.from('0x314Cfa1BA6E88B2B2118eD0bECD30D040dA232bf'),
+  [ChainId.GNOSIS]: Address.from('0x9907F34FbA2336C3Ce8758dd80c301BFf921dEc2'),
 };
 
 export const CHIEF_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(
-    '0x88ed3B8D03e5a70Bf23286872b24cFFd76e91922'
+    '0x31F6556A61637839aA8bC3b55d8DBefd9DB8865c'
   ),
   [ChainId.OPTIMISM]: Address.from(
-    '0x314Cfa1BA6E88B2B2118eD0bECD30D040dA232bf'
+    '0xd1Aa6767ba125fF8cE187ba8810ba781094F66e3'
   ),
   [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from('0xB5BeccF2734c97221379a6C08B718D82023b1498'),
+  [ChainId.MATIC]: Address.from('0x69097538190AC1bceAa0C8ebFA7C512b1eb8D24a'),
   [ChainId.GOERLI]: Address.from('0x5C18e88352dF0305236a4471030A5aFfB11d9592'),
   [ChainId.OPTIMISM_GOERLI]: Address.from(
     '0xbdB78Cf6f7c3E7345f06e7e076CDEB5e964eFD21'
@@ -143,19 +159,19 @@ export const CHIEF_ADDRESS: AddressMap = {
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0xE652f6e7b27EB4E19Fa9cAe4315cff36868B319F'
   ),
-  [ChainId.GNOSIS]: Address.from('0x62a790A77df54Cc75C899a3b27D118958c279A37'),
+  [ChainId.GNOSIS]: Address.from('0x95964aB419300F67e562F7c86DCa02C480252369'),
 };
 
 export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(
-    '0xd33Dedc767AF90B163a98A08eB1B28C35902f734'
+    '0x4dCC76FfFD9b8345B8dAa15414fbd787A3B226DB'
   ),
   [ChainId.OPTIMISM]: Address.from(
-    '0xcE9b49b0d4FE456aD6E4a1b7e4bBdD0699400Ef9'
+    '0x9e06DD4f57248EaB10076340a581E497A343D394'
   ),
   [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from('0x2bF38f818CC5B6Ce9c13Fe8FE9653410db79fe63'),
+  [ChainId.MATIC]: Address.from('0x1B8cfd1E10A6b0b9e0Ea4d9Fc9DB3A1290Ad8AA8'),
   [ChainId.GOERLI]: Address.from('0xa678C43f04ce286434E32731dD9Ab0721763f953'),
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0x62607f1AF5980DFccB94FcbAd42afaC4dDAd32Ff'
@@ -163,5 +179,5 @@ export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.OPTIMISM_GOERLI]: Address.from(
     '0x1C7c4623C4b83805968603a5312928CC6E1Bf3C8'
   ),
-  [ChainId.GNOSIS]: Address.from('0x12e5BD64CC72C5B2643c3D2C8A88dD05c361e513'),
+  [ChainId.GNOSIS]: Address.from('0xBB0C7D070Bcbc311d7987133631e93E840EC0325'),
 };

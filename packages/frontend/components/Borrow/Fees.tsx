@@ -1,3 +1,4 @@
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
@@ -12,20 +13,30 @@ import {
 } from '@mui/material';
 import { ReactNode, useState } from 'react';
 
+import { FetchStatus } from '../../helpers/assets';
 import { stringifiedBridgeFeeSum } from '../../helpers/transactions';
 import { useBorrow } from '../../store/borrow.store';
+
+function ErrorComponent() {
+  return (
+    <Tooltip title="Error loading data" arrow>
+      <ErrorOutlineIcon />
+    </Tooltip>
+  );
+}
 
 function Fees() {
   const transactionMeta = useBorrow((state) => state.transactionMeta);
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
-  const show = showTransactionDetails && transactionMeta.status === 'ready';
+  const show =
+    showTransactionDetails && transactionMeta.status === FetchStatus.Ready;
 
-  const crossChainTx = collateral.chainId !== debt.chainId;
+  const crossChainTx = debt && collateral.chainId !== debt.chainId;
 
   const handleClick = () => {
-    if (transactionMeta.status === 'ready') {
+    if (transactionMeta.status === FetchStatus.Ready) {
       setShowTransactionDetails(!showTransactionDetails);
     }
   };
@@ -48,6 +59,7 @@ function Fees() {
 
   return (
     <Card
+      data-cy="fees-container"
       variant="outlined"
       sx={{ cursor: 'pointer', border: 'none' }}
       onClick={handleClick}
@@ -56,7 +68,7 @@ function Fees() {
         <Typography variant="small" display="block">
           Estimated Cost
         </Typography>
-        {transactionMeta.status === 'ready' && (
+        {transactionMeta.status === FetchStatus.Ready && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <Typography variant="small">
               {`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)} + gas`}
@@ -64,13 +76,13 @@ function Fees() {
             {show ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
           </Stack>
         )}
-        {transactionMeta.status === 'fetching' && (
+        {transactionMeta.status === FetchStatus.Loading && (
           <Stack direction="row" alignItems="center" maxHeight="22px">
             <CircularProgress size="0.875rem" />
           </Stack>
         )}
-        {(transactionMeta.status === 'error' ||
-          transactionMeta.status === 'initial') && (
+        {(transactionMeta.status === FetchStatus.Error ||
+          transactionMeta.status === FetchStatus.Initial) && (
           <Typography variant="small" display="block">
             n/a
           </Typography>
@@ -78,11 +90,15 @@ function Fees() {
       </Stack>
 
       <Collapse in={show} sx={{ width: '100%' }}>
-        {crossChainTx && transactionMeta.bridgeFees && (
+        {crossChainTx && (
           <Fee
-            label="Bridge fee"
+            label="Bridge Fee"
             value={`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)}`}
             tooltip={bridgeTooltip()}
+            error={
+              !transactionMeta.bridgeFees ||
+              transactionMeta.bridgeFees?.every((fee) => fee.amount === 0)
+            }
           />
         )}
         {crossChainTx && (
@@ -96,6 +112,7 @@ function Fees() {
           <Fee
             label="Est. slippage"
             value={`~${transactionMeta.estimateSlippage} %`}
+            error={!transactionMeta.estimateSlippage}
           />
         )}
       </Collapse>
@@ -108,13 +125,16 @@ export default Fees;
 type FeeProps = {
   label: string;
   value: string | ReactNode;
-  sponsored: boolean;
+  sponsored?: boolean;
   tooltip?: string;
+  error?: boolean;
 };
 
-const Fee = ({ label, value, sponsored, tooltip }: FeeProps) => {
+const Fee = ({ label, value, sponsored, tooltip, error }: FeeProps) => {
   const { palette } = useTheme();
-  const valueComponent = sponsored ? (
+  const valueComponent = error ? (
+    <ErrorComponent />
+  ) : sponsored ? (
     <Stack
       direction="row"
       alignItems="center"
@@ -138,7 +158,13 @@ const Fee = ({ label, value, sponsored, tooltip }: FeeProps) => {
   );
 
   return (
-    <Stack direction="row" justifyContent="space-between" width="92%" mt="1rem">
+    <Stack
+      data-cy="fee-item"
+      direction="row"
+      justifyContent="space-between"
+      width="92%"
+      mt="1rem"
+    >
       <Typography variant="small">{label}</Typography>
       {tooltip ? (
         <Tooltip title={tooltip} placement="top">

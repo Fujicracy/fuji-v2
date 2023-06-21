@@ -1,8 +1,8 @@
 import coinbaseModule from '@web3-onboard/coinbase';
+import Onboard from '@web3-onboard/core';
 import injectedModule from '@web3-onboard/injected-wallets';
 import ledgerModule from '@web3-onboard/ledger';
 import mewWallet from '@web3-onboard/mew-wallet';
-import { init } from '@web3-onboard/react';
 import trezorModule from '@web3-onboard/trezor';
 import walletConnectModule, {
   WalletConnectOptions,
@@ -11,6 +11,12 @@ import xdefiWalletModule from '@web3-onboard/xdefi';
 
 import { FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
+
+type OnboardStatus = {
+  hasAcceptedTerms: boolean;
+  date?: Date | string;
+  wasExploreInfoShown?: boolean;
+};
 
 const wcV1InitOptions: WalletConnectOptions = {
   version: 1,
@@ -24,14 +30,16 @@ const wcV1InitOptions: WalletConnectOptions = {
       'pillar',
     ],
   },
+  connectFirstChainId: true,
 };
 
-// const wcV2InitOptions: WalletConnectOptions = {
-//   version: 2,
-//   projectId: `${process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY}`,
-// };
+const wcV2InitOptions: WalletConnectOptions = {
+  version: 2,
+  projectId: `${process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY}`,
+};
 
-const walletConnect = walletConnectModule(wcV1InitOptions);
+const injected = injectedModule();
+const walletConnect = walletConnectModule(wcV2InitOptions || wcV1InitOptions);
 const coinbase = coinbaseModule();
 const ledger = ledgerModule();
 const mewWalletModule = mewWallet();
@@ -41,10 +49,10 @@ const trezor = trezorModule({
 });
 const xdefiWallet = xdefiWalletModule();
 
-export const web3onboard = init({
+export const web3onboard = Onboard({
   chains: onboardChains,
   wallets: [
-    injectedModule(),
+    injected,
     coinbase,
     ledger,
     mewWalletModule,
@@ -66,3 +74,48 @@ export const web3onboard = init({
   },
   theme: 'dark',
 });
+
+export function acceptTermsOfUse() {
+  const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
+  const onboardStatus = JSON.parse(onboardStatusJson);
+
+  const json = JSON.stringify({
+    ...onboardStatus,
+    ...{
+      hasAcceptedTerms: true,
+      date: new Date().toJSON(),
+    },
+  });
+  localStorage.setItem('termsAccepted', json);
+}
+
+export function getOnboardStatus(): OnboardStatus {
+  const onboardStatusJson = localStorage.getItem('termsAccepted');
+  if (!onboardStatusJson) return { hasAcceptedTerms: false };
+
+  const onboardStatus: OnboardStatus = JSON.parse(onboardStatusJson);
+
+  return {
+    hasAcceptedTerms: onboardStatus.hasAcceptedTerms,
+    date: onboardStatus.date && new Date(onboardStatus.date),
+    wasExploreInfoShown: onboardStatus.wasExploreInfoShown,
+  };
+}
+
+export function setExploreInfoShown(wasExploreInfoShown: boolean) {
+  const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
+
+  const onboardStatus = JSON.parse(onboardStatusJson);
+
+  const json = JSON.stringify({ ...onboardStatus, wasExploreInfoShown });
+  localStorage.setItem('termsAccepted', json);
+}
+
+export function dismissBanner(key: string): void {
+  localStorage.setItem(`${key}BannerDismissed`, 'true');
+}
+
+export function getBannerVisibility(key: string): boolean {
+  const statusJson = localStorage.getItem(`${key}BannerDismissed`);
+  return !statusJson || statusJson !== 'true';
+}
