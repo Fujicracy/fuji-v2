@@ -60,7 +60,7 @@ function PositionYieldTable({
             debtAPR: c.debt.baseAPR,
           })
         );
-      }, 1)
+      }, 0)
     );
   }, [rows, days, callback]);
 
