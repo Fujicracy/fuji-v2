@@ -1,5 +1,11 @@
-import { Address, FujiError, VaultWithFinancials } from '@x-fuji/sdk';
+import {
+  Address,
+  BorrowingVault,
+  FujiError,
+  VaultWithFinancials,
+} from '@x-fuji/sdk';
 
+import { DUST_AMOUNT_IN_WEI } from '../constants';
 import { sdk } from '../services/sdk';
 import { ActionType, Mode } from './assets';
 import { chains } from './chains';
@@ -67,6 +73,14 @@ export const getAllBorrowingVaultFinancials = async (
   }
 
   return { data };
+};
+
+export const userHasFundsInVault = (
+  vault: BorrowingVault,
+  list: VaultWithFinancials[]
+) => {
+  const match = list.find((v) => v.vault.address.equals(vault.address));
+  return match && match.depositBalance.gt(DUST_AMOUNT_IN_WEI);
 };
 
 export const vaultsFromFinancialsOrError = (

@@ -947,13 +947,13 @@ export const useBorrow = create<BorrowStore>()(
           }
 
           const tx = await get().execute();
+          const vault = get().activeVault;
 
           // error was already displayed in execute()
-          if (tx) {
-            const vaultAddr = get().activeVault?.address.value as string;
+          if (tx && vault) {
             useHistory
               .getState()
-              .add(tx.hash, tx.from, vaultAddr, get().transactionMeta.steps);
+              .add(tx.hash, tx.from, vault, get().transactionMeta.steps);
 
             get().changeInputValues('', '');
           }
