@@ -99,7 +99,7 @@ export class Sdk {
     let list: Currency[] = COLLATERAL_LIST[chainId].map((token: Token) =>
       token.setConnection(this._configParams)
     );
-    // we don't support yet WMATIC and WXDAI as collateral
+    // we don't support WMATIC and WXDAI as collateral yet
     if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
       list = [NATIVE[chainId].setConnection(this._configParams), ...list];
     }
@@ -206,7 +206,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns all vaults.
+   * Returns all vaults.
    *
    * @param chainType - for type of chains: mainnet or testnet
    *
@@ -227,7 +227,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns all vaults with financial data such as base deposit APRs and
+   * Returns all vaults with financial data such as base deposit APRs and
    * base borrow APRs fetched on-chain.
    *
    * @remarks
@@ -252,7 +252,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns all vaults with the whole financial data
+   * Returns all vaults with the whole financial data
    * loaded from DefiLlama API.
    *
    * @remarks
@@ -297,7 +297,7 @@ export class Sdk {
   }
 
   /**
-   * Retruns all vaults for a given combination of tokens and sets a connection for each of them.
+   * Returns all vaults for a given combination of tokens and sets a connection for each of them.
    *
    * @remarks
    * The vaults are sorted after checks of the lowest borrow rate for the debt token.
