@@ -51,8 +51,8 @@ type AccountBalances = {
 };
 
 /**
- * The BorrowingVault class encapsulates the end-user logic of interation with the
- * BorrowingVault cotract without the need to deal directly with ethers.js (ABIs, providers etc).
+ * The BorrowingVault class encapsulates the end-user logic of interaction with the
+ * BorrowingVault contract without the need to deal directly with ethers.js (ABIs, providers etc).
  *
  * It contains read-only functions and leaves to the client only the final step of a blockchain write.
  * The class aims to expose functions that together with user's inputs go throughout the most common
@@ -143,7 +143,7 @@ export class BorrowingVault {
    * ```ts
    * await vault.balanceOf(address);
    * ```
-   * Use with caution, espesially for writes.
+   * Use with caution, especially for writes.
    */
   contract?: BorrowingVaultContract;
 
@@ -264,7 +264,7 @@ export class BorrowingVault {
   }
 
   /**
-   * Retruns the borrow interest rate by querying the activeProvider.
+   * Returns the borrow interest rate by querying the activeProvider.
    *
    * @throws if {@link setConnection} was not called beforehand
    */
@@ -282,7 +282,7 @@ export class BorrowingVault {
   }
 
   /**
-   * Retruns the list with all providers of the vault.
+   * Returns the list with all providers of the vault.
    * Each element also includes the borrow and deposit rate.
    *
    * @throws if {@link setConnection} was not called beforehand
