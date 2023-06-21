@@ -1,9 +1,21 @@
-import { Box, Card, Stack, Typography } from '@mui/material';
+import { alpha, Box, Card, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React from 'react';
+import Image from 'next/image';
+import React, { useMemo } from 'react';
+
+import { rearrangeProvidersWithActiveInCenter } from '../../helpers/borrow';
+import { useBorrow } from '../../store/borrow.store';
+import { ProviderIcon } from '../Shared/Icons';
 
 function VaultStrategy() {
   const { palette } = useTheme();
+  const vault = useBorrow((state) => state.activeVault);
+  const allProviders = useBorrow((state) => state.allProviders);
+
+  const rearrangedProviders = useMemo(() => {
+    const array = allProviders[vault?.address?.value || 0] || [];
+    return rearrangeProvidersWithActiveInCenter(array);
+  }, [allProviders, vault]);
 
   return (
     <>
@@ -18,11 +30,70 @@ function VaultStrategy() {
           mt: '1rem',
         }}
       >
-        <img
-          src={'/assets/images/onboarding/onboarding_1.svg'}
-          alt="Vault strategy Image"
-          style={{ width: '100%', height: 'auto' }}
-        />
+        <Stack
+          direction="column"
+          alignItems="center"
+          justifyContent="center"
+          width="100%"
+          p="1.5rem 1rem 1rem 1rem"
+          sx={{
+            background: 'linear-gradient(90deg, #1B1B1B 0%, #000000 100%)',
+          }}
+        >
+          <Typography variant="xsmall">Current Active Provider:</Typography>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="center"
+            sx={{
+              p: '0.31rem 1rem',
+              backgroundColor: palette.secondary.contrastText,
+              border: `1px solid ${alpha('#FFFFFF', 0.2)}`,
+              borderRadius: '0.75rem',
+              minWidth: '8rem',
+              mt: '0.5rem',
+            }}
+          >
+            {rearrangedProviders.map((provider) => (
+              <Box
+                key={provider.name}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 33,
+                  height: 33,
+                  p: 0,
+                  borderRadius: '50%',
+                  border: `2px solid ${
+                    provider.active ? 'white' : 'transparent'
+                  }`,
+                  filter: provider.active
+                    ? 'drop-shadow(0px 0px 12px #F0014F)'
+                    : 'none',
+                  '&:not(:first-of-type)': {
+                    ml: '1.5rem',
+                  },
+                  '& img': {
+                    m: '0.2px 0 0 -0.4px',
+                  },
+                }}
+              >
+                <ProviderIcon
+                  provider={provider?.name}
+                  width={31}
+                  height={31}
+                />
+              </Box>
+            ))}
+          </Stack>
+          <Image
+            src={'/assets/images/shared/vaultsSummary.svg'}
+            alt="Vault strategy Image"
+            height={128}
+            width={88}
+          />
+        </Stack>
         <Stack p="1.5rem">
           <Typography variant="body2">
             Automatic interest rates optimization

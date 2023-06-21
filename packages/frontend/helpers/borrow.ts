@@ -1,4 +1,9 @@
-import { Address, FujiError, VaultWithFinancials } from '@x-fuji/sdk';
+import {
+  Address,
+  FujiError,
+  LendingProviderDetails,
+  VaultWithFinancials,
+} from '@x-fuji/sdk';
 
 import { sdk } from '../services/sdk';
 import { ActionType, Mode } from './assets';
@@ -37,7 +42,7 @@ export const failureForMode = (
 };
 
 /*
-  Convenience function that calls the SDK to get all the vaults with 
+  Convenience function that calls the SDK to get all the vaults with
   financials and returns both the data and errors.
 */
 export const getAllBorrowingVaultFinancials = async (
@@ -61,3 +66,25 @@ export const getAllBorrowingVaultFinancials = async (
 
   return { data, errors };
 };
+
+export function rearrangeProvidersWithActiveInCenter(
+  array: LendingProviderDetails[]
+): LendingProviderDetails[] {
+  const activeItem = array.find((item) => item.active);
+  if (!activeItem || array.length === 1) {
+    // No active item found, return the original array
+    return array;
+  }
+
+  const middleIndex = (array.length - 1) / 2;
+  const activeIndex = array.indexOf(activeItem);
+  array.splice(activeIndex, 1);
+
+  let leftArray: LendingProviderDetails[] = [];
+  let rightArray: LendingProviderDetails[] = [];
+
+  leftArray = array.slice(0, middleIndex);
+  rightArray = array.slice(middleIndex);
+
+  return [...leftArray, activeItem, ...rightArray];
+}
