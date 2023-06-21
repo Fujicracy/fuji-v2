@@ -121,6 +121,25 @@ const _abi = [
   {
     inputs: [
       {
+        internalType: "address",
+        name: "swapper",
+        type: "address",
+      },
+    ],
+    name: "allowedSwapper",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "bytes32",
         name: "role",
         type: "bytes32",
@@ -169,6 +188,25 @@ const _abi = [
       },
     ],
     name: "hasRole",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "vault",
+        type: "address",
+      },
+    ],
+    name: "isVaultActive",
     outputs: [
       {
         internalType: "bool",

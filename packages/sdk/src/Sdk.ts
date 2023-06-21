@@ -24,7 +24,12 @@ import {
   FujiResultSuccess,
 } from './entities/FujiError';
 import { ChainId, ChainType, ConnextTxStatus, RouterAction } from './enums';
-import { batchLoad, encodeActionArgs, waitForTransaction } from './functions';
+import {
+  batchLoad,
+  encodeActionArgs,
+  findPermitAction,
+  waitForTransaction,
+} from './functions';
 import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
 import {
@@ -33,7 +38,6 @@ import {
   ConnextTxDetails,
   FujiResult,
   FujiResultPromise,
-  PermitParams,
   RouterActionParams,
   VaultWithFinancials,
 } from './types';
@@ -57,11 +61,13 @@ export class Sdk {
    */
   private _configParams: ChainConfig;
 
-  constructor(config: ChainConfig) {
+  constructor(config: ChainConfig, chainType: ChainType = ChainType.MAINNET) {
     this.previews = new Previews();
     this._configParams = config;
 
-    Object.values(CHAIN).forEach((c) => c.setConnection(this._configParams));
+    Object.values(CHAIN)
+      .filter((c) => c.chainType === chainType && c.isDeployed)
+      .forEach((c) => c.setConnection(this._configParams));
   }
 
   /**
@@ -80,28 +86,6 @@ export class Sdk {
         p.action === RouterAction.PERMIT_WITHDRAW
       );
     });
-  }
-
-  /**
-   * Static method to find PERMIT_BORROW or PERMIT_WITHDRAW action.
-   *
-   * @param params - array of actions
-   */
-  static findPermitAction(
-    params: RouterActionParams[]
-  ): PermitParams | undefined {
-    for (const p of params) {
-      if (
-        p.action === RouterAction.PERMIT_BORROW ||
-        p.action === RouterAction.PERMIT_WITHDRAW
-      )
-        return p;
-      if (p.action === RouterAction.X_TRANSFER_WITH_CALL) {
-        return Sdk.findPermitAction(p.innerActions);
-      }
-    }
-
-    return undefined;
   }
 
   /**
@@ -395,7 +379,7 @@ export class Sdk {
   ): FujiResult<TransactionRequest> {
     // dummy copy actionParams because of the immutability of Immer
     const _actionParams = actionParams.map((a) => ({ ...a }));
-    const permitAction = Sdk.findPermitAction(_actionParams);
+    const permitAction = findPermitAction(_actionParams);
 
     if (permitAction && signature) {
       permitAction.v = signature.v;
@@ -410,7 +394,7 @@ export class Sdk {
     }
 
     const actions = _actionParams.map(({ action }) => BigNumber.from(action));
-    const result = _actionParams.map(encodeActionArgs);
+    const result = _actionParams.map((p) => encodeActionArgs(p, false));
 
     const error = result.find((r): r is FujiResultError => !r.success);
     if (error)

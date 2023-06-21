@@ -176,10 +176,9 @@ function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
   return (
     <TableRow>
       <TableCell
-        sx={{
-          height: '10rem',
-        }}
         colSpan={8}
+        align="center"
+        sx={{ m: '0', textAlign: 'center', p: 0, height: '10rem' }}
       >
         <Stack
           data-cy="market-empty-state"
@@ -187,6 +186,8 @@ function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
           justifyContent="center"
           sx={{
             width: '100%',
+            overflow: 'hidden',
+            maxWidth: '100vw',
           }}
         >
           <Typography variant="body" fontWeight={500}>

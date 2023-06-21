@@ -39,6 +39,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "RebalancerManager__checkLtvChange_invalidAmount",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "RebalancerManager__completeRebalance_invalidEntryPoint",
     type: "error",
   },
@@ -50,6 +55,11 @@ const _abi = [
   {
     inputs: [],
     name: "RebalancerManager__getFlashloan_notEmptyEntryPoint",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "RebalancerManager__rebalanceVault_invalidAmount",
     type: "error",
   },
   {

@@ -25,13 +25,12 @@ contract CompoundV3Arbitrum is ILendingProvider {
    * @notice Returns the {AddrMapper} contract applicable to this provider.
    */
   function getMapper() public pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x9B66e949277D6b5dE1e1099242c57CDAa53782B5);
+    return IAddrMapper(0x66211Ab72fB0a06e9E6eD8b21Aa3c1a01F171521);
   }
 
   /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "Compound_V3";
+    return "Compound_V3_Arbitrum";
   }
 
   /// @inheritdoc ILendingProvider
@@ -110,7 +109,11 @@ contract CompoundV3Arbitrum is ILendingProvider {
   /// @inheritdoc ILendingProvider
   function getDepositBalance(address user, IVault vault) external view returns (uint256 balance) {
     (ICompoundV3 cMarketV3, address asset,) = _getMarketAndAssets(vault);
-    return cMarketV3.collateralBalanceOf(user, asset);
+    if (asset == cMarketV3.baseToken()) {
+      balance = cMarketV3.balanceOf(user);
+    } else {
+      balance = cMarketV3.collateralBalanceOf(user, asset);
+    }
   }
 
   /// @inheritdoc ILendingProvider

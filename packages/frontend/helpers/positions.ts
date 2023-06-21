@@ -70,8 +70,11 @@ export const getPositionsWithBalance = async (
     p.ltv =
       (p.debt.amount * p.debt.usdPrice) /
       (p.collateral.amount * p.collateral.usdPrice);
-    p.ltvMax = bigToFloat(18, v.vault.maxLtv);
-    p.ltvThreshold = bigToFloat(18, v.vault.liqRatio);
+    p.ltvMax = bigToFloat(p.collateral.currency.decimals, v.vault.maxLtv);
+    p.ltvThreshold = bigToFloat(
+      p.collateral.currency.decimals,
+      v.vault.liqRatio
+    );
     p.liquidationPrice =
       p.debt.usdPrice === 0
         ? 0
@@ -140,30 +143,32 @@ export function getRows(positions: Position[]): PositionRow[] {
   if (positions.length === 0) {
     return [];
   } else {
-    return positions.map((pos: Position) => ({
-      safetyRating: Number(pos.vault?.safetyRating?.toString()) ?? 0,
-      address: pos.vault?.address.value,
-      chainId: pos.vault?.chainId,
-      debt: {
-        symbol: pos.vault?.debt.symbol || '',
-        amount: pos.debt.amount,
-        usdValue: pos.debt.amount * pos.debt.usdPrice,
-        baseAPR: pos.debt.baseAPR,
-      },
-      collateral: {
-        symbol: pos.vault?.collateral.symbol || '',
-        amount: pos.collateral.amount,
-        usdValue: pos.collateral.amount * pos.collateral.usdPrice,
-        baseAPR: pos.collateral.baseAPR,
-      },
-      apr: formatNumber(pos.debt.baseAPR, 2),
-      liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
-      oraclePrice: pos.collateral.usdPrice,
-      percentPriceDiff: pos.liquidationDiff,
-      ltv: pos.ltv * 100,
-      ltvMax: pos.ltvMax * 100,
-      activeProvidersNames: pos.activeProvidersNames,
-    }));
+    return positions.map((pos: Position) => {
+      return {
+        safetyRating: Number(pos.vault?.safetyRating?.toString()) ?? 0,
+        address: pos.vault?.address.value,
+        chainId: pos.vault?.chainId,
+        debt: {
+          symbol: pos.vault?.debt.symbol || '',
+          amount: pos.debt.amount,
+          usdValue: pos.debt.amount * pos.debt.usdPrice,
+          baseAPR: pos.debt.baseAPR,
+        },
+        collateral: {
+          symbol: pos.vault?.collateral.symbol || '',
+          amount: pos.collateral.amount,
+          usdValue: pos.collateral.amount * pos.collateral.usdPrice,
+          baseAPR: pos.collateral.baseAPR,
+        },
+        apr: formatNumber(pos.debt.baseAPR, 2),
+        liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
+        oraclePrice: pos.collateral.usdPrice,
+        percentPriceDiff: pos.liquidationDiff,
+        ltv: pos.ltv * 100,
+        ltvMax: pos.ltvMax * 100,
+        activeProvidersNames: pos.activeProvidersNames,
+      };
+    });
   }
 }
 
@@ -171,7 +176,7 @@ function handleDisplayLiquidationPrice(liqPrice?: number) {
   if (liqPrice === undefined || liqPrice === 0) {
     return '-';
   } else {
-    return formatNumber(liqPrice, 0);
+    return formatNumber(liqPrice, liqPrice < 10 ? 2 : 0);
   }
 }
 

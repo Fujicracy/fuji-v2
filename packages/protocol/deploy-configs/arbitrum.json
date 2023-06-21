@@ -1,0 +1,125 @@
+{
+  "WBTC": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+  "WETH": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+  "USDC": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+  "DAI": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+  "USDT": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+  "WSTETH": "0x5979D7b546E38E414F7E9822514be443A4800529",
+  "ConnextCore": "0xEE9deC2712cCE65174B561151701Bf54b99C24C8",
+  "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  "FujiRelayer": "0x65e0ef5d35ccdc55fac1d4e2c6d9e9a196bf5076",
+  "price-feeds": [
+    {
+      "asset": "WBTC",
+      "chainlink": "0x6ce185860a4963106506c203335a2910413708e9"
+    },
+    {
+      "asset": "WETH",
+      "chainlink": "0x639fe6ab55c921f74e7fac1ee960c0b6293ba612"
+    },
+    {
+      "asset": "USDC",
+      "chainlink": "0x50834f3163758fcc1df9973b6e91f0f0f0434ad3"
+    },
+    {
+      "asset": "DAI",
+      "chainlink": "0xc5c8e77b397e531b8ec06bfb0048328b30e9ecfb"
+    },
+    {
+      "asset": "USDT",
+      "chainlink": "0x3f3f5df88dc9f13eac63df89ec16ef6e7e25dde7"
+    },
+    {
+      "asset": "WSTETH",
+      "chainlink": "0xbfC244134788584D3272F3994CD779635C4282bA"
+    }
+  ],
+  "simple-mappings": [
+    {
+      "asset": "WBTC",
+      "market": "0xD3204E4189BEcD9cD957046A8e4A643437eE0aCC",
+      "name": "DForce_Arbitrum"
+    },
+    {
+      "asset": "WETH",
+      "market": "0xEe338313f022caee84034253174FA562495dcC15",
+      "name": "DForce_Arbitrum"
+    },
+    {
+      "asset": "USDC",
+      "market": "0x8dc3312c68125a94916d62B97bb5D925f84d4aE0",
+      "name": "DForce_Arbitrum"
+    },
+    {
+      "asset": "DAI",
+      "market": "0xf6995955e4B0E5b287693c221f456951D612b628",
+      "name": "DForce_Arbitrum"
+    },
+    {
+      "asset": "USDT",
+      "market": "0xf52f079Af080C9FB5AFCA57DDE0f8B83d49692a9",
+      "name": "DForce_Arbitrum"
+    }
+  ],
+  "nested-mappings": [
+    {
+      "asset1": "WBTC",
+      "asset2": "USDC",
+      "market": "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+      "name": "Compound_V3_Arbitrum"
+    },
+    {
+      "asset1": "WETH",
+      "asset2": "USDC",
+      "market": "0xA5EDBDD9646f8dFF606d7448e414884C7d905dCA",
+      "name": "Compound_V3_Arbitrum"
+    }
+  ],
+  "borrowing-vaults": [
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 780000000000000000,
+      "name": "BorrowingVault-WETHUSDC-1",
+      "providers": ["Compound_V3_Arbitrum", "Aave_V3_Arbitrum"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 780000000000000000,
+      "name": "BorrowingVault-WETHUSDC-2",
+      "providers": ["Compound_V3_Arbitrum", "Aave_V3_Arbitrum", "DForce_Arbitrum"],
+      "rating": 80
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-1",
+      "providers": ["Aave_V3_Arbitrum"],
+      "rating": 95
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-2",
+      "providers": ["DForce_Arbitrum", "Aave_V3_Arbitrum"],
+      "rating": 80
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDT",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHUSDT-1",
+      "providers": ["DForce_Arbitrum", "Aave_V3_Arbitrum"],
+      "rating": 80
+    }
+  ]
+}

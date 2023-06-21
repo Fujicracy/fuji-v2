@@ -66,15 +66,17 @@ export const useMarkets = create<MarketsStore>()(
             .map((r) => setFinancials(r, MarketRowStatus.Error))
             .map((r) => setLlamas(r, MarketRowStatus.Error));
           set({ rows: setBest(rows) });
-          return;
         }
 
         const vaultsWithFinancials = result.data;
         const rowsFin = vaultsWithFinancials.map((fin, i) =>
           setFinancials(rowsBase[i], MarketRowStatus.Ready, fin)
         );
-        set({ rows: setBest(rowsFin) });
-        set({ vaultsWithFinancials });
+
+        if (result.data.length === 0) {
+          set({ rows: setBest(rowsFin) });
+          set({ vaultsWithFinancials });
+        }
 
         const llamaResult = await sdk.getLlamaFinancials(vaultsWithFinancials);
         if (!llamaResult.success) {

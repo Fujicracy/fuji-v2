@@ -40,27 +40,29 @@ export interface ChiefInterface extends utils.Interface {
     "UNPAUSER_ROLE()": FunctionFragment;
     "addrMapper()": FunctionFragment;
     "allowFlasher(address,bool)": FunctionFragment;
+    "allowSwapper(address,bool)": FunctionFragment;
     "allowVaultFactory(address,bool)": FunctionFragment;
     "allowedFlasher(address)": FunctionFragment;
+    "allowedSwapper(address)": FunctionFragment;
     "allowedVaultFactory(address)": FunctionFragment;
     "deployVault(address,bytes,uint256)": FunctionFragment;
     "getRoleAdmin(bytes32)": FunctionFragment;
-    "getVaults()": FunctionFragment;
     "grantRole(bytes32,address)": FunctionFragment;
     "hasRole(bytes32,address)": FunctionFragment;
-    "pauseActionInAllVaults(uint8)": FunctionFragment;
-    "pauseForceAllVaults()": FunctionFragment;
+    "isVaultActive(address)": FunctionFragment;
+    "pauseActionInVaults(address[],uint8)": FunctionFragment;
+    "pauseForceVaults(address[])": FunctionFragment;
     "permissionlessDeployments()": FunctionFragment;
     "renounceRole(bytes32,address)": FunctionFragment;
     "revokeRole(bytes32,address)": FunctionFragment;
     "setPermissionlessDeployments(bool)": FunctionFragment;
     "setSafetyRating(address,uint256)": FunctionFragment;
     "setTimelock(address)": FunctionFragment;
-    "setVaults(address[])": FunctionFragment;
+    "setVaultStatus(address,bool)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "timelock()": FunctionFragment;
-    "unpauseForceAllVaults()": FunctionFragment;
-    "upauseActionInAllVaults(uint8)": FunctionFragment;
+    "unpauseForceVaults(address[])": FunctionFragment;
+    "upauseActionInVaults(address[],uint8)": FunctionFragment;
     "vaultSafetyRating(address)": FunctionFragment;
   };
 
@@ -76,27 +78,29 @@ export interface ChiefInterface extends utils.Interface {
       | "UNPAUSER_ROLE"
       | "addrMapper"
       | "allowFlasher"
+      | "allowSwapper"
       | "allowVaultFactory"
       | "allowedFlasher"
+      | "allowedSwapper"
       | "allowedVaultFactory"
       | "deployVault"
       | "getRoleAdmin"
-      | "getVaults"
       | "grantRole"
       | "hasRole"
-      | "pauseActionInAllVaults"
-      | "pauseForceAllVaults"
+      | "isVaultActive"
+      | "pauseActionInVaults"
+      | "pauseForceVaults"
       | "permissionlessDeployments"
       | "renounceRole"
       | "revokeRole"
       | "setPermissionlessDeployments"
       | "setSafetyRating"
       | "setTimelock"
-      | "setVaults"
+      | "setVaultStatus"
       | "supportsInterface"
       | "timelock"
-      | "unpauseForceAllVaults"
-      | "upauseActionInAllVaults"
+      | "unpauseForceVaults"
+      | "upauseActionInVaults"
       | "vaultSafetyRating"
   ): FunctionFragment;
 
@@ -141,11 +145,19 @@ export interface ChiefInterface extends utils.Interface {
     values: [string, boolean]
   ): string;
   encodeFunctionData(
+    functionFragment: "allowSwapper",
+    values: [string, boolean]
+  ): string;
+  encodeFunctionData(
     functionFragment: "allowVaultFactory",
     values: [string, boolean]
   ): string;
   encodeFunctionData(
     functionFragment: "allowedFlasher",
+    values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "allowedSwapper",
     values: [string]
   ): string;
   encodeFunctionData(
@@ -160,7 +172,6 @@ export interface ChiefInterface extends utils.Interface {
     functionFragment: "getRoleAdmin",
     values: [BytesLike]
   ): string;
-  encodeFunctionData(functionFragment: "getVaults", values?: undefined): string;
   encodeFunctionData(
     functionFragment: "grantRole",
     values: [BytesLike, string]
@@ -170,12 +181,16 @@ export interface ChiefInterface extends utils.Interface {
     values: [BytesLike, string]
   ): string;
   encodeFunctionData(
-    functionFragment: "pauseActionInAllVaults",
-    values: [BigNumberish]
+    functionFragment: "isVaultActive",
+    values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "pauseForceAllVaults",
-    values?: undefined
+    functionFragment: "pauseActionInVaults",
+    values: [string[], BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "pauseForceVaults",
+    values: [string[]]
   ): string;
   encodeFunctionData(
     functionFragment: "permissionlessDeployments",
@@ -198,19 +213,22 @@ export interface ChiefInterface extends utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "setTimelock", values: [string]): string;
-  encodeFunctionData(functionFragment: "setVaults", values: [string[]]): string;
+  encodeFunctionData(
+    functionFragment: "setVaultStatus",
+    values: [string, boolean]
+  ): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
   ): string;
   encodeFunctionData(functionFragment: "timelock", values?: undefined): string;
   encodeFunctionData(
-    functionFragment: "unpauseForceAllVaults",
-    values?: undefined
+    functionFragment: "unpauseForceVaults",
+    values: [string[]]
   ): string;
   encodeFunctionData(
-    functionFragment: "upauseActionInAllVaults",
-    values: [BigNumberish]
+    functionFragment: "upauseActionInVaults",
+    values: [string[], BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "vaultSafetyRating",
@@ -255,11 +273,19 @@ export interface ChiefInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "allowSwapper",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "allowVaultFactory",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "allowedFlasher",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "allowedSwapper",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -274,15 +300,18 @@ export interface ChiefInterface extends utils.Interface {
     functionFragment: "getRoleAdmin",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "getVaults", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "grantRole", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "hasRole", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "pauseActionInAllVaults",
+    functionFragment: "isVaultActive",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "pauseForceAllVaults",
+    functionFragment: "pauseActionInVaults",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "pauseForceVaults",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -306,18 +335,21 @@ export interface ChiefInterface extends utils.Interface {
     functionFragment: "setTimelock",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "setVaults", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "setVaultStatus",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "timelock", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "unpauseForceAllVaults",
+    functionFragment: "unpauseForceVaults",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "upauseActionInAllVaults",
+    functionFragment: "upauseActionInVaults",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -328,13 +360,13 @@ export interface ChiefInterface extends utils.Interface {
   events: {
     "AllowFlasher(address,bool)": EventFragment;
     "AllowPermissionlessDeployments(bool)": EventFragment;
+    "AllowSwapper(address,bool)": EventFragment;
     "AllowVaultFactory(address,bool)": EventFragment;
     "ChangeSafetyRating(address,uint256)": EventFragment;
-    "DeployVault(address,address,bytes)": EventFragment;
     "RoleAdminChanged(bytes32,bytes32,bytes32)": EventFragment;
     "RoleGranted(bytes32,address,address)": EventFragment;
     "RoleRevoked(bytes32,address,address)": EventFragment;
-    "SetVaults(address[],address[])": EventFragment;
+    "SetVaultStatus(address,bool)": EventFragment;
     "UpdateTimelock(address)": EventFragment;
   };
 
@@ -342,13 +374,13 @@ export interface ChiefInterface extends utils.Interface {
   getEvent(
     nameOrSignatureOrTopic: "AllowPermissionlessDeployments"
   ): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "AllowSwapper"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "AllowVaultFactory"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ChangeSafetyRating"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "DeployVault"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleAdminChanged"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleGranted"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "RoleRevoked"): EventFragment;
-  getEvent(nameOrSignatureOrTopic: "SetVaults"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "SetVaultStatus"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "UpdateTimelock"): EventFragment;
 }
 
@@ -374,6 +406,17 @@ export type AllowPermissionlessDeploymentsEvent = TypedEvent<
 export type AllowPermissionlessDeploymentsEventFilter =
   TypedEventFilter<AllowPermissionlessDeploymentsEvent>;
 
+export interface AllowSwapperEventObject {
+  swapper: string;
+  allowed: boolean;
+}
+export type AllowSwapperEvent = TypedEvent<
+  [string, boolean],
+  AllowSwapperEventObject
+>;
+
+export type AllowSwapperEventFilter = TypedEventFilter<AllowSwapperEvent>;
+
 export interface AllowVaultFactoryEventObject {
   factory: string;
   allowed: boolean;
@@ -397,18 +440,6 @@ export type ChangeSafetyRatingEvent = TypedEvent<
 
 export type ChangeSafetyRatingEventFilter =
   TypedEventFilter<ChangeSafetyRatingEvent>;
-
-export interface DeployVaultEventObject {
-  factory: string;
-  vault: string;
-  deployData: string;
-}
-export type DeployVaultEvent = TypedEvent<
-  [string, string, string],
-  DeployVaultEventObject
->;
-
-export type DeployVaultEventFilter = TypedEventFilter<DeployVaultEvent>;
 
 export interface RoleAdminChangedEventObject {
   role: string;
@@ -447,16 +478,16 @@ export type RoleRevokedEvent = TypedEvent<
 
 export type RoleRevokedEventFilter = TypedEventFilter<RoleRevokedEvent>;
 
-export interface SetVaultsEventObject {
-  previousVaults: string[];
-  newVaults: string[];
+export interface SetVaultStatusEventObject {
+  vault: string;
+  active: boolean;
 }
-export type SetVaultsEvent = TypedEvent<
-  [string[], string[]],
-  SetVaultsEventObject
+export type SetVaultStatusEvent = TypedEvent<
+  [string, boolean],
+  SetVaultStatusEventObject
 >;
 
-export type SetVaultsEventFilter = TypedEventFilter<SetVaultsEvent>;
+export type SetVaultStatusEventFilter = TypedEventFilter<SetVaultStatusEvent>;
 
 export interface UpdateTimelockEventObject {
   timelock: string;
@@ -519,6 +550,12 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    allowSwapper(
+      swapper: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     allowVaultFactory(
       factory: string,
       allowed: boolean,
@@ -526,6 +563,8 @@ export interface Chief extends BaseContract {
     ): Promise<ContractTransaction>;
 
     allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    allowedSwapper(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
     allowedVaultFactory(
       arg0: string,
@@ -541,8 +580,6 @@ export interface Chief extends BaseContract {
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<[string]>;
 
-    getVaults(overrides?: CallOverrides): Promise<[string[]]>;
-
     grantRole(
       role: BytesLike,
       account: string,
@@ -555,12 +592,16 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[boolean]>;
 
-    pauseActionInAllVaults(
+    isVaultActive(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
+
+    pauseActionInVaults(
+      vaults: string[],
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    pauseForceAllVaults(
+    pauseForceVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -594,8 +635,9 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    setVaults(
-      vaults: string[],
+    setVaultStatus(
+      vault: string,
+      active: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -606,11 +648,13 @@ export interface Chief extends BaseContract {
 
     timelock(overrides?: CallOverrides): Promise<[string]>;
 
-    unpauseForceAllVaults(
+    unpauseForceVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    upauseActionInAllVaults(
+    upauseActionInVaults(
+      vaults: string[],
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -645,6 +689,12 @@ export interface Chief extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  allowSwapper(
+    swapper: string,
+    allowed: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
   allowVaultFactory(
     factory: string,
     allowed: boolean,
@@ -652,6 +702,8 @@ export interface Chief extends BaseContract {
   ): Promise<ContractTransaction>;
 
   allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  allowedSwapper(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
   allowedVaultFactory(
     arg0: string,
@@ -667,8 +719,6 @@ export interface Chief extends BaseContract {
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-  getVaults(overrides?: CallOverrides): Promise<string[]>;
-
   grantRole(
     role: BytesLike,
     account: string,
@@ -681,12 +731,16 @@ export interface Chief extends BaseContract {
     overrides?: CallOverrides
   ): Promise<boolean>;
 
-  pauseActionInAllVaults(
+  isVaultActive(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+  pauseActionInVaults(
+    vaults: string[],
     action: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  pauseForceAllVaults(
+  pauseForceVaults(
+    vaults: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -720,8 +774,9 @@ export interface Chief extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  setVaults(
-    vaults: string[],
+  setVaultStatus(
+    vault: string,
+    active: boolean,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -732,11 +787,13 @@ export interface Chief extends BaseContract {
 
   timelock(overrides?: CallOverrides): Promise<string>;
 
-  unpauseForceAllVaults(
+  unpauseForceVaults(
+    vaults: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  upauseActionInAllVaults(
+  upauseActionInVaults(
+    vaults: string[],
     action: BigNumberish,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -771,6 +828,12 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    allowSwapper(
+      swapper: string,
+      allowed: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
+
     allowVaultFactory(
       factory: string,
       allowed: boolean,
@@ -778,6 +841,8 @@ export interface Chief extends BaseContract {
     ): Promise<void>;
 
     allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    allowedSwapper(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     allowedVaultFactory(
       arg0: string,
@@ -793,8 +858,6 @@ export interface Chief extends BaseContract {
 
     getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Promise<string>;
 
-    getVaults(overrides?: CallOverrides): Promise<string[]>;
-
     grantRole(
       role: BytesLike,
       account: string,
@@ -807,12 +870,18 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<boolean>;
 
-    pauseActionInAllVaults(
+    isVaultActive(arg0: string, overrides?: CallOverrides): Promise<boolean>;
+
+    pauseActionInVaults(
+      vaults: string[],
       action: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    pauseForceAllVaults(overrides?: CallOverrides): Promise<void>;
+    pauseForceVaults(
+      vaults: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     permissionlessDeployments(overrides?: CallOverrides): Promise<boolean>;
 
@@ -841,7 +910,11 @@ export interface Chief extends BaseContract {
 
     setTimelock(newTimelock: string, overrides?: CallOverrides): Promise<void>;
 
-    setVaults(vaults: string[], overrides?: CallOverrides): Promise<void>;
+    setVaultStatus(
+      vault: string,
+      active: boolean,
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -850,9 +923,13 @@ export interface Chief extends BaseContract {
 
     timelock(overrides?: CallOverrides): Promise<string>;
 
-    unpauseForceAllVaults(overrides?: CallOverrides): Promise<void>;
+    unpauseForceVaults(
+      vaults: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
 
-    upauseActionInAllVaults(
+    upauseActionInVaults(
+      vaults: string[],
       action: BigNumberish,
       overrides?: CallOverrides
     ): Promise<void>;
@@ -880,6 +957,15 @@ export interface Chief extends BaseContract {
       allowed?: null
     ): AllowPermissionlessDeploymentsEventFilter;
 
+    "AllowSwapper(address,bool)"(
+      swapper?: string | null,
+      allowed?: null
+    ): AllowSwapperEventFilter;
+    AllowSwapper(
+      swapper?: string | null,
+      allowed?: null
+    ): AllowSwapperEventFilter;
+
     "AllowVaultFactory(address,bool)"(
       factory?: string | null,
       allowed?: null
@@ -897,17 +983,6 @@ export interface Chief extends BaseContract {
       vault?: string | null,
       newRating?: null
     ): ChangeSafetyRatingEventFilter;
-
-    "DeployVault(address,address,bytes)"(
-      factory?: string | null,
-      vault?: string | null,
-      deployData?: null
-    ): DeployVaultEventFilter;
-    DeployVault(
-      factory?: string | null,
-      vault?: string | null,
-      deployData?: null
-    ): DeployVaultEventFilter;
 
     "RoleAdminChanged(bytes32,bytes32,bytes32)"(
       role?: BytesLike | null,
@@ -942,11 +1017,11 @@ export interface Chief extends BaseContract {
       sender?: string | null
     ): RoleRevokedEventFilter;
 
-    "SetVaults(address[],address[])"(
-      previousVaults?: null,
-      newVaults?: null
-    ): SetVaultsEventFilter;
-    SetVaults(previousVaults?: null, newVaults?: null): SetVaultsEventFilter;
+    "SetVaultStatus(address,bool)"(
+      vault?: null,
+      active?: null
+    ): SetVaultStatusEventFilter;
+    SetVaultStatus(vault?: null, active?: null): SetVaultStatusEventFilter;
 
     "UpdateTimelock(address)"(
       timelock?: string | null
@@ -979,6 +1054,12 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    allowSwapper(
+      swapper: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     allowVaultFactory(
       factory: string,
       allowed: boolean,
@@ -986,6 +1067,8 @@ export interface Chief extends BaseContract {
     ): Promise<BigNumber>;
 
     allowedFlasher(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    allowedSwapper(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     allowedVaultFactory(
       arg0: string,
@@ -1004,8 +1087,6 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getVaults(overrides?: CallOverrides): Promise<BigNumber>;
-
     grantRole(
       role: BytesLike,
       account: string,
@@ -1018,12 +1099,16 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    pauseActionInAllVaults(
+    isVaultActive(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
+
+    pauseActionInVaults(
+      vaults: string[],
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    pauseForceAllVaults(
+    pauseForceVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1057,8 +1142,9 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    setVaults(
-      vaults: string[],
+    setVaultStatus(
+      vault: string,
+      active: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -1069,11 +1155,13 @@ export interface Chief extends BaseContract {
 
     timelock(overrides?: CallOverrides): Promise<BigNumber>;
 
-    unpauseForceAllVaults(
+    unpauseForceVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    upauseActionInAllVaults(
+    upauseActionInVaults(
+      vaults: string[],
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -1111,6 +1199,12 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    allowSwapper(
+      swapper: string,
+      allowed: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     allowVaultFactory(
       factory: string,
       allowed: boolean,
@@ -1118,6 +1212,11 @@ export interface Chief extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     allowedFlasher(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    allowedSwapper(
       arg0: string,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
@@ -1139,8 +1238,6 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getVaults(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     grantRole(
       role: BytesLike,
       account: string,
@@ -1153,12 +1250,19 @@ export interface Chief extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    pauseActionInAllVaults(
+    isVaultActive(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
+    pauseActionInVaults(
+      vaults: string[],
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    pauseForceAllVaults(
+    pauseForceVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1194,8 +1298,9 @@ export interface Chief extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    setVaults(
-      vaults: string[],
+    setVaultStatus(
+      vault: string,
+      active: boolean,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
@@ -1206,11 +1311,13 @@ export interface Chief extends BaseContract {
 
     timelock(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    unpauseForceAllVaults(
+    unpauseForceVaults(
+      vaults: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    upauseActionInAllVaults(
+    upauseActionInVaults(
+      vaults: string[],
       action: BigNumberish,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -1247,17 +1354,19 @@ export interface ChiefMulticall {
 
   allowedFlasher(arg0: string, overrides?: CallOverrides): Call<boolean>;
 
+  allowedSwapper(arg0: string, overrides?: CallOverrides): Call<boolean>;
+
   allowedVaultFactory(arg0: string, overrides?: CallOverrides): Call<boolean>;
 
   getRoleAdmin(role: BytesLike, overrides?: CallOverrides): Call<string>;
-
-  getVaults(overrides?: CallOverrides): Call<string[]>;
 
   hasRole(
     role: BytesLike,
     account: string,
     overrides?: CallOverrides
   ): Call<boolean>;
+
+  isVaultActive(arg0: string, overrides?: CallOverrides): Call<boolean>;
 
   permissionlessDeployments(overrides?: CallOverrides): Call<boolean>;
 

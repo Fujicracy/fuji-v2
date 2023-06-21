@@ -99,6 +99,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     _asset = IERC20Metadata(asset_);
     _decimals = IERC20Metadata(asset_).decimals();
     minAmount = 1e6;
+
+    // @dev pause all actions that will be unpaused when initializing the vault
+    _pauseForceAllActions();
   }
 
   /**
@@ -116,7 +119,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * - Must unpause all actions at the end.
    * - Must emit a VaultInitialized event.
    */
-  function initializeVaultShares(uint256 assets, uint256 debt) public virtual;
+  function initializeVaultShares(uint256 assets, uint256 debt) external virtual;
 
   /*////////////////////////////////////////////////////
       Asset management: allowance {IERC20} overrides 
@@ -926,7 +929,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @param activeProvider_ address to be set
    */
   function _setActiveProvider(ILendingProvider activeProvider_) internal {
-    if (!_isValidProvider(address(activeProvider_))) {
+    // @dev skip validity check when setting it for the 1st time
+    if (!_isValidProvider(address(activeProvider_)) && address(activeProvider) != address(0)) {
       revert BaseVault__setter_invalidInput();
     }
     activeProvider = activeProvider_;
@@ -943,6 +947,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     for (uint256 i = 0; i < len;) {
       if (provider == address(_providers[i])) {
         check = true;
+        break;
       }
       unchecked {
         ++i;

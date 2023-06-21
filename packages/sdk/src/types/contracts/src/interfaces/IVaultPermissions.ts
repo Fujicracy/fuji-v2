@@ -37,8 +37,8 @@ export interface IVaultPermissionsInterface extends utils.Interface {
     "increaseBorrowAllowance(address,address,uint256)": FunctionFragment;
     "increaseWithdrawAllowance(address,address,uint256)": FunctionFragment;
     "nonces(address)": FunctionFragment;
-    "permitBorrow(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
-    "permitWithdraw(address,address,uint256,uint256,uint8,bytes32,bytes32)": FunctionFragment;
+    "permitBorrow(address,address,uint256,uint256,bytes32,uint8,bytes32,bytes32)": FunctionFragment;
+    "permitWithdraw(address,address,uint256,uint256,bytes32,uint8,bytes32,bytes32)": FunctionFragment;
     "withdrawAllowance(address,address,address)": FunctionFragment;
   };
 
@@ -88,6 +88,7 @@ export interface IVaultPermissionsInterface extends utils.Interface {
       string,
       BigNumberish,
       BigNumberish,
+      BytesLike,
       BigNumberish,
       BytesLike,
       BytesLike
@@ -100,6 +101,7 @@ export interface IVaultPermissionsInterface extends utils.Interface {
       string,
       BigNumberish,
       BigNumberish,
+      BytesLike,
       BigNumberish,
       BytesLike,
       BytesLike
@@ -257,6 +259,7 @@ export interface IVaultPermissions extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -268,6 +271,7 @@ export interface IVaultPermissions extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -328,6 +332,7 @@ export interface IVaultPermissions extends BaseContract {
     receiver: string,
     amount: BigNumberish,
     deadline: BigNumberish,
+    actionArgsHash: BytesLike,
     v: BigNumberish,
     r: BytesLike,
     s: BytesLike,
@@ -339,6 +344,7 @@ export interface IVaultPermissions extends BaseContract {
     receiver: string,
     amount: BigNumberish,
     deadline: BigNumberish,
+    actionArgsHash: BytesLike,
     v: BigNumberish,
     r: BytesLike,
     s: BytesLike,
@@ -397,6 +403,7 @@ export interface IVaultPermissions extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -408,6 +415,7 @@ export interface IVaultPermissions extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -497,6 +505,7 @@ export interface IVaultPermissions extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -508,6 +517,7 @@ export interface IVaultPermissions extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -572,6 +582,7 @@ export interface IVaultPermissions extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,
@@ -583,6 +594,7 @@ export interface IVaultPermissions extends BaseContract {
       receiver: string,
       amount: BigNumberish,
       deadline: BigNumberish,
+      actionArgsHash: BytesLike,
       v: BigNumberish,
       r: BytesLike,
       s: BytesLike,

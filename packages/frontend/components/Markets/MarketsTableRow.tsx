@@ -16,10 +16,12 @@ import {
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { MarketRow, MarketRowStatus } from '../../helpers/markets';
+import { AssetType } from '../../helpers/assets';
+import { aprData, MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
+import AprValue from '../Shared/AprValue';
 import BestLabel from '../Shared/BestLabel';
-import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
+import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
@@ -37,6 +39,8 @@ function MarketsTableRow({
 }: MarketsTableRowProps) {
   const { palette } = useTheme();
   const [expandRow, setExpandRow] = useState(openedByDefault);
+
+  const borrowApr = aprData(row.borrowAprBase.value, row.borrowAprReward.value);
 
   const handleExpand = (evt: MouseEvent) => {
     evt.stopPropagation();
@@ -154,30 +158,15 @@ function MarketsTableRow({
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell
-          align="right"
-          width="140px"
-          sx={{ color: palette.warning.main }}
-        >
+        <SizableTableCell align="right" width="140px">
           {loaderOrError(row.borrowApr.status)}
           {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
-            <Stack direction="row" alignItems="center" justifyContent="right">
-              {row.borrowAprReward?.value > 0 && (
-                <Tooltip
-                  title={`${row.borrowAprBase.value.toFixed(
-                    2
-                  )}% (base) - ${row.borrowAprReward.value.toFixed(
-                    2
-                  )}% (reward)`}
-                  arrow
-                >
-                  <IconButton>
-                    <DropletIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {row.borrowApr.value.toFixed(2)} %
-            </Stack>
+            <AprValue
+              base={borrowApr.base || 0}
+              reward={borrowApr.reward}
+              positive={borrowApr.positive}
+              providerName={row.integratedProviders.value[0]}
+            />
           )}
         </SizableTableCell>
         <SizableTableCell
@@ -187,23 +176,13 @@ function MarketsTableRow({
         >
           {loaderOrError(row.depositApr.status)}
           {row.depositApr.status === MarketRowStatus.Ready && !expandRow && (
-            <Stack direction="row" alignItems="center" justifyContent="right">
-              {row.depositAprReward?.value > 0 && (
-                <Tooltip
-                  title={`${row.depositAprBase.value.toFixed(
-                    2
-                  )}% (base) + ${row.depositAprReward.value.toFixed(
-                    2
-                  )}% (reward)`}
-                  arrow
-                >
-                  <IconButton>
-                    <DropletIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {row.depositApr.value.toFixed(2)} %
-            </Stack>
+            <AprValue
+              base={row.depositAprBase.value}
+              reward={row.depositAprReward.value}
+              providerName={row.integratedProviders.value[0]}
+              type={AssetType.Debt}
+              positive
+            />
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
@@ -261,8 +240,6 @@ function MarketsTableRow({
   );
 }
 
-export default MarketsTableRow;
-
 type ToggleProps = {
   expandRow: boolean;
   isVisible: boolean;
@@ -285,3 +262,5 @@ function Toggle(props: ToggleProps) {
     </IconButton>
   );
 }
+
+export default MarketsTableRow;

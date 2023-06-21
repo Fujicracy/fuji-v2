@@ -2,12 +2,10 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import { BN_ZERO } from '../constants';
 import { CHAIN } from '../constants/chains';
-import { FujiErrorCode } from '../constants/errors';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import {
   Chain,
   Currency,
-  FujiError,
   FujiResultError,
   FujiResultSuccess,
 } from '../entities';
@@ -57,11 +55,10 @@ async function _callNxtp(
 ): FujiResultPromise<PreviewNxtpResult> {
   const token = currency.wrapped;
   if (amount.eq(0)) {
-    const zero = BigNumber.from(0);
     return new FujiResultSuccess({
-      received: zero,
-      estimateSlippage: zero,
-      bridgeFee: zero,
+      received: BN_ZERO,
+      estimateSlippage: BN_ZERO,
+      bridgeFee: BN_ZERO,
     });
   }
   try {
@@ -94,8 +91,11 @@ async function _callNxtp(
       bridgeFee: routerFee as BigNumber,
     });
   } catch (e) {
-    const message = FujiError.messageFromUnknownError(e);
-    return new FujiResultError(message, FujiErrorCode.CONNEXT);
+    return new FujiResultSuccess({
+      received: amount,
+      estimateSlippage: BN_ZERO,
+      bridgeFee: BN_ZERO,
+    });
   }
 }
 

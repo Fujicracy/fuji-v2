@@ -14,4 +14,5 @@ export * as swappers from "./swappers";
 export * as vaults from "./vaults";
 export { Chief__factory } from "./Chief__factory";
 export { FujiOracle__factory } from "./FujiOracle__factory";
+export { LiquidationManager__factory } from "./LiquidationManager__factory";
 export { RebalancerManager__factory } from "./RebalancerManager__factory";

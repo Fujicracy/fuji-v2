@@ -1,0 +1,104 @@
+{
+  "WBTC": "0x68f180fcCe6836688e9084f035309E29Bf0A2095",
+  "WETH": "0x4200000000000000000000000000000000000006",
+  "USDC": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
+  "DAI": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
+  "USDT": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+  "WSTETH": "0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb",
+  "ConnextCore": "0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA",
+  "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  "FujiRelayer": "0x5c118479d6d1740f4c1026e920a3a1188a412ee4",
+  "price-feeds": [
+    {
+      "asset": "WBTC",
+      "chainlink": "0xD702DD976Fb76Fffc2D3963D037dfDae5b04E593"
+    },
+    {
+      "asset": "WETH",
+      "chainlink": "0x13e3Ee699D1909E989722E753853AE30b17e08c5"
+    },
+    {
+      "asset": "USDC",
+      "chainlink": "0x16a9FA2FDa030272Ce99B29CF780dFA30361E0f3"
+    },
+    {
+      "asset": "DAI",
+      "chainlink": "0x8dBa75e83DA73cc766A7e5a0ee71F656BAb470d6"
+    },
+    {
+      "asset": "USDT",
+      "chainlink": "0xECef79E109e997bCA29c1c0897ec9d7b03647F5E"
+    },
+    {
+      "asset": "WSTETH",
+      "chainlink": "0x698B585CbC4407e2D54aa898B2600B53C68958f7"
+    }
+  ],
+  "simple-mappings": [
+    {
+      "asset": "WBTC",
+      "market": "0x24d30216c07Df791750081c8D77C83cc8b06eB27",
+      "name": "DForce_Optimism"
+    },
+    {
+      "asset": "WETH",
+      "market": "0xA7A084538DE04d808f20C785762934Dd5dA7b3B4",
+      "name": "DForce_Optimism"
+    },
+    {
+      "asset": "USDC",
+      "market": "0xB344795f0e7cf65a55cB0DDe1E866D46041A2cc2",
+      "name": "DForce_Optimism"
+    },
+    {
+      "asset": "DAI",
+      "market": "0x5bedE655e2386AbC49E2Cc8303Da6036bF78564c",
+      "name": "DForce_Optimism"
+    },
+    {
+      "asset": "WSTETH",
+      "market": "0x4B3488123649E8A671097071A02DA8537fE09A16",
+      "name": "DForce_Optimism"
+    }
+  ],
+  "nested-mappings": [],
+  "borrowing-vaults": [
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHUSDC-1",
+      "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHUSDC-2",
+      "providers": ["Aave_V3_Optimism"],
+      "rating": 95
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-1",
+      "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-2",
+      "providers": ["Aave_V3_Optimism"],
+      "rating": 95
+    }
+  ]
+}
+

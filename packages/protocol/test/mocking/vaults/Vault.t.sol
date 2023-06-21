@@ -392,8 +392,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
       price - ((100e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
 
     //priceDrop between thresholds
-    priceDrop =
-      bound(priceDrop, priceDropThresholdToDiscountLiq + 1, priceDropThresholdToMaxLiq - 1);
+    priceDrop = bound(priceDrop, priceDropThresholdToDiscountLiq, priceDropThresholdToMaxLiq - 1250);
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 

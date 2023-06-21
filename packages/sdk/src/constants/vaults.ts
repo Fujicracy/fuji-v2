@@ -14,22 +14,27 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.MATIC]: [
     new BorrowingVault(
-      Address.from('0x2D932f0adEC52d3213DA5e129dafdD428068DD73'),
+      Address.from('0xC9341E23F5C4d0E5248e6eBa558Dbc656Eee9CcC'),
       WETH9[ChainId.MATIC],
       USDC[ChainId.MATIC]
     ),
     new BorrowingVault(
-      Address.from('0x7325eF2C05d2CFbC300387707EF3c17284f01aBa'),
+      Address.from('0x0099B99103069abEe2a05b6fa8B0F92FAd420EBF'),
       WETH9[ChainId.MATIC],
       USDC[ChainId.MATIC]
     ),
     new BorrowingVault(
-      Address.from('0x9fafDa0f9400856b89f6777629C0c765331B1877'),
+      Address.from('0x4588dfB3211Ec0fbC50c066d8a15E4BbAB82a4C3'),
       WETH9[ChainId.MATIC],
       DAI[ChainId.MATIC]
     ),
     new BorrowingVault(
-      Address.from('0x23B7C49610f4DC7E7a764Cf619ce2bC8eA72c856'),
+      Address.from('0x7fbC3d5b8AA825b12A0D90B6D8E13e6f2167510C'),
+      WETH9[ChainId.MATIC],
+      DAI[ChainId.MATIC]
+    ),
+    new BorrowingVault(
+      Address.from('0xFCE906d3BAaD990262119bF9597B04A47325395b'),
       MATICX,
       USDC[ChainId.MATIC]
     ),
@@ -54,24 +59,49 @@ export const VAULT_LIST: ChainVaultList = {
   [ChainId.FANTOM]: [],
   [ChainId.ARBITRUM]: [
     new BorrowingVault(
-      Address.from('0xCc790B043A60a0F1cfB2b638C74ea0E4a28FD745'),
+      Address.from('0x9201E10E4C269D6528d2d153f2145348A399f540'),
       WETH9[ChainId.ARBITRUM],
       USDC[ChainId.ARBITRUM]
     ),
     new BorrowingVault(
-      Address.from('0x7948F86eded76369385A9cb085DA74d3e01e63c7'),
+      Address.from('0x4181d63c414327682B1cb1d6265CA47d82C46e93'),
       WETH9[ChainId.ARBITRUM],
       USDC[ChainId.ARBITRUM]
     ),
+    new BorrowingVault(
+      Address.from('0xA68DD672f0D52277a740a5f6864Bd3A0a30462f8'),
+      WETH9[ChainId.ARBITRUM],
+      DAI[ChainId.ARBITRUM]
+    ),
+    new BorrowingVault(
+      Address.from('0xB9E7aCCb61031CA364C3232E986D9152b61006c2'),
+      WETH9[ChainId.ARBITRUM],
+      DAI[ChainId.ARBITRUM]
+    ),
+    //new BorrowingVault(
+    //Address.from('0xe2A42570C5b0d764f615368A50bE40EfB5D91D9A'),
+    //WETH9[ChainId.ARBITRUM],
+    //USDT[ChainId.ARBITRUM]
+    //),
   ],
   [ChainId.OPTIMISM]: [
     new BorrowingVault(
-      Address.from('0xDa917380247b48382674Bd159d75D75314Cb21fB'),
+      Address.from('0x92964c1EeE607358CCCe7e8F53E7624eB8356f15'),
       WETH9[ChainId.OPTIMISM],
       USDC[ChainId.OPTIMISM]
     ),
     new BorrowingVault(
-      Address.from('0xC8054218c5fbA84E18C6F26f51Ec691Ee9725e49'),
+      Address.from('0xe83A6D0aaA8765C30740C8D374604e4660735373'),
+      WETH9[ChainId.OPTIMISM],
+      USDC[ChainId.OPTIMISM]
+    ),
+    new BorrowingVault(
+      Address.from('0x0A9eFBC206401083D77508aCDDF2c407b7Aa7a61'),
+      WETH9[ChainId.OPTIMISM],
+      DAI[ChainId.OPTIMISM]
+    ),
+    new BorrowingVault(
+      Address.from('0x848fD325D928d8Eb7925A0e5F7fc05DE840D8d67'),
       WETH9[ChainId.OPTIMISM],
       DAI[ChainId.OPTIMISM]
     ),
@@ -95,7 +125,7 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.GNOSIS]: [
     new BorrowingVault(
-      Address.from('0x4AeF47117628EbC3ae78A9EdBE558794f1500de6'),
+      Address.from('0x1f9137C0007341A78b83097027CE99cF540BD0E0'),
       WETH9[ChainId.GNOSIS],
       USDC[ChainId.GNOSIS]
     ),

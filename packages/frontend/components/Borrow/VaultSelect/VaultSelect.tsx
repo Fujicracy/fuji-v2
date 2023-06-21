@@ -16,7 +16,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
 import Vault from './Vault';
@@ -29,12 +29,16 @@ function VaultSelect() {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(0);
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
+  const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
 
   const collateral = useBorrow((state) => state.collateral);
   const debt = useBorrow((state) => state.debt);
+  const activeVault = useBorrow((state) => state.activeVault);
   const availableRoutes = useBorrow((state) => state.availableRoutes);
   const availableVaults = useBorrow((state) => state.availableVaults);
+  const override = useBorrow((state) => state.borrowingNavigation.shouldReset);
   const changeActiveVault = useBorrow((state) => state.changeActiveVault);
+
   const aggregatedData = availableVaults.map((vault, i) => ({
     ...vault,
     route: availableRoutes[i],
@@ -45,18 +49,21 @@ function VaultSelect() {
     setOpenedRoute(i === openedRoute ? null : i);
   }
 
-  function didSelectRoute(i: number) {
-    if (selectedRoute !== i) {
-      const vault = availableVaults.find(
-        (v) => v.vault.address.value === availableRoutes[i]?.address
-      );
-      if (!vault) return;
-      changeActiveVault(vault);
-    }
-    setSelectedRoute(i);
-    setOpenedRoute(null);
-    setUnFolded(false);
-  }
+  const didSelectRoute = useCallback(
+    (i: number) => {
+      if (selectedRoute !== i) {
+        const vault = availableVaults.find(
+          (v) => v.vault.address.value === availableRoutes[i]?.address
+        );
+        if (!vault) return;
+        changeActiveVault(vault);
+      }
+      setSelectedRoute(i);
+      setOpenedRoute(null);
+      setUnFolded(false);
+    },
+    [availableVaults, availableRoutes, changeActiveVault, selectedRoute]
+  );
 
   const filteredRoutes = useMemo(() => {
     if (!aggregatedData.length) return [];
@@ -71,6 +78,11 @@ function VaultSelect() {
       ...aggregatedData.filter((data) => data.index !== selected?.index),
     ];
   }, [aggregatedData, isUnFolded, selectedRoute]);
+
+  const onOpen = ({ height, index }: { height: number; index: number }) => {
+    handleOpen(index);
+    setOpenedHeight(height);
+  };
 
   const handleToggleFolded = () => {
     if (!isUnFolded) {
@@ -87,6 +99,24 @@ function VaultSelect() {
     setSelectedRoute(0);
     setOpenedRoute(null);
   }, [collateral.chainId, debt?.chainId]);
+
+  useEffect(() => {
+    if (availableVaults.length === 0) return;
+    setIsLoading(true);
+    let selected = 0;
+    if (!override) {
+      for (let i = 0; i < availableVaults.length; i++) {
+        if (
+          activeVault?.address.value === availableVaults[i]?.vault.address.value
+        ) {
+          selected = i;
+        }
+      }
+    }
+
+    didSelectRoute(selected);
+    setIsLoading(false);
+  }, [override, activeVault, availableVaults, didSelectRoute]);
 
   useEffect(() => {
     setIsLoading(false);
@@ -136,7 +166,15 @@ function VaultSelect() {
           ) : (
             <Collapse
               in={isUnFolded}
-              collapsedSize={filteredRoutes.length > 1 ? '150px' : '108px'}
+              collapsedSize={
+                filteredRoutes.length > 1
+                  ? openedRoute !== null
+                    ? `${150 + openedRouteHeight}px`
+                    : '150px'
+                  : openedRoute !== null
+                  ? `${108 + openedRouteHeight}px`
+                  : '108px'
+              }
               timeout={{ enter: 500, exit: 500 }}
             >
               <TableContainer
@@ -230,7 +268,7 @@ function VaultSelect() {
                               data={item}
                               onChange={() => didSelectRoute(item.index)}
                               opened={item.index === openedRoute}
-                              setOpened={() => handleOpen(item.index)}
+                              setOpened={onOpen}
                               isMobile={isMobile}
                             />
                           )

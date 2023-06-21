@@ -1,6 +1,6 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
-import { JsonRpcProvider, WebSocketProvider } from '@ethersproject/providers';
+import { JsonRpcProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
@@ -17,6 +17,7 @@ import {
 } from '../constants';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import { ChainId, RouterAction } from '../enums';
+import { encodeActionArgs, findPermitAction } from '../functions';
 import {
   AprResult,
   ChainConfig,
@@ -24,6 +25,8 @@ import {
   FujiResultPromise,
   LendingProviderWithFinancials,
   PermitParams,
+  RouterActionParams,
+  XTransferWithCallParams,
 } from '../types';
 import {
   BorrowingVault as BorrowingVaultContract,
@@ -158,11 +161,6 @@ export class BorrowingVault {
   rpcProvider?: JsonRpcProvider;
 
   /**
-   * The RPC provider for the specific chain
-   */
-  wssProvider?: WebSocketProvider;
-
-  /**
    * The multicall RPC provider for the specific chain
    */
   multicallRpcProvider?: IMulticallProvider;
@@ -190,7 +188,6 @@ export class BorrowingVault {
       .connection as ChainConnectionDetails;
 
     this.rpcProvider = connection.rpcProvider;
-    this.wssProvider = connection.wssProvider;
     this.multicallRpcProvider = connection.multicallRpcProvider;
 
     this.contract = BorrowingVault__factory.connect(
@@ -440,30 +437,63 @@ export class BorrowingVault {
    * the address of the router from "this.getTxDetails" which on its turn is
    * to be used in ethers.sendTransaction.
    *
-   * @param params - the permit action that needs to be signed
+   * @param actionParams - all actions that will be signed
    */
-  async signPermitFor(params: PermitParams): Promise<{
+  async signPermitFor(actionParams: RouterActionParams[]): FujiResultPromise<{
     digest: string;
     domain: TypedDataDomain;
     types: Record<string, TypedDataField[]>;
     value: Record<string, string>;
   }> {
     invariant(this.contract, 'Connection not set!');
-    const { owner } = params;
+    const permitParams = findPermitAction(actionParams);
+    if (!permitParams) return new FujiResultError('No permit action to sign!');
+
+    const { owner } = permitParams;
 
     if (this.name === '') {
       await this.preLoad();
     }
 
     const nonce: BigNumber = await this.contract.nonces(owner.value);
+    const xcall = actionParams.find(
+      (p) => p.action === RouterAction.X_TRANSFER_WITH_CALL
+    );
+    const params = xcall
+      ? (xcall as XTransferWithCallParams).innerActions
+      : actionParams;
 
-    const { domain, types, value } = this._getPermitDigest(params, nonce);
+    const actions = params.map(({ action }) => BigNumber.from(action));
+    const result = params.map((p) => encodeActionArgs(p, true));
+
+    const error = result.find((r): r is FujiResultError => !r.success);
+    if (error)
+      return new FujiResultError(error.error.message, error.error.code);
+
+    const args: string[] = (result as FujiResultSuccess<string>[]).map(
+      (r) => r.data
+    );
+
+    const actionArgsHash = keccak256(
+      ['bytes'],
+      [defaultAbiCoder.encode(['uint8[]', 'bytes[]'], [actions, args])]
+    );
+
+    const { domain, types, value } = this._getPermitDigest(
+      permitParams,
+      nonce,
+      actionArgsHash
+    );
     const digest = utils._TypedDataEncoder.hash(domain, types, value);
 
-    return { digest, domain, types, value };
+    return new FujiResultSuccess({ digest, domain, types, value });
   }
 
-  private _getPermitDigest(params: PermitParams, nonce: BigNumber) {
+  private _getPermitDigest(
+    params: PermitParams,
+    nonce: BigNumber,
+    actionArgsHash: string
+  ) {
     const { action, owner, receiver, amount, deadline } = params;
 
     const salt = keccak256(
@@ -488,6 +518,7 @@ export class BorrowingVault {
         { name: 'amount', type: 'uint256' },
         { name: 'nonce', type: 'uint256' },
         { name: 'deadline', type: 'uint256' },
+        { name: 'actionArgsHash', type: 'bytes32' },
       ],
     };
 
@@ -499,6 +530,7 @@ export class BorrowingVault {
       amount: amount.toString(),
       nonce: nonce.toString(),
       deadline: deadline?.toString() ?? '',
+      actionArgsHash,
     };
 
     return { domain, types, value };

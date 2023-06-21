@@ -102,7 +102,7 @@ export function DisclaimerModal() {
               >
                 I have read, irrevocably accept the{' '}
                 <Link
-                  href="https://docs.fujidao.org/legals/terms-of-use"
+                  href="https://docs.fuji.finance/links/terms-of-use"
                   target="blank"
                   underline="always"
                   variant="inherit"

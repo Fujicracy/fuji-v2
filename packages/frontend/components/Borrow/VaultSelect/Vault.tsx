@@ -10,11 +10,15 @@ import {
 import { alpha } from '@mui/material/styles';
 import { VaultWithFinancials } from '@x-fuji/sdk';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { createRef, useEffect, useRef, useState } from 'react';
 
+import { AssetType } from '../../../helpers/assets';
 import { chainName } from '../../../helpers/chains';
+import { AprData, aprData, vaultFromEntity } from '../../../helpers/markets';
 import { RouteMeta } from '../../../helpers/routing';
 import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
+import { useMarkets } from '../../../store/markets.store';
+import AprValue from '../../Shared/AprValue';
 import BestLabel from '../../Shared/BestLabel';
 import { NetworkIcon } from '../../Shared/Icons';
 import RoutesSteps from '../../Shared/RoutesSteps';
@@ -23,9 +27,9 @@ import SafetyRating from '../../Shared/Table/SafetyRating';
 
 type VaultProps = {
   selected: boolean;
-  data: VaultWithFinancials & { route: RouteMeta };
+  data: VaultWithFinancials & { route: RouteMeta } & { index: number };
   onChange: () => void;
-  setOpened: () => void;
+  setOpened: (props: { height: number; index: number }) => void;
   opened: boolean;
   isMobile: boolean;
 };
@@ -40,7 +44,44 @@ function Vault({
 }: VaultProps) {
   const { palette } = useTheme();
 
+  const [height, setHeight] = useState(0);
   const [isHovered, setHovered] = useState(false);
+
+  const markets = useMarkets((state) => state.rows);
+  const stackRef = createRef<HTMLDivElement>();
+  const aprRef = useRef<Partial<AprData>>(
+    aprData(
+      data.activeProvider.borrowAprBase || 0,
+      data.activeProvider.borrowAprReward,
+      AssetType.Collateral
+    )
+  );
+
+  useEffect(() => {
+    const match = markets.find((m) => {
+      const vault = vaultFromEntity(m.entity);
+      return (
+        vault?.address.value === data.vault.address.value &&
+        vault?.chainId === data.vault.chainId
+      );
+    });
+    if (match) {
+      aprRef.current = aprData(
+        match.borrowAprBase.value,
+        match.borrowAprReward.value
+      );
+    }
+  }, [markets, data, aprRef]);
+
+  const handleOpen = (e: { stopPropagation: () => void }) => {
+    if (!stackRef.current) return;
+    e.stopPropagation();
+    setHeight(stackRef.current.clientHeight);
+    setOpened({
+      index: data.index,
+      height: height || stackRef.current.clientHeight,
+    });
+  };
 
   const borderStyle = `1px solid ${
     selected ? alpha(palette.secondary.light, 0.5) : 'transparent'
@@ -127,9 +168,12 @@ function Vault({
           </>
         )}
         <TableCell align="right">
-          <Typography variant="small" color={palette.warning.main}>
-            {data.activeProvider.borrowAprBase?.toFixed(2)}%
-          </Typography>
+          <AprValue
+            base={aprRef.current.base ?? 0}
+            reward={aprRef.current.reward}
+            positive={aprRef.current.positive}
+            providerName={data.activeProvider.name}
+          />
         </TableCell>
         {!isMobile && (
           <TableCell>
@@ -138,10 +182,7 @@ function Vault({
               fullWidth
               variant="secondary"
               sx={{ p: '0 0.5rem' }}
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpened();
-              }}
+              onClick={handleOpen}
             >
               <Typography variant="small">
                 {opened ? 'Close' : 'See Route'}
@@ -188,6 +229,7 @@ function Vault({
         >
           <Collapse in={opened}>
             <Stack
+              ref={stackRef}
               gap={1}
               sx={{
                 pb: '0.75rem',
