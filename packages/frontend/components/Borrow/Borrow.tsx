@@ -210,7 +210,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   return (
     <>
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
-        <CardContent sx={{ width: '100%', p: '1.5rem 2rem' }}>
+        <CardContent sx={{ width: '100%', p: '1.5rem' }}>
           <BorrowHeader
             chainName={chainName(vault?.chainId)}
             isEditing={isEditing}
