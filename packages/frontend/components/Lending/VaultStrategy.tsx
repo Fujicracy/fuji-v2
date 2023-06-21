@@ -28,6 +28,7 @@ function VaultStrategy() {
           flexDirection: 'column',
           p: '0',
           mt: '1rem',
+          overflow: 'hidden',
         }}
       >
         <Stack
@@ -37,7 +38,9 @@ function VaultStrategy() {
           width="100%"
           p="1.5rem 1rem 1rem 1rem"
           sx={{
+            position: 'relative',
             background: 'linear-gradient(90deg, #1B1B1B 0%, #000000 100%)',
+            overflow: 'hidden',
           }}
         >
           <Typography variant="xsmall">Current Active Provider:</Typography>
@@ -70,7 +73,7 @@ function VaultStrategy() {
                   }`,
                   filter: provider.active
                     ? 'drop-shadow(0px 0px 12px #F0014F)'
-                    : 'none',
+                    : 'brightness(50%)',
                   '&:not(:first-of-type)': {
                     ml: '1.5rem',
                   },
@@ -92,6 +95,23 @@ function VaultStrategy() {
             alt="Vault strategy Image"
             height={128}
             width={88}
+            style={{
+              zIndex: 2,
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: '-50%',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '480px',
+              height: '174px',
+              background: 'linear-gradient(92.29deg, #FE3477 0%, #F0014F 100%)',
+              opacity: 0.3,
+              filter: 'blur(66px)',
+              zIndex: 1,
+            }}
           />
         </Stack>
         <Stack p="1.5rem">
