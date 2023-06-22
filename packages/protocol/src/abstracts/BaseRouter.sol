@@ -555,7 +555,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param amount amount to be approved
    */
   function _safeApprove(address token, address to, uint256 amount) internal {
-    SafeERC20.safeApprove(ERC20(token), to, amount);
+    SafeERC20.safeIncreaseAllowance(ERC20(token), to, amount);
   }
 
   /**
