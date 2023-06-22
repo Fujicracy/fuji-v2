@@ -217,12 +217,14 @@ contract ConnextHandler {
     }
 
     IERC20(txn.asset).approve(address(connextRouter), txn.amount);
+    txn.executed = true;
+    _failedTxns[transferId][nonce] = txn;
 
     try connextRouter.xBundle(actions, args) {
-      txn.executed = true;
-      _failedTxns[transferId][nonce] = txn;
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, true);
     } catch {
+      txn.executed = false;
+      _failedTxns[transferId][nonce] = txn;
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, false);
     }
   }
