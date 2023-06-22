@@ -9,7 +9,6 @@ import {
   useTheme,
 } from '@mui/material';
 import { Address } from '@x-fuji/sdk';
-import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
@@ -26,20 +25,20 @@ import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import BorrowBox from '../Borrow/Box/Box';
-import ConnextFooter from '../Borrow/ConnextFooter';
 import Fees from '../Borrow/Fees';
+import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 
 type BorrowProps = {
   isEditing: boolean;
-  basePosition: BasePosition;
+  basePosition?: BasePosition;
 };
 function LendingForm({ isEditing, basePosition }: BorrowProps) {
-  const router = useRouter();
   const theme = useTheme();
   const onMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  // TODO: replace data from borrow and get it from useLend
   const address = useAuth((state) => state.address);
   const walletChain = useAuth((state) => state.chainId);
   const changeChain = useAuth((state) => state.changeChain);
@@ -65,16 +64,6 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const updateAllowance = useBorrow((state) => state.updateAllowance);
   const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
-
-  const { position, editedPosition } = basePosition;
-
-  const dynamicLtvMeta = {
-    ltv: editedPosition ? editedPosition.ltv : position.ltv,
-    ltvMax: position.ltvMax,
-    ltvThreshold: editedPosition
-      ? editedPosition.ltvThreshold
-      : position.ltvThreshold,
-  };
 
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
@@ -178,31 +167,11 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
         } lending position on ${chainName(
           vault?.chainId
         )}. You may proceed to manage it. `}
-        {availableRoutes.length > 1 && (
-          <>
-            {
-              "If you're trying to open a similar position on another chain, please "
-            }
-            <Typography
-              variant="xsmall"
-              lineHeight="160%"
-              textAlign="left"
-              onClick={() => {
-                !onMobile && address && setShowRoutingModal(true);
-              }}
-              style={
-                !onMobile
-                  ? { textDecoration: 'underline', cursor: 'pointer' }
-                  : {}
-              }
-            >
-              select a different route.
-            </Typography>
-          </>
-        )}
+        {availableRoutes.length > 1 &&
+          "If you're trying to open a similar position on another chain, please select a different route."}
       </>
     );
-  }, [availableRoutes, onMobile, address, vault]);
+  }, [availableRoutes, vault]);
 
   const shouldWarningBeDisplayed =
     !isEditing &&
@@ -213,18 +182,18 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   return (
     <>
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
-        <CardContent sx={{ width: '100%', p: '0 2rem 1.5rem 2rem' }}>
-          {/* {true && (
-            <TabSwitch
-              size="large"
-              actions={[
-                { value: ActionType.ADD, label: 'Deposit' },
-                { value: ActionType.REMOVE, label: 'Withdraw' },
-              ]}
-              selected={actionType}
-              onChange={(type) => setActionType(type)}
-            />
-          )} */}
+        <CardContent
+          sx={{ width: '100%', p: '0 2rem 1.5rem 2rem', mb: '2rem' }}
+        >
+          <TabSwitch
+            size="large"
+            options={[
+              { value: ActionType.ADD, label: 'Deposit' },
+              { value: ActionType.REMOVE, label: 'Withdraw' },
+            ]}
+            selected={actionType}
+            onChange={(type) => setActionType(type)}
+          />
           {[collateral].map((assetChange, index) => {
             const collateralIndex = actionType === ActionType.ADD ? 0 : 1;
             const type = index === collateralIndex ? 'collateral' : 'debt';
@@ -242,7 +211,6 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
                 chainId={assetChange.chainId}
                 isExecuting={isExecuting}
                 value={assetChange.input}
-                ltvMeta={dynamicLtvMeta}
                 basePosition={basePosition}
               />
             );
@@ -288,44 +256,9 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
             </Box>
           )}
 
-          {/* <BorrowButton
-            address={address}
-            collateral={collateral}
-            debt={collateral}
-            position={position}
-            walletChain={walletChain}
-            ltvMeta={dynamicLtvMeta}
-            metaStatus={metaStatus}
-            needsSignature={needsSignature}
-            isSigning={isSigning}
-            isExecuting={isExecuting}
-            availableVaultStatus={availableVaultStatus}
-            transactionMeta={transactionMeta}
-            mode={mode}
-            isEditing={isEditing}
-            hasBalanceInVault={hasBalanceInVault}
-            onLoginClick={() => login()}
-            onChainChangeClick={(chainId) => changeChain(chainId)}
-            onApproveClick={(type) => allow(type)}
-            onRedirectClick={(borrow) => {
-              if (borrow) {
-                showBorrow(router);
-              } else {
-                showPosition(router, walletChain, vault, false);
-              }
-            }}
-            onClick={signAndExecute}
-            withConfirmation={proceedWithConfirmation}
-          /> */}
-
-          <ConnextFooter />
+          {/*TODO: it is better to implement new Lending since it needs too much on an effort and leads to corner because of complexity*/}
         </CardContent>
       </Card>
-      {/* <RoutingModal
-        isEditing={isEditing}
-        open={showRoutingModal}
-        handleClose={() => setShowRoutingModal(false)}
-      /> */}
       {/* <ConfirmTransactionModal
         open={isConfirmationModalShown}
         onClose={() => setIsConfirmationModalShown(false)}

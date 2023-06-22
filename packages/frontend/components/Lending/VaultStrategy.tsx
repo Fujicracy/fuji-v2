@@ -3,18 +3,18 @@ import { useTheme } from '@mui/material/styles';
 import Image from 'next/image';
 import React, { useMemo } from 'react';
 
-// import { rearrangeProvidersWithActiveInCenter } from '../../helpers/borrow';
+import { rearrangeProvidersWithActiveInCenter } from '../../helpers/lending';
 import { useBorrow } from '../../store/borrow.store';
+import { ProviderIcon } from '../Shared/Icons';
+import { TooltipWrapper } from '../Shared/Tooltips';
 
 function VaultStrategy() {
   const { palette } = useTheme();
-  const vault = useBorrow((state) => state.activeVault);
   const allProviders = useBorrow((state) => state.allProviders);
 
   const rearrangedProviders = useMemo(() => {
-    // const array = allProviders[vault?.address?.value || 0] || [];
-    return []; //rearrangeProvidersWithActiveInCenter(array);
-  }, []);
+    return rearrangeProvidersWithActiveInCenter(allProviders);
+  }, [allProviders]);
 
   return (
     <>
@@ -56,7 +56,7 @@ function VaultStrategy() {
               mt: '0.5rem',
             }}
           >
-            {/* {rearrangedProviders.map((provider) => (
+            {rearrangedProviders.map((provider) => (
               <Box
                 key={provider.name}
                 sx={{
@@ -76,18 +76,24 @@ function VaultStrategy() {
                   '&:not(:first-of-type)': {
                     ml: '1.5rem',
                   },
+                  '& div': {
+                    width: 31.75,
+                    height: 31.75,
+                  },
                   '& img': {
-                    m: '0.2px 0 0 -0.4px',
+                    mt: '-0.15px',
                   },
                 }}
               >
-                <ProviderIcon
-                  provider={provider?.name}
-                  width={31}
-                  height={31}
-                />
+                <TooltipWrapper title={provider?.name} placement={'top'}>
+                  <ProviderIcon
+                    provider={provider?.name}
+                    width={31.75}
+                    height={31.75}
+                  />
+                </TooltipWrapper>
               </Box>
-            ))} */}
+            ))}
           </Stack>
           <Image
             src={'/assets/images/shared/vaultsSummary.svg'}

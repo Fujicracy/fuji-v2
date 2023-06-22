@@ -2,7 +2,6 @@ import { Card, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
-import { useBorrow } from '../../store/borrow.store';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
@@ -11,7 +10,6 @@ import VaultStrategy from './VaultStrategy';
 
 function LendingDetails() {
   const { palette } = useTheme();
-  const collateral = useBorrow((state) => state.collateral);
 
   const [selectedPeriod, setSelectedPeriod] = useState(1);
   const [data, setData] = useState<string>('');
@@ -92,7 +90,11 @@ function LendingDetails() {
             loading={loading}
             tooltip="test"
             label="Current APY"
-            value={<Typography color={palette.warning.main}>2.55%</Typography>}
+            value={
+              <Typography component={'span'} color={palette.warning.main}>
+                2.55%
+              </Typography>
+            }
             contrast
           />
         </Grid>

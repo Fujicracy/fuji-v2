@@ -22,9 +22,6 @@ function Lending() {
     viewDynamicPosition(isEditing, false)
   );
 
-  // TODO: basePosition can now be undefined, so we need to handle that either here or in the form
-  if (basePosition === undefined) return <></>;
-
   return (
     <Container>
       <Stack

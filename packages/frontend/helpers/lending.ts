@@ -1,23 +1,28 @@
-export const rearrangeProvidersWithActiveInCenter = () => {
-  console.log('rearrange');
+import { LendingProviderWithFinancials } from '@x-fuji/sdk';
+
+type ProviderWithStatus = LendingProviderWithFinancials & { active?: boolean };
+
+export const rearrangeProvidersWithActiveInCenter = (
+  array: LendingProviderWithFinancials[]
+): ProviderWithStatus[] => {
+  const result = array.slice().map((e, i) => ({ ...e, active: i === 0 }));
+  const activeItem = result[0];
+  if (!activeItem || result.length <= 1) {
+    // No active item found, return the original array
+    return result;
+  }
+
+  const middleIndex = (result.length - 1) / 2;
+  const activeIndex = result.indexOf(activeItem);
+  result.splice(activeIndex, 1);
+
+  let leftArray: LendingProviderWithFinancials[];
+  let rightArray: LendingProviderWithFinancials[];
+
+  leftArray = result.slice(0, middleIndex);
+  rightArray = result.slice(middleIndex);
+
+  console.log(leftArray, activeItem, rightArray);
+
+  return [...leftArray, activeItem, ...rightArray];
 };
-//   array: LendingProviderDetails[]
-// ): LendingProviderDetails[] {
-//   const activeItem = array.find((item) => item.active);
-//   if (!activeItem || array.length === 1) {
-//     // No active item found, return the original array
-//     return array;
-//   }
-
-//   const middleIndex = (array.length - 1) / 2;
-//   const activeIndex = array.indexOf(activeItem);
-//   array.splice(activeIndex, 1);
-
-//   let leftArray: LendingProviderDetails[] = [];
-//   let rightArray: LendingProviderDetails[] = [];
-
-//   leftArray = array.slice(0, middleIndex);
-//   rightArray = array.slice(middleIndex);
-
-//   return [...leftArray, activeItem, ...rightArray];
-// }
