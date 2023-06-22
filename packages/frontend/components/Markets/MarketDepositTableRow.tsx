@@ -1,9 +1,7 @@
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import {
   Chip,
   Collapse,
   IconButton,
-  Skeleton,
   Stack,
   Table,
   TableBody,
@@ -15,7 +13,11 @@ import {
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { MarketRow, MarketRowStatus } from '../../helpers/markets';
+import {
+  loaderOrError,
+  MarketRow,
+  MarketRowStatus,
+} from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
 import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
@@ -43,17 +45,6 @@ function MarketsDepositTableRow({
   useEffect(() => {
     setExpandRow(openedByDefault);
   }, [openedByDefault]);
-
-  const loaderOrError = (status: MarketRowStatus) =>
-    status === MarketRowStatus.Loading ? (
-      <Skeleton />
-    ) : status === MarketRowStatus.Error ? (
-      <Tooltip title="Error loading data" arrow>
-        <ErrorOutlineIcon />
-      </Tooltip>
-    ) : (
-      <></>
-    );
 
   const isHighLevelRow = !row.isChild && !row.isGrandChild;
   const shouldNetworkColumnBeShown =

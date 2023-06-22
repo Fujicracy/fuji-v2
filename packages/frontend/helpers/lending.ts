@@ -6,7 +6,7 @@ export const rearrangeProvidersWithActiveInCenter = (
   array: LendingProviderWithFinancials[]
 ): ProviderWithStatus[] => {
   const result = array.slice().map((e, i) => ({ ...e, active: i === 0 }));
-  const activeItem = result[0];
+  const activeItem = result.find((item) => item.active);
   if (!activeItem || result.length <= 1) {
     // No active item found, return the original array
     return result;

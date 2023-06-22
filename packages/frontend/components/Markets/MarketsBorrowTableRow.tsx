@@ -1,12 +1,9 @@
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import {
   Collapse,
-  Skeleton,
   Stack,
   Table,
   TableBody,
   TableRow,
-  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
@@ -14,7 +11,12 @@ import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { AssetType } from '../../helpers/assets';
-import { aprData, MarketRow, MarketRowStatus } from '../../helpers/markets';
+import {
+  aprData,
+  loaderOrError,
+  MarketRow,
+  MarketRowStatus,
+} from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
 import AprValue from '../Shared/AprValue';
 import BestLabel from '../Shared/BestLabel';
@@ -48,17 +50,6 @@ function MarketsBorrowTableRow({
   useEffect(() => {
     setExpandRow(openedByDefault);
   }, [openedByDefault]);
-
-  const loaderOrError = (status: MarketRowStatus) =>
-    status === MarketRowStatus.Loading ? (
-      <Skeleton />
-    ) : status === MarketRowStatus.Error ? (
-      <Tooltip title="Error loading data" arrow>
-        <ErrorOutlineIcon sx={{ color: 'white' }} />
-      </Tooltip>
-    ) : (
-      <></>
-    );
 
   const isHighLevelRow = !row.isChild && !row.isGrandChild;
   const shouldNetworkColumnBeShown =
