@@ -14,7 +14,7 @@ import {ConnextRouter} from "./ConnextRouter.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ConnextHandler {
   /**
@@ -216,7 +216,7 @@ contract ConnextHandler {
       revert ConnextHandler__executeFailed_tranferAlreadyExecuted(transferId, nonce);
     }
 
-    IERC20(txn.asset).approve(address(connextRouter), txn.amount);
+    SafeERC20.safeIncreaseAllowance(IERC20(txn.asset), address(connextRouter), txn.amount);
 
     try connextRouter.xBundle(actions, args) {
       txn.executed = true;
