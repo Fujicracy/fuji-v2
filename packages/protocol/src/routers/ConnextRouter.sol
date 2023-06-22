@@ -148,8 +148,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       balance = IERC20(asset).balanceOf(address(this));
       if (balance < amount) {
         revert ConnextRouter__xReceive_notReceivedAssetBalance();
-      } else {
-        _tempTokenToCheck = Snapshot(asset, balance - amount);
       }
 
       /**
@@ -163,12 +161,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
     }
 
+    Snapshot memory tokenToCheck_ = Snapshot(asset, (balance - amount));
+
     /**
      * @dev Connext will keep the custody of the bridged amount if the call
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
      * Therefore we try/catch instead of directly calling _bundleInternal(...).
      */
-    try this.xBundleConnext(actions, args, beforeSlipped) {
+    try this.xBundleConnext(actions, args, beforeSlipped, tokenToCheck_) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
@@ -176,8 +176,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
-      // Ensure clear storage for token balance checks.
-      delete _tempTokenToCheck;
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
@@ -191,6 +189,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
    * @param beforeSlipped amount passed by the origin cross-chain router operation
+   * @param tokenToCheck_ snapshot after xReceive from Connext
    *
    * @dev Requirements:
    * - Must only be called within the context of this same contract.
@@ -198,13 +197,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   function xBundleConnext(
     Action[] calldata actions,
     bytes[] calldata args,
-    uint256 beforeSlipped
+    uint256 beforeSlipped,
+    Snapshot memory tokenToCheck_
   )
     external
     payable
     onlySelf
   {
-    _bundleInternal(actions, args, beforeSlipped);
+    _bundleInternal(actions, args, beforeSlipped, tokenToCheck_);
   }
 
   /**

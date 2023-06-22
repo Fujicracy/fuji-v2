@@ -83,12 +83,6 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   /// @dev Apply it on entry cross-chain calls functions as required.
   mapping(address => bool) public isAllowedCaller;
 
-  /**
-   * @dev Stores token balances of this contract at a given moment.
-   * It's used to pass tokens to check from parent contract this contract.
-   */
-  Snapshot internal _tempTokenToCheck;
-
   modifier onlyValidFlasher() {
     _checkValidFlasher(msg.sender);
     _;
