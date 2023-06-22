@@ -131,8 +131,9 @@ contract SimpleRouterForkingTests is Routines, ForkingSetup {
     innerArgs[1] =
       abi.encode(address(vault), ALICE, address(router), withdrawAmount, deadline, v, r, s);
 
-    bytes memory requestorCalldata =
-      abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);
+    bytes memory requestorCalldata = abi.encodeWithSelector(
+      BaseRouter.xBundleFlashloan.selector, innerActions, innerArgs, debtAsset, flashAmount
+    );
 
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
@@ -244,8 +245,9 @@ contract SimpleRouterForkingTests is Routines, ForkingSetup {
         }
       }
 
-      bytes memory requestorCalldata =
-        abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);
+      bytes memory requestorCalldata = abi.encodeWithSelector(
+        BaseRouter.xBundleFlashloan.selector, innerActions, innerArgs, debtAsset, 1000e6
+      );
 
       actions[0] = IRouter.Action.Flashloan;
       args[0] = abi.encode(address(flasher), debtAsset, 1000e6, address(router), requestorCalldata);
