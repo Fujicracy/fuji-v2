@@ -73,7 +73,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__fallback_notAllowed();
   error BaseRouter__allowCaller_zeroAddress();
   error BaseRouter__allowCaller_noAllowChange();
-  error BaseRouter__bundleInternal_insufficientFlashloanBalance();
+  error BaseRouter__xBundleFlashloan_insufficientFlashloanBalance();
 
   IWETH9 public immutable WETH9;
 
@@ -106,7 +106,26 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
   /// @inheritdoc IRouter
   function xBundle(Action[] calldata actions, bytes[] calldata args) external payable override {
-    _bundleInternal(actions, args, 0);
+    _bundleInternal(actions, args, 0, Snapshot(address(0), 0));
+  }
+
+  /// @inheritdoc IRouter
+  function xBundleFlashloan(
+    Action[] calldata actions,
+    bytes[] calldata args,
+    address flashloanAsset,
+    uint256 flashAmount
+  )
+    external
+    payable
+    override
+    onlyValidFlasher
+  {
+    uint256 currentBalance = IERC20(flashloanAsset).balanceOf(address(this));
+    if (currentBalance < flashAmount) {
+      revert BaseRouter__xBundleFlashloan_insufficientFlashloanBalance();
+    }
+    _bundleInternal(actions, args, 0, Snapshot(flashloanAsset, currentBalance - flashAmount));
   }
 
   /**
@@ -142,11 +161,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
    * @param beforeSlipped amount passed by the origin cross-chain router operation
+   * @param tokenToCheck_ snapshot token balance awareness required from parent calls
    */
   function _bundleInternal(
     Action[] memory actions,
     bytes[] memory args,
-    uint256 beforeSlipped
+    uint256 beforeSlipped,
+    Snapshot memory tokenToCheck_
   )
     internal
   {
@@ -178,8 +199,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     Snapshot[] memory tokensToCheck = new Snapshot[](10);
 
     /// @dev Add token to check from parent calls.
-    if (_tempTokenToCheck.token != address(0)) {
-      tokensToCheck[0] = _tempTokenToCheck;
+    if (tokenToCheck_.token != address(0)) {
+      tokensToCheck[0] = tokenToCheck_;
     }
 
     uint256 nativeBalance = address(this).balance - msg.value;
