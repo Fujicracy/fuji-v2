@@ -185,7 +185,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     }
 
     // Approve amount to all liquidations
-    debtAsset.safeApprove(address(vault), debtAmount);
+    debtAsset.safeIncreaseAllowance(address(vault), debtAmount);
 
     bool liquidatedUsers = false;
 
@@ -214,7 +214,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     uint256 amountIn =
       swapper.getAmountIn(address(collateralAsset), address(debtAsset), amountToSwap);
 
-    collateralAsset.safeApprove(address(swapper), amountIn);
+    collateralAsset.safeIncreaseAllowance(address(swapper), amountIn);
     swapper.swap(
       address(collateralAsset),
       address(debtAsset),
