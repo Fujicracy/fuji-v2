@@ -22,7 +22,5 @@ export const rearrangeProvidersWithActiveInCenter = (
   leftArray = result.slice(0, middleIndex);
   rightArray = result.slice(middleIndex);
 
-  console.log(leftArray, activeItem, rightArray);
-
   return [...leftArray, activeItem, ...rightArray];
 };
