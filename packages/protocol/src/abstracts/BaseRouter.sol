@@ -19,10 +19,11 @@ import {IChief} from "../interfaces/IChief.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
+import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 
-abstract contract BaseRouter is SystemAccessControl, IRouter {
+abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   /**
    * @dev Contains an address of an ERC-20 and the balance the router holds
    * at a given moment of the transaction (ref. `_tokensToCheck`).
@@ -99,7 +100,15 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /// @inheritdoc IRouter
-  function xBundle(Action[] calldata actions, bytes[] calldata args) external payable override {
+  function xBundle(
+    Action[] calldata actions,
+    bytes[] calldata args
+  )
+    external
+    payable
+    override
+    nonReentrant
+  {
     _bundleInternal(actions, args, 0, Snapshot(address(0), 0));
   }
 

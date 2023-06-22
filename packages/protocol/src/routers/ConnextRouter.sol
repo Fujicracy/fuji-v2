@@ -137,6 +137,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes memory callData
   )
     external
+    nonReentrant
     returns (bytes memory)
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
