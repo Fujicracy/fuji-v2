@@ -594,8 +594,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     returns (address);
 
   /**
-   * @dev Returns "true" and on what `index` if token has already
-   * been added to `tokenList`.
+   * @dev Returns "true" and the `latestIndex` where a zero-address exists
    *
    * @param token address of ERC-20 to check
    * @param tokenList to check
@@ -606,13 +605,15 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   )
     private
     pure
-    returns (bool value, uint256 index)
+    returns (bool value, uint256 latestIndex)
   {
     uint256 len = tokenList.length;
     for (uint256 i; i < len;) {
       if (token == tokenList[i].token) {
         value = true;
-        index = i;
+      }
+      if (tokenList[i].token == address(0)) {
+        latestIndex = i;
         break;
       }
       unchecked {
@@ -637,10 +638,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     view
     returns (Snapshot[] memory)
   {
-    (bool isInList, uint256 index) = _isInTokenList(token, tokenList);
+    (bool isInList, uint256 latestIndex) = _isInTokenList(token, tokenList);
     if (!isInList) {
-      uint256 position = index == 0 ? index : index + 1;
-      tokenList[position] = Snapshot(token, IERC20(token).balanceOf(address(this)));
+      tokenList[latestIndex] = Snapshot(token, IERC20(token).balanceOf(address(this)));
     }
     return tokenList;
   }
