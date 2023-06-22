@@ -20,8 +20,9 @@ import {
 import { formatValue } from '../../helpers/values';
 import AprValue from '../Shared/AprValue';
 import BestLabel from '../Shared/BestLabel';
-import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
+import { NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
+import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
 import Toggle from '../Shared/Table/Toggle';
@@ -89,33 +90,23 @@ function MarketsBorrowTableRow({
                 isVisible={Boolean(row.children && row.children.length > 0)}
                 onClick={handleExpand}
               />
-              <Stack
-                direction="row"
-                alignItems="center"
-                flexWrap="nowrap"
-                data-cy="market-row-debt"
-              >
-                <CurrencyIcon currency={row.debt} height={32} width={32} />
-                <Typography ml="0.5rem" variant="small">
-                  {row.debt}
-                </Typography>
-              </Stack>
+              <CurrencyTableItem
+                currency={row.debt}
+                label={row.debt}
+                iconDimentions={32}
+                dataCy="market-row-debt"
+              />
             </Stack>
           )}
         </SizableTableCell>
         <SizableTableCell width="120px">
           {row.collateral && isHighLevelRow && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              flexWrap="nowrap"
-              data-cy="market-row-collateral"
-            >
-              <CurrencyIcon currency={row.collateral} height={32} width={32} />
-              <Typography ml="0.5rem" variant="small">
-                {row.collateral}
-              </Typography>
-            </Stack>
+            <CurrencyTableItem
+              currency={row.collateral}
+              label={row.collateral}
+              iconDimentions={32}
+              dataCy="market-row-collateral"
+            />
           )}
         </SizableTableCell>
         <SizableTableCell width="200px">

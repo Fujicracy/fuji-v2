@@ -19,8 +19,9 @@ import {
   MarketRowStatus,
 } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
-import { CurrencyIcon, DropletIcon, NetworkIcon } from '../Shared/Icons';
+import { DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
+import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import Toggle from '../Shared/Table/Toggle';
 
 type MarketsTableRowProps = {
@@ -77,21 +78,12 @@ function MarketsDepositTableRow({
                 isVisible={Boolean(row.children && row.children.length > 0)}
                 onClick={handleExpand}
               />
-              <Stack
-                direction="row"
-                alignItems="center"
-                flexWrap="nowrap"
-                data-cy="market-row-collateral"
-              >
-                <CurrencyIcon
-                  currency={row.collateral}
-                  height={32}
-                  width={32}
-                />
-                <Typography ml="0.5rem" variant="small">
-                  {row.collateral}
-                </Typography>
-              </Stack>
+              <CurrencyTableItem
+                currency={row.collateral}
+                label={row.collateral}
+                iconDimentions={32}
+                dataCy="market-row-collateral"
+              />
             </Stack>
           )}
         </SizableTableCell>
@@ -149,14 +141,6 @@ function MarketsDepositTableRow({
             </Stack>
           )}
         </SizableTableCell>
-        {/* <SizableTableCell align="right" width="130px">
-          {loaderOrError(row.integratedProtocols.status)}
-          {row.integratedProtocols.status === Market.Ready && !expandRow && (
-            <IntegratedProtocols
-              integratedProtocols={row.integratedProtocols.value}
-            />
-          )}
-        </SizableTableCell> */}
         <SizableTableCell align="right" width="140px">
           {!expandRow && (
             <>

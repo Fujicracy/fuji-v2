@@ -19,7 +19,8 @@ import { getRows, PositionRow } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
-import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
+import { NetworkIcon } from '../Shared/Icons';
+import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
 import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
 import { DocsTooltip } from '../Shared/Tooltips';
@@ -99,14 +100,14 @@ function MyPositionsLendingTable() {
               </TableCell>
               <TableCell>
                 <Stack direction="row" alignItems="center">
-                  <CurrencyIcon
+                  <CurrencyTableItem
                     currency={row.collateral.symbol}
-                    width={24}
-                    height={24}
+                    label={`${formatValue(row.collateral.amount)} ${
+                      row.collateral.symbol
+                    }`}
+                    iconDimentions={24}
+                    dataCy="market-row-collateral"
                   />
-                  <Typography variant="small" fontWeight={500} ml="0.5rem">
-                    {formatValue(row.collateral.amount)} {row.collateral.symbol}
-                  </Typography>
                   <Typography variant="xsmall" ml="0.25rem">
                     (
                     {formatValue(row.collateral.usdValue, {
