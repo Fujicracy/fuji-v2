@@ -219,7 +219,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
         address token = vault.asset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        tokensToCheck = _addTokenToList(token, tokensToCheck);
+        _addTokenToList(token, tokensToCheck);
         _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -232,7 +232,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         _checkVaultInput(address(vault));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
-        tokensToCheck = _addTokenToList(vault.asset(), tokensToCheck);
+        _addTokenToList(vault.asset(), tokensToCheck);
 
         vault.withdraw(amount, receiver, owner);
       } else if (action == Action.Borrow) {
@@ -243,7 +243,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         _checkVaultInput(address(vault));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
-        tokensToCheck = _addTokenToList(vault.debtAsset(), tokensToCheck);
+        _addTokenToList(vault.debtAsset(), tokensToCheck);
 
         vault.borrow(amount, receiver, owner);
       } else if (action == Action.Payback) {
@@ -255,7 +255,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
         address token = vault.debtAsset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        tokensToCheck = _addTokenToList(token, tokensToCheck);
+        _addTokenToList(token, tokensToCheck);
         _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -294,7 +294,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
           revert BaseRouter__bundleInternal_swapNotFirstAction();
         }
 
-        (beneficiary, tokensToCheck) = _handleSwapAction(args[i], beneficiary, tokensToCheck);
+        beneficiary = _handleSwapAction(args[i], beneficiary, tokensToCheck);
       } else if (action == Action.Flashloan) {
         // FLASHLOAN
 
@@ -312,7 +312,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         if (requestor != address(this)) {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
-        tokensToCheck = _addTokenToList(asset, tokensToCheck);
+        _addTokenToList(asset, tokensToCheck);
 
         (Action[] memory innerActions, bytes[] memory innerArgs) = abi.decode(
           LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
@@ -328,13 +328,13 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         if (amount != msg.value) {
           revert BaseRouter__bundleInternal_insufficientETH();
         }
-        tokensToCheck = _addTokenToList(address(WETH9), tokensToCheck);
+        _addTokenToList(address(WETH9), tokensToCheck);
 
         WETH9.deposit{value: msg.value}();
       } else if (action == Action.WithdrawETH) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        tokensToCheck = _addTokenToList(address(WETH9), tokensToCheck);
+        _addTokenToList(address(WETH9), tokensToCheck);
 
         WETH9.withdraw(amount);
 
@@ -510,7 +510,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     Snapshot[] memory tokensToCheck_
   )
     internal
-    returns (address, Snapshot[] memory)
+    returns (address)
   {
     (
       ISwapper swapper,
@@ -527,8 +527,8 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
       revert BaseRouter__bundleInternal_notAllowedSwapper();
     }
 
-    tokensToCheck_ = _addTokenToList(assetIn, tokensToCheck_);
-    tokensToCheck_ = _addTokenToList(assetOut, tokensToCheck_);
+    _addTokenToList(assetIn, tokensToCheck_);
+    _addTokenToList(assetOut, tokensToCheck_);
     _safeApprove(assetIn, address(swapper), amountIn);
 
     if (receiver != address(this) && !chief.allowedFlasher(receiver)) {
@@ -540,7 +540,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     }
 
     swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
-    return (beneficiary_, tokensToCheck_);
+    return (beneficiary_);
   }
 
   /**
@@ -658,19 +658,11 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @param token address of ERC-20 to be pushed
    * @param tokenList to add token
    */
-  function _addTokenToList(
-    address token,
-    Snapshot[] memory tokenList
-  )
-    private
-    view
-    returns (Snapshot[] memory)
-  {
+  function _addTokenToList(address token, Snapshot[] memory tokenList) private view {
     (bool isInList, uint256 latestIndex) = _isInTokenList(token, tokenList);
     if (!isInList) {
       tokenList[latestIndex] = Snapshot(token, IERC20(token).balanceOf(address(this)));
     }
-    return tokenList;
   }
 
   /**
