@@ -65,7 +65,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_notBeneficiary();
   error BaseRouter__checkVaultInput_notActiveVault();
   error BaseRouter__bundleInternal_notAllowedSwapper();
-  error BaseRouter__bundleInternal_notAllowedFlasher();
+  error BaseRouter__checkValidFlasher_notAllowedFlasher();
   error BaseRouter__handlePermit_notPermitAction();
   error BaseRouter__safeTransferETH_transferFailed();
   error BaseRouter__safeTransferETH_zeroAddress();
@@ -88,6 +88,11 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * It's used to pass tokens to check from parent contract this contract.
    */
   Snapshot internal _tempTokenToCheck;
+
+  modifier onlyValidFlasher() {
+    _checkValidFlasher(msg.sender);
+    _;
+  }
 
   /**
    * @notice Constructor of a new {BaseRouter}.
@@ -278,9 +283,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           bytes memory requestorCalldata
         ) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
 
-        if (!chief.allowedFlasher(address(flasher))) {
-          revert BaseRouter__bundleInternal_notAllowedFlasher();
-        }
+        _checkValidFlasher(address(flasher));
+
         if (requestor != address(this)) {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
@@ -720,6 +724,17 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _checkVaultInput(address vault_) internal view {
     if (!chief.isVaultActive(vault_)) {
       revert BaseRouter__checkVaultInput_notActiveVault();
+    }
+  }
+
+  /**
+   * @dev Revert if flasher is not a valid flasher at {Chief}.
+   *
+   * @param flasher address to check
+   */
+  function _checkValidFlasher(address flasher) internal view {
+    if (!chief.allowedFlasher(flasher)) {
+      revert BaseRouter__checkValidFlasher_notAllowedFlasher();
     }
   }
 
