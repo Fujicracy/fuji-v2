@@ -220,6 +220,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         address token = vault.asset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
         _addTokenToList(token, tokensToCheck);
+        _addTokenToList(address(vault), tokensToCheck);
         _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -233,6 +234,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
         _addTokenToList(vault.asset(), tokensToCheck);
+        _addTokenToList(address(vault), tokensToCheck);
 
         vault.withdraw(amount, receiver, owner);
       } else if (action == Action.Borrow) {
