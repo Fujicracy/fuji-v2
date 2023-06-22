@@ -24,8 +24,8 @@ import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
-import BorrowBox from '../Borrow/Box/Box';
 import Fees from '../Borrow/Fees';
+import FormAssetBox from '../Shared/FormAssetBox/Box';
 import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
@@ -58,6 +58,9 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const mode = useBorrow((state) => state.mode);
   const changeMode = useBorrow((state) => state.changeMode);
   const changeInputValues = useBorrow((state) => state.changeInputValues);
+  const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
+  const changeAssetValue = useBorrow((state) => state.changeAssetValue);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
   const updateBalances = useBorrow((state) => state.updateBalances);
   const updateVault = useBorrow((state) => state.updateVault);
   const allow = useBorrow((state) => state.allow);
@@ -199,7 +202,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
             const type = index === collateralIndex ? 'collateral' : 'debt';
             const maxAmount = assetChange.balances[assetChange.currency.symbol];
             return (
-              <BorrowBox
+              <FormAssetBox
                 key={type}
                 index={index}
                 type={AssetType.Collateral}
@@ -212,6 +215,9 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
                 isExecuting={isExecuting}
                 value={assetChange.input}
                 basePosition={basePosition}
+                changeAssetValue={changeAssetValue}
+                changeAssetChain={changeAssetChain}
+                changeAssetCurrency={changeAssetCurrency}
               />
             );
           })}
