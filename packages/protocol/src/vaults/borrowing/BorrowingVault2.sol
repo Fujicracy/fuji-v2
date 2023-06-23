@@ -135,7 +135,8 @@ contract BorrowingVault2 is BaseVault {
   function initializeVaultShares(uint256 assets, uint256 debt) external override {
     if (initialized) {
       revert BaseVault__initializeVaultShares_alreadyInitialized();
-    } else if (assets < minAmount || debt < minAmount) {
+    }
+    if (assets < minAmount || debt < minAmount) {
       revert BaseVault__initializeVaultShares_lessThanMin();
     }
     _unpauseForceAllActions();

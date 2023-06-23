@@ -164,7 +164,8 @@ contract BorrowingVault is BaseVault {
   function initializeVaultShares(uint256 assets, uint256 debt) public override {
     if (initialized) {
       revert BaseVault__initializeVaultShares_alreadyInitialized();
-    } else if (assets < minAmount || debt < minAmount) {
+    }
+    if (assets < minAmount || debt < minAmount) {
       revert BaseVault__initializeVaultShares_lessThanMin();
     }
     _unpauseForceAllActions();
@@ -205,10 +206,8 @@ contract BorrowingVault is BaseVault {
      * @dev Hook check activated only when called by OZ {ERC20-_transfer}
      * User must not be able to transfer asset-shares locked as collateral
      */
-    if (from != address(0) && to != address(0)) {
-      if (amount > maxRedeem(from)) {
-        revert BorrowingVault__beforeTokenTransfer_moreThanMax();
-      }
+    if (from != address(0) && to != address(0) && amount > maxRedeem(from)) {
+      revert BorrowingVault__beforeTokenTransfer_moreThanMax();
     }
   }
 
