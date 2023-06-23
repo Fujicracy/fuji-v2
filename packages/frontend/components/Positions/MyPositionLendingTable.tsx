@@ -25,6 +25,9 @@ import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
 import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import EmptyState from './EmptyState';
+
+const NUMBER_OF_COLUMNS = 5;
 
 function MyPositionsLendingTable() {
   const { palette } = useTheme();
@@ -46,7 +49,7 @@ function MyPositionsLendingTable() {
   if (!account) {
     return (
       <MyPositionsLendingTableContainer>
-        {/* <EmptyState reason="no-wallet" /> */}
+        <EmptyState reason="no-wallet" columnsCount={NUMBER_OF_COLUMNS} />
       </MyPositionsLendingTableContainer>
     );
   }
@@ -54,7 +57,7 @@ function MyPositionsLendingTable() {
     return (
       <MyPositionsLendingTableContainer>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(5).fill('').map((_, index) => (
+          {new Array(NUMBER_OF_COLUMNS).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
@@ -72,9 +75,8 @@ function MyPositionsLendingTable() {
   return (
     <MyPositionsLendingTableContainer>
       {rows.length === 0 && positions.length === 0 ? (
-        <></>
+        <EmptyState reason="no-positions" columnsCount={NUMBER_OF_COLUMNS} />
       ) : (
-        // <EmptyState reason="no-positions" />
         <>
           {rows.map((row, i) => (
             <TableRow
@@ -135,7 +137,11 @@ function MyPositionsLendingTable() {
               </TableCell>
             </TableRow>
           ))}
-          <ExtraTableSpace colSpan={5} itemLength={rows.length} max={5} />
+          <ExtraTableSpace
+            colSpan={NUMBER_OF_COLUMNS}
+            itemLength={rows.length}
+            max={NUMBER_OF_COLUMNS}
+          />
         </>
       )}
     </MyPositionsLendingTableContainer>
