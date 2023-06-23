@@ -463,7 +463,7 @@ contract BorrowingVault is BaseVault {
     uint256 totalDebt_ = totalDebt();
     uint256 supply = debtSharesSupply;
 
-    if (totalDebt_ == 0 && supply > 0 && supply > totalDebt_) {
+    if (totalDebt_ == 0 && supply > 0) {
       _pause(VaultActions.Withdraw);
     }
     super._withdraw(caller, receiver, owner, assets, shares);
