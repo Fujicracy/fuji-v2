@@ -16,14 +16,20 @@ import {
   URLS,
   VAULT_LIST,
 } from './constants';
-import { Address, Currency, Token } from './entities';
+import { AbstractVault, Address, Currency, Token } from './entities';
 import { BorrowingVault } from './entities/BorrowingVault';
 import {
   FujiError,
   FujiResultError,
   FujiResultSuccess,
 } from './entities/FujiError';
-import { ChainId, ChainType, ConnextTxStatus, RouterAction } from './enums';
+import {
+  ChainId,
+  ChainType,
+  ConnextTxStatus,
+  RouterAction,
+  VaultType,
+} from './enums';
 import {
   batchLoad,
   encodeActionArgs,
@@ -220,7 +226,8 @@ export class Sdk {
     );
 
     for (const chain of chains) {
-      vaults.push(...VAULT_LIST[chain.chainId]);
+      const filtered = this._borrowingVaults(chain.chainId);
+      vaults.push(...filtered);
     }
 
     return vaults.map((v) => v.setConnection(this._configParams));
@@ -245,7 +252,7 @@ export class Sdk {
     if (!chain.isDeployed) {
       return new FujiResultError(`${chain.name} not deployed`);
     }
-    const vaults = VAULT_LIST[chainId].map((v) =>
+    const vaults = this._borrowingVaults(chain.chainId).map((v) =>
       v.setConnection(this._configParams)
     );
     return await batchLoad(vaults, account, chain);
@@ -656,16 +663,18 @@ export class Sdk {
       .reduce((acc, list) => {
         const vaults = list
           .filter(
-            (v: BorrowingVault) =>
+            (v: AbstractVault) =>
               chains.includes(v.collateral.chainId) ||
-              chains.includes(v.debt.chainId)
+              (v instanceof BorrowingVault && chains.includes(v.debt.chainId))
           )
           .filter(
-            (v: BorrowingVault) =>
-              v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
+            (v: AbstractVault) =>
+              v.collateral.symbol === collateralSym &&
+              v instanceof BorrowingVault &&
+              v.debt.symbol === debtSym
           );
         return [...acc, ...vaults];
-      }, []);
+      }, []) as BorrowingVault[];
   }
 
   private _getFinancialsFor(
@@ -708,5 +717,11 @@ export class Sdk {
           : undefined,
       },
     };
+  }
+
+  private _borrowingVaults(chainId: ChainId): BorrowingVault[] {
+    return VAULT_LIST[chainId].filter(
+      (v) => v.type === VaultType.BORROW
+    ) as BorrowingVault[];
   }
 }
