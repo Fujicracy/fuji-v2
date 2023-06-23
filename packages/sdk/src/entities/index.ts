@@ -1,4 +1,6 @@
+export * from './AbstractContract';
 export * from './AbstractCurrency';
+export * from './AbstractVault';
 export * from './Address';
 export * from './BorrowingVault';
 export * from './Chain';
