@@ -22,7 +22,7 @@ import { useBorrow } from '../../../store/borrow.store';
 import { useNavigation } from '../../../store/navigation.store';
 import Vault from './Vault';
 
-function VaultSelect() {
+function VaultSelect({ isBorrow }: { isBorrow?: boolean }) {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
@@ -32,13 +32,15 @@ function VaultSelect() {
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
 
-  const collateral = useBorrow((state) => state.collateral);
-  const debt = useBorrow((state) => state.debt);
-  const activeVault = useBorrow((state) => state.activeVault);
-  const availableRoutes = useBorrow((state) => state.availableRoutes);
-  const availableVaults = useBorrow((state) => state.availableVaults);
+  const useStore = useBorrow; // TODO: add useLend as second option based on isBorrow
+
+  const collateral = useStore((state) => state.collateral);
+  const debt = useStore((state) => state.debt);
+  const activeVault = useStore((state) => state.activeVault);
+  const availableRoutes = useStore((state) => state.availableRoutes);
+  const availableVaults = useStore((state) => state.availableVaults);
   const override = useNavigation((state) => state.borrowPage.shouldReset);
-  const changeActiveVault = useBorrow((state) => state.changeActiveVault);
+  const changeActiveVault = useStore((state) => state.changeActiveVault);
 
   const aggregatedData = availableVaults.map((vault, i) => ({
     ...vault,
