@@ -4,6 +4,7 @@ import invariant from 'tiny-invariant';
 
 import { CHAIN, CHIEF_ADDRESS } from '../constants';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
+import { VaultType } from '../enums';
 import {
   AprResult,
   ChainConfig,
@@ -71,7 +72,7 @@ export class BorrowingVault extends AbstractVault {
   multicallContract?: BorrowingVaultMulticall;
 
   constructor(address: Address, collateral: Token, debt: Token) {
-    super(address, collateral);
+    super(address, collateral, VaultType.BORROW);
     invariant(debt.chainId === collateral.chainId, 'Chain mismatch!');
 
     this.debt = debt;
@@ -205,7 +206,7 @@ export class BorrowingVault extends AbstractVault {
    * provider is not available at DefiLlama, an empty array is returned.
    */
   async getBorrowProviderStats(): FujiResultPromise<AprResult[]> {
-    return this._getProvidersStatsFor(this.debt);
+    return this._getProvidersStatsFor(this.debt, true);
   }
 
   /**
