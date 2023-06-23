@@ -5,21 +5,24 @@ import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import invariant from 'tiny-invariant';
 
-import { FUJI_ORACLE_ADDRESS, WNATIVE_ADDRESS } from '../constants/addresses';
-import { CHAIN } from '../constants/chains';
-import { TOKEN_CACHE_TIMEOUT } from '../constants/common';
-import { ChainId } from '../enums';
+import {
+  FUJI_ORACLE_ADDRESS,
+  WNATIVE_ADDRESS,
+} from '../../constants/addresses';
+import { CHAIN } from '../../constants/chains';
+import { TOKEN_CACHE_TIMEOUT } from '../../constants/common';
+import { ChainId } from '../../enums';
 import {
   ChainConfig,
   ChainConnectionDetails,
   FujiResultPromise,
-} from '../types';
-import { FujiOracle__factory } from '../types/contracts/factories/src/FujiOracle__factory';
-import { Address } from './Address';
-import { Chain } from './Chain';
-import { Currency } from './Currency';
-import { FujiResultError, FujiResultSuccess } from './FujiError';
-import { Token } from './Token';
+} from '../../types';
+import { FujiOracle__factory } from '../../types/contracts/factories/src/FujiOracle__factory';
+import { Address } from '../Address';
+import { Chain } from '../Chain';
+import { Currency } from '../Currency';
+import { FujiResultError, FujiResultSuccess } from '../FujiError';
+import { Token } from '../Token';
 
 /**
  * A currency is any fungible financial instrument, including Ether, all ERC20 tokens, and other chain-native currencies

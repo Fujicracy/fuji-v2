@@ -5,7 +5,7 @@ import { ChainId } from '../enums';
 import { ChainConfig } from '../types';
 import { ERC20 as ERC20Contract, ERC20__factory } from '../types/contracts';
 import { ERC20Multicall } from '../types/contracts/lib/openzeppelin-contracts/contracts/token/ERC20/ERC20';
-import { AbstractCurrency } from './AbstractCurrency';
+import { AbstractCurrency } from './abstract/AbstractCurrency';
 import { Address } from './Address';
 import { Currency } from './Currency';
 
