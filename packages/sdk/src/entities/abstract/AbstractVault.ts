@@ -11,10 +11,10 @@ import {
   CONNEXT_ROUTER_ADDRESS,
   FujiErrorCode,
   URLS,
-} from '../constants';
-import { LENDING_PROVIDERS } from '../constants/lending-providers';
-import { ChainId, RouterAction, VaultType } from '../enums';
-import { encodeActionArgs, findPermitAction } from '../functions';
+} from '../../constants';
+import { LENDING_PROVIDERS } from '../../constants/lending-providers';
+import { ChainId, RouterAction, VaultType } from '../../enums';
+import { encodeActionArgs, findPermitAction } from '../../functions';
 import {
   AprResult,
   ChainConfig,
@@ -23,17 +23,17 @@ import {
   PermitParams,
   RouterActionParams,
   XTransferWithCallParams,
-} from '../types';
+} from '../../types';
 import {
   GetLlamaAssetPoolsResponse,
   GetLlamaPoolStatsResponse,
   LlamaAssetPool,
-} from '../types/LlamaResponses';
+} from '../../types/LlamaResponses';
+import { Address } from '../Address';
+import { Chain } from '../Chain';
+import { FujiResultError, FujiResultSuccess } from '../FujiError';
+import { Token } from '../Token';
 import { AbstractContract } from './AbstractContract';
-import { Address } from './Address';
-import { Chain } from './Chain';
-import { FujiResultError, FujiResultSuccess } from './FujiError';
-import { Token } from './Token';
 
 export type AccountBalances = {
   deposit: BigNumber;

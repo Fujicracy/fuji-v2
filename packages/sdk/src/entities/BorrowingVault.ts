@@ -19,7 +19,7 @@ import {
   ILendingProvider__factory,
 } from '../types/contracts';
 import { BorrowingVaultMulticall } from '../types/contracts/src/vaults/borrowing/BorrowingVault';
-import { AbstractVault, AccountBalances } from './AbstractVault';
+import { AbstractVault, AccountBalances } from './abstract/AbstractVault';
 import { Address } from './Address';
 import { Token } from './Token';
 
