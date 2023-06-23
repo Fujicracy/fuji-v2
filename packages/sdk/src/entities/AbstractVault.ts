@@ -13,7 +13,7 @@ import {
   URLS,
 } from '../constants';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
-import { ChainId, RouterAction } from '../enums';
+import { ChainId, RouterAction, VaultType } from '../enums';
 import { encodeActionArgs, findPermitAction } from '../functions';
 import {
   AprResult,
@@ -31,7 +31,6 @@ import {
 } from '../types/LlamaResponses';
 import { AbstractContract } from './AbstractContract';
 import { Address } from './Address';
-import { BorrowingVault } from './BorrowingVault';
 import { Chain } from './Chain';
 import { FujiResultError, FujiResultSuccess } from './FujiError';
 import { Token } from './Token';
@@ -42,6 +41,11 @@ export type AccountBalances = {
 };
 
 export abstract class AbstractVault {
+  /**
+   * Returns whether the vault is a borrowing vault or a lending vault
+   */
+  readonly type: VaultType;
+
   /**
    * The chain ID on which this vault resides
    */
@@ -111,12 +115,13 @@ export abstract class AbstractVault {
    */
   multicallRpcProvider?: IMulticallProvider;
 
-  constructor(address: Address, collateral: Token) {
+  constructor(address: Address, collateral: Token, type: VaultType) {
     this.name = '';
     this.address = address;
     this.collateral = collateral;
     this.chainId = collateral.chainId;
     this.chain = CHAIN[this.chainId];
+    this.type = type;
   }
 
   /**
@@ -218,15 +223,9 @@ export abstract class AbstractVault {
   }
 
   protected async _getProvidersStatsFor(
-    token: Token
+    token: Token,
+    isDebt = false
   ): FujiResultPromise<AprResult[]> {
-    if (
-      !token.equals(this.collateral) &&
-      this instanceof BorrowingVault &&
-      !token.equals(this.debt)
-    )
-      return new FujiResultError('Wrong token');
-
     if (!this.allProviders) {
       await this.preLoad();
     }
@@ -265,7 +264,6 @@ export abstract class AbstractVault {
             : Promise.resolve([]);
         })
       );
-      const isDebt = this instanceof BorrowingVault && token.equals(this.debt);
       const data = this.allProviders.map((addr, i) => ({
         name: LENDING_PROVIDERS[this.chainId][addr].name,
         aprStats: llamaResult[i].map(
