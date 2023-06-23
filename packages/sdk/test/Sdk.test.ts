@@ -336,7 +336,9 @@ describe('Sdk', () => {
     jest.setTimeout(20000);
 
     it('returns a NON cross-chain calldata for TrasactionRequest', async () => {
-      const vault = VAULT_LIST[ChainId.MATIC][0].setConnection(config);
+      const vault = VAULT_LIST[ChainId.MATIC][0].setConnection(
+        config
+      ) as BorrowingVault;
 
       const owner = new Wallet(JUNK_KEY);
 
@@ -413,7 +415,9 @@ describe('Sdk', () => {
     });
 
     it('returns a cross-chain calldata for TrasactionRequest (transfer from chain A and deposit+borrow on chain B)', async () => {
-      const vault = VAULT_LIST[ChainId.OPTIMISM][0].setConnection(config);
+      const vault = VAULT_LIST[ChainId.OPTIMISM][0].setConnection(
+        config
+      ) as BorrowingVault;
 
       const owner = new Wallet(JUNK_KEY);
 
