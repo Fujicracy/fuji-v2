@@ -7,6 +7,7 @@ import { FujiErrorCode } from '../constants';
 import { CHIEF_ADDRESS, FUJI_ORACLE_ADDRESS } from '../constants/addresses';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import {
+  AbstractVault,
   Address,
   BorrowingVault,
   FujiError,
@@ -14,6 +15,7 @@ import {
   FujiResultSuccess,
 } from '../entities';
 import { Chain } from '../entities/Chain';
+import { VaultType } from '../enums';
 import { FujiResult, FujiResultPromise, VaultWithFinancials } from '../types';
 import {
   Chief__factory,
@@ -117,7 +119,8 @@ const setResults = (
 };
 
 export async function batchLoad(
-  vaults: BorrowingVault[],
+  type: VaultType,
+  vaults: AbstractVault[],
   account: Address | undefined,
   chain: Chain
 ): FujiResultPromise<VaultWithFinancials[]> {
@@ -126,6 +129,7 @@ export async function batchLoad(
       chainId: chain.chainId,
     });
   }
+  // TODO: Check that type matches vaults?
   if (vaults.find((v) => v.chainId !== chain.chainId)) {
     return new FujiResultError(
       'Vault from a different chain!',
@@ -134,6 +138,20 @@ export async function batchLoad(
         chainId: chain.chainId,
       }
     );
+  }
+
+  return type === VaultType.BORROW
+    ? _borrowingBatchLoad(vaults as BorrowingVault[], account, chain)
+    : _borrowingBatchLoad(vaults as BorrowingVault[], account, chain); // TODO:
+}
+
+async function _borrowingBatchLoad(
+  vaults: BorrowingVault[],
+  account: Address | undefined,
+  chain: Chain
+): FujiResultPromise<VaultWithFinancials[]> {
+  if (!chain.connection) {
+    return new FujiResultError('Connection not set!');
   }
   try {
     const { multicallRpcProvider } = chain.connection;
