@@ -26,10 +26,7 @@ export function getAllVaults(
   const chains = Object.values(CHAIN).filter((c) => c.chainType === chainType);
 
   for (const chain of chains) {
-    const filtered =
-      type === VaultType.BORROW
-        ? _borrowingVaultsFor(chain.chainId)
-        : _borrowingVaultsFor(chain.chainId); // TODO:
+    const filtered = _vaultsForType(type, chain.chainId);
     vaults.push(...filtered);
   }
 
@@ -46,11 +43,9 @@ export async function getVaultsWithFinancials(
   if (!chain.isDeployed) {
     return new FujiResultError(`${chain.name} not deployed`);
   }
-  const objs =
-    type === VaultType.BORROW
-      ? _borrowingVaultsFor(chain.chainId)
-      : _borrowingVaultsFor(chain.chainId); // TODO:
-  const vaults = objs.map((v) => v.setConnection(configParams));
+  const vaults = _vaultsForType(type, chain.chainId).map((v) =>
+    v.setConnection(configParams)
+  );
   return await batchLoad(type, vaults, account, chain);
 }
 
@@ -151,8 +146,6 @@ function _findVaultsByTokens(
   );
 }
 
-function _borrowingVaultsFor(chainId: ChainId): BorrowingVault[] {
-  return VAULT_LIST[chainId].filter(
-    (v) => v.type === VaultType.BORROW
-  ) as BorrowingVault[];
+function _vaultsForType(type: VaultType, chainId: ChainId): AbstractVault[] {
+  return VAULT_LIST[chainId].filter((v) => v.type === type);
 }
