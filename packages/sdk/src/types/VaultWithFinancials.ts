@@ -6,9 +6,9 @@ import { LendingProviderWithFinancials } from './LendingProvider';
 export type VaultWithFinancials = {
   vault: BorrowingVault;
   depositBalance: BigNumber;
-  borrowBalance: BigNumber;
+  borrowBalance?: BigNumber;
   collateralPriceUSD: BigNumber;
-  debtPriceUSD: BigNumber;
+  debtPriceUSD?: BigNumber;
   activeProvider: LendingProviderWithFinancials;
   allProviders: LendingProviderWithFinancials[];
 };
