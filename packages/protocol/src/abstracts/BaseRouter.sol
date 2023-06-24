@@ -509,7 +509,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @dev Handles swap actions logic flow.
    * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
    * Requirements:
-   * - Must return updated "beneficiary" and "tokensToCheck".
+   * - Must return updated "beneficiary".
    *
    * @param arg of the ongoing action
    * @param beneficiary_ passed through `_bundleInternal()`
