@@ -43,6 +43,8 @@ interface IRouter {
    * @param args an array of encoded inputs needed to execute each action
    * @param flashloanAsset being sent by the IFlasher
    * @param amount of flashloan
+   *
+   * @dev Note this method cannot be re-entered further by another IFlasher call.
    */
   function xBundleFlashloan(
     Action[] memory actions,
