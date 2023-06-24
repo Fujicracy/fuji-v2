@@ -315,8 +315,9 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
           address asset,
           uint256 flashAmount,
           address requestor,
-          bytes memory requestorCalldata
-        ) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
+          Action[] memory innerActions,
+          bytes[] memory innerArgs
+        ) = abi.decode(args[i], (IFlasher, address, uint256, address, Action[], bytes[]));
 
         _checkValidFlasher(address(flasher));
 
@@ -325,11 +326,10 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         }
         _addTokenToList(asset, tokensToCheck);
 
-        (Action[] memory innerActions, bytes[] memory innerArgs) = abi.decode(
-          LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
-        );
-
         beneficiary = _getBeneficiaryFromCalldata(innerActions, innerArgs);
+        bytes memory requestorCalldata = abi.encodeWithSelector(
+          this.xBundleFlashloan.selector, innerActions, innerArgs, asset, flashAmount
+        );
 
         // Call Flasher.
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
