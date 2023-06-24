@@ -74,6 +74,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   error BaseRouter__fallback_notAllowed();
   error BaseRouter__allowCaller_zeroAddress();
   error BaseRouter__allowCaller_noAllowChange();
+  error BaseRouter__isInTokenList_snapshotLimitReached();
   error BaseRouter__xBundleFlashloan_insufficientFlashloanBalance();
 
   IWETH9 public immutable WETH9;
@@ -653,6 +654,9 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
       if (tokenList[i].token == address(0)) {
         latestIndex = i;
         break;
+      }
+      if (i == (len - 1) && value == false && latestIndex == 0) {
+        revert BaseRouter__isInTokenList_snapshotLimitReached();
       }
       unchecked {
         ++i;
