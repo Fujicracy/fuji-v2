@@ -223,6 +223,7 @@ contract ConnextHandler {
       _failedTxns[transferId][nonce] = txn;
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, true);
     } catch {
+      SafeERC20.safeDecreaseAllowance(IERC20(txn.asset), address(connextRouter), txn.amount);
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, false);
     }
   }
