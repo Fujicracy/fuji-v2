@@ -378,12 +378,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       );
       beneficiary_ = owner;
     } else if (actions[0] == Action.Flashloan) {
-      (,,,, bytes memory requestorCalldata) =
-        abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
-
-      (Action[] memory newActions, bytes[] memory newArgs) = abi.decode(
-        LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
-      );
+      (,,,, Action[] memory newActions, bytes[] memory newArgs) =
+        abi.decode(args[0], (IFlasher, address, uint256, address, Action[], bytes[]));
 
       beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
     } else if (actions[0] == Action.XTransfer) {
