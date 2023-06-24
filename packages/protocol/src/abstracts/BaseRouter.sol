@@ -19,7 +19,7 @@ import {IChief} from "../interfaces/IChief.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
-import {ReentrancyGuard} from "openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "../helpers/ReentrancyGuard.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 
@@ -81,12 +81,19 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   bytes32 private constant ZERO_BYTES32 =
     0x0000000000000000000000000000000000000000000000000000000000000000;
 
+  uint256 private _flashloanEnterStatus;
+
   /// @dev Apply it on entry cross-chain calls functions as required.
   mapping(address => bool) public isAllowedCaller;
 
-  modifier onlyValidFlasher() {
+  modifier onlyValidFlasherNonReentrant() {
     _checkValidFlasher(msg.sender);
+    if (_flashloanEnterStatus == _ENTERED) {
+      revert ReentrancyGuard_reentrantCall();
+    }
+    _flashloanEnterStatus = _ENTERED;
     _;
+    _flashloanEnterStatus = _NOT_ENTERED;
   }
 
   /**
@@ -97,6 +104,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    */
   constructor(IWETH9 weth, IChief chief) payable SystemAccessControl(address(chief)) {
     WETH9 = weth;
+    _flashloanEnterStatus = _NOT_ENTERED;
   }
 
   /// @inheritdoc IRouter
@@ -122,7 +130,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     external
     payable
     override
-    onlyValidFlasher
+    onlyValidFlasherNonReentrant
   {
     uint256 currentBalance = IERC20(flashloanAsset).balanceOf(address(this));
     if (currentBalance < flashAmount) {
