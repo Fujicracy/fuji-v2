@@ -670,6 +670,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (currentBalance != previousBalance) {
           revert BaseRouter__bundleInternal_noBalanceChange();
         }
+      } else {
+        break;
       }
       unchecked {
         ++i;
