@@ -10,6 +10,7 @@ function EmptyChartState() {
       alignItems="center"
       justifyContent="center"
       sx={{
+        marginTop: '1rem',
         width: '100%',
         height: '24rem',
         backgroundColor: palette.secondary.dark,

@@ -7,6 +7,8 @@ import { devtools } from 'zustand/middleware';
 
 import { getOnboardStatus, web3onboard } from '../helpers/auth';
 import { chainIdToHex, hexToChainId } from '../helpers/chains';
+import { stringifyError } from '../helpers/errors';
+import { notify } from '../helpers/notifications';
 import { storeOptions } from '../helpers/stores';
 
 export const onboard = web3onboard;
@@ -127,7 +129,14 @@ export const useAuth = create<AuthStore>()(
 
       changeChain: async (chainId) => {
         const hexChainId = chainIdToHex(chainId);
-        await onboard.setChain({ chainId: hexChainId });
+        try {
+          await onboard.setChain({ chainId: hexChainId });
+        } catch (error) {
+          notify({
+            message: stringifyError(error),
+            type: 'error',
+          });
+        }
       },
     }),
     storeOptions('auth')

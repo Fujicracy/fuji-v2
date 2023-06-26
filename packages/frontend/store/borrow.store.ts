@@ -48,10 +48,6 @@ import { isSupported, testChains } from '../helpers/chains';
 import { isBridgeable } from '../helpers/currencies';
 import { handleTransactionError } from '../helpers/errors';
 import {
-  BorrowPageNavigation,
-  navigationalRunAndResetWithDelay,
-} from '../helpers/navigation';
-import {
   dismiss,
   getTransactionLink,
   NotificationDuration,
@@ -100,8 +96,6 @@ type BorrowState = {
   actions?: RouterActionParams[];
 
   isExecuting: boolean;
-
-  borrowingNavigation: BorrowPageNavigation;
 };
 
 type BorrowActions = {
@@ -139,6 +133,11 @@ type BorrowActions = {
   ) => void;
 
   updateAll: (vaultAddress?: string) => void;
+  updateMeta: (
+    type: AssetType,
+    updateVault: boolean,
+    updateBalance: boolean
+  ) => void;
   updateCurrencyPrice: (type: AssetType) => void;
   updateBalances: (type: AssetType) => void;
   updateAllowance: (type: AssetType) => void;
@@ -151,9 +150,6 @@ type BorrowActions = {
   sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
-
-  changeBorrowPageShouldReset: (reset: boolean, lock?: boolean) => void;
-  changeBorrowPageWillLoadBorrow: (willLoadBorrow: boolean) => void;
 };
 
 type BorrowStore = BorrowState & BorrowActions;
@@ -198,12 +194,6 @@ const initialState: BorrowState = {
   needsSignature: true,
   isSigning: false,
   isExecuting: false,
-
-  borrowingNavigation: {
-    shouldReset: true,
-    willLoadBorrow: false,
-    lock: false,
-  },
 };
 
 export const useBorrow = create<BorrowStore>()(
@@ -308,7 +298,6 @@ export const useBorrow = create<BorrowStore>()(
 
         changeAssetChain(type, chainId, updateVault, currency) {
           if (!isSupported(chainId)) return;
-
           const currencies =
             type === AssetType.Debt
               ? sdk.getDebtForChain(chainId)
@@ -350,16 +339,7 @@ export const useBorrow = create<BorrowStore>()(
               }
             })
           );
-          get().updateCurrencyPrice(type);
-          get().updateBalances(type);
-
-          if (updateVault) {
-            get().updateVault();
-          } else {
-            get().updateTransactionMeta();
-          }
-
-          get().updateAllowance(type);
+          get().updateMeta(type, updateVault, true);
         },
 
         changeAssetCurrency(type, currency, updateVault) {
@@ -372,11 +352,7 @@ export const useBorrow = create<BorrowStore>()(
               }
             })
           );
-          get().updateCurrencyPrice(type);
-          if (updateVault) {
-            get().updateVault();
-          }
-          get().updateAllowance(type);
+          get().updateMeta(type, updateVault, false);
         },
 
         changeAssetValue(type, value) {
@@ -510,6 +486,19 @@ export const useBorrow = create<BorrowStore>()(
           await get().updateAllowance(AssetType.Collateral);
           await get().updateAllowance(AssetType.Debt);
           await get().updateVault(vaultAddress);
+        },
+
+        async updateMeta(type, updateVault, updateBalance) {
+          get().updateCurrencyPrice(type);
+          if (updateBalance) {
+            get().updateBalances(type);
+          }
+          if (updateVault) {
+            get().updateVault();
+          } else {
+            get().updateTransactionMeta();
+          }
+          get().updateAllowance(type);
         },
 
         async updateCurrencyPrice(type) {
@@ -958,44 +947,16 @@ export const useBorrow = create<BorrowStore>()(
           }
 
           const tx = await get().execute();
+          const vault = get().activeVault;
 
           // error was already displayed in execute()
-          if (tx) {
-            const vaultAddr = get().activeVault?.address.value as string;
+          if (tx && vault) {
             useHistory
               .getState()
-              .add(tx.hash, tx.from, vaultAddr, get().transactionMeta.steps);
+              .add(tx.hash, tx.from, vault, get().transactionMeta.steps);
 
             get().changeInputValues('', '');
           }
-        },
-
-        changeBorrowPageShouldReset(shouldReset, lock) {
-          if (get().borrowingNavigation.lock) return;
-          if (lock !== undefined) {
-            navigationalRunAndResetWithDelay((newValue: boolean) => {
-              set(
-                produce((state: BorrowState) => {
-                  state.borrowingNavigation.lock = newValue;
-                })
-              );
-            }, lock);
-          }
-          set(
-            produce((state: BorrowState) => {
-              state.borrowingNavigation.shouldReset = shouldReset;
-            })
-          );
-        },
-
-        changeBorrowPageWillLoadBorrow(willLoadBorrow) {
-          navigationalRunAndResetWithDelay((newValue: boolean) => {
-            set(
-              produce((state: BorrowState) => {
-                state.borrowingNavigation.willLoadBorrow = newValue;
-              })
-            );
-          }, willLoadBorrow);
         },
       }),
       storeOptions('borrow')
