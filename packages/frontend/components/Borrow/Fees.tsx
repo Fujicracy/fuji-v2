@@ -1,3 +1,4 @@
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
@@ -15,6 +16,14 @@ import { ReactNode, useState } from 'react';
 import { FetchStatus } from '../../helpers/assets';
 import { stringifiedBridgeFeeSum } from '../../helpers/transactions';
 import { useBorrow } from '../../store/borrow.store';
+
+function ErrorComponent() {
+  return (
+    <Tooltip title="Error loading data" arrow>
+      <ErrorOutlineIcon />
+    </Tooltip>
+  );
+}
 
 function Fees() {
   const transactionMeta = useBorrow((state) => state.transactionMeta);
@@ -81,11 +90,15 @@ function Fees() {
       </Stack>
 
       <Collapse in={show} sx={{ width: '100%' }}>
-        {crossChainTx && transactionMeta.bridgeFees && (
+        {crossChainTx && (
           <Fee
             label="Bridge Fee"
             value={`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)}`}
             tooltip={bridgeTooltip()}
+            error={
+              !transactionMeta.bridgeFees ||
+              transactionMeta.bridgeFees?.every((fee) => fee.amount === 0)
+            }
           />
         )}
         {crossChainTx && (
@@ -99,6 +112,7 @@ function Fees() {
           <Fee
             label="Est. slippage"
             value={`~${transactionMeta.estimateSlippage} %`}
+            error={!transactionMeta.estimateSlippage}
           />
         )}
       </Collapse>
@@ -111,13 +125,16 @@ export default Fees;
 type FeeProps = {
   label: string;
   value: string | ReactNode;
-  sponsored: boolean;
+  sponsored?: boolean;
   tooltip?: string;
+  error?: boolean;
 };
 
-const Fee = ({ label, value, sponsored, tooltip }: FeeProps) => {
+const Fee = ({ label, value, sponsored, tooltip, error }: FeeProps) => {
   const { palette } = useTheme();
-  const valueComponent = sponsored ? (
+  const valueComponent = error ? (
+    <ErrorComponent />
+  ) : sponsored ? (
     <Stack
       direction="row"
       alignItems="center"

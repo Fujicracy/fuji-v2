@@ -1,4 +1,3 @@
-import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
   Button,
@@ -19,6 +18,7 @@ import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
+import ModalHeader from '../Shared/ModalHeader';
 import PositionYieldTable from './PositionYieldTable';
 
 type PositionYieldsModalProps = {
@@ -64,19 +64,9 @@ export function PositionYieldsModal({
           textAlign: 'center',
         }}
       >
-        <CloseIcon
-          sx={{
-            cursor: 'pointer',
-            position: 'absolute',
-            right: '3%',
-          }}
-          onClick={onClose}
-        />
-        <Typography variant="h5" color={palette.text.primary}>
-          Estimated Yield / Cost
-        </Typography>
+        <ModalHeader title="Estimated Yield / Cost" onClose={() => onClose()} />
 
-        <Divider sx={{ m: '1.375rem 0' }} />
+        <Divider sx={{ mb: '1.375rem' }} />
 
         <Grid container mb="1rem">
           <BorrowLendingTabNavigation

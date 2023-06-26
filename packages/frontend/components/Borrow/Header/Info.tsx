@@ -8,12 +8,14 @@ type HeaderInfoProps = {
   isCrossChainOperation: boolean;
   chainName: string;
   tooltipMessage?: string;
+  defaultOpen?: boolean;
 };
 
 function HeaderInfo({
   isCrossChainOperation,
   chainName,
   tooltipMessage,
+  defaultOpen = false,
 }: HeaderInfoProps) {
   return (
     <Stack
@@ -31,17 +33,19 @@ function HeaderInfo({
         <></>
       ) : tooltipMessage ? (
         <TooltipWrapper
-          defaultOpen
+          defaultOpen={defaultOpen}
           placement="top"
           title={
             <Box
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                width: '10rem',
+                width: '12rem',
               }}
             >
-              <Typography variant="small">{tooltipMessage}</Typography>
+              <Typography variant="small" fontSize="0.75rem">
+                {tooltipMessage}
+              </Typography>
             </Box>
           }
         >

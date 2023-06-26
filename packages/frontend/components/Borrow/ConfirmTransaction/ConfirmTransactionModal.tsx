@@ -1,4 +1,3 @@
-import CloseIcon from '@mui/icons-material/Close';
 import { Box, Button, Dialog, Paper, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import Image from 'next/image';
@@ -19,6 +18,7 @@ import {
 } from '../../../helpers/transactions';
 import { formatValue } from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
+import ModalHeader from '../../Shared/ModalHeader';
 import WarningInfo from '../../Shared/WarningInfo';
 import InfoRow from './InfoRow';
 import RouteBox from './RouteBox';
@@ -108,17 +108,7 @@ export function ConfirmTransactionModal({
           textAlign: 'center',
         }}
       >
-        <CloseIcon
-          sx={{
-            cursor: 'pointer',
-            position: 'absolute',
-            right: '3%',
-          }}
-          onClick={onClose}
-        />
-        <Typography mb="1rem" variant="h5" color={palette.text.primary}>
-          Confirm Transaction
-        </Typography>
+        <ModalHeader title="Confirm Transaction" onClose={() => onClose()} />
 
         {steps && steps.length > 0 && (
           <RouteBox steps={steps} isCrossChain={isCrossChain} />

@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import React from 'react';
 
+import Analytics from './Analytics/Analytics';
+
 type ContainerProps = {
   children: React.ReactNode;
   isMobile: boolean;
@@ -130,6 +132,7 @@ function Container({ children, isMobile }: ContainerProps) {
   ) : (
     <Grid container alignItems="center" justifyContent="space-between">
       {children}
+      <Analytics />
     </Grid>
   );
 }

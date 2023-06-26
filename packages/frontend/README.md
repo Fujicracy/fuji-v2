@@ -124,10 +124,12 @@ We had some problems (like [this one](https://github.com/pmndrs/zustand/discussi
 
 ```
 stores
+├── access
 ├── auth
 ├── borrow
 ├── history
 ├── markets
+├── navigation
 └── positions
 ```
 

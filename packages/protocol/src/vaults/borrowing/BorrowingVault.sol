@@ -282,7 +282,7 @@ contract BorrowingVault is BaseVault {
 
   /// @inheritdoc IVault
   function previewMintDebt(uint256 shares) public view override returns (uint256 debt) {
-    return _convertDebtToShares(shares, Math.Rounding.Down);
+    return _convertToDebt(shares, Math.Rounding.Down);
   }
 
   /// @inheritdoc IVault
@@ -910,10 +910,11 @@ contract BorrowingVault is BaseVault {
    * Restrictions:
    * - Must be called from a timelock.
    * - Must be at least 1% (1e16).
-   * - Must be less than 100% (1e18)
+   * - Must be less than 100% (1e18).
+   * - Must be less than `liqRation`.
    */
   function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
-    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18) {
+    if (maxLtv_ < 1e16 || maxLtv_ >= 1e18 || maxLtv_ >= liqRatio) {
       revert BaseVault__setter_invalidInput();
     }
     maxLtv = maxLtv_;
@@ -928,11 +929,13 @@ contract BorrowingVault is BaseVault {
    * @dev See factor
    * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
    * Restrictions:
-   * - Must be greater than 'maxLTV', and non zero.
    * - Must be called from a timelock.
+   * - Must be greater than 'maxLTV', and non zero.
+   * - Must be greater than 2% (2e16).
+   * - Must be less than 100% (1e18).
    */
   function setLiqRatio(uint256 liqRatio_) external onlyTimelock {
-    if (liqRatio_ < maxLtv || liqRatio_ == 0) {
+    if (liqRatio_ <= maxLtv || liqRatio_ < 2e16 || liqRatio_ >= 1e18) {
       revert BaseVault__setter_invalidInput();
     }
     liqRatio = liqRatio_;

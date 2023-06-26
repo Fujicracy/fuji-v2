@@ -100,7 +100,7 @@ function Vault({
             background: selected
               ? `${palette.secondary.light}`
               : isHovered
-              ? '#34363E'
+              ? '#35353B'
               : 'transparent',
             borderTop: borderStyle,
             '&:first-of-type': {
@@ -184,7 +184,7 @@ function Vault({
               sx={{ p: '0 0.5rem' }}
               onClick={handleOpen}
             >
-              <Typography variant="small">
+              <Typography variant="small" fontSize="0.75rem">
                 {opened ? 'Close' : 'See Route'}
               </Typography>
             </Button>
@@ -202,7 +202,7 @@ function Vault({
             background: selected
               ? `${palette.secondary.light}`
               : isHovered
-              ? '#34363E'
+              ? '#35353B'
               : 'transparent',
             borderBottom: opened ? borderStyle : 'none',
             '&:first-of-type': {
