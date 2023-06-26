@@ -2,7 +2,6 @@ import {
   AbstractVault,
   ChainId,
   Currency,
-  DEFAULT_SLIPPAGE,
   LendingProviderWithFinancials,
   RouterActionParams,
   VaultWithFinancials,
@@ -41,8 +40,6 @@ export type SharedState = {
 
   collateral: AssetChange;
 
-  slippage: number;
-
   transactionMeta: TransactionMeta;
   availableRoutes: RouteMeta[];
 
@@ -66,8 +63,6 @@ export const initialSharedState: SharedState = {
   activeProvider: undefined,
 
   collateral: defaultAssetForType(AssetType.Collateral),
-
-  slippage: DEFAULT_SLIPPAGE,
 
   transactionMeta: {
     status: FetchStatus.Initial,
@@ -107,7 +102,6 @@ export type SharedActions = {
   changeBalances: (type: AssetType, balances: Record<string, number>) => void;
   changeFormType: (type: FormType) => void;
   changeMode: (mode: Mode) => void;
-  changeSlippageValue: (slippage: number) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
   clearInputValues: () => void;
 

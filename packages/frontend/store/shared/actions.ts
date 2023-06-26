@@ -289,10 +289,6 @@ export const changeMode = (api: StoreApi, mode: Mode) => {
   }
 };
 
-export const changeSlippageValue = (api: StoreApi, slippage: number) => {
-  api.setState({ slippage });
-};
-
 export const changeTransactionMeta = (api: StoreApi, route: RouteMeta) => {
   api.setState(
     produce((state: AbstractState) => {
@@ -429,13 +425,13 @@ export const updateLtvAndLiquidationIfPossible = (api: StoreApi) => {
 };
 
 export const updateTransactionMeta = async (api: StoreApi) => {
-  const address = useAuth.getState().address;
+  const { address, slippage } = useAuth.getState();
   if (!address) {
     return;
   }
 
   const state = api.getState();
-  const { activeVault, availableVaults, collateral, mode, slippage } = state;
+  const { activeVault, availableVaults, collateral, mode } = state;
 
   const hasDebt = 'debt' in state;
   let debt: AssetChange | undefined = undefined;
