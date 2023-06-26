@@ -61,6 +61,7 @@ contract BorrowingVault2 is BaseVault {
   error BorrowingVault__beforeTokenTransfer_moreThanMax();
   error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
+  error BorrowingVault__liquidate_moreThanAllowed();
   error BorrowingVault__rebalance_invalidProvider();
   error BorrowingVault__borrow_slippageTooHigh();
   error BorrowingVault__mintDebt_slippageTooHigh();
@@ -713,7 +714,8 @@ contract BorrowingVault2 is BaseVault {
   /// @inheritdoc IVault
   function liquidate(
     address owner,
-    address receiver
+    address receiver,
+    uint256 liqCloseFactor_
   )
     external
     hasRole(msg.sender, LIQUIDATOR_ROLE)
@@ -729,11 +731,14 @@ contract BorrowingVault2 is BaseVault {
     if (liquidationFactor == 0) {
       revert BorrowingVault__liquidate_positionHealthy();
     }
+    if (liqCloseFactor_ > liquidationFactor) {
+      revert BorrowingVault__liquidate_moreThanAllowed();
+    }
 
     // Compute debt amount that must be paid by liquidator.
     uint256 debt = convertToDebt(_debtShares[owner]);
-    uint256 debtSharesToCover = Math.mulDiv(_debtShares[owner], liquidationFactor, 1e18);
-    uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, 1e18);
+    uint256 debtSharesToCover = Math.mulDiv(_debtShares[owner], liqCloseFactor_, 1e18);
+    uint256 debtToCover = Math.mulDiv(debt, liqCloseFactor_, 1e18);
 
     // Compute `gainedShares` amount that the liquidator will receive.
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
