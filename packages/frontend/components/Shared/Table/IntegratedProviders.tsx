@@ -33,6 +33,7 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
                   zIndex: 4 - i,
                   height: '24px',
                 }}
+                data-cy="provider-item"
               >
                 {i <= 2 && (
                   <ProviderIcon

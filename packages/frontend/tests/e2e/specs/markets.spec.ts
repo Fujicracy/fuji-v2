@@ -150,6 +150,7 @@ describe('Markets', () => {
     cy.get('[data-cy="market-row"]').first().as('firstRow', { type: 'static' });
     cy.get('@firstRow')
       .find('[data-cy="market-row-debt"]')
+      .first()
       .invoke('text')
       .then((debt) => {
         // saving first row debt currency.
@@ -158,37 +159,41 @@ describe('Markets', () => {
       .then(() => {
         cy.get('@firstRow')
           .find('[data-cy="market-row-collateral"]')
+          .first()
           .invoke('text')
           .then((collateral) => {
             // saving first row collateral currency.
             collateralCurrency = collateral;
           })
           .then(() => {
-            cy.get('[data-cy="market-row"]')
-              .next()
-              .find('[data-cy="market-row-providers"]')
+            cy.get('[data-cy="provider-item"]')
               .first()
               .find('img')
               .first()
-              .debug()
-              .invoke('attr', 'provider')
-              .then((text) => {
-                provider = text;
-              });
-            // clicking on first second row.
-            cy.get('@firstRow').next().click();
-            // checking redirect to borrow page.
-            cy.location('pathname').should('eq', '/borrow');
-            // checking prefilled collateral currency.
-            cy.get('[data-cy="currency-select"]')
-              .first()
-              .should('have.text', collateralCurrency);
-            // checking prefilled debt currency.
-            cy.get('[data-cy="currency-select"]')
-              .last()
-              .should('have.text', debtCurrency);
+              .then((image) => {
+                provider = image.attr('alt');
 
-            expect(provider).to.include.text('Agave');
+                // clicking on first pair second row.
+                cy.get('[data-cy="market-row"]').eq(1).click();
+                // checking redirect to borrow page.
+                cy.location('pathname').should('eq', '/borrow');
+                // checking prefilled collateral currency.
+                cy.get('[data-cy="currency-select"]')
+                  .first()
+                  .should('have.text', collateralCurrency);
+                // checking prefilled debt currency.
+                cy.get('[data-cy="currency-select"]')
+                  .last()
+                  .should('have.text', debtCurrency);
+
+                cy.get('[data-cy="provider-item"]')
+                  .first()
+                  .find('img')
+                  .first()
+                  .then((image) => {
+                    expect(provider).to.eq(image.attr('alt'));
+                  });
+              });
           });
       });
   });
