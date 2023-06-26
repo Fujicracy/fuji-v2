@@ -55,31 +55,32 @@ export const useLend = create<LendStore>()(
         },
 
         async changeAllowance(type, status, amount) {
+          if (type === AssetType.Debt) return;
           changeAllowance(api, type, status, amount);
         },
 
         changeAssetChain(type, chainId, updateVault, currency) {
+          if (type === AssetType.Debt) return;
           changeAssetChain(api, type, chainId, updateVault, currency);
         },
 
         changeAssetCurrency(type, currency, updateVault) {
+          if (type === AssetType.Debt) return;
           changeAssetCurrency(api, type, currency, updateVault);
         },
 
         changeAssetValue(type, value) {
+          if (type === AssetType.Debt) return;
           changeAssetValue(api, type, value);
         },
 
         async changeBalances(type, balances) {
+          if (type === AssetType.Debt) return;
           changeBalances(api, type, balances);
         },
 
         async changeFormType(formType) {
           changeFormType(api, formType);
-        },
-
-        async changeInputValue(collateral) {
-          await get().changeAssetValue(AssetType.Collateral, collateral);
         },
 
         async changeMode(mode) {
@@ -94,8 +95,8 @@ export const useLend = create<LendStore>()(
           changeTransactionMeta(api, route);
         },
 
-        clearInputValues() {
-          get().changeInputValue('');
+        async clearInputValues() {
+          await get().changeAssetValue(AssetType.Collateral, '');
         },
 
         async updateAll(vaultAddress) {
@@ -105,18 +106,22 @@ export const useLend = create<LendStore>()(
         },
 
         async updateAllowance(type) {
+          if (type === AssetType.Debt) return;
           updateAllowance(api, type);
         },
 
         async updateBalances(type) {
+          if (type === AssetType.Debt) return;
           updateBalances(api, type);
         },
 
         async updateCurrencyPrice(type) {
+          if (type === AssetType.Debt) return;
           updateCurrencyPrice(api, type);
         },
 
         async updateMeta(type, updateVault, updateBalance) {
+          if (type === AssetType.Debt) return;
           updateMeta(api, type, updateVault, updateBalance);
         },
 
@@ -170,6 +175,7 @@ export const useLend = create<LendStore>()(
         },
 
         async allow(type) {
+          if (type === AssetType.Debt) return;
           allow(api, type);
         },
 

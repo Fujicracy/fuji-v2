@@ -82,13 +82,6 @@ export const useBorrow = create<BorrowStore>()(
           changeFormType(api, formType);
         },
 
-        async changeInputValues(collateral, debt) {
-          await Promise.all([
-            get().changeAssetValue(AssetType.Collateral, collateral),
-            get().changeAssetValue(AssetType.Debt, debt),
-          ]);
-        },
-
         async changeMode(mode) {
           changeMode(api, mode);
         },
@@ -105,8 +98,9 @@ export const useBorrow = create<BorrowStore>()(
           set({ debt: undefined });
         },
 
-        clearInputValues() {
-          get().changeInputValues('', '');
+        async clearInputValues() {
+          await get().changeAssetValue(AssetType.Collateral, '');
+          await get().changeAssetValue(AssetType.Debt, '');
         },
 
         async updateAll(vaultAddress) {

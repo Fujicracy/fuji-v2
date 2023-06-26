@@ -24,7 +24,6 @@ type BorrowActions = SharedActions & {
     debt: Currency
   ) => void;
   changeDebt: (debt: AssetChange) => void;
-  changeInputValues: (collateral: string, debt: string) => void;
   clearDebt: () => void;
   updateLiquidation: () => void;
   updateLtv: () => void;

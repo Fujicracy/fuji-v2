@@ -57,7 +57,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const vault = useBorrow((state) => state.activeVault);
   const mode = useBorrow((state) => state.mode);
   const changeMode = useBorrow((state) => state.changeMode);
-  const changeInputValues = useBorrow((state) => state.changeInputValues);
+  const clearInputValues = useBorrow((state) => state.clearInputValues);
   const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
   const changeAssetValue = useBorrow((state) => state.changeAssetValue);
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
@@ -126,10 +126,10 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
 
   useEffect(() => {
     if (prevActionType.current !== actionType) {
-      changeInputValues('', '');
+      clearInputValues();
       prevActionType.current = actionType;
     }
-  }, [actionType, changeInputValues]);
+  }, [actionType, clearInputValues]);
 
   useEffect(() => {
     (async () => {
