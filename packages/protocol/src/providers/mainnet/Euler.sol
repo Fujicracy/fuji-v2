@@ -134,4 +134,9 @@ contract Euler is ILendingProvider {
 
     balance = dToken.balanceOf(user);
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }

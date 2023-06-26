@@ -235,4 +235,9 @@ contract CompoundV2Goerli is ILendingProvider {
     address cTokenAddr = getMapper().getAddressMapping(providerName(), asset);
     balance = ICToken(cTokenAddr).borrowBalanceStored(user);
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }

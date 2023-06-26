@@ -104,4 +104,9 @@ contract MockProvider is ILendingProvider {
   {
     balance = MockERC20(vault.debtAsset()).balanceOfDebt(user, providerName());
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }

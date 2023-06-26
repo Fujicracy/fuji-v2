@@ -149,4 +149,9 @@ contract CompoundV3 is ILendingProvider {
 
     cMarketV3 = ICompoundV3(market);
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }

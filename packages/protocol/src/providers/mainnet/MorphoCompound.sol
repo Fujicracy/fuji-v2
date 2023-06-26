@@ -131,4 +131,9 @@ contract MorphoCompound is ILendingProvider {
   {
     (,, balance) = ILens(LENS).getCurrentBorrowBalanceInOf(_getCToken(vault.debtAsset()), user);
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }

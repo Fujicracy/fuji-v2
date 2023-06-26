@@ -257,4 +257,9 @@ contract HundredPolygon is ILendingProvider {
     ICToken cToken = ICToken(_getCToken(asset));
     balance = LibCompoundV2.viewBorrowingBalanceOf(cToken, user);
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }

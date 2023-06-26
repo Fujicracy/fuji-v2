@@ -224,4 +224,9 @@ contract IronBankOptimism is ILendingProvider {
     ICToken cyToken = ICToken(_getCyToken(asset));
     balance = LibIronBankOptimism.viewBorrowingBalanceOf(cyToken, user);
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }

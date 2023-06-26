@@ -114,4 +114,9 @@ contract AaveV3Optimism is ILendingProvider {
     IV3Pool.ReserveData memory rdata = aaveData.getReserveData(vault.debtAsset());
     balance = IERC20(rdata.variableDebtTokenAddress).balanceOf(user);
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }

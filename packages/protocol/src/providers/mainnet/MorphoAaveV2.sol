@@ -124,4 +124,9 @@ contract MorphoAaveV2 is ILendingProvider {
   {
     (,, balance) = ILens(LENS).getCurrentBorrowBalanceInOf(_getAToken(vault.debtAsset()), user);
   }
+
+  /// @inheritdoc ILendingProvider
+  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
+    return false;
+  }
 }
