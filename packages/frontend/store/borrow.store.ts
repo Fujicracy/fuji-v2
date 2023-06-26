@@ -400,7 +400,7 @@ export const useBorrow = create<BorrowStore>()(
                 formatUnits(depositBalance, dec)
               );
 
-              if (!s.debt) return;
+              if (!s.debt || !borrowBalance) return;
               const dec2 = s.debt.currency.decimals;
               s.debt.amount = parseFloat(formatUnits(borrowBalance, dec2));
             })
