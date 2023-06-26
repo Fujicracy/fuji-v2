@@ -84,7 +84,7 @@ contract ConnextHandler {
   ConnextRouter public immutable connextRouter;
 
   /**
-   * @dev Maps a failed transferId -> nonce -> calldata
+   * @dev Maps a failed transferId -> calldata[]
    * Multiple failed attempts are registered with nonce
    */
   mapping(bytes32 => FailedTxn[]) private _failedTxns;
