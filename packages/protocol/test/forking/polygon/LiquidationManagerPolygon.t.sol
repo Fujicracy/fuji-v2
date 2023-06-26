@@ -320,11 +320,14 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
     uint256 collectedAmount =
       unsafeAmount - _utils_getAmountInSwap(collateralAsset, debtAsset, borrowAmount + flashloanFee);
 
-    //liquidate ALICE
+    //liquidate ALICE, do not specify a liquidation close factor.
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
+
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, borrowAmount + 3, flasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, borrowAmount + 3, flasher, swapper);
     vm.stopPrank();
 
     //check balance of alice
@@ -382,11 +385,16 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
     // liquidate ALICE
     uint256 gainedShares = estimate_gainedShares(BorrowingVault(payable(address(vault))), ALICE);
 
+    //liquidate ALICE, do not specify a liquidation close factor.
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
 
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, (borrowAmount * 0.5e18) / 1e18, flasher, swapper);
+    liquidationManager.liquidate(
+      users, liqCloseFactors, vault, (borrowAmount * 0.5e18) / 1e18, flasher, swapper
+    );
     vm.stopPrank();
 
     //check balance of alice
@@ -418,14 +426,18 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
     do_depositAndBorrow(amount, borrowAmount, vault, BOB);
     do_depositAndBorrow(amount, borrowAmount, vault, CHARLIE);
 
-    address[] memory users = new address[](4);
+    address[] memory users = new address[](3);
     users[0] = ALICE;
     users[1] = BOB;
     users[2] = CHARLIE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
+    liqCloseFactors[1] = 0;
+    liqCloseFactors[2] = 0;
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector);
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, 0, flasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, 0, flasher, swapper);
     vm.stopPrank();
   }
 
@@ -474,8 +486,13 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
     users[0] = ALICE;
     users[1] = BOB;
     users[2] = CHARLIE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
+    liqCloseFactors[1] = 0;
+    liqCloseFactors[2] = 0;
+
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, borrowAmount + 1, flasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, borrowAmount + 1, flasher, swapper);
     vm.stopPrank();
 
     //check balance of alice
@@ -523,8 +540,15 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
     users[0] = ALICE;
     users[1] = BOB;
     users[2] = CHARLIE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
+    liqCloseFactors[1] = 0;
+    liqCloseFactors[2] = 0;
+
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, borrowAmount * 3 + 9, flasher, swapper);
+    liquidationManager.liquidate(
+      users, liqCloseFactors, vault, borrowAmount * 3 + 9, flasher, swapper
+    );
     vm.stopPrank();
 
     //check balance of alice
@@ -558,10 +582,12 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
 
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
     vm.startPrank(CHARLIE);
-    liquidationManager.liquidate(users, vault, 1000e18, flasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, 1000e18, flasher, swapper);
     vm.stopPrank();
   }
 
@@ -573,11 +599,13 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
 
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
 
     IFlasher invalidFlasher = IFlasher(address(0x0));
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidFlasher.selector);
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, 1000e18, invalidFlasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, 1000e18, invalidFlasher, swapper);
     vm.stopPrank();
   }
 
@@ -589,23 +617,42 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
 
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
 
     ISwapper invalidSwapper = ISwapper(address(0x0));
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidSwapper.selector);
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, 1000e18, flasher, invalidSwapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, 1000e18, flasher, invalidSwapper);
     vm.stopPrank();
   }
 
   //liquidate several users with the same hf
   function test_liquidateSeveralUsersForGasReport(uint256 numberOfUsers) public {
-    uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
-    uint256 borrowAmount = oracle.getPriceOf(collateralAsset, debtAsset, 18)
-      - (oracle.getPriceOf(collateralAsset, debtAsset, 18) - ((1e6 * currentPrice) / 1e18)) / 2;
-    uint256 maxltv = 75 * 1e16;
-    uint256 unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * maxltv * 100);
-
     vm.assume(numberOfUsers > 0 && numberOfUsers < 11);
+
+    uint256 borrowAmount;
+    uint256 unsafeAmount;
+    uint256 liquidationPrice;
+    uint256 inversePrice;
+    uint256 collectedAmount;
+
+    {
+      uint256 currentPrice = oracle.getPriceOf(debtAsset, collateralAsset, 18);
+      borrowAmount = oracle.getPriceOf(collateralAsset, debtAsset, 18)
+        - (oracle.getPriceOf(collateralAsset, debtAsset, 18) - ((1e6 * currentPrice) / 1e18)) / 2;
+      unsafeAmount = (borrowAmount * 105 * 1e36) / (currentPrice * DEFAULT_MAX_LTV * 100);
+      // Simulate 25% price drop
+      // enough for user to be liquidated
+      // liquidation is still profitable
+      liquidationPrice = (currentPrice * 75) / 100;
+      inversePrice = (1e18 / liquidationPrice) * 1e18;
+      uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, numberOfUsers * borrowAmount);
+      collectedAmount = unsafeAmount * numberOfUsers
+        - _utils_getAmountInSwap(
+          collateralAsset, debtAsset, numberOfUsers * borrowAmount + flashloanFee
+        );
+    }
 
     //users
     address[] memory users = new address[](10);
@@ -621,29 +668,24 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
     users[8] = vm.addr(user9_pk);
     users[9] = vm.addr(user10_pk);
 
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+
     for (uint256 i = 0; i < numberOfUsers; i++) {
       do_depositAndBorrow(unsafeAmount, borrowAmount, vault, users[i]);
     }
 
-    // Simulate 25% price drop
-    // enough for user to be liquidated
-    // liquidation is still profitable
-    uint256 liquidationPrice = (currentPrice * 75) / 100;
-    uint256 inversePrice = (1e18 / liquidationPrice) * 1e18;
-
     mock_getPriceOf(collateralAsset, debtAsset, inversePrice);
     mock_getPriceOf(debtAsset, collateralAsset, liquidationPrice);
-
-    uint256 flashloanFee = flasher.computeFlashloanFee(debtAsset, numberOfUsers * borrowAmount);
-    uint256 collectedAmount = unsafeAmount * numberOfUsers
-      - _utils_getAmountInSwap(
-        collateralAsset, debtAsset, numberOfUsers * borrowAmount + flashloanFee
-      );
 
     //liquidate
     vm.startPrank(KEEPER);
     liquidationManager.liquidate(
-      users, vault, borrowAmount * numberOfUsers + (numberOfUsers * 3), flasher, swapper
+      users,
+      liqCloseFactors,
+      vault,
+      borrowAmount * numberOfUsers + (numberOfUsers * 3),
+      flasher,
+      swapper
     );
     vm.stopPrank();
 
@@ -717,9 +759,13 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
     // Liquidate ALICE
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
 
     vm.startPrank(KEEPER);
-    liquidationManager.liquidate(users, vault, (borrowAmount * 0.5e18) / 1e18, flasher, swapper);
+    liquidationManager.liquidate(
+      users, liqCloseFactors, vault, (borrowAmount * 0.5e18) / 1e18, flasher, swapper
+    );
     vm.stopPrank();
 
     // check balance of user
