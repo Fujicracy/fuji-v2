@@ -434,18 +434,26 @@ interface IVault is IERC4626 {
    *
    * @param owner to be liquidated
    * @param receiver of the collateral shares of liquidation
+   * @param liqCloseFactor percentage of `owner`'s debt to attempt liquidation
    *
    * @dev Requirements:
    * - Must revert if caller is not an approved liquidator.
    * - Must revert if 'owner' is not liquidatable.
    * - Must emit the Liquidation event.
-   * - Must liquidate 50% of 'owner' debt when: 100 >= 'healthFactor' > 95.
-   * - Must liquidate 100% of 'owner' debt when: 95 > 'healthFactor'.
+   * - Must liquidate accoring to `liqCloseFactor` but restricted to the following:
+   *    - Liquidate up to 50% of 'owner' debt when: 100 >= 'healthFactor' > 95.
+   *    - Liquidate up to 100% of 'owner' debt when: 95 > 'healthFactor'.
    * - Must revert in {YieldVault}.
    *
    * WARNING! It is liquidator's responsability to check if liquidation is profitable.
    */
-  function liquidate(address owner, address receiver) external returns (uint256 gainedShares);
+  function liquidate(
+    address owner,
+    address receiver,
+    uint256 liqCloseFactor
+  )
+    external
+    returns (uint256 gainedShares);
 
   /*/////////////////////
      Setter functions 
