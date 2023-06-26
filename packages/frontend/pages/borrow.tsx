@@ -5,8 +5,9 @@ import BorrowWrapper from '../components/Borrow/Wrapper';
 import { AssetType } from '../helpers/assets';
 import { navigationalTaskDelay } from '../helpers/navigation';
 import { useAuth } from '../store/auth.store';
-import { FormType, useBorrow } from '../store/borrow.store';
+import { useBorrow } from '../store/borrow.store';
 import { useNavigation } from '../store/navigation.store';
+import { FormType } from '../store/shared/state';
 
 const formType = FormType.Create;
 

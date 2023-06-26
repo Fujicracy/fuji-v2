@@ -49,9 +49,9 @@ export const showPosition = async (
     const collateralCurrency = collaterals.find(
       (t: Currency) => t.symbol === vault.collateral.symbol
     );
-    changeAll(collateralCurrency ?? vault.collateral, vault.debt, vault);
+    changeAll(vault, collateralCurrency ?? vault.collateral, vault.debt);
   } else {
-    changeAll(vault.collateral, vault.debt, vault);
+    changeAll(vault, vault.collateral, vault.debt);
   }
 
   if (reset) {

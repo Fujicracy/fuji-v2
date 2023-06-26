@@ -1,8 +1,7 @@
 import {
+  AbstractVault,
   Address,
-  BorrowingVault,
   FujiError,
-  // LendingProviderDetails,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 
@@ -77,7 +76,7 @@ export const getAllBorrowingVaultFinancials = async (
 };
 
 export const userHasFundsInVault = (
-  vault: BorrowingVault,
+  vault: AbstractVault,
   list: VaultWithFinancials[]
 ) => {
   const match = list.find((v) => v.vault.address.equals(vault.address));
