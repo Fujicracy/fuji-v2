@@ -22,6 +22,7 @@ import {
   FujiResultError,
   FujiResultSuccess,
 } from './entities/FujiError';
+import { LendingVault } from './entities/LendingVault';
 import {
   ChainId,
   ChainType,
@@ -231,6 +232,72 @@ export class Sdk {
   }
 
   /**
+   * Returns all lending vaults.
+   *
+   * @param chainType - for type of chains: mainnet or testnet
+   *
+   */
+  getAllLendingVaults(
+    chainType: ChainType = ChainType.MAINNET
+  ): LendingVault[] {
+    return getAllVaults(
+      VaultType.LEND,
+      this._configParams,
+      chainType
+    ) as LendingVault[];
+  }
+
+  /**
+   * Returns all vaults for a given combination of tokens and sets a connection for each of them.
+   *
+   * @remarks
+   * The vaults are sorted after checks of the lowest borrow rate for the debt token.
+   * If collateral and debt tokens are on the same chain, we privilege the vault
+   * on the same chain even though it has a lowest borrow rate.
+   *
+   * @param collateral - collateral instance of {@link Currency}
+   * @param debt - debt instance of {@link Currency}
+   * @param account - user address, wrapped in {@link Address}
+   */
+  async getBorrowingVaultsFor(
+    collateral: Currency,
+    debt: Currency,
+    account?: Address
+  ): FujiResultPromise<VaultWithFinancials[]> {
+    return getVaultsFor(
+      VaultType.BORROW,
+      collateral,
+      debt,
+      this._configParams,
+      account
+    );
+  }
+
+  /**
+   * Returns all vaults for a given combination of tokens and sets a connection for each of them.
+   *
+   * @remarks
+   * The vaults are sorted after checks of the lowest borrow rate for the debt token.
+   * If collateral and debt tokens are on the same chain, we privilege the vault
+   * on the same chain even though it has a lowest borrow rate.
+   *
+   * @param collateral - collateral instance of {@link Currency}
+   * @param account - user address, wrapped in {@link Address}
+   */
+  async getLendingVaultsFor(
+    collateral: Currency,
+    account?: Address
+  ): FujiResultPromise<VaultWithFinancials[]> {
+    return getVaultsFor(
+      VaultType.LEND,
+      collateral,
+      undefined,
+      this._configParams,
+      account
+    );
+  }
+
+  /**
    * Returns all vaults with financial data such as base deposit APRs and
    * base borrow APRs fetched on-chain.
    *
@@ -239,7 +306,7 @@ export class Sdk {
    * It's recommended to call afterwards "getLlamaFinancials()".
    *
    * @param chainId - ID of the chain
-   * @param account - {@link Address} for the user
+   * @param account - user address, wrapped in {@link Address}
    */
   async getBorrowingVaultsFinancials(
     chainId: ChainId,
@@ -247,6 +314,29 @@ export class Sdk {
   ): FujiResultPromise<VaultWithFinancials[]> {
     return getVaultsWithFinancials(
       VaultType.BORROW,
+      chainId,
+      this._configParams,
+      account
+    );
+  }
+
+  /**
+   * Returns all vaults with financial data such as base deposit APRs and
+   * base borrow APRs fetched on-chain.
+   *
+   * @remarks
+   * This methods serves to pre-fetch and loads only partially the financials.
+   * It's recommended to call afterwards "getLlamaFinancials()".
+   *
+   * @param chainId - ID of the chain
+   * @param account - user address, wrapped in {@link Address}
+   */
+  async getLendingVaultsFinancials(
+    chainId: ChainId,
+    account?: Address
+  ): FujiResultPromise<VaultWithFinancials[]> {
+    return getVaultsWithFinancials(
+      VaultType.LEND,
       chainId,
       this._configParams,
       account
@@ -296,32 +386,6 @@ export class Sdk {
       console.error(message);
       return new FujiResultError(message, FujiErrorCode.LLAMA);
     }
-  }
-
-  /**
-   * Returns all vaults for a given combination of tokens and sets a connection for each of them.
-   *
-   * @remarks
-   * The vaults are sorted after checks of the lowest borrow rate for the debt token.
-   * If collateral and debt tokens are on the same chain, we privilege the vault
-   * on the same chain even though it has a lowest borrow rate.
-   *
-   * @param collateral - collateral instance of {@link Currency}
-   * @param debt - debt instance of {@link Currency}
-   * @param account - debt instance of {@link Currency}
-   */
-  async getBorrowingVaultsFor(
-    collateral: Currency,
-    debt: Currency,
-    account?: Address
-  ): FujiResultPromise<VaultWithFinancials[]> {
-    return getVaultsFor(
-      VaultType.BORROW,
-      collateral,
-      debt,
-      this._configParams,
-      account
-    );
   }
 
   /**

@@ -52,12 +52,12 @@ export async function getVaultsWithFinancials(
 export async function getVaultsFor(
   type: VaultType,
   collateral: Currency,
-  debt: Currency,
+  debt: Currency | undefined,
   configParams: ChainConfig,
   account?: Address
 ): FujiResultPromise<VaultWithFinancials[]> {
   const _collateral = collateral.isToken ? collateral : collateral.wrapped;
-  const _debt = debt.isToken ? debt : debt.wrapped;
+  const _debt = debt ? (debt.isToken ? debt : debt.wrapped) : undefined;
 
   // find all vaults with this pair
   try {
@@ -69,11 +69,8 @@ export async function getVaultsFor(
       v.setConnection(configParams)
     );
     const vaults = [];
-    if (collateral.chainId === debt.chainId) {
-      const r = await batchLoad(type, _vaults, account, collateral.chain);
-      if (r.success) vaults.push(...r.data);
-      else return r;
-    } else {
+
+    if (debt && debt.chainId !== collateral.chainId) {
       const r1 = _vaults.filter((v) => v.chainId === collateral.chainId);
       const r2 = _vaults.filter((v) => v.chainId === debt.chainId);
       const [a, b] = await Promise.all([
@@ -82,6 +79,10 @@ export async function getVaultsFor(
       ]);
       if (a.success && b.success) vaults.push(...a.data, ...b.data);
       else return a.success ? b : a;
+    } else {
+      const r = await batchLoad(type, _vaults, account, collateral.chain);
+      if (r.success) vaults.push(...r.data);
+      else return r;
     }
 
     // sort them by borrow rate
