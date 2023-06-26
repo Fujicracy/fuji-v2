@@ -85,10 +85,12 @@ function BorrowHeader({
           <Typography variant="body2" height="40px" lineHeight="40px">
             Borrow
           </Typography>
-          <HeaderInfo
-            isCrossChainOperation={isCrossChainOperation}
-            chainName={chainName}
-          />
+          {debt && (
+            <HeaderInfo
+              isCrossChainOperation={isCrossChainOperation}
+              chainName={chainName}
+            />
+          )}
         </Stack>
       )}
       <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />

@@ -141,13 +141,6 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [updateCurrencyPrice]);
 
   const resetData = () => {
-    const defaultVault = walletChainId
-      ? availableVaults.find(
-          (vaultItem) => vaultItem.vault.chainId === walletChainId
-        )
-      : availableVaults[0];
-
-    defaultVault && changeActiveVault(defaultVault);
     walletChainId &&
       changeAssetChain(AssetType.Collateral, walletChainId, true);
   };
