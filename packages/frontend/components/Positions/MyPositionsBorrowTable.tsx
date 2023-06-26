@@ -19,7 +19,7 @@ import { showPosition } from '../../helpers/navigation';
 import {
   getRows,
   PositionRow,
-  vaultFromAddress,
+  vaultFromPosition,
 } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
@@ -78,7 +78,8 @@ function MyPositionsBorrowTable({ loading }: PositionsBorrowTableProps) {
   }
 
   function handleClick(row: PositionRow) {
-    const entity = vaultFromAddress(row.address);
+    if (!row.address || !row.chainId) return;
+    const entity = vaultFromPosition(row.address, row.chainId);
     showPosition(router, true, entity, entity?.chainId);
   }
 

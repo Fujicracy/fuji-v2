@@ -1,5 +1,4 @@
 import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
@@ -16,7 +15,6 @@ import {
   Paper,
   Stack,
   Typography,
-  useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
@@ -25,18 +23,22 @@ import { useRouter } from 'next/router';
 import React, { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
+import { userHasFundsInVault } from '../../helpers/borrow';
 import {
   connextLinksForEntry,
   HistoryEntry,
   HistoryEntryStatus,
 } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
-import { vaultFromAddress } from '../../helpers/positions';
+import { vaultFromPosition } from '../../helpers/positions';
 import { transactionSteps } from '../../helpers/transactions';
 import { useAuth } from '../../store/auth.store';
+import { useBorrow } from '../../store/borrow.store';
 import { useHistory } from '../../store/history.store';
+import { usePositions } from '../../store/positions.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import LinkIcon from '../Shared/Icons/LinkIcon';
+import ModalHeader from '../Shared/ModalHeader';
 import { stepIcon } from '../Shared/RoutesSteps';
 import WarningInfo from '../Shared/WarningInfo';
 
@@ -53,13 +55,16 @@ function TransactionModal({
 }: TransactionModalProps) {
   const theme = useTheme();
   const router = useRouter();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const activeChainId = useAuth((state) => state.chainId);
+  const activeVault = useBorrow((state) => state.activeVault);
+  const availableVaults = useBorrow((state) => state.availableVaults);
+  const positions = usePositions((state) => state.positions);
 
   const closeModal = useHistory((state) => state.closeModal);
 
   const [isDetailsShown, setIsDetailsShown] = useState(isHistoricalTransaction);
+  const [isCurrentPosition, setIsCurrentPosition] = useState(false);
   const [gif, setGif] = useState('');
 
   useEffect(() => {
@@ -81,6 +86,15 @@ function TransactionModal({
     }, 4000);
   }, [entry.status, isHistoricalTransaction]);
 
+  useEffect(() => {
+    const isCurrentPosition =
+      entry.vaultChainId !== undefined
+        ? activeVault?.address.value === entry.vaultAddress &&
+          activeVault?.chainId === entry.vaultChainId
+        : activeVault?.address.value === entry.vaultAddress;
+    setIsCurrentPosition(isCurrentPosition);
+  }, [positions, activeVault, currentPage, entry]);
+
   if (!entry) return <></>;
 
   const action =
@@ -91,19 +105,33 @@ function TransactionModal({
   const steps = transactionSteps(entry, connextScanLinks);
 
   const onClick = async () => {
-    // If the user is editing a position, we just need to close the modal
-    if (currentPage === myPositionPage.path) {
-      closeModal();
-      return;
-    }
-
     closeModal();
-    const vault = vaultFromAddress(entry.vaultAddress);
-    if (!vault) {
-      router.push(PATH.MY_POSITIONS);
-      return;
+    let showPositions = false;
+    // If the user is not on the my-positions/[pid] page
+    if (!(currentPage === myPositionPage.path && isCurrentPosition)) {
+      const vault = vaultFromPosition(
+        entry.vaultAddress as string,
+        entry.vaultChainId
+      );
+
+      // We might have to fetch available vaults in order to get the latest data
+
+      // If the user has no funds in the vault, redirect to the my-positions page
+      if (vault && !userHasFundsInVault(vault, availableVaults)) {
+        showPosition(router, true, vault, undefined);
+      } else {
+        showPositions = true;
+      }
+      // Same for the active vault in case the user is on the my-positions/[pid] page and there are no longer funds after closing the position
+    } else if (
+      activeVault &&
+      !userHasFundsInVault(activeVault, availableVaults)
+    ) {
+      showPositions = true;
     }
-    showPosition(router, true, vault, undefined);
+    if (showPositions) {
+      router.push(PATH.MY_POSITIONS);
+    }
   };
 
   const handleChange = (evt: MouseEvent) => {
@@ -135,32 +163,13 @@ function TransactionModal({
       open={true}
       onClose={closeModal}
       sx={{
-        '.MuiPaper-root': { width: isMobile ? '100%' : '480px' },
+        '.MuiPaper-root': { width: { xs: '100%', sm: '480px' } },
         backdropFilter: { xs: 'blur(0.313rem)', sm: 'none' },
       }}
     >
       <Paper variant="outlined" sx={{ p: { xs: '1rem', sm: '1.5rem' } }}>
-        <Box
-          width="2rem"
-          height="2rem"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: theme.palette.secondary.main,
-            borderRadius: '100px',
-            cursor: 'pointer',
-            float: 'right',
-          }}
-          onClick={closeModal}
-        >
-          <CloseIcon fontSize="small" />
-        </Box>
-        <Box textAlign={isMobile ? 'left' : 'center'} mb="2rem">
-          <Typography variant="h6" fontWeight={500}>
-            Transaction Status
-          </Typography>
-        </Box>
+        <ModalHeader title="Transaction Status" onClose={() => closeModal()} />
+
         {!isHistoricalTransaction && gif && (
           <img
             src={gif}
@@ -363,7 +372,7 @@ function TransactionModal({
               size="medium"
               onClick={onClick}
             >
-              View Position
+              {`${isCurrentPosition ? 'Close' : 'View Position'}`}
             </Button>
             {action?.token && action?.token?.chainId === activeChainId && (
               <Box textAlign="center">

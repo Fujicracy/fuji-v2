@@ -51,8 +51,8 @@ type AccountBalances = {
 };
 
 /**
- * The BorrowingVault class encapsulates the end-user logic of interation with the
- * BorrowingVault cotract without the need to deal directly with ethers.js (ABIs, providers etc).
+ * The BorrowingVault class encapsulates the end-user logic of interaction with the
+ * BorrowingVault contract without the need to deal directly with ethers.js (ABIs, providers etc).
  *
  * It contains read-only functions and leaves to the client only the final step of a blockchain write.
  * The class aims to expose functions that together with user's inputs go throughout the most common
@@ -143,7 +143,7 @@ export class BorrowingVault {
    * ```ts
    * await vault.balanceOf(address);
    * ```
-   * Use with caution, espesially for writes.
+   * Use with caution, especially for writes.
    */
   contract?: BorrowingVaultContract;
 
@@ -264,7 +264,7 @@ export class BorrowingVault {
   }
 
   /**
-   * Retruns the borrow interest rate by querying the activeProvider.
+   * Returns the borrow interest rate by querying the activeProvider.
    *
    * @throws if {@link setConnection} was not called beforehand
    */
@@ -282,7 +282,7 @@ export class BorrowingVault {
   }
 
   /**
-   * Retruns the list with all providers of the vault.
+   * Returns the list with all providers of the vault.
    * Each element also includes the borrow and deposit rate.
    *
    * @throws if {@link setConnection} was not called beforehand
@@ -334,80 +334,19 @@ export class BorrowingVault {
   }
 
   /**
-   * Returns a historical data of deposit or borrow rates for all providers.
-   * If data for a specific provider is not available at DefiLlama,
-   * an empty array is returned.
-   *
-   * @param token - the collateral or the debt token of the vault {@link Token}
+   * Returns a historical data of borrow rates for all providers. If data for a specific
+   * provider is not available at DefiLlama, an empty array is returned.
    */
-  async getProvidersStatsFor(token: Token): FujiResultPromise<AprResult[]> {
-    if (!token.equals(this.collateral) && !token.equals(this.debt))
-      return new FujiResultError('Wrong token');
+  async getBorrowProviderStats(): FujiResultPromise<AprResult[]> {
+    return this._getProvidersStatsFor(this.debt);
+  }
 
-    if (!this.allProviders) {
-      await this.preLoad();
-    }
-    if (!this.allProviders)
-      return new FujiResultError('Lending Providers are not preLoaded!');
-
-    const uri = {
-      pools: URLS.DEFILLAMA_POOLS,
-      chart: URLS.DEFILLAMA_CHART,
-    };
-    try {
-      const pools = await axios
-        .get<GetLlamaAssetPoolsResponse>(uri.pools)
-        .then(({ data }) => data.data);
-
-      const getPoolId = (providerAddr: string) => {
-        const provider = LENDING_PROVIDERS[this.chainId][providerAddr];
-
-        return pools.find(
-          (p: LlamaAssetPool) =>
-            p.chain === this.chain.llamaKey &&
-            p.project === provider.llamaKey &&
-            // if p.symbol === 'ETH' and token.symbol === 'WETH'
-            // in the case of dForce
-            token.symbol.includes(p.symbol)
-        )?.pool;
-      };
-
-      const llamaResult = await Promise.all(
-        this.allProviders.map((addr) => {
-          const poolId = getPoolId(addr);
-          return poolId
-            ? axios
-                .get<GetLlamaPoolStatsResponse>(uri.chart + `/${poolId}`)
-                .then(({ data }) => data.data)
-            : Promise.resolve([]);
-        })
-      );
-
-      const data = this.allProviders.map((addr, i) => ({
-        name: LENDING_PROVIDERS[this.chainId][addr].name,
-        aprStats: llamaResult[i].map(
-          ({
-            timestamp,
-            apyBase,
-            apyReward,
-            apyBaseBorrow,
-            apyRewardBorrow,
-          }) => ({
-            timestamp,
-            aprBase: token.equals(this.debt) ? apyBaseBorrow : apyBase,
-            aprReward: token.equals(this.debt) ? apyRewardBorrow : apyReward,
-          })
-        ),
-      }));
-
-      return new FujiResultSuccess(data);
-    } catch (e) {
-      const message = axios.isAxiosError(e)
-        ? `DefiLlama API call failed with a message: ${e.message}`
-        : 'DefiLlama API call failed with an unexpected error!';
-      console.error(message);
-      return new FujiResultError(message, FujiErrorCode.LLAMA);
-    }
+  /**
+   * Returns a historical data of supply rates for all providers. If data for a specific
+   * provider is not available at DefiLlama, an empty array is returned.
+   */
+  async getSupplyProviderStats(): FujiResultPromise<AprResult[]> {
+    return this._getProvidersStatsFor(this.collateral);
   }
 
   /**
@@ -487,6 +426,78 @@ export class BorrowingVault {
     const digest = utils._TypedDataEncoder.hash(domain, types, value);
 
     return new FujiResultSuccess({ digest, domain, types, value });
+  }
+
+  private async _getProvidersStatsFor(
+    token: Token
+  ): FujiResultPromise<AprResult[]> {
+    if (!token.equals(this.collateral) && !token.equals(this.debt))
+      return new FujiResultError('Wrong token');
+
+    if (!this.allProviders) {
+      await this.preLoad();
+    }
+    if (!this.allProviders)
+      return new FujiResultError('Lending Providers are not preLoaded!');
+
+    const uri = {
+      pools: URLS.DEFILLAMA_POOLS,
+      chart: URLS.DEFILLAMA_CHART,
+    };
+    try {
+      const pools = await axios
+        .get<GetLlamaAssetPoolsResponse>(uri.pools)
+        .then(({ data }) => data.data);
+
+      const getPoolId = (providerAddr: string) => {
+        const provider = LENDING_PROVIDERS[this.chainId][providerAddr];
+
+        return pools.find(
+          (p: LlamaAssetPool) =>
+            p.chain === this.chain.llamaKey &&
+            p.project === provider.llamaKey &&
+            // if p.symbol === 'ETH' and token.symbol === 'WETH'
+            // in the case of dForce
+            token.symbol.includes(p.symbol)
+        )?.pool;
+      };
+
+      const llamaResult = await Promise.all(
+        this.allProviders.map((addr) => {
+          const poolId = getPoolId(addr);
+          return poolId
+            ? axios
+                .get<GetLlamaPoolStatsResponse>(uri.chart + `/${poolId}`)
+                .then(({ data }) => data.data)
+            : Promise.resolve([]);
+        })
+      );
+
+      const data = this.allProviders.map((addr, i) => ({
+        name: LENDING_PROVIDERS[this.chainId][addr].name,
+        aprStats: llamaResult[i].map(
+          ({
+            timestamp,
+            apyBase,
+            apyReward,
+            apyBaseBorrow,
+            apyRewardBorrow,
+          }) => ({
+            timestamp,
+            aprBase: token.equals(this.debt) ? apyBaseBorrow : apyBase,
+            aprReward: token.equals(this.debt) ? apyRewardBorrow : apyReward,
+          })
+        ),
+      }));
+
+      return new FujiResultSuccess(data);
+    } catch (e) {
+      const message = axios.isAxiosError(e)
+        ? `DefiLlama API call failed with a message: ${e.message}`
+        : 'DefiLlama API call failed with an unexpected error!';
+      console.error(message);
+      return new FujiResultError(message, FujiErrorCode.LLAMA);
+    }
   }
 
   private _getPermitDigest(

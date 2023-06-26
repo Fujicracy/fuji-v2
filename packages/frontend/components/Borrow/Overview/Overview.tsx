@@ -54,7 +54,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
         sx={{
           flexDirection: 'column',
           alignItems: 'center',
-          p: '1.5rem 2rem',
+          p: '1.5rem',
           width: '100%',
           mt: !isMobile ? '1rem' : '0',
         }}

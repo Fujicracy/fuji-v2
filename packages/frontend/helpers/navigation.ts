@@ -9,6 +9,7 @@ import { NextRouter } from 'next/router';
 import { NAVIGATION_TASK_DELAY, PATH } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
+import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
 import { vaultFromEntity } from './markets';
@@ -58,7 +59,13 @@ export const showPosition = async (
   }
 
   const positions = usePositions.getState().positions;
-  if (positions?.some((p) => p.vault?.address.value === vault.address.value)) {
+  if (
+    positions?.some(
+      (p) =>
+        p.vault?.address.value === vault.address.value &&
+        p.vault?.chainId === vault.chainId
+    )
+  ) {
     router.push(`${PATH.MY_POSITIONS}/${vault.address.value}-${vault.chainId}`);
   } else {
     showBorrow(router, false);
@@ -67,15 +74,19 @@ export const showPosition = async (
 
 export const showBorrow = async (router: NextRouter, override = true) => {
   // I'm not exactly thrilled about this solution, but it works for now
-  useBorrow
+  useNavigation
     .getState()
     .changeBorrowPageShouldReset(override, !override ? true : undefined);
   router.push(PATH.BORROW);
 };
 
+export const shouldShowStoreNotification = (type: 'markets' | 'positions') =>
+  useNavigation.getState().currentPath ===
+  (type === 'markets' ? PATH.MARKETS : PATH.MARKETS);
+
 export type BorrowPageNavigation = {
   shouldReset: boolean;
-  willLoadBorrow: boolean;
+  willLoad: boolean;
   lock: boolean;
 };
 

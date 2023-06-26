@@ -13,7 +13,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
+import {YieldVault} from "../../../src/vaults/yields/YieldVault.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {RebalancerManager} from "../../../src/RebalancerManager.sol";
 
@@ -375,7 +375,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
 
   // error RebalancerManager__checkAssetsAmount_invalidAmount();
   function test_checkAssetsAmountInvalidAmount(uint256 invalidAmount) public {
-    uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
     vm.assume(invalidAmount > assets);
 
     //rebalance with more amount than available should revert

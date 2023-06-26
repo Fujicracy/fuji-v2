@@ -73,6 +73,7 @@ function BorrowHeader({
             isCrossChainOperation={isCrossChainOperation}
             chainName={chainName}
             tooltipMessage={networkMessage}
+            defaultOpen={true}
           />
         </Stack>
       ) : (
@@ -88,10 +89,11 @@ function BorrowHeader({
           <HeaderInfo
             isCrossChainOperation={isCrossChainOperation}
             chainName={chainName}
+            tooltipMessage="The network where you deposit to and borrow from"
           />
         </Stack>
       )}
-      <Divider sx={{ mt: '1rem', mb: '0.5rem' }} />
+      <Divider sx={{ m: '0.5rem 0' }} />
       {isEditing && (
         <TabSwitch
           size="large"

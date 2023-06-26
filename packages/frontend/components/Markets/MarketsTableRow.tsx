@@ -56,7 +56,7 @@ function MarketsTableRow({
       <Skeleton />
     ) : status === MarketRowStatus.Error ? (
       <Tooltip title="Error loading data" arrow>
-        <ErrorOutlineIcon />
+        <ErrorOutlineIcon sx={{ color: 'white' }} />
       </Tooltip>
     ) : (
       <></>
@@ -130,7 +130,7 @@ function MarketsTableRow({
           )}
         </SizableTableCell>
         <SizableTableCell width="200px">
-          {loaderOrError(row.chain.status)}
+          {!expandRow && loaderOrError(row.chain.status)}
           {shouldNetworkColumnBeShown && (
             <Stack
               direction="row"
@@ -159,7 +159,7 @@ function MarketsTableRow({
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
-          {loaderOrError(row.borrowApr.status)}
+          {!expandRow && loaderOrError(row.borrowApr.status)}
           {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
             <AprValue
               base={borrowApr.base || 0}
@@ -174,7 +174,7 @@ function MarketsTableRow({
           width="130px"
           sx={{ color: palette.success.main }}
         >
-          {loaderOrError(row.depositApr.status)}
+          {!expandRow && loaderOrError(row.depositApr.status)}
           {row.depositApr.status === MarketRowStatus.Ready && !expandRow && (
             <AprValue
               base={row.depositAprBase.value}
@@ -186,7 +186,7 @@ function MarketsTableRow({
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
-          {loaderOrError(row.integratedProviders.status)}
+          {!expandRow && loaderOrError(row.integratedProviders.status)}
           {!expandRow && (
             <IntegratedProviders providers={row.integratedProviders} />
           )}

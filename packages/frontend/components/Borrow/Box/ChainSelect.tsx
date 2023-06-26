@@ -23,7 +23,7 @@ const ChainSelect = ({
   const labelId = `${type}-label`;
 
   return (
-    <Stack alignItems="center" direction="row" mb="1rem">
+    <Stack alignItems="center" direction="row" mb="0.5rem">
       <Typography id={labelId} variant="smallDark">
         {label}
       </Typography>

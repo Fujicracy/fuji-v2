@@ -7,7 +7,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
-import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
+import {YieldVault} from "../../src/vaults/yields/YieldVault.sol";
 import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
@@ -296,6 +296,18 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     SafeERC20.safeIncreaseAllowance(IERC20(collatAsset_), vault_, assets);
     SafeERC20.safeIncreaseAllowance(IERC20(debtAsset_), vault_, debt);
     bVault.initializeVaultShares(assets, debt);
+    vm.stopPrank();
+  }
+
+  function _initalizeYieldVault(address vault_, address initializer, uint256 assets) internal {
+    YieldVault yvault = YieldVault(payable(vault_));
+    address collatAsset_ = yvault.asset();
+
+    deal(collatAsset_, initializer, assets /*,true*/ );
+
+    vm.startPrank(initializer);
+    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, assets);
+    yvault.initializeVaultShares(assets, 0);
     vm.stopPrank();
   }
 
