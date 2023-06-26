@@ -14,7 +14,7 @@ import { DEFAULT_SLIPPAGE } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useBorrow } from '../../../store/borrow.store';
+import { useAuth } from '../../../store/auth.store';
 import { colorTheme } from '../../../styles/theme';
 
 const slippageDefaultOptions: {
@@ -28,11 +28,14 @@ const slippageDefaultOptions: {
 
 function Slippage() {
   const { palette } = useTheme();
+
+  const slippage = useAuth((state) => state.slippage);
+  const changeSlippageValue = useAuth((state) => state.changeSlippageValue);
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [slippageInput, setSlippageInput] = useState<string>('');
+
   const isOpen = Boolean(anchorEl);
-  const slippage = useBorrow((state) => state.slippage);
-  const changeSlippageValue = useBorrow((state) => state.changeSlippageValue);
 
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     setAnchorEl(event.currentTarget);

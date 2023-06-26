@@ -21,10 +21,11 @@ import {
   viewEditedPosition,
 } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
-import { FormType, useBorrow } from '../../store/borrow.store';
+import { useBorrow } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 import { useNavigation } from '../../store/navigation.store';
 import { usePositions } from '../../store/positions.store';
+import { FormType } from '../../store/shared/state';
 import Footer from '../App/Footer';
 import Overview from './Overview/Overview';
 import VaultSelect from './VaultSelect/VaultSelect';
@@ -109,7 +110,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
       const vault = basePosition.position.vault;
       if (vault) {
         const changeAll = useBorrow.getState().changeAll;
-        changeAll(vault.collateral, vault.debt, vault);
+        changeAll(vault, vault.collateral, vault.debt);
         setLoading(false);
       }
     }

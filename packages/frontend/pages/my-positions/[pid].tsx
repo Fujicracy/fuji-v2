@@ -6,7 +6,8 @@ import React, { useEffect } from 'react';
 import BorrowWrapper from '../../components/Borrow/Wrapper';
 import { isChain } from '../../helpers/chains';
 import { showBorrow } from '../../helpers/navigation';
-import { FormType, useBorrow } from '../../store/borrow.store';
+import { useBorrow } from '../../store/borrow.store';
+import { FormType } from '../../store/shared/state';
 
 const formType = FormType.Edit;
 

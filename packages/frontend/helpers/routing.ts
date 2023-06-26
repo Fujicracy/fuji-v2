@@ -4,6 +4,7 @@ import {
   BridgeFee as FujiBridgeFee,
   Currency,
   FujiResult,
+  FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
   PreviewName,
@@ -36,9 +37,9 @@ export const fetchRoutes = async (
   mode: Mode,
   vault: BorrowingVault,
   collateralToken: Currency,
-  debtToken: Currency,
+  debtToken: Currency | undefined,
   collateralInput: string,
-  debtInput: string,
+  debtInput: string | undefined,
   address: string,
   recommended: boolean,
   slippage: number
@@ -46,6 +47,7 @@ export const fetchRoutes = async (
   let result: FujiResult<PreviewResult>;
   switch (mode) {
     case Mode.DEPOSIT_AND_BORROW:
+      if (!debtInput || !debtToken) return new FujiResultError('Wrong params');
       result = await sdk.previews.get({
         name: PreviewName.DEPOSIT_AND_BORROW,
         srcChainId: collateralToken.chainId,
@@ -76,6 +78,7 @@ export const fetchRoutes = async (
       });
       break;
     case Mode.BORROW:
+      if (!debtInput || !debtToken) return new FujiResultError('Wrong params');
       result = await sdk.previews.get({
         name: PreviewName.BORROW,
         vault,
@@ -87,6 +90,7 @@ export const fetchRoutes = async (
       });
       break;
     case Mode.PAYBACK_AND_WITHDRAW:
+      if (!debtInput || !debtToken) return new FujiResultError('Wrong params');
       result = await sdk.previews.get({
         name: PreviewName.PAYBACK_AND_WITHDRAW,
         vault,
@@ -117,6 +121,7 @@ export const fetchRoutes = async (
       });
       break;
     case Mode.PAYBACK:
+      if (!debtInput || !debtToken) return new FujiResultError('Wrong params');
       result = await sdk.previews.get({
         name: PreviewName.PAYBACK,
         srcChainId: debtToken.chainId,

@@ -17,7 +17,7 @@ import {
   TransactionMeta,
 } from '../../../helpers/transactions';
 import { formatValue } from '../../../helpers/values';
-import { useBorrow } from '../../../store/borrow.store';
+import { useAuth } from '../../../store/auth.store';
 import ModalHeader from '../ModalHeader';
 import WarningInfo from '../WarningInfo';
 import InfoRow from './InfoRow';
@@ -42,7 +42,7 @@ export function ConfirmTransactionModal({
   const { palette } = useTheme();
   const { steps } = transactionMeta;
 
-  const slippage = useBorrow((state) => state.slippage);
+  const slippage = useAuth((state) => state.slippage);
 
   const position = basePosition ? basePosition.position : undefined;
   const editedPosition = basePosition ? basePosition.editedPosition : undefined;

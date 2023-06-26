@@ -5,8 +5,9 @@ import BorrowWrapper from '../components/Borrow/Wrapper';
 import { AssetType } from '../helpers/assets';
 import { navigationalTaskDelay } from '../helpers/navigation';
 import { useAuth } from '../store/auth.store';
-import { FormType, useBorrow } from '../store/borrow.store';
+import { useBorrow } from '../store/borrow.store';
 import { useNavigation } from '../store/navigation.store';
+import { FormType } from '../store/shared/state';
 
 const formType = FormType.Create;
 
@@ -18,7 +19,7 @@ const BorrowPage: NextPage = () => {
 
   const changeFormType = useBorrow((state) => state.changeFormType);
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
-  const changeInputValues = useBorrow((state) => state.changeInputValues);
+  const clearInputValues = useBorrow((state) => state.clearInputValues);
   const changeShouldPageReset = useNavigation(
     (state) => state.changeBorrowPageShouldReset
   );
@@ -28,7 +29,7 @@ const BorrowPage: NextPage = () => {
 
   if (shouldResetPage) {
     clearDebt();
-    changeInputValues('', '');
+    clearInputValues();
     navigationalTaskDelay(() => changeShouldPageReset(false));
   }
 

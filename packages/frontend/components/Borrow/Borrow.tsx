@@ -56,7 +56,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const mode = useBorrow((state) => state.mode);
   const changeMode = useBorrow((state) => state.changeMode);
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
-  const changeInputValues = useBorrow((state) => state.changeInputValues);
+  const clearInputValues = useBorrow((state) => state.clearInputValues);
   const updateAll = useBorrow((state) => state.updateAll);
   const allow = useBorrow((state) => state.allow);
   const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
@@ -143,10 +143,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
 
   useEffect(() => {
     if (prevActionType.current !== actionType) {
-      changeInputValues('', '');
+      clearInputValues();
       prevActionType.current = actionType;
     }
-  }, [actionType, changeInputValues]);
+  }, [actionType, clearInputValues]);
 
   useEffect(() => {
     (async () => {

@@ -1,6 +1,6 @@
 import { Address } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
-import produce, { setAutoFreeze } from 'immer';
+import { setAutoFreeze } from 'immer';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -30,49 +30,50 @@ import {
   updateMeta,
   updateTransactionMeta,
 } from './shared/actions';
-import { BorrowState, BorrowStore, initialBorrowState } from './shared/borrow';
+import { initialLendState, LendStore } from './shared/lend';
 
 setAutoFreeze(false);
 
-export const useBorrow = create<BorrowStore>()(
+export const useLend = create<LendStore>()(
   devtools(
     (set, get, api) => ({
-      ...initialBorrowState,
+      ...initialLendState,
 
-      assetForType(type) {
-        return type === AssetType.Collateral ? get().collateral : get().debt;
+      assetForType() {
+        return get().collateral;
       },
 
       changeActiveVault(vault) {
         changeActiveVault(api, vault);
       },
 
-      async changeAll(vault, collateral, debt) {
-        changeAll(api, vault, collateral, debt);
+      async changeAll(vault, collateral) {
+        changeAll(api, vault, collateral);
       },
 
       async changeAllowance(type, status, amount) {
+        if (type === AssetType.Debt) return;
         changeAllowance(api, type, status, amount);
       },
 
       changeAssetChain(type, chainId, updateVault, currency) {
+        if (type === AssetType.Debt) return;
         changeAssetChain(api, type, chainId, updateVault, currency);
       },
 
       changeAssetCurrency(type, currency, updateVault) {
+        if (type === AssetType.Debt) return;
         changeAssetCurrency(api, type, currency, updateVault);
       },
 
       changeAssetValue(type, value) {
+        if (type === AssetType.Debt) return;
         changeAssetValue(api, type, value);
       },
 
       async changeBalances(type, balances) {
+        if (type === AssetType.Debt) return;
         changeBalances(api, type, balances);
-      },
-
-      async changeDebt(debt) {
-        set({ debt });
       },
 
       async changeFormType(formType) {
@@ -87,94 +88,33 @@ export const useBorrow = create<BorrowStore>()(
         changeTransactionMeta(api, route);
       },
 
-      async clearDebt() {
-        set({ debt: undefined });
-      },
-
       async clearInputValues() {
         await get().changeAssetValue(AssetType.Collateral, '');
-        await get().changeAssetValue(AssetType.Debt, '');
       },
 
       async updateAll(vaultAddress) {
         await get().updateBalances(AssetType.Collateral);
-        await get().updateBalances(AssetType.Debt);
         await get().updateAllowance(AssetType.Collateral);
-        await get().updateAllowance(AssetType.Debt);
         await get().updateVault(vaultAddress);
       },
 
       async updateAllowance(type) {
+        if (type === AssetType.Debt) return;
         updateAllowance(api, type);
       },
 
       async updateBalances(type) {
+        if (type === AssetType.Debt) return;
         updateBalances(api, type);
       },
 
       async updateCurrencyPrice(type) {
+        if (type === AssetType.Debt) return;
         updateCurrencyPrice(api, type);
       },
 
-      updateLiquidation() {
-        const debt = get().debt;
-        if (!debt) return;
-        const collateralAmount = parseFloat(get().collateral.input);
-        const collateralPrice = get().collateral.usdPrice;
-
-        const debtAmount = parseFloat(debt.input);
-        const debtPrice = debt.usdPrice;
-        const debtValue = debtAmount * debtPrice;
-
-        if (!debtValue || !collateralAmount) {
-          return set(
-            produce((s: BorrowState) => {
-              s.liquidationMeta.liquidationPrice = 0;
-              s.liquidationMeta.liquidationDiff = 0;
-            })
-          );
-        }
-
-        const liquidationThreshold = get().ltv.ltvThreshold;
-
-        const liquidationPrice =
-          debtValue / (collateralAmount * (liquidationThreshold / 100));
-        const liquidationDiff = Math.round(
-          (1 - liquidationPrice / collateralPrice) * 100
-        );
-
-        set(
-          produce((s: BorrowState) => {
-            s.liquidationMeta.liquidationPrice = liquidationPrice;
-            s.liquidationMeta.liquidationDiff = liquidationDiff;
-          })
-        );
-      },
-
-      updateLtv() {
-        const debt = get().debt;
-        if (!debt) return;
-        const collateralAmount = parseFloat(get().collateral.input);
-        const collateralPrice = get().collateral.usdPrice;
-        const collateralValue = collateralAmount * collateralPrice;
-
-        const debtAmount = parseFloat(debt.input);
-        const debtPrice = debt.usdPrice;
-        const debtValue = debtAmount * debtPrice;
-
-        const ltv =
-          collateralValue && debtValue
-            ? Math.round((debtValue / collateralValue) * 100)
-            : 0;
-
-        set(
-          produce((s: BorrowState) => {
-            s.ltv.ltv = ltv;
-          })
-        );
-      },
-
       async updateMeta(type, updateVault, updateBalance) {
+        if (type === AssetType.Debt) return;
         updateMeta(api, type, updateVault, updateBalance);
       },
 
@@ -188,19 +128,13 @@ export const useBorrow = create<BorrowStore>()(
       ),
 
       async updateVault(vaultAddress) {
-        const debt = get().debt?.currency;
-        if (!debt) return;
         set({ availableVaultsStatus: FetchStatus.Loading });
 
         const collateral = get().collateral.currency;
         const addr = useAuth.getState().address;
         const account = addr ? Address.from(addr) : undefined;
 
-        const result = await sdk.getBorrowingVaultsFor(
-          collateral,
-          debt,
-          account
-        );
+        const result = await sdk.getLendingVaultsFor(collateral, account);
 
         if (!result.success) {
           console.error(result.error.message);
@@ -208,11 +142,7 @@ export const useBorrow = create<BorrowStore>()(
           return;
         }
         // check if currencies already changed before the previous async call completed
-        const currentDebt = get().debt;
-        if (
-          !collateral.equals(get().collateral.currency) ||
-          (currentDebt && !debt.equals(currentDebt.currency))
-        ) {
+        if (!collateral.equals(get().collateral.currency)) {
           await get().updateVault();
           return;
         }
@@ -237,6 +167,7 @@ export const useBorrow = create<BorrowStore>()(
       },
 
       async allow(type) {
+        if (type === AssetType.Debt) return;
         allow(api, type);
       },
 
@@ -252,6 +183,6 @@ export const useBorrow = create<BorrowStore>()(
         await signAndExecute(api);
       },
     }),
-    storeOptions('borrow')
+    storeOptions('lend')
   )
 );
