@@ -1,5 +1,7 @@
 import { VaultType } from '../enums';
 import { ChainConfig, LendingProviderWithFinancials } from '../types';
+import { YieldVault } from '../types/contracts';
+import { YieldVaultMulticall } from '../types/contracts/src/vaults/yields/YieldVault';
 import { AbstractVault, AccountBalances } from './abstract/AbstractVault';
 import { Address } from './Address';
 import { Token } from './Token';
@@ -13,6 +15,10 @@ import { Token } from './Token';
  * path of interacting with a YieldVault contract.
  */
 export class LendingVault extends AbstractVault {
+  declare contract?: YieldVault;
+
+  multicallContract?: YieldVaultMulticall;
+
   constructor(address: Address, collateral: Token) {
     super(address, collateral, VaultType.LEND);
   }
