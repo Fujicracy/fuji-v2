@@ -649,19 +649,17 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     uint256 len = tokenList.length;
     for (uint256 i; i < len;) {
       if (token == tokenList[i].token) {
-        value = true;
+        return (true, 0); // leave when the element is found
       }
       if (tokenList[i].token == address(0)) {
-        latestIndex = i;
-        break;
-      }
-      if (i == (len - 1) && value == false && latestIndex == 0) {
-        revert BaseRouter__isInTokenList_snapshotLimitReached();
+        return (false, i); // leave if the first empty spot is found
       }
       unchecked {
         ++i;
       }
     }
+    // revert if looped through whole array and found no match or empty value
+    revert BaseRouter__isInTokenList_snapshotLimitReached();
   }
 
   /**
