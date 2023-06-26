@@ -39,6 +39,7 @@ interface ILiquidationManager {
    * @notice Liquidates the position of a given user.
    *
    * @param users to be liquidated
+   * @param liqCloseFactors (optional array) for each user, otherwise pass zero for each.
    * @param vault who holds the `users` positions
    * @param flasher to be used in liquidation
    * @param debtToCover toal amount of debt to cover for all `users`
@@ -50,6 +51,7 @@ interface ILiquidationManager {
    */
   function liquidate(
     address[] calldata users,
+    uint256[] calldata liqCloseFactors,
     IVault vault,
     uint256 debtToCover,
     IFlasher flasher,
