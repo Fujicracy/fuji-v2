@@ -2,6 +2,7 @@ import {
   Address,
   BorrowingVault,
   FujiError,
+  // LendingProviderDetails,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 

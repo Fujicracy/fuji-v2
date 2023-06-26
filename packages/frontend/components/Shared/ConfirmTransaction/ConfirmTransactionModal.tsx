@@ -18,8 +18,8 @@ import {
 } from '../../../helpers/transactions';
 import { formatValue } from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
-import ModalHeader from '../../Shared/ModalHeader';
-import WarningInfo from '../../Shared/WarningInfo';
+import ModalHeader from '../ModalHeader';
+import WarningInfo from '../WarningInfo';
 import InfoRow from './InfoRow';
 import RouteBox from './RouteBox';
 

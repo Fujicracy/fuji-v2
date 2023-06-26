@@ -4,7 +4,7 @@ import React from 'react';
 
 import { AssetMeta } from '../../../store/models/Position';
 import { CurrencyIcon } from '../../Shared/Icons';
-import LinkIcon from '../../Shared/Icons/LinkIcon';
+import { LinkIcon } from '../Icons';
 
 type AnalyticsHeaderProps = {
   collateral: AssetMeta;

@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { ChainId } from '@x-fuji/sdk';
+import { ChainId, Currency } from '@x-fuji/sdk';
 import React from 'react';
 
 import {
@@ -9,7 +9,6 @@ import {
   LtvMeta,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
-import { useBorrow } from '../../../store/borrow.store';
 import ChainSelect from './ChainSelect';
 import CurrencyCard from './CurrencyCard';
 
@@ -21,6 +20,18 @@ type BorrowBoxProps = {
   showMax: boolean;
   maxAmount: number;
   index: number;
+  changeAssetChain: (
+    type: AssetType,
+    chainId: ChainId,
+    updateVault: boolean,
+    currency?: Currency
+  ) => void;
+  changeAssetCurrency: (
+    type: AssetType,
+    currency: Currency,
+    updateVault: boolean
+  ) => void;
+  changeAssetValue: (type: AssetType, value: string) => void;
   assetChange?: AssetChange;
   value?: string;
   ltvMeta?: LtvMeta;
@@ -28,7 +39,7 @@ type BorrowBoxProps = {
   basePosition?: BasePosition;
 };
 
-function BorrowBox({
+function FormAssetBox({
   isEditing,
   actionType,
   assetChange,
@@ -41,11 +52,10 @@ function BorrowBox({
   ltvMeta,
   basePosition,
   index,
+  changeAssetChain,
+  changeAssetCurrency,
+  changeAssetValue,
 }: BorrowBoxProps) {
-  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
-  const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
-  const changeAssetValue = useBorrow((state) => state.changeAssetValue);
-
   return (
     <Box
       mb={
@@ -95,4 +105,4 @@ function BorrowBox({
   );
 }
 
-export default BorrowBox;
+export default FormAssetBox;

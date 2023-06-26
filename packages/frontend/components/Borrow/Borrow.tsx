@@ -18,11 +18,11 @@ import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
+import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
+import FormAssetBox from '../Shared/FormAssetBox/Box';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
-import BorrowBox from './Box/Box';
 import BorrowButton from './Button';
-import ConfirmTransactionModal from './ConfirmTransaction/ConfirmTransactionModal';
 import ConnextFooter from './ConnextFooter';
 import Fees from './Fees';
 import BorrowHeader from './Header/Header';
@@ -37,6 +37,8 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const address = useAuth((state) => state.address);
   const walletChainId = useAuth((state) => state.chainId);
   const changeChain = useAuth((state) => state.changeChain);
+  const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
+  const changeAssetValue = useBorrow((state) => state.changeAssetValue);
   const login = useAuth((state) => state.login);
 
   const collateral = useBorrow((state) => state.collateral);
@@ -238,7 +240,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
             const showLtv =
               type === AssetType.Debt && actionType === ActionType.ADD;
             return (
-              <BorrowBox
+              <FormAssetBox
                 key={type}
                 index={index}
                 type={type}
@@ -252,6 +254,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 value={assetChange?.input}
                 ltvMeta={dynamicLtvMeta}
                 basePosition={basePosition}
+                changeAssetChain={changeAssetChain}
+                changeAssetCurrency={changeAssetCurrency}
+                changeAssetValue={changeAssetValue}
               />
             );
           })}

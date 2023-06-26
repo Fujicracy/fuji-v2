@@ -34,8 +34,8 @@ import {
 } from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
 import styles from '../../../styles/components/Borrow.module.css';
-import Balance from '../../Shared/Balance';
-import { CurrencyIcon } from '../../Shared/Icons';
+import Balance from '../Balance';
+import { CurrencyIcon } from '../Icons';
 import CurrencyItem from './CurrencyItem';
 
 type SelectCurrencyCardProps = {

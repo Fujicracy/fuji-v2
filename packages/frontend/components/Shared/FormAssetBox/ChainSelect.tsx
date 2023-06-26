@@ -4,7 +4,7 @@ import { Chain, ChainId } from '@x-fuji/sdk';
 
 import { AssetType } from '../../../helpers/assets';
 import { chains } from '../../../helpers/chains';
-import { NetworkIcon } from '../../Shared/Icons';
+import { NetworkIcon } from '../Icons';
 
 type ChainSelectProps = {
   label: string;

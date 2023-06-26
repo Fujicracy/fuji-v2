@@ -7,7 +7,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Typography,
   useTheme,
 } from '@mui/material';
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
@@ -20,11 +19,12 @@ import { showPosition } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 import { useMarkets } from '../../store/markets.store';
 import SizableTableCell from '../Shared/SizableTableCell';
+import EmptyRowsState from '../Shared/Table/EmptyRowsState';
 import { DocsTooltip, RebalanceTooltip } from '../Shared/Tooltips';
 import { MarketFilters } from './MarketFiltersHeader';
-import MarketsTableRow from './MarketsTableRow';
+import MarketsBorrowTableRow from './MarketsBorrowTableRow';
 
-function MarketsTable({ filters }: { filters: MarketFilters }) {
+function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   const { palette } = useTheme();
   const address = useAuth((state) => state.address);
   // const [appSorting] = useState<SortBy>("descending")
@@ -147,7 +147,7 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
           ) : filteredRows.length > 0 ? (
             filteredRows.map((row, i) => {
               return (
-                <MarketsTableRow
+                <MarketsBorrowTableRow
                   key={i}
                   row={row}
                   onClick={handleClick}
@@ -168,38 +168,4 @@ function MarketsTable({ filters }: { filters: MarketFilters }) {
   );
 }
 
-function EmptyRowsState({ withFilters }: { withFilters: boolean }) {
-  const message = withFilters
-    ? 'No results found'
-    : 'No data available at the moment';
-
-  return (
-    <TableRow>
-      <TableCell
-        colSpan={8}
-        align="center"
-        sx={{ m: '0', textAlign: 'center', p: 0, height: '10rem' }}
-      >
-        <Stack
-          data-cy="market-empty-state"
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            width: '100%',
-            overflow: 'hidden',
-            maxWidth: '100vw',
-          }}
-        >
-          <Typography variant="body" fontWeight={500}>
-            No data
-          </Typography>
-          <Typography mt="0.25rem" variant="smallDark">
-            {message}
-          </Typography>
-        </Stack>
-      </TableCell>
-    </TableRow>
-  );
-}
-
-export default MarketsTable;
+export default MarketsBorrowTable;

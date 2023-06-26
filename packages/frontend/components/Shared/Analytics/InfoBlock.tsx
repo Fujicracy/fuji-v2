@@ -2,24 +2,33 @@ import { Box, Skeleton, Stack, Typography, useMediaQuery } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import React, { ReactNode } from 'react';
 
-import InfoTooltip from '../../Shared/Tooltips/InfoTooltip';
+import InfoTooltip from '../Tooltips/InfoTooltip';
 
 type InfoBlockProps = {
   label: string;
   value: ReactNode;
   loading: boolean;
   tooltip?: string;
+  contrast?: boolean;
 };
 
-function InfoBlock({ label, value, loading, tooltip }: InfoBlockProps) {
-  const { breakpoints } = useTheme();
+function InfoBlock({
+  label,
+  value,
+  loading,
+  tooltip,
+  contrast,
+}: InfoBlockProps) {
+  const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
 
   return (
     <Box
       sx={{
         p: '0.75rem 1rem',
-        backgroundColor: alpha('#FFFFFF', 0.03),
+        backgroundColor: contrast
+          ? palette.secondary.contrastText
+          : alpha('#FFFFFF', 0.03),
         borderRadius: '0.5rem',
       }}
     >

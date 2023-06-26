@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import React, { ReactNode } from 'react';
 
-import InfoTooltip from '../../Shared/Tooltips/InfoTooltip';
+import InfoTooltip from '../Tooltips/InfoTooltip';
 
 function PoolInfo() {
   const { breakpoints } = useTheme();

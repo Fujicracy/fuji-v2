@@ -3,7 +3,7 @@ import { NextPage } from 'next';
 import Head from 'next/head';
 
 import Footer from '../components/App/Footer';
-import Lending from '../components/Shared/Lending';
+import Lending from '../components/Lending/Lending';
 
 const LendingPage: NextPage = () => {
   return (

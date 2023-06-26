@@ -1,17 +1,21 @@
 import { Box, Grid, Typography, useMediaQuery } from '@mui/material';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 import { chains } from '../../helpers/chains';
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending';
 import { MarketFilters } from './MarketFiltersHeader';
 import MarketFiltersHeader from './MarketFiltersHeader';
-import MarketsTable from './MarketsTable';
+import MarketsBorrowTable from './MarketsBorrowTable';
+import MarketsDepositTable from './MarketsDepositTable';
 
 function Markets() {
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [currentTab, setCurrentTab] = useState(0);
+  const router = useRouter();
+  const [currentTab, setCurrentTab] = useState<number>(
+    parseInt((router.query?.tab as string) || '0')
+  );
   const [filters, setFilters] = useState<MarketFilters>({
     searchQuery: '',
     chains: chains.map((c) => c.name),
@@ -33,19 +37,20 @@ function Markets() {
         alignItems="center"
         wrap="wrap"
       >
-        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+        <BorrowLendingTabNavigation
+          onChange={(tab) => setCurrentTab(tab)}
+          defaultTab={parseInt((router.query?.tab as string) || '0')}
+        />
       </Grid>
 
-      {currentTab === 0 ? (
-        <Box>
-          <MarketFiltersHeader filters={filters} setFilters={setFilters} />
-          <MarketsTable filters={filters} />
-        </Box>
-      ) : (
-        <Box sx={{ height: '33rem', width: '100%' }}>
-          <Lending />
-        </Box>
-      )}
+      <Box>
+        <MarketFiltersHeader filters={filters} setFilters={setFilters} />
+        {currentTab === 0 ? (
+          <MarketsBorrowTable filters={filters} />
+        ) : (
+          <MarketsDepositTable filters={filters} />
+        )}
+      </Box>
     </Box>
   );
 }

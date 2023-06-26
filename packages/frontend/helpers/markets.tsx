@@ -3,6 +3,8 @@ import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MarketFilters } from '../components/Markets/MarketFiltersHeader';
 import { AssetType } from './assets';
 import { chainName, chains } from './chains';
+import { Skeleton, Tooltip } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 export enum MarketRowStatus {
   Ready,
@@ -385,3 +387,14 @@ const sortBy: Record<SortBy, CompareFn> = {
       ? 1
       : -1,
 };
+
+export const loaderOrError = (status: MarketRowStatus) =>
+  status === MarketRowStatus.Loading ? (
+    <Skeleton />
+  ) : status === MarketRowStatus.Error ? (
+    <Tooltip title="Error loading data" arrow>
+      <ErrorOutlineIcon />
+    </Tooltip>
+  ) : (
+    <></>
+  );

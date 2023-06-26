@@ -81,6 +81,8 @@ function Analytics() {
     setCurrentApr(currentApr);
   }, [activeProvider, selectedTab]);
 
+  console.log(currentData);
+
   const loadingSkeleton = (
     <>
       <Skeleton
