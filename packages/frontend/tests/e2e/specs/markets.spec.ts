@@ -109,24 +109,23 @@ describe('Markets', () => {
       })
       .click();
     // checking rows count changes.
-    cy.get('[data-cy="market-row"]')
-      .then((value) => {
-        resultLength = value.length;
-        expect(resultLength).to.not.eq(startLength);
-      })
-      .first()
-      .find('[data-cy="market-row-network"]')
-      .first()
-      .then((network) => {
-        // checking rows filtered by network properly.
-        expect(network).to.have.text(chainName);
-        // clicking first network filter button which is ALL.
-        cy.get('[data-cy="market-network-filter"]').first().click();
-        // checking rows count is same as in default state.
-        cy.get('[data-cy="market-row"]').then((value) => {
-          expect(value.length).to.eq(startLength);
+    cy.get('[data-cy="market-row"]').then((value) => {
+      resultLength = value.length;
+      expect(resultLength).to.not.eq(startLength);
+      cy.get('[data-cy="market-row"]')
+        .find('[data-cy="market-row-network"]')
+        .first()
+        .then((network) => {
+          // checking rows filtered by network properly.
+          expect(network).to.include.text(chainName);
+          // clicking first network filter button which is ALL.
+          cy.get('[data-cy="market-network-filter"]').first().click();
+          // checking rows count is same as in default state.
+          cy.get('[data-cy="market-row"]').then((value) => {
+            expect(value.length).to.eq(startLength);
+          });
         });
-      });
+    });
   });
   it('should toggle first high-level row', () => {
     // finding first row.
@@ -146,11 +145,12 @@ describe('Markets', () => {
       .should('not.exist');
   });
   it('should redirect after click with correct currency prefill', () => {
-    let collateralCurrency, debtCurrency;
+    let collateralCurrency, debtCurrency, provider;
     // finding first row.
     cy.get('[data-cy="market-row"]').first().as('firstRow', { type: 'static' });
     cy.get('@firstRow')
       .find('[data-cy="market-row-debt"]')
+      .first()
       .invoke('text')
       .then((debt) => {
         // saving first row debt currency.
@@ -159,24 +159,41 @@ describe('Markets', () => {
       .then(() => {
         cy.get('@firstRow')
           .find('[data-cy="market-row-collateral"]')
+          .first()
           .invoke('text')
           .then((collateral) => {
             // saving first row collateral currency.
             collateralCurrency = collateral;
           })
           .then(() => {
-            // clicking on first row.
-            cy.get('@firstRow').first().click();
-            // checking redirect to borrow page.
-            cy.location('pathname').should('eq', '/borrow');
-            // checking prefilled collateral currency.
-            cy.get('[data-cy="currency-select"]')
+            cy.get('[data-cy="provider-item"]')
               .first()
-              .should('have.text', collateralCurrency);
-            // checking prefilled debt currency.
-            cy.get('[data-cy="currency-select"]')
-              .last()
-              .should('have.text', debtCurrency);
+              .find('img')
+              .first()
+              .then((image) => {
+                provider = image.attr('alt');
+
+                // clicking on first pair second row.
+                cy.get('[data-cy="market-row"]').eq(1).click();
+                // checking redirect to borrow page.
+                cy.location('pathname').should('eq', '/borrow');
+                // checking prefilled collateral currency.
+                cy.get('[data-cy="currency-select"]')
+                  .first()
+                  .should('have.text', collateralCurrency);
+                // checking prefilled debt currency.
+                cy.get('[data-cy="currency-select"]')
+                  .last()
+                  .should('have.text', debtCurrency);
+
+                cy.get('[data-cy="provider-item"]')
+                  .first()
+                  .find('img')
+                  .first()
+                  .then((image) => {
+                    expect(provider).to.eq(image.attr('alt'));
+                  });
+              });
           });
       });
   });
