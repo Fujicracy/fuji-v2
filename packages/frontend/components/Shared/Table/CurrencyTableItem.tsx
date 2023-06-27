@@ -6,11 +6,11 @@ function CurrencyTableItem({
   currency,
   label,
   dataCy,
-  iconDimentions,
+  iconDimensions,
 }: {
   currency: string;
   label: string;
-  iconDimentions: number;
+  iconDimensions: number;
   dataCy?: string;
 }) {
   return (
@@ -22,8 +22,8 @@ function CurrencyTableItem({
     >
       <CurrencyIcon
         currency={currency}
-        height={iconDimentions}
-        width={iconDimentions}
+        height={iconDimensions}
+        width={iconDimensions}
       />
       <Typography ml="0.5rem" variant="small">
         {label}

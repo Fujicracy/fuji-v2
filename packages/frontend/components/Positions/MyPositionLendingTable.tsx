@@ -107,7 +107,7 @@ function MyPositionsLendingTable() {
                     label={`${formatValue(row.collateral.amount)} ${
                       row.collateral.symbol
                     }`}
-                    iconDimentions={24}
+                    iconDimensions={24}
                     dataCy="market-row-collateral"
                   />
                   <Typography variant="xsmall" ml="0.25rem">

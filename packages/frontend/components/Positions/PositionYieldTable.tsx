@@ -97,7 +97,7 @@ function PositionYieldTable({
             <CurrencyTableItem
               currency={row.collateral.symbol}
               label={row.collateral.symbol}
-              iconDimentions={32}
+              iconDimensions={32}
             />
           </TableCell>
           <TableCell align="right">

@@ -13,16 +13,13 @@ import {
 import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import {
-  loaderOrError,
-  MarketRow,
-  MarketRowStatus,
-} from '../../helpers/markets';
+import { MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
 import { DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import Toggle from '../Shared/Table/Toggle';
+import { loaderOrError } from './LoaderOrError';
 
 type MarketsTableRowProps = {
   row: MarketRow;
@@ -81,7 +78,7 @@ function MarketsDepositTableRow({
               <CurrencyTableItem
                 currency={row.collateral}
                 label={row.collateral}
-                iconDimentions={32}
+                iconDimensions={32}
                 dataCy="market-row-collateral"
               />
             </Stack>

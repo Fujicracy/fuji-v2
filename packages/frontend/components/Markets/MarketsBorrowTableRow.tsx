@@ -11,12 +11,7 @@ import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { AssetType } from '../../helpers/assets';
-import {
-  aprData,
-  loaderOrError,
-  MarketRow,
-  MarketRowStatus,
-} from '../../helpers/markets';
+import { aprData, MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
 import AprValue from '../Shared/AprValue';
 import BestLabel from '../Shared/BestLabel';
@@ -26,6 +21,7 @@ import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
 import Toggle from '../Shared/Table/Toggle';
+import { loaderOrError } from './LoaderOrError';
 
 type MarketsTableRowProps = {
   row: MarketRow;
@@ -93,7 +89,7 @@ function MarketsBorrowTableRow({
               <CurrencyTableItem
                 currency={row.debt}
                 label={row.debt}
-                iconDimentions={32}
+                iconDimensions={32}
                 dataCy="market-row-debt"
               />
             </Stack>
@@ -104,7 +100,7 @@ function MarketsBorrowTableRow({
             <CurrencyTableItem
               currency={row.collateral}
               label={row.collateral}
-              iconDimentions={32}
+              iconDimensions={32}
               dataCy="market-row-collateral"
             />
           )}
