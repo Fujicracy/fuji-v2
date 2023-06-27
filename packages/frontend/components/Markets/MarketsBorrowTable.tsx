@@ -26,21 +26,15 @@ import MarketsBorrowTableRow from './MarketsBorrowTableRow';
 
 function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   const { palette } = useTheme();
-  const address = useAuth((state) => state.address);
-  // const [appSorting] = useState<SortBy>("descending")
+
   const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
   const router = useRouter();
 
   const isLoading = useMarkets((state) => state.loading);
   const vaults = useMarkets((state) => state.borrow.vaults);
   const rows = useMarkets((state) => state.borrow.rows);
-  const fetchMarkets = useMarkets((state) => state.fetchMarkets);
 
   const walletChainId = useAuth((state) => state.chainId);
-
-  useEffect(() => {
-    fetchMarkets(address);
-  }, [address, fetchMarkets]);
 
   // Filters original rows depends on search or chain
   useEffect(() => {

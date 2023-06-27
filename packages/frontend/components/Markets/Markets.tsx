@@ -1,8 +1,10 @@
 import { Box, Grid, Typography, useMediaQuery } from '@mui/material';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { chains } from '../../helpers/chains';
+import { useAuth } from '../../store/auth.store';
+import { useMarkets } from '../../store/markets.store';
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import { MarketFilters } from './MarketFiltersHeader';
@@ -11,8 +13,12 @@ import MarketsBorrowTable from './MarketsBorrowTable';
 import MarketsLendingTable from './MarketsLendingTable';
 
 function Markets() {
-  const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const router = useRouter();
+  const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const address = useAuth((state) => state.address);
+  const fetchMarkets = useMarkets((state) => state.fetchMarkets);
+
   const [currentTab, setCurrentTab] = useState<number>(
     parseInt((router.query?.tab as string) || '0')
   );
@@ -20,6 +26,10 @@ function Markets() {
     searchQuery: '',
     chains: chains.map((c) => c.name),
   });
+
+  useEffect(() => {
+    fetchMarkets(address);
+  }, [address, fetchMarkets]);
 
   return (
     <Box>

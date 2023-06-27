@@ -24,6 +24,7 @@ import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
+import { useLend } from '../../store/lend.store';
 import Fees from '../Borrow/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import TabSwitch from '../Shared/TabSwitch/TabSwitch';
@@ -44,29 +45,28 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const changeChain = useAuth((state) => state.changeChain);
   const login = useAuth((state) => state.login);
 
-  const collateral = useBorrow((state) => state.collateral);
-  const needsSignature = useBorrow((state) => state.needsSignature);
-  const isSigning = useBorrow((state) => state.isSigning);
-  const isExecuting = useBorrow((state) => state.isExecuting);
-  const transactionMeta = useBorrow((state) => state.transactionMeta);
-  const metaStatus = useBorrow((state) => state.transactionMeta.status);
-  const availableVaultStatus = useBorrow(
-    (state) => state.availableVaultsStatus
-  );
-  const availableRoutes = useBorrow((state) => state.availableRoutes);
-  const vault = useBorrow((state) => state.activeVault);
-  const mode = useBorrow((state) => state.mode);
-  const changeMode = useBorrow((state) => state.changeMode);
-  const clearInputValues = useBorrow((state) => state.clearInputValues);
-  const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
-  const changeAssetValue = useBorrow((state) => state.changeAssetValue);
-  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
-  const updateBalances = useBorrow((state) => state.updateBalances);
-  const updateVault = useBorrow((state) => state.updateVault);
-  const allow = useBorrow((state) => state.allow);
-  const updateAllowance = useBorrow((state) => state.updateAllowance);
-  const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
-  const signAndExecute = useBorrow((state) => state.signAndExecute);
+  const collateral = useLend((state) => state.collateral);
+  const needsSignature = useLend((state) => state.needsSignature);
+  const isSigning = useLend((state) => state.isSigning);
+  const isExecuting = useLend((state) => state.isExecuting);
+  const transactionMeta = useLend((state) => state.transactionMeta);
+  const metaStatus = useLend((state) => state.transactionMeta.status);
+  const availableVaultStatus = useLend((state) => state.availableVaultsStatus);
+  const availableRoutes = useLend((state) => state.availableRoutes);
+  const vault = useLend((state) => state.activeVault);
+  const mode = useLend((state) => state.mode);
+
+  const changeMode = useLend((state) => state.changeMode);
+  const clearInputValues = useLend((state) => state.clearInputValues);
+  const changeAssetCurrency = useLend((state) => state.changeAssetCurrency);
+  const changeAssetValue = useLend((state) => state.changeAssetValue);
+  const changeAssetChain = useLend((state) => state.changeAssetChain);
+  const updateBalances = useLend((state) => state.updateBalances);
+  const updateVault = useLend((state) => state.updateVault);
+  const allow = useLend((state) => state.allow);
+  const updateAllowance = useLend((state) => state.updateAllowance);
+  const updateCurrencyPrice = useLend((state) => state.updateCurrencyPrice);
+  const signAndExecute = useLend((state) => state.signAndExecute);
 
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);

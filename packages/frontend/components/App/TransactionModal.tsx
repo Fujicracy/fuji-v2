@@ -118,7 +118,7 @@ function TransactionModal({
 
       // If the user has no funds in the vault, redirect to the my-positions page
       if (vault && !userHasFundsInVault(vault, availableVaults)) {
-        // TODO: Check type
+        // TODO: lend, check type
         showBorrowPosition(router, true, vault, undefined);
       } else {
         showPositions = true;

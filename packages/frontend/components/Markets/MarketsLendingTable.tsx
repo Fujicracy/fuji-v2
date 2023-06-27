@@ -16,6 +16,7 @@ import { chains } from '../../helpers/chains';
 import { filterMarketRows, MarketRow } from '../../helpers/markets';
 import { showLendingPosition } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
+import { useMarkets } from '../../store/markets.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import EmptyRowsState from '../Shared/Table/EmptyRowsState';
 import { DocsTooltip } from '../Shared/Tooltips';
@@ -24,13 +25,14 @@ import { MarketFilters } from './MarketFiltersHeader';
 import MarketsLendingTableRow from './MarketsLendingTableRow';
 
 function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
-  const address = useAuth((state) => state.address);
-  const [rows, setRows] = useState<MarketRow[]>([]);
   const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  const walletChain = useAuth((state) => state.chainId);
+  const isLoading = useMarkets((state) => state.loading);
+  const vaults = useMarkets((state) => state.lending.vaults);
+  const rows = useMarkets((state) => state.lending.rows);
+
+  const walletChainId = useAuth((state) => state.chainId);
 
   // useEffect(() => {
   //   const addr = address ? Address.from(address) : undefined;
@@ -90,7 +92,7 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: LendingVault | VaultWithFinancials) => {
-    if (!walletChain) return;
+    if (!walletChainId) return;
     showLendingPosition(router, true, entity);
   };
 
