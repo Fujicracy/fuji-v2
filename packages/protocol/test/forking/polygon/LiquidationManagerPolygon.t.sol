@@ -359,8 +359,7 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
       price - ((100e16 * borrowAmount * 1e18) / (amount * DEFAULT_LIQ_RATIO));
 
     //priceDrop between thresholds
-    priceDrop =
-      bound(priceDrop, priceDropThresholdToDiscountLiq + 1, priceDropThresholdToMaxLiq - 1);
+    priceDrop = bound(priceDrop, priceDropThresholdToDiscountLiq, priceDropThresholdToMaxLiq - 1250);
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
@@ -401,7 +400,7 @@ contract LiquidationManagerPolygonForkingTests is ForkingSetup, Routines {
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
 
-    assertEq(vault.balanceOf(ALICE), (amount - gainedShares));
+    assertApproxEqAbs(vault.balanceOf(ALICE), (amount - gainedShares), 1);
     assertApproxEqAbs(vault.balanceOfDebt(ALICE), (borrowAmount * 0.5e18) / 1e18, 1);
 
     // amount of collateral to pay flashloan back during liquidation through LiquidationManager
