@@ -1,8 +1,13 @@
 import { Card, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React, { useState } from 'react';
+import { AprResult } from '@x-fuji/sdk';
+import { LendingVault } from '@x-fuji/sdk/entities/LendingVault';
+import React, { useEffect, useRef, useState } from 'react';
 
+import { useLend } from '../../store/lend.store';
+import VaultSelect from '../Borrow/VaultSelect/VaultSelect';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
+import APYChart from '../Shared/Charts/APYChart';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
 import RiskBlock from './RiskBlock';
@@ -12,12 +17,36 @@ function LendingDetails() {
   const { palette } = useTheme();
 
   const [selectedPeriod, setSelectedPeriod] = useState(1);
-  const [data, setData] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [depositData, setDepositData] = useState<AprResult[]>([]);
+  const vault = useLend((state) => state.activeVault);
+  const prevVault = useRef<LendingVault | undefined>(undefined);
+
+  useEffect(() => {
+    if (vault && vault.address !== prevVault.current?.address) {
+      (async () => {
+        prevVault.current = vault;
+
+        setLoading(true);
+
+        const depositResult = await vault.getSupplyProviderStats();
+        setDepositData(depositResult.success ? depositResult.data : []);
+
+        setLoading(false);
+      })();
+    }
+  }, [depositData, vault]);
 
   return (
     <>
-      <Card sx={{ display: 'flex', flexDirection: 'column', p: '0 1.5rem' }}>
+      <VaultSelect type="lend" />
+      <Card
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          p: '0 1.5rem 1.5rem 1.5rem',
+        }}
+      >
         <Stack
           flexDirection="row"
           justifyContent="space-between"
@@ -74,11 +103,13 @@ function LendingDetails() {
             sx={{
               width: '100%',
               height: '38rem',
-              m: '-8rem 0 -6rem 0',
+              m: '-7rem 0 -6rem 0',
             }}
           />
-        ) : !data ? (
-          <></> // TODO:
+        ) : depositData.length > 0 ? (
+          <>
+            <APYChart data={depositData} tab={1} period={selectedPeriod} />
+          </>
         ) : (
           <EmptyChartState />
         )}
