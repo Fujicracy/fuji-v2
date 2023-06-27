@@ -108,13 +108,15 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * @dev Checks this address is the flashloan originator. This check applies to a
    * {BorrowingVault} only.
    *
-   * @param vault that holds user's position
    * @param users to be liquidated
+   * @param liqCloseFactors (optional) for each user, otherwise pass zero for each
+   * @param vault that holds user's position
    * @param debtAmount amount to liquidate
    * @param flasher contract address
    */
   function _checkReentry(
     address[] calldata users,
+    uint256[] calldata liqCloseFactors,
     IVault vault,
     uint256 debtAmount,
     IFlasher flasher,
@@ -124,7 +126,13 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     view
   {
     bytes memory requestorCalldata = abi.encodeWithSelector(
-      LiquidationManager.completeLiquidation.selector, users, vault, debtAmount, flasher, swapper
+      LiquidationManager.completeLiquidation.selector,
+      users,
+      liqCloseFactors,
+      vault,
+      debtAmount,
+      flasher,
+      swapper
     );
     bytes32 hashCheck = keccak256(abi.encode(requestorCalldata));
     if (_entryPoint != hashCheck) {
@@ -137,7 +145,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    *
    * @param vault that holds user's position
    * @param users to be liquidated
-   * @param liqCloseFactors (optional) for each user, otherwise pass zero for each.
+   * @param liqCloseFactors (optional) for each user, otherwise pass zero for each
    * @param debtAmount amount to liquidate
    * @param flasher contract address
    */
@@ -173,7 +181,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * operation with a flashloan.
    *
    * @param users to be liquidated
-   * @param liqCloseFactors (optional) for each user, otherwise pass zero for each.
+   * @param liqCloseFactors (optional) for each user, otherwise pass zero for each
    * @param vault that holds user's position*
    * @param debtAmount amount to liquidate
    * @param flasher contract address
@@ -194,7 +202,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     external
     returns (bool success)
   {
-    _checkReentry(users, vault, debtAmount, flasher, swapper);
+    _checkReentry(users, liqCloseFactors, vault, debtAmount, flasher, swapper);
 
     IERC20 debtAsset = IERC20(vault.debtAsset());
     IERC20 collateralAsset = IERC20(vault.asset());
