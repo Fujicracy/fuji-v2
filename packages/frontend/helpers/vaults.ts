@@ -2,6 +2,7 @@ import {
   AbstractVault,
   Address,
   FujiError,
+  VaultType,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 
@@ -12,10 +13,27 @@ import { chains } from './chains';
 export type FinancialsOrError = VaultWithFinancials | FujiError;
 
 /*
-  Convenience function that calls the SDK to get all the vaults with
+  Convenience functions that call the SDK to get all the vaults with
   financials and returns both the data and errors.
 */
 export const getAllBorrowingVaultFinancials = async (
+  address?: Address
+): Promise<{
+  data: FinancialsOrError[];
+}> => {
+  return getAllVaultFinancials(VaultType.BORROW, address);
+};
+
+export const getAllLendingVaultFinancials = async (
+  address?: Address
+): Promise<{
+  data: FinancialsOrError[];
+}> => {
+  return getAllVaultFinancials(VaultType.LEND, address);
+};
+
+const getAllVaultFinancials = async (
+  type: VaultType,
   address?: Address
 ): Promise<{
   data: FinancialsOrError[];
@@ -24,10 +42,10 @@ export const getAllBorrowingVaultFinancials = async (
 
   for (let index = 0; index < chains.length; index++) {
     const chain = chains[index];
-    const result = await sdk.getBorrowingVaultsFinancials(
-      chain.chainId,
-      address
-    );
+    const result =
+      type === VaultType.BORROW
+        ? await sdk.getBorrowingVaultsFinancials(chain.chainId, address)
+        : await sdk.getLendingVaultsFinancials(chain.chainId, address);
     if (result.success) {
       data.push(...result.data);
     } else {
@@ -54,3 +72,12 @@ export const vaultsFromFinancialsOrError = (
   data: FinancialsOrError[]
 ): VaultWithFinancials[] =>
   data.filter((d) => !(d instanceof FujiError)) as VaultWithFinancials[];
+
+export const vaultFromEntity = (
+  entity?: AbstractVault | VaultWithFinancials
+): AbstractVault | undefined =>
+  entity
+    ? entity instanceof AbstractVault
+      ? entity
+      : entity.vault
+    : undefined;

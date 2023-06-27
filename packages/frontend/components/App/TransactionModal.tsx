@@ -28,7 +28,7 @@ import {
   HistoryEntry,
   HistoryEntryStatus,
 } from '../../helpers/history';
-import { myPositionPage, showPosition } from '../../helpers/navigation';
+import { myPositionPage, showBorrowPosition } from '../../helpers/navigation';
 import { vaultFromPosition } from '../../helpers/positions';
 import { transactionSteps } from '../../helpers/transactions';
 import { userHasFundsInVault } from '../../helpers/vaults';
@@ -118,7 +118,8 @@ function TransactionModal({
 
       // If the user has no funds in the vault, redirect to the my-positions page
       if (vault && !userHasFundsInVault(vault, availableVaults)) {
-        showPosition(router, true, vault, undefined);
+        // TODO: Check type
+        showBorrowPosition(router, true, vault, undefined);
       } else {
         showPositions = true;
       }

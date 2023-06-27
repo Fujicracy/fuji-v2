@@ -8,22 +8,22 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { LendingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 import { chains } from '../../helpers/chains';
 import { filterMarketRows, MarketRow } from '../../helpers/markets';
-import { showPosition } from '../../helpers/navigation';
+import { showLendingPosition } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 import SizableTableCell from '../Shared/SizableTableCell';
 import EmptyRowsState from '../Shared/Table/EmptyRowsState';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
-import MarketsDepositTableRow from './MarketDepositTableRow';
 import { MarketFilters } from './MarketFiltersHeader';
+import MarketsLendingTableRow from './MarketsLendingTableRow';
 
-function MarketsDepositTable({ filters }: { filters: MarketFilters }) {
+function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
   const address = useAuth((state) => state.address);
   const [rows, setRows] = useState<MarketRow[]>([]);
   const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
@@ -89,9 +89,9 @@ function MarketsDepositTable({ filters }: { filters: MarketFilters }) {
     setFilteredRows(filterMarketRows(rows.slice(), filters));
   }, [filters, rows]);
 
-  const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
+  const handleClick = async (entity?: LendingVault | VaultWithFinancials) => {
     if (!walletChain) return;
-    showPosition(router, true, entity);
+    showLendingPosition(router, true, entity);
   };
 
   return (
@@ -154,7 +154,7 @@ function MarketsDepositTable({ filters }: { filters: MarketFilters }) {
           ) : filteredRows.length > 0 ? (
             filteredRows.map((row, i) => {
               return (
-                <MarketsDepositTableRow
+                <MarketsLendingTableRow
                   key={i}
                   row={row}
                   onClick={handleClick}
@@ -175,4 +175,4 @@ function MarketsDepositTable({ filters }: { filters: MarketFilters }) {
   );
 }
 
-export default MarketsDepositTable;
+export default MarketsLendingTable;

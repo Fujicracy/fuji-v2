@@ -14,14 +14,15 @@ import { useEffect, useState } from 'react';
 
 import { recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
-import { aprData, vaultFromEntity } from '../../helpers/markets';
-import { showPosition } from '../../helpers/navigation';
+import { aprData } from '../../helpers/markets';
+import { showBorrowPosition } from '../../helpers/navigation';
 import {
   getRows,
   PositionRow,
   vaultFromPosition,
 } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
+import { vaultFromEntity } from '../../helpers/vaults';
 import { useAuth } from '../../store/auth.store';
 import { useMarkets } from '../../store/markets.store';
 import { usePositions } from '../../store/positions.store';
@@ -41,7 +42,7 @@ function MyPositionsBorrowTable() {
   const router = useRouter();
 
   const account = useAuth((state) => state.address);
-  const markets = useMarkets((state) => state.rows);
+  const markets = useMarkets((state) => state.borrow.rows);
   const positions = usePositions((state) => state.positions);
   const isLoading = usePositions((state) => state.loading);
 
@@ -79,7 +80,7 @@ function MyPositionsBorrowTable() {
   function handleClick(row: PositionRow) {
     if (!row.address || !row.chainId) return;
     const entity = vaultFromPosition(row.address, row.chainId);
-    showPosition(router, true, entity, entity?.chainId);
+    showBorrowPosition(router, true, entity, entity?.chainId);
   }
 
   return (

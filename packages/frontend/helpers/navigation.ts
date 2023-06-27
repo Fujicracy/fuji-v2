@@ -2,6 +2,7 @@ import {
   BorrowingVault,
   ChainId,
   Currency,
+  LendingVault,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
@@ -12,7 +13,7 @@ import { useBorrow } from '../store/borrow.store';
 import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
-import { vaultFromEntity } from './markets';
+import { vaultFromEntity } from './vaults';
 
 type Page = {
   title: string;
@@ -34,14 +35,27 @@ export const myPositionPage: Page = {
 export const isTopLevelUrl = (url: string) =>
   topLevelPages.some((p) => p.path === url);
 
-export const showPosition = async (
+export const showLendingPosition = (
+  router: NextRouter,
+  reset = true,
+  entity?: LendingVault | VaultWithFinancials,
+  walletChainId?: ChainId
+) => {
+  // TODO:
+  console.log(router);
+  console.log(reset);
+  console.log(entity);
+  console.log(walletChainId);
+};
+
+export const showBorrowPosition = async (
   router: NextRouter,
   reset = true,
   entity?: BorrowingVault | VaultWithFinancials,
   walletChainId?: ChainId
 ) => {
   const vault = vaultFromEntity(entity);
-  if (!vault) return;
+  if (!vault || !(vault instanceof BorrowingVault)) return;
 
   const changeAll = useBorrow.getState().changeAll;
   if (walletChainId && isSupported(walletChainId)) {

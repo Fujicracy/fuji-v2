@@ -8,7 +8,7 @@ import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import { MarketFilters } from './MarketFiltersHeader';
 import MarketFiltersHeader from './MarketFiltersHeader';
 import MarketsBorrowTable from './MarketsBorrowTable';
-import MarketsDepositTable from './MarketsDepositTable';
+import MarketsLendingTable from './MarketsLendingTable';
 
 function Markets() {
   const onMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -48,7 +48,7 @@ function Markets() {
         {currentTab === 0 ? (
           <MarketsBorrowTable filters={filters} />
         ) : (
-          <MarketsDepositTable filters={filters} />
+          <MarketsLendingTable filters={filters} />
         )}
       </Box>
     </Box>

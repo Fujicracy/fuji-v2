@@ -14,9 +14,10 @@ import React, { createRef, useEffect, useRef, useState } from 'react';
 
 import { AssetType } from '../../../helpers/assets';
 import { chainName } from '../../../helpers/chains';
-import { AprData, aprData, vaultFromEntity } from '../../../helpers/markets';
+import { AprData, aprData } from '../../../helpers/markets';
 import { RouteMeta } from '../../../helpers/routing';
 import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
+import { vaultFromEntity } from '../../../helpers/vaults';
 import { useMarkets } from '../../../store/markets.store';
 import AprValue from '../../Shared/AprValue';
 import BestLabel from '../../Shared/BestLabel';
@@ -47,7 +48,7 @@ function Vault({
   const [height, setHeight] = useState(0);
   const [isHovered, setHovered] = useState(false);
 
-  const markets = useMarkets((state) => state.rows);
+  const markets = useMarkets((state) => state.borrow.rows);
   const stackRef = createRef<HTMLDivElement>();
   const aprRef = useRef<Partial<AprData>>(
     aprData(

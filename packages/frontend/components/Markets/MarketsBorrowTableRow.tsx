@@ -57,7 +57,7 @@ function MarketsBorrowTableRow({
     <>
       <TableRow
         data-cy="market-row"
-        onClick={() => onClick(row.entity)}
+        onClick={() => onClick(row.entity as BorrowingVault)}
         sx={{
           height: '3.438rem',
           cursor: 'pointer',

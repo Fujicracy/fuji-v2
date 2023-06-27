@@ -15,7 +15,7 @@ import { useEffect, useState } from 'react';
 
 import { chains } from '../../helpers/chains';
 import { filterMarketRows, MarketRow } from '../../helpers/markets';
-import { showPosition } from '../../helpers/navigation';
+import { showBorrowPosition } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 import { useMarkets } from '../../store/markets.store';
 import SizableTableCell from '../Shared/SizableTableCell';
@@ -32,8 +32,8 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   const router = useRouter();
 
   const isLoading = useMarkets((state) => state.loading);
-  const vaults = useMarkets((state) => state.vaults);
-  const rows = useMarkets((state) => state.rows);
+  const vaults = useMarkets((state) => state.borrow.vaults);
+  const rows = useMarkets((state) => state.borrow.rows);
   const fetchMarkets = useMarkets((state) => state.fetchMarkets);
 
   const walletChainId = useAuth((state) => state.chainId);
@@ -48,7 +48,7 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    showPosition(router, true, entity, walletChainId);
+    showBorrowPosition(router, true, entity, walletChainId);
   };
 
   return (

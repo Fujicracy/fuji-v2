@@ -1,10 +1,24 @@
-import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import {
+  AbstractVault,
+  Address,
+  BorrowingVault,
+  FujiError,
+  VaultType,
+  VaultWithFinancials,
+} from '@x-fuji/sdk';
 
 import { MarketFilters } from '../components/Markets/MarketFiltersHeader';
+import { sdk } from '../services/sdk';
+import { MarketsApi } from '../store/markets.store';
 import { AssetType } from './assets';
 import { chainName, chains } from './chains';
-import { Skeleton, Tooltip } from '@mui/material';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { shouldShowStoreNotification } from './navigation';
+import { notify, showOnchainErrorNotification } from './notifications';
+import {
+  getAllBorrowingVaultFinancials,
+  getAllLendingVaultFinancials,
+  vaultsFromFinancialsOrError,
+} from './vaults';
 
 export enum MarketRowStatus {
   Ready,
@@ -13,7 +27,7 @@ export enum MarketRowStatus {
 }
 
 export type MarketRow = {
-  entity?: BorrowingVault | VaultWithFinancials;
+  entity?: AbstractVault | VaultWithFinancials;
 
   collateral: string;
   debt: string;
@@ -115,15 +129,6 @@ const defaultRow: MarketRow = {
   isGrandChild: false,
   isBest: false,
 };
-
-export const vaultFromEntity = (
-  entity?: BorrowingVault | VaultWithFinancials
-): BorrowingVault | undefined =>
-  entity
-    ? entity instanceof BorrowingVault
-      ? entity
-      : entity.vault
-    : undefined;
 
 export const setBase = (v: BorrowingVault): MarketRow => ({
   ...defaultRow,
@@ -388,13 +393,79 @@ const sortBy: Record<SortBy, CompareFn> = {
       : -1,
 };
 
-export const loaderOrError = (status: MarketRowStatus) =>
-  status === MarketRowStatus.Loading ? (
-    <Skeleton />
-  ) : status === MarketRowStatus.Error ? (
-    <Tooltip title="Error loading data" arrow>
-      <ErrorOutlineIcon />
-    </Tooltip>
-  ) : (
-    <></>
+export const fetchMarkets = async (
+  type: VaultType,
+  api: MarketsApi,
+  addr?: string
+) => {
+  const vaults = sdk.getAllBorrowingVaults();
+  const rowsBase = vaults.map(setBase);
+
+  api.getState().changeVaults(type, vaults);
+  api.getState().changeRowsIfNeeded(type, rowsBase);
+
+  const address = addr ? Address.from(addr) : undefined;
+  const result =
+    type === VaultType.BORROW
+      ? await getAllBorrowingVaultFinancials(address)
+      : await getAllLendingVaultFinancials(address);
+  const errors: FujiError[] = result.data.filter(
+    (d) => d instanceof FujiError
+  ) as FujiError[];
+  const allVaults = vaultsFromFinancialsOrError(result.data);
+  if (shouldShowStoreNotification('markets')) {
+    errors.forEach((error) => {
+      showOnchainErrorNotification(error);
+    });
+  }
+  if (allVaults.length === 0) {
+    const rows = rowsBase
+      .map((r) => setFinancials(r, MarketRowStatus.Error))
+      .map((r) => setLlamas(r, MarketRowStatus.Error));
+    api.getState().changeRows(type, setBest(rows));
+  }
+  const vaultsWithFinancials = result.data;
+  const rowsFin = vaultsWithFinancials.map((obj, i) => {
+    const fin = obj instanceof FujiError ? undefined : obj;
+    const status =
+      obj instanceof FujiError ? MarketRowStatus.Error : MarketRowStatus.Ready;
+    return setFinancials(rowsBase[i], status, fin);
+  });
+  const currentFinancials = vaultsFromFinancialsOrError(
+    api.getState().vaultsWithFinancials(type)
   );
+  if (
+    currentFinancials.length === 0 ||
+    currentFinancials.length !== allVaults.length
+  ) {
+    api.getState().changeRows(type, setBest(rowsFin));
+    api.getState().changeVaultsWithFinancials(type, vaultsWithFinancials);
+  }
+  const llamaResult = await sdk.getLlamaFinancials(allVaults);
+  if (!llamaResult.success) {
+    notify({
+      type: 'error',
+      message: llamaResult.error.message,
+    });
+    const rows = rowsFin.map((r) => setLlamas(r, MarketRowStatus.Error));
+    api.getState().changeRows(type, setBest(rows));
+    return;
+  }
+  const vaultsWithLlamas = llamaResult.data;
+  const rowsLlama = vaultsWithFinancials.map((obj, i) => {
+    const llama =
+      obj instanceof FujiError
+        ? undefined
+        : vaultsWithLlamas.find(
+            (l) => l.vault.address.value === obj.vault.address.value
+          );
+    return setLlamas(
+      rowsFin[i],
+      llama ? MarketRowStatus.Ready : MarketRowStatus.Error,
+      llama
+    );
+  });
+  api
+    .getState()
+    .changeRowsAndFinancials(type, setBest(rowsLlama), vaultsWithLlamas);
+};

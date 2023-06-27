@@ -11,6 +11,7 @@ import {
   FujiResult,
   FujiResultError,
   FujiResultSuccess,
+  LendingVault,
   Sdk,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
@@ -103,7 +104,7 @@ export const changeAll = async (
   const debts = debt && sdk.getDebtForChain(debt.chainId);
   api.setState(
     produce((state: AbstractState) => {
-      state.activeVault = vault;
+      state.activeVault = vault as BorrowingVault | LendingVault; // TODO: Not the best
 
       state.collateral.chainId = collateral.chainId;
       state.collateral.selectableCurrencies = collaterals;

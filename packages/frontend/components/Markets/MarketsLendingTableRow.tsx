@@ -10,7 +10,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { LendingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { MarketRow, MarketRowStatus } from '../../helpers/markets';
@@ -23,11 +23,11 @@ import { loaderOrError } from './LoaderOrError';
 
 type MarketsTableRowProps = {
   row: MarketRow;
-  onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
+  onClick: (entity?: LendingVault | VaultWithFinancials) => void;
   openedByDefault?: boolean;
 };
 
-function MarketsDepositTableRow({
+function MarketsLendingTableRow({
   row,
   onClick,
   openedByDefault = false,
@@ -53,7 +53,7 @@ function MarketsDepositTableRow({
     <>
       <TableRow
         data-cy="market-row"
-        onClick={() => onClick(row.entity)}
+        onClick={() => onClick(row.entity as LendingVault)}
         sx={{
           height: '3.438rem',
           cursor: 'pointer',
@@ -170,7 +170,7 @@ function MarketsDepositTableRow({
                 sx={{ borderCollapse: 'initial' }}
               >
                 <TableBody>
-                  <MarketsDepositTableRow
+                  <MarketsLendingTableRow
                     row={collapsedRow}
                     onClick={onClick}
                   />
@@ -184,4 +184,4 @@ function MarketsDepositTableRow({
   );
 }
 
-export default MarketsDepositTableRow;
+export default MarketsLendingTableRow;

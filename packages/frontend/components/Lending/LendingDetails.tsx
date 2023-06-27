@@ -1,7 +1,6 @@
 import { Card, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { AprResult } from '@x-fuji/sdk';
-import { LendingVault } from '@x-fuji/sdk/entities/LendingVault';
+import { AprResult, LendingVault } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useLend } from '../../store/lend.store';

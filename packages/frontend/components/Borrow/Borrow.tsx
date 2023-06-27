@@ -13,7 +13,7 @@ import {
 } from '../../helpers/assets';
 import { chainName, isSupported } from '../../helpers/chains';
 import { modeForContext } from '../../helpers/mode';
-import { showBorrow, showPosition } from '../../helpers/navigation';
+import { showBorrow, showBorrowPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
@@ -294,7 +294,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               if (borrow) {
                 showBorrow(router);
               } else {
-                showPosition(router, false, vault, walletChainId);
+                showBorrowPosition(router, false, vault, walletChainId);
               }
             }}
             onClick={signAndExecute}
