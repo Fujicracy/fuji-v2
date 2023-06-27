@@ -57,20 +57,6 @@ contract YieldVault is BaseVault {
 
   receive() external payable {}
 
-  /// @inheritdoc BaseVault
-  function initializeVaultShares(uint256 assets, uint256) public override {
-    if (initialized) {
-      revert BaseVault__initializeVaultShares_alreadyInitialized();
-    } else if (assets < minAmount) {
-      revert BaseVault__initializeVaultShares_lessThanMin();
-    }
-    _unpauseForceAllActions();
-    _deposit(msg.sender, chief.timelock(), assets, assets);
-
-    initialized = true;
-    emit VaultInitialized(msg.sender);
-  }
-
   /*///////////////////////////////
       Debt management overrides 
   ///////////////////////////////*/
