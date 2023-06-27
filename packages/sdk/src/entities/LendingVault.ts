@@ -29,9 +29,11 @@ export class LendingVault extends AbstractVault {
     throw new Error('Method not implemented.');
   }
   setConnection(configParams: ChainConfig): AbstractVault {
+    configParams;
     throw new Error('Method not implemented.');
   }
   getBalances(account: Address): Promise<AccountBalances> {
+    account;
     throw new Error('Method not implemented.');
   }
 }
