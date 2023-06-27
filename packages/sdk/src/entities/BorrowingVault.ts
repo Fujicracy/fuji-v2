@@ -126,7 +126,7 @@ export class BorrowingVault extends AbstractVault {
         this.multicallContract.getProviders(),
       ]);
 
-    this._setBorrowingPreLoads(
+    this.setBorrowingPreLoads(
       maxLtv,
       liqRatio,
       safetyRating,
@@ -174,6 +174,20 @@ export class BorrowingVault extends AbstractVault {
     return this._getProvidersStatsFor(this.debt, true);
   }
 
+  setBorrowingPreLoads(
+    maxLtv: BigNumber,
+    liqRatio: BigNumber,
+    safetyRating: BigNumber,
+    name: string,
+    activeProvider: string,
+    allProviders: string[]
+  ) {
+    this.maxLtv = maxLtv;
+    this.liqRatio = liqRatio;
+
+    this._setPreLoads(safetyRating, name, activeProvider, allProviders);
+  }
+
   /**
    * Returns deposit and borrow balances for an account.
    *
@@ -191,19 +205,5 @@ export class BorrowingVault extends AbstractVault {
     ]);
 
     return { deposit, borrow };
-  }
-
-  private _setBorrowingPreLoads(
-    maxLtv: BigNumber,
-    liqRatio: BigNumber,
-    safetyRating: BigNumber,
-    name: string,
-    activeProvider: string,
-    allProviders: string[]
-  ) {
-    this.maxLtv = maxLtv;
-    this.liqRatio = liqRatio;
-
-    this._setPreLoads(safetyRating, name, activeProvider, allProviders);
   }
 }

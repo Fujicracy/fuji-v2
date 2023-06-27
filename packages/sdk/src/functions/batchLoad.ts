@@ -183,7 +183,7 @@ async function _borrowingBatchLoad(
       const activeProvider = detailsBatchResults[N_CALLS * i + 3] as string;
       const allProviders = detailsBatchResults[N_CALLS * i + 4] as string[];
       const safetyRating = detailsBatchResults[N_CALLS * i + 5] as BigNumber;
-      v.setPreLoads(
+      v.setBorrowingPreLoads(
         maxLtv,
         liqRatio,
         safetyRating,

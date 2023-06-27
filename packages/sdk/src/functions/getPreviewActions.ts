@@ -5,9 +5,8 @@ import invariant from 'tiny-invariant';
 import { CONNEXT_ROUTER_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
 import { BN_ZERO, DEFAULT_SLIPPAGE } from '../constants/common';
-import { Currency } from '../entities';
+import { AbstractVault, BorrowingVault, Currency } from '../entities';
 import { Address } from '../entities/Address';
-import { BorrowingVault } from '../entities/BorrowingVault';
 import {
   ChainId,
   ConnextDomain,
@@ -39,7 +38,7 @@ import {
 
 function _depositOrPayback(
   action: RouterAction.DEPOSIT | RouterAction.PAYBACK,
-  vault: BorrowingVault,
+  vault: AbstractVault,
   amount: BigNumber,
   receiver: Address,
   sender: Address,
@@ -73,7 +72,7 @@ function _depositOrPayback(
 
 function _borrowOrWithdraw(
   action: RouterAction.BORROW | RouterAction.WITHDRAW,
-  vault: BorrowingVault,
+  vault: AbstractVault,
   amount: BigNumber,
   receiver: Address,
   owner: Address,
@@ -106,7 +105,7 @@ function _borrowOrWithdraw(
 
 function _permit(
   action: RouterAction.BORROW | RouterAction.WITHDRAW,
-  vault: BorrowingVault,
+  vault: AbstractVault,
   amount: BigNumber,
   receiver: Address,
   owner: Address,
@@ -286,6 +285,7 @@ function borrowOrWithdraw(
       ..._borrowOrWithdraw(action, vault, amountOut, account, account, unwrap),
     ];
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_SRC) {
+    invariant(vault instanceof BorrowingVault, 'Wrong vault type');
     // start from chain A, borrow on chain A and transfer to chain B
     return [
       _permit(action, vault, amountOut, connextRouter, account, deadline),
@@ -333,6 +333,7 @@ function borrowOrWithdraw(
       ),
     ];
   } else {
+    invariant(vault instanceof BorrowingVault, 'Wrong vault type');
     // start from chain A, borrow/withdraw on chain B where's also the position and transfer to chain C
     const innerActions = [
       _permit(action, vault, amountOut, connextRouter, account, deadline),
@@ -402,6 +403,7 @@ function depositAndBorrow(
       ..._borrowOrWithdraw(BORROW, vault, amountOut, account, account, unwrap),
     ];
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_SRC) {
+    invariant(vault instanceof BorrowingVault, 'Wrong vault type');
     // deposit and borrow on chain A and transfer to chain B
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
     return [
@@ -454,6 +456,7 @@ function depositAndBorrow(
       ),
     ];
   } else {
+    invariant(vault instanceof BorrowingVault, 'Wrong vault type');
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
     const innerActions = [
       ..._depositOrPayback(
