@@ -520,9 +520,7 @@ contract BorrowingVault2 is BaseVault {
   )
     private
   {
-    if (
-      debt == 0 || shares == 0 || receiver == address(0) || owner == address(0) || debt < minAmount
-    ) {
+    if (debt == 0 || shares == 0 || receiver == address(0) || owner == address(0)) {
       revert BorrowingVault__borrow_invalidInput();
     }
     if (debt > maxBorrow(owner)) {
