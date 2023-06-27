@@ -22,7 +22,6 @@ import { usePositions } from '../../store/positions.store';
 import { NetworkIcon } from '../Shared/Icons';
 import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import ExtraTableSpace from '../Shared/Table/ExtraTableSpace';
-import IntegratedProtocols from '../Shared/Table/IntegratedProtocols';
 import { DocsTooltip } from '../Shared/Tooltips';
 import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 import EmptyState from './EmptyState';
@@ -126,7 +125,7 @@ function MyPositionsLendingTable() {
                 </Typography>
               </TableCell>
               <TableCell align="right">
-                <IntegratedProtocols integratedProtocols={[]} />
+                {/* <IntegratedProviders providers={[]} /> */}
               </TableCell>
               <TableCell align="right">
                 <Chip
