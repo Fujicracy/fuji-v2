@@ -2,6 +2,7 @@ import { Card, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
+import VaultSelect from '../Borrow/VaultSelect/VaultSelect';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
@@ -17,6 +18,7 @@ function LendingDetails() {
 
   return (
     <>
+      <VaultSelect type="lend" />
       <Card sx={{ display: 'flex', flexDirection: 'column', p: '0 1.5rem' }}>
         <Stack
           flexDirection="row"

@@ -19,10 +19,11 @@ import { useTheme } from '@mui/material/styles';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
+import { useLend } from '../../../store/lend.store';
 import { useNavigation } from '../../../store/navigation.store';
 import Vault from './Vault';
 
-function VaultSelect({ isBorrow }: { isBorrow?: boolean }) {
+function VaultSelect({ type = 'borrow' }: { type?: 'borrow' | 'lend' }) {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
@@ -32,15 +33,15 @@ function VaultSelect({ isBorrow }: { isBorrow?: boolean }) {
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
 
-  const useStore = useBorrow; // TODO: add useLend as second option based on isBorrow
+  const useStore = type === 'borrow' ? useBorrow : useLend;
 
-  const collateral = useStore((state) => state.collateral);
-  const debt = useStore((state) => state.debt);
-  const activeVault = useStore((state) => state.activeVault);
-  const availableRoutes = useStore((state) => state.availableRoutes);
-  const availableVaults = useStore((state) => state.availableVaults);
+  const collateral = useStore().collateral;
+  const debt = useBorrow().debt;
+  const activeVault = useStore().activeVault;
+  const availableRoutes = useStore().availableRoutes;
+  const availableVaults = useStore().availableVaults;
   const override = useNavigation((state) => state.borrowPage.shouldReset);
-  const changeActiveVault = useStore((state) => state.changeActiveVault);
+  const changeActiveVault = useStore().changeActiveVault;
 
   const aggregatedData = availableVaults.map((vault, i) => ({
     ...vault,

@@ -4,13 +4,13 @@ import Image from 'next/image';
 import React, { useMemo } from 'react';
 
 import { rearrangeProvidersWithActiveInCenter } from '../../helpers/lending';
-import { useBorrow } from '../../store/borrow.store';
+import { useLend } from '../../store/lend.store';
 import { ProviderIcon } from '../Shared/Icons';
 import { TooltipWrapper } from '../Shared/Tooltips';
 
 function VaultStrategy() {
   const { palette } = useTheme();
-  const allProviders = useBorrow((state) => state.allProviders);
+  const allProviders = useLend((state) => state.allProviders);
 
   const rearrangedProviders = useMemo(() => {
     return rearrangeProvidersWithActiveInCenter(allProviders);

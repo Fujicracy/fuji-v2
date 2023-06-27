@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 
 import { PATH } from '../../constants';
 import { BasePosition, viewDynamicPosition } from '../../helpers/positions';
-import { useBorrow } from '../../store/borrow.store';
+import { useLend } from '../../store/lend.store';
 import { FormType } from '../../store/shared/state';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
 import LendingDetails from './LendingDetails';
@@ -14,7 +14,7 @@ import LendingForm from './LendingForm';
 function Lending() {
   const { palette } = useTheme();
   const router = useRouter();
-  const formType = useBorrow((state) => state.formType);
+  const formType = useLend((state) => state.formType);
   const [loading, setLoading] = useState<boolean>(false);
 
   const isEditing = formType === FormType.Edit;
