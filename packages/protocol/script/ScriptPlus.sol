@@ -390,15 +390,11 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
 
       if (!vault.initialized() && address(vault.oracle()) != address(0)) {
         console.log(string.concat("Initializing: ", name, " ..."));
-        uint256 decimals = IERC20Metadata(debt).decimals();
-        /*uint256 pow = decimals < 6 ? 6 : decimals;*/
-        uint256 debtShares = 10 ** decimals;
+
         uint256 minCollateral = 0.0025 ether;
-        /*uint256 price = oracle.getPriceOf(debt, collateral, vault.debtDecimals());*/
-        /*uint256 minCollateral = (debtShares * 1e18 * 10 ** vault.decimals()) / (maxLtv * price);*/
 
         SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), minCollateral);
-        vault.initializeVaultShares(minCollateral, debtShares);
+        vault.initializeVaultShares(minCollateral);
       } else {
         console.log(string.concat("Skip initializing ", name));
       }
