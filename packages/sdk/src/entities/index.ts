@@ -6,6 +6,7 @@ export * from './BorrowingVault';
 export * from './Chain';
 export * from './Currency';
 export * from './FujiError';
+export * from './LendingVault';
 export * from './native';
 export * from './NativeCurrency';
 export * from './Token';
