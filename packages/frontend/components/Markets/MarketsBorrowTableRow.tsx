@@ -11,8 +11,9 @@ import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { AssetType } from '../../helpers/assets';
-import { aprData, MarketRow, MarketRowStatus } from '../../helpers/markets';
+import { aprData } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
+import { MarketRow, MarketRowStatus } from '../../store/types/markets';
 import AprValue from '../Shared/AprValue';
 import BestLabel from '../Shared/BestLabel';
 import { NetworkIcon } from '../Shared/Icons';

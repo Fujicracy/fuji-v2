@@ -29,8 +29,8 @@ import {
   updateCurrencyPrice,
   updateMeta,
   updateTransactionMeta,
-} from './shared/actions';
-import { BorrowState, BorrowStore, initialBorrowState } from './shared/borrow';
+} from './types/actions';
+import { BorrowState, BorrowStore, initialBorrowState } from './types/borrow';
 
 setAutoFreeze(false);
 

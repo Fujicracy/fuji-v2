@@ -13,10 +13,11 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 import { chains } from '../../helpers/chains';
-import { filterMarketRows, MarketRow } from '../../helpers/markets';
+import { filterMarketRows } from '../../helpers/markets';
 import { showLendingPosition } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 import { useMarkets } from '../../store/markets.store';
+import { MarketRow } from '../../store/types/markets';
 import SizableTableCell from '../Shared/SizableTableCell';
 import EmptyRowsState from '../Shared/Table/EmptyRowsState';
 import { DocsTooltip } from '../Shared/Tooltips';

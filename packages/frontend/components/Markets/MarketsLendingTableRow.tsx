@@ -13,8 +13,8 @@ import {
 import { LendingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { MarketRow, MarketRowStatus } from '../../helpers/markets';
 import { ratingToNote } from '../../helpers/ratings';
+import { MarketRow, MarketRowStatus } from '../../store/types/markets';
 import { DropletIcon, NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';

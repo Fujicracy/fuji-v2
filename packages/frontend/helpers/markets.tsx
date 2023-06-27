@@ -1,15 +1,19 @@
 import {
-  AbstractVault,
   Address,
   BorrowingVault,
   FujiError,
   VaultType,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
+import { StoreApi } from 'zustand';
 
 import { MarketFilters } from '../components/Markets/MarketFiltersHeader';
 import { sdk } from '../services/sdk';
-import { MarketsApi } from '../store/markets.store';
+import {
+  MarketRow,
+  MarketRowStatus,
+  MarketsStore,
+} from '../store/types/markets';
 import { AssetType } from './assets';
 import { chainName, chains } from './chains';
 import { shouldShowStoreNotification } from './navigation';
@@ -19,68 +23,6 @@ import {
   getAllLendingVaultFinancials,
   vaultsFromFinancialsOrError,
 } from './vaults';
-
-export enum MarketRowStatus {
-  Ready,
-  Loading,
-  Error,
-}
-
-export type MarketRow = {
-  entity?: AbstractVault | VaultWithFinancials;
-
-  collateral: string;
-  debt: string;
-  safetyRating: {
-    status: MarketRowStatus;
-    value: number;
-  };
-
-  chain: {
-    status: MarketRowStatus;
-    value: string;
-  };
-
-  depositApr: {
-    status: MarketRowStatus;
-    value: number;
-  };
-  depositAprBase: {
-    status: MarketRowStatus;
-    value: number;
-  };
-  depositAprReward: {
-    status: MarketRowStatus;
-    value: number;
-  };
-
-  borrowApr: {
-    status: MarketRowStatus;
-    value: number;
-  };
-  borrowAprBase: {
-    status: MarketRowStatus;
-    value: number;
-  };
-  borrowAprReward: {
-    status: MarketRowStatus;
-    value: number;
-  };
-
-  integratedProviders: {
-    status: MarketRowStatus;
-    value: string[];
-  };
-  liquidity: {
-    status: MarketRowStatus;
-    value: number;
-  };
-
-  children?: MarketRow[];
-  isChild: boolean;
-  isGrandChild: boolean; // TODO: Not handled
-  isBest: boolean;
-};
 
 const defaultRow: MarketRow = {
   collateral: '',
@@ -395,7 +337,7 @@ const sortBy: Record<SortBy, CompareFn> = {
 
 export const fetchMarkets = async (
   type: VaultType,
-  api: MarketsApi,
+  api: StoreApi<MarketsStore>,
   addr?: string
 ) => {
   const vaults = sdk.getAllBorrowingVaults();

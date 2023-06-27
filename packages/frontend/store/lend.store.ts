@@ -29,8 +29,8 @@ import {
   updateCurrencyPrice,
   updateMeta,
   updateTransactionMeta,
-} from './shared/actions';
-import { initialLendState, LendStore } from './shared/lend';
+} from './types/actions';
+import { initialLendState, LendStore } from './types/lend';
 
 setAutoFreeze(false);
 

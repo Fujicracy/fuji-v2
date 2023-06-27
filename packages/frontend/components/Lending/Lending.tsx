@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { PATH } from '../../constants';
 import { BasePosition, viewDynamicPosition } from '../../helpers/positions';
 import { useLend } from '../../store/lend.store';
-import { FormType } from '../../store/shared/state';
+import { FormType } from '../../store/types/state';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
 import LendingDetails from './LendingDetails';
 import LendingForm from './LendingForm';

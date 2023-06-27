@@ -25,7 +25,7 @@ import { useBorrow } from '../../store/borrow.store';
 import { Position } from '../../store/models/Position';
 import { useNavigation } from '../../store/navigation.store';
 import { usePositions } from '../../store/positions.store';
-import { FormType } from '../../store/shared/state';
+import { FormType } from '../../store/types/state';
 import Footer from '../App/Footer';
 import Overview from './Overview/Overview';
 import VaultSelect from './VaultSelect/VaultSelect';

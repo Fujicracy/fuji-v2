@@ -1,7 +1,7 @@
 import { Box, Chip, Stack, Tooltip } from '@mui/material';
 import React from 'react';
 
-import { MarketRowStatus } from '../../../helpers/markets';
+import { MarketRowStatus } from '../../../store/types/markets';
 import { ProviderIcon } from '../Icons';
 
 type IntegratedProvidersProps = {

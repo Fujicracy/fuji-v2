@@ -7,7 +7,7 @@ import BorrowWrapper from '../../components/Borrow/Wrapper';
 import { isChain } from '../../helpers/chains';
 import { showBorrow } from '../../helpers/navigation';
 import { useBorrow } from '../../store/borrow.store';
-import { FormType } from '../../store/shared/state';
+import { FormType } from '../../store/types/state';
 
 const formType = FormType.Edit;
 

@@ -1,76 +1,16 @@
-import {
-  AbstractVault,
-  BorrowingVault,
-  LendingVault,
-  VaultType,
-} from '@x-fuji/sdk';
+import { VaultType } from '@x-fuji/sdk';
 import produce from 'immer';
-import { create, StoreApi as ZustandStoreApi } from 'zustand';
+import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { fetchMarkets, MarketRow } from '../helpers/markets';
+import { fetchMarkets } from '../helpers/markets';
 import { storeOptions } from '../helpers/stores';
-import { FinancialsOrError } from '../helpers/vaults';
-
-type MarketData = {
-  rows: MarketRow[];
-  vaults: BorrowingVault[];
-  vaultsWithFinancials: FinancialsOrError[];
-};
-
-type BorrowData = Omit<MarketData, 'vaults'> & {
-  vaults: BorrowingVault[];
-};
-
-type LendingData = Omit<MarketData, 'vaults'> & {
-  vaults: LendingVault[];
-};
-
-type MarketsState = {
-  borrow: BorrowData;
-  lending: LendingData;
-  loading: boolean;
-};
-
-type MarketsActions = {
-  fetchMarkets: (addr?: string) => void;
-
-  changeRows: (type: VaultType, rows: MarketRow[]) => void;
-  changeRowsAndFinancials: (
-    type: VaultType,
-    rows: MarketRow[],
-    vaultsWithFinancials: FinancialsOrError[]
-  ) => void;
-  changeRowsIfNeeded: (type: VaultType, rows: MarketRow[]) => void;
-  changeVaults: (type: VaultType, vaults: AbstractVault[]) => void;
-  changeVaultsWithFinancials: (
-    type: VaultType,
-    vaultsWithFinancials: FinancialsOrError[]
-  ) => void;
-
-  vaultsWithFinancials: (type: VaultType) => FinancialsOrError[];
-};
-
-export type MarketsApi = ZustandStoreApi<MarketsStore>;
-
-const initialDataState = {
-  rows: [],
-  vaults: [],
-  vaultsWithFinancials: [],
-};
-
-const initialState: MarketsState = {
-  borrow: initialDataState,
-  lending: initialDataState,
-  loading: false,
-};
-
-export type MarketsStore = MarketsState & MarketsActions;
+import { initialMarketsState, MarketsStore } from './types/markets';
 
 export const useMarkets = create<MarketsStore>()(
   devtools(
     (set, get, api) => ({
-      ...initialState,
+      ...initialMarketsState,
 
       fetchMarkets: async (address) => {
         set({ loading: true });

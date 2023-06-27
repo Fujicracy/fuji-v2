@@ -7,7 +7,7 @@ import { navigationalTaskDelay } from '../helpers/navigation';
 import { useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
 import { useNavigation } from '../store/navigation.store';
-import { FormType } from '../store/shared/state';
+import { FormType } from '../store/types/state';
 
 const formType = FormType.Create;
 
