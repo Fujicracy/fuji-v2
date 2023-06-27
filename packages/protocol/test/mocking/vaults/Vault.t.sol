@@ -136,9 +136,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_depositAndBorrow(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
@@ -148,9 +146,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_depositThenMintDebt(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     do_deposit(amount, vault, ALICE);
     uint256 debtShares = vault.previewBorrow(borrowAmount);
@@ -163,9 +159,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_paybackAndWithdraw(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
@@ -178,9 +172,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_burnDebtThenWithdraw(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
@@ -204,9 +196,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_tryWithdrawWithoutRepay(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
@@ -216,9 +206,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_tryTransferWithoutRepay(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__beforeTokenTransfer_moreThanMax.selector);
@@ -228,9 +216,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_tryTransferMaxRedeemWithoutRepay(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
     uint256 maxTransferable = vault.maxRedeem(ALICE);
 
@@ -267,9 +253,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_getHealthFactor(uint40 amount, uint40 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     uint256 HF = vault.getHealthFactor(ALICE);
     assertEq(HF, type(uint256).max);
@@ -320,9 +304,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_tryLiquidateHealthy(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
