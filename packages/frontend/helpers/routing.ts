@@ -1,4 +1,5 @@
 import {
+  AbstractVault,
   Address,
   BorrowingVault,
   BridgeFee as FujiBridgeFee,
@@ -35,7 +36,7 @@ export type RouteMeta = {
 
 export const fetchRoutes = async (
   mode: Mode,
-  vault: BorrowingVault,
+  vault: AbstractVault,
   collateralToken: Currency,
   debtToken: Currency | undefined,
   collateralInput: string,
@@ -78,7 +79,8 @@ export const fetchRoutes = async (
       });
       break;
     case Mode.BORROW:
-      if (!debtInput || !debtToken) return new FujiResultError('Wrong params');
+      if (!debtInput || !debtToken || !(vault instanceof BorrowingVault))
+        return new FujiResultError('Wrong params');
       result = await sdk.previews.get({
         name: PreviewName.BORROW,
         vault,
