@@ -220,9 +220,7 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
 
-    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
-    initVaultShares = 10 * minAmount;
-
+    initVaultShares = 10 ether;
     _initializeVault(address(vault), INITIALIZER, initVaultShares);
   }
 
