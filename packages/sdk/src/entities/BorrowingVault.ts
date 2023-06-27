@@ -1,16 +1,13 @@
 import { BigNumber } from '@ethersproject/bignumber';
-import { formatUnits } from '@ethersproject/units';
 import invariant from 'tiny-invariant';
 
 import { CHAIN, CHIEF_ADDRESS } from '../constants';
-import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import { VaultType } from '../enums';
 import {
   AprResult,
   ChainConfig,
   ChainConnectionDetails,
   FujiResultPromise,
-  LendingProviderWithFinancials,
 } from '../types';
 import {
   BorrowingVault as BorrowingVaultContract,
@@ -129,7 +126,7 @@ export class BorrowingVault extends AbstractVault {
         this.multicallContract.getProviders(),
       ]);
 
-    this.setPreLoads(
+    this._setBorrowingPreLoads(
       maxLtv,
       liqRatio,
       safetyRating,
@@ -139,31 +136,15 @@ export class BorrowingVault extends AbstractVault {
     );
   }
 
-  setPreLoads(
-    maxLtv: BigNumber,
-    liqRatio: BigNumber,
-    safetyRating: BigNumber,
-    name: string,
-    activeProvider: string,
-    allProviders: string[]
-  ) {
-    this.maxLtv = maxLtv;
-    this.liqRatio = liqRatio;
-    this.safetyRating = safetyRating;
-    this.name = name;
-    this.activeProvider = activeProvider;
-    this.allProviders = allProviders;
-  }
-
-  async getProviders(): Promise<LendingProviderWithFinancials[]> {
+  async rates(): Promise<BigNumber[]> {
     invariant(
       this.contract && this.multicallRpcProvider,
       'Connection not set!'
     );
+
     if (!this.allProviders) {
       await this.preLoad();
     }
-
     invariant(this.allProviders, 'Providers are not loaded yet!');
 
     const depositCalls = this.allProviders.map((addr) =>
@@ -182,23 +163,7 @@ export class BorrowingVault extends AbstractVault {
       ...depositCalls,
       ...borrowCalls,
     ]);
-
-    const splitIndex = rates.length / 2;
-    // rates are with 27 decimals
-    const rateToFloat = (n: BigNumber) =>
-      parseFloat(formatUnits(n.toString(), 27)) * 100;
-    return this.allProviders
-      .filter((address) =>
-        Boolean(LENDING_PROVIDERS[this.chainId][address]?.name)
-      )
-      .map((addr: string, i: number) => {
-        return {
-          name: LENDING_PROVIDERS[this.chainId][addr]?.name,
-          llamaKey: LENDING_PROVIDERS[this.chainId][addr]?.llamaKey,
-          depositAprBase: rateToFloat(rates[i]),
-          borrowAprBase: rateToFloat(rates[i + splitIndex]),
-        };
-      });
+    return rates;
   }
 
   /**
@@ -226,5 +191,19 @@ export class BorrowingVault extends AbstractVault {
     ]);
 
     return { deposit, borrow };
+  }
+
+  private _setBorrowingPreLoads(
+    maxLtv: BigNumber,
+    liqRatio: BigNumber,
+    safetyRating: BigNumber,
+    name: string,
+    activeProvider: string,
+    allProviders: string[]
+  ) {
+    this.maxLtv = maxLtv;
+    this.liqRatio = liqRatio;
+
+    this._setPreLoads(safetyRating, name, activeProvider, allProviders);
   }
 }

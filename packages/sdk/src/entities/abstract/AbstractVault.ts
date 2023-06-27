@@ -1,6 +1,7 @@
 import { defaultAbiCoder } from '@ethersproject/abi';
 import { JsonRpcProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
+import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
 import axios from 'axios';
 import { BigNumber, TypedDataDomain, TypedDataField, utils } from 'ethers';
@@ -132,12 +133,11 @@ export abstract class AbstractVault {
   abstract preLoad(): Promise<void>;
 
   /**
-   * Returns the list with all providers of the vault.
-   * Each element also includes the borrow and deposit rate.
+   * Loads vault rates
    *
    * @throws if {@link setConnection} was not called beforehand
    */
-  abstract getProviders(): Promise<LendingProviderWithFinancials[]>;
+  abstract rates(): Promise<BigNumber[]>;
 
   /**
    * Creates a connection by setting an rpc provider.
@@ -153,6 +153,35 @@ export abstract class AbstractVault {
    * @throws if {@link setConnection} was not called beforehand
    */
   abstract getBalances(account: Address): Promise<AccountBalances>;
+
+  /**
+   * Returns the list with all providers of the vault.
+   * Each element also includes the borrow and deposit rate.
+   *
+   * @throws if {@link setConnection} was not called beforehand
+   */
+  async getProviders(): Promise<LendingProviderWithFinancials[]> {
+    const rates: BigNumber[] = await this.rates();
+    invariant(this.allProviders, 'Providers are not loaded yet!');
+
+    const splitIndex = rates.length / 2;
+    // rates are with 27 decimals
+    const rateToFloat = (n: BigNumber) =>
+      parseFloat(formatUnits(n.toString(), 27)) * 100;
+    return this.allProviders
+      .filter((address) =>
+        Boolean(LENDING_PROVIDERS[this.chainId][address]?.name)
+      )
+      .map((addr: string, i: number) => {
+        return {
+          name: LENDING_PROVIDERS[this.chainId][addr]?.name,
+          llamaKey: LENDING_PROVIDERS[this.chainId][addr]?.llamaKey,
+          depositAprBase: rateToFloat(rates[i]),
+          borrowAprBase:
+            rates.length > 0 ? rateToFloat(rates[i + splitIndex]) : undefined,
+        };
+      });
+  }
 
   /**
    * Returns a historical data of supply rates for all providers. If data for a specific
@@ -220,6 +249,18 @@ export abstract class AbstractVault {
     const digest = utils._TypedDataEncoder.hash(domain, types, value);
 
     return new FujiResultSuccess({ digest, domain, types, value });
+  }
+
+  protected _setPreLoads(
+    safetyRating: BigNumber,
+    name: string,
+    activeProvider: string,
+    allProviders: string[]
+  ) {
+    this.safetyRating = safetyRating;
+    this.name = name;
+    this.activeProvider = activeProvider;
+    this.allProviders = allProviders;
   }
 
   protected async _getProvidersStatsFor(
