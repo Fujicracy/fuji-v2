@@ -11,8 +11,8 @@ import {
   ltvMeta,
   needsAllowance,
 } from '../../helpers/assets';
-import { modeForContext } from '../../helpers/borrow';
 import { chainName, isSupported } from '../../helpers/chains';
+import { modeForContext } from '../../helpers/mode';
 import { showBorrow, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';

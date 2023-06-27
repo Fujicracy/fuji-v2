@@ -13,13 +13,13 @@ import { useBorrow } from '../store/borrow.store';
 import { AssetMeta, Position } from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
 import { AssetChange, AssetType, debtForCurrency, Mode } from './assets';
-import {
-  getAllBorrowingVaultFinancials,
-  vaultsFromFinancialsOrError,
-} from './borrow';
 import { shouldShowStoreNotification } from './navigation';
 import { showOnchainErrorNotification } from './notifications';
 import { bigToFloat, formatNumber } from './values';
+import {
+  getAllBorrowingVaultFinancials,
+  vaultsFromFinancialsOrError,
+} from './vaults';
 
 export type BasePosition = {
   position: Position;

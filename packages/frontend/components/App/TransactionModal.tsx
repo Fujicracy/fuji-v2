@@ -23,7 +23,6 @@ import { useRouter } from 'next/router';
 import React, { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
-import { userHasFundsInVault } from '../../helpers/borrow';
 import {
   connextLinksForEntry,
   HistoryEntry,
@@ -32,6 +31,7 @@ import {
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromPosition } from '../../helpers/positions';
 import { transactionSteps } from '../../helpers/transactions';
+import { userHasFundsInVault } from '../../helpers/vaults';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { useHistory } from '../../store/history.store';

@@ -18,8 +18,8 @@ import {
   FetchStatus,
   needsAllowance,
 } from '../../helpers/assets';
-import { modeForContext } from '../../helpers/borrow';
 import { chainName } from '../../helpers/chains';
+import { modeForContext } from '../../helpers/mode';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';

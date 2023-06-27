@@ -3,11 +3,6 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import {
-  FinancialsOrError,
-  getAllBorrowingVaultFinancials,
-  vaultsFromFinancialsOrError,
-} from '../helpers/borrow';
-import {
   MarketRow,
   MarketRowStatus,
   setBase,
@@ -18,6 +13,11 @@ import {
 import { shouldShowStoreNotification } from '../helpers/navigation';
 import { notify, showOnchainErrorNotification } from '../helpers/notifications';
 import { storeOptions } from '../helpers/stores';
+import {
+  FinancialsOrError,
+  getAllBorrowingVaultFinancials,
+  vaultsFromFinancialsOrError,
+} from '../helpers/vaults';
 import { sdk } from '../services/sdk';
 
 type MarketsState = {
