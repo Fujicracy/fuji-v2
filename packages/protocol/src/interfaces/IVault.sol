@@ -481,4 +481,24 @@ interface IVault is IERC4626 {
    * @param amount to be as minimum.
    */
   function setMinAmount(uint256 amount) external;
+
+  /*/////////////////////
+     Harvest functions 
+  ////////////////////*/
+
+  enum Strategy {
+    ConvertToCollateral,
+    RepayDebt,
+    Distribute
+  }
+
+  /**
+   * @notice Collects rewards from the protocol.
+   *
+   * @param strategy enum of the strategy to apply after harvesting rewards.
+   * @param provider lending provider to be harvested.
+   * @param data bytes to be used to call the harvest function at the lending provider.
+   *
+   */
+  function harvest(Strategy strategy, ILendingProvider provider, bytes memory data) external;
 }
