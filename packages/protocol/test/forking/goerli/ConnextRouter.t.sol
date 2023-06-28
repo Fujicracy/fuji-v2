@@ -265,6 +265,32 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
   }
 
+  function testFail_InboundXBundleNotEnoughGas() public {
+    uint256 amount = 2 ether;
+    uint256 borrowAmount = 1000e6;
+
+    // make the callData to fail
+    bytes memory callData = _getDepositAndBorrowCallData(
+      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
+    );
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), amount);
+
+    vm.startPrank(registry[domain].connext);
+    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
+    // the same address as the one on GOERLI
+    connextRouter.xReceive{gas: 150000}(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+    );
+    vm.stopPrank();
+
+    // No funds were moved
+    assertEq(vault.balanceOf(ALICE), 0);
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), 0);
+  }
+
   function test_retryFailedInboundXReceive() public {
     uint256 amount = 2 ether;
     uint256 borrowAmount = 1000e6;
