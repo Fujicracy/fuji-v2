@@ -33,8 +33,7 @@ contract MorphoCompound is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrMapper() internal pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
+    return IAddrMapper(0xb2f151D71BD0396891A68C15BF608445a6aC835e);
   }
 
   /**
@@ -43,12 +42,12 @@ contract MorphoCompound is ILendingProvider {
    * @param asset address of the token to be used as collateral/debt.   *
    */
   function _getCToken(address asset) internal view returns (address cToken) {
-    cToken = _getAddrMapper().getAddressMapping("Compound", asset);
+    cToken = _getAddrMapper().getAddressMapping("Compound_V2", asset);
   }
 
   /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "Morpho";
+    return "Morpho_Compound_V2";
   }
 
   /// @inheritdoc ILendingProvider

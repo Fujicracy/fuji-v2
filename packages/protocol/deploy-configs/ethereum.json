@@ -1,0 +1,134 @@
+{
+  "WBTC": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+  "WETH": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+  "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+  "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+  "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+  "WSTETH": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+  "ConnextCore": "0x8898B472C54c31894e3B9bb83cEA802a5d0e63C6",
+  "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  "FujiRelayer": "0xCA07e24b23A03Ea7EEC441BDF0d235608b2fFD25",
+  "price-feeds": [
+    {
+      "asset": "WBTC",
+      "chainlink": "0xF4030086522a5bEEa4988F8cA5B36dbC97BeE88c"
+    },
+    {
+      "asset": "WETH",
+      "chainlink": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"
+    },
+    {
+      "asset": "USDC",
+      "chainlink": "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6"
+    },
+    {
+      "asset": "DAI",
+      "chainlink": "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9"
+    },
+    {
+      "asset": "USDT",
+      "chainlink": "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D"
+    },
+    {
+      "asset": "WSTETH",
+      "chainlink": "0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8"
+    }
+  ],
+  "simple-mappings": [
+    {
+      "asset": "WBTC",
+      "market": "0x5812fCF91adc502a765E5707eBB3F36a07f63c02",
+      "name": "DForce"
+    },
+    {
+      "asset": "WETH",
+      "market": "0x5ACD75f21659a59fFaB9AEBAf350351a8bfaAbc0",
+      "name": "DForce"
+    },
+    {
+      "asset": "USDC",
+      "market": "0x2f956b2f801c6dad74E87E7f45c94f6283BF0f45",
+      "name": "DForce"
+    },
+    {
+      "asset": "DAI",
+      "market": "0x298f243aD592b6027d4717fBe9DeCda668E3c3A8",
+      "name": "DForce"
+    },
+    {
+      "asset": "USDT",
+      "market": "0x1180c114f7fAdCB6957670432a3Cf8Ef08Ab5354",
+      "name": "DForce"
+    },
+    {
+      "asset": "WSTETH",
+      "market": "0xbfd291da8a403daaf7e5e9dc1ec0aceacd4848b9",
+      "name": "DForce"
+    },
+    {
+      "asset": "WBTC",
+      "market": "0xC11b1268C1A384e55C48c2391d8d480264A3A7F4",
+      "name": "Compound_V2"
+    },
+    {
+      "asset": "WETH",
+      "market": "0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5",
+      "name": "Compound_V2"
+    },
+    {
+      "asset": "USDC",
+      "market": "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+      "name": "Compound_V2"
+    },
+    {
+      "asset": "DAI",
+      "market": "0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643",
+      "name": "Compound_V2"
+    },
+    {
+      "asset": "USDT",
+      "market": "0xf650C3d88D12dB855b8bf7D11Be6C55A4e07dCC9",
+      "name": "Compound_V2"
+    },
+    {
+      "asset": "WBTC",
+      "market": "0x9ff58f4fFB29fA2266Ab25e75e2A8b3503311656",
+      "name": "Aave_V2"
+    },
+    {
+      "asset": "WETH",
+      "market": "0x030bA81f1c18d280636F32af80b9AAd02Cf0854e",
+      "name": "Aave_V2"
+    },
+    {
+      "asset": "USDC",
+      "market": "0xBcca60bB61934080951369a648Fb03DF4F96263C",
+      "name": "Aave_V2"
+    },
+    {
+      "asset": "DAI",
+      "market": "0x028171bCA77440897B824Ca71D1c56caC55b68A3",
+      "name": "Aave_V2"
+    },
+    {
+      "asset": "USDT",
+      "market": "0x71fc860F7D3A592A4a98740e39dB31d25db65ae8",
+      "name": "Aave_V2"
+    }
+  ],
+  "nested-mappings": [
+    {
+      "asset1": "WBTC",
+      "asset2": "USDC",
+      "market": "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
+      "name": "Compound_V3"
+    },
+    {
+      "asset1": "WETH",
+      "asset2": "USDC",
+      "market": "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
+      "name": "Compound_V3"
+    }
+  ],
+  "borrowing-vaults": []
+}
