@@ -1,4 +1,5 @@
 import { Box, Card, CardContent } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -13,7 +14,7 @@ import {
 } from '../../helpers/assets';
 import { chainName, isSupported } from '../../helpers/chains';
 import { modeForContext } from '../../helpers/mode';
-import { showBorrow, showBorrowPosition } from '../../helpers/navigation';
+import { showBorrow, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
@@ -294,7 +295,13 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
               if (borrow) {
                 showBorrow(router);
               } else {
-                showBorrowPosition(router, false, vault, walletChainId);
+                showPosition(
+                  VaultType.BORROW,
+                  router,
+                  false,
+                  vault,
+                  walletChainId
+                );
               }
             }}
             onClick={signAndExecute}

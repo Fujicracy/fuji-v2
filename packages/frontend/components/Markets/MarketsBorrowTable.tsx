@@ -9,13 +9,13 @@ import {
   TableRow,
   useTheme,
 } from '@mui/material';
-import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { BorrowingVault, VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 import { chains } from '../../helpers/chains';
 import { filterMarketRows } from '../../helpers/markets';
-import { showBorrowPosition } from '../../helpers/navigation';
+import { showPosition } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 import { useMarkets } from '../../store/markets.store';
 import { MarketRow } from '../../store/types/markets';
@@ -43,7 +43,7 @@ function MarketsBorrowTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: BorrowingVault | VaultWithFinancials) => {
-    showBorrowPosition(router, true, entity, walletChainId);
+    showPosition(VaultType.BORROW, router, true, entity, walletChainId);
   };
 
   return (

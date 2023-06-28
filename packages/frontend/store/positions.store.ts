@@ -17,6 +17,8 @@ import { Position } from './models/Position';
 
 type PositionsState = {
   positions: Position[];
+  borrowPositions: Position[];
+  lendingPositions: Position[];
   totalDepositsUSD?: number;
   totalDebtUSD?: number;
   totalAPY?: number;
@@ -30,6 +32,8 @@ type PositionsActions = {
 
 const initialState: PositionsState = {
   positions: [],
+  borrowPositions: [],
+  lendingPositions: [],
   loading: false,
 };
 

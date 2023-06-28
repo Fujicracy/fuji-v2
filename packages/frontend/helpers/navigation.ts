@@ -1,8 +1,10 @@
 import {
+  AbstractVault,
   BorrowingVault,
   ChainId,
   Currency,
   LendingVault,
+  VaultType,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
@@ -10,6 +12,7 @@ import { NextRouter } from 'next/router';
 import { NAVIGATION_TASK_DELAY, PATH } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
+import { useLend } from '../store/lend.store';
 import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
@@ -35,28 +38,27 @@ export const myPositionPage: Page = {
 export const isTopLevelUrl = (url: string) =>
   topLevelPages.some((p) => p.path === url);
 
-export const showLendingPosition = (
-  router: NextRouter,
-  reset = true,
-  entity?: LendingVault | VaultWithFinancials,
+const updateLendingStoreBeforeNavigation = (
+  vault: LendingVault,
   walletChainId?: ChainId
 ) => {
-  // TODO:
-  console.log(router);
-  console.log(reset);
-  console.log(entity);
-  console.log(walletChainId);
+  const changeAll = useLend.getState().changeAll;
+  if (walletChainId && isSupported(walletChainId)) {
+    const collaterals = sdk.getCollateralForChain(walletChainId);
+    const collateralCurrency = collaterals.find(
+      (t: Currency) => t.symbol === vault.collateral.symbol
+    );
+    changeAll(vault, collateralCurrency ?? vault.collateral);
+  } else {
+    changeAll(vault, vault.collateral);
+  }
 };
 
-export const showBorrowPosition = async (
-  router: NextRouter,
-  reset = true,
-  entity?: BorrowingVault | VaultWithFinancials,
+const updateBorrowingStoreBeforeNavigation = (
+  vault: BorrowingVault,
+  reset: boolean,
   walletChainId?: ChainId
 ) => {
-  const vault = vaultFromEntity(entity);
-  if (!vault || !(vault instanceof BorrowingVault)) return;
-
   const changeAll = useBorrow.getState().changeAll;
   if (walletChainId && isSupported(walletChainId)) {
     const collaterals = sdk.getCollateralForChain(walletChainId);
@@ -71,8 +73,33 @@ export const showBorrowPosition = async (
   if (reset) {
     useBorrow.getState().clearInputValues();
   }
+};
 
-  const positions = usePositions.getState().positions;
+export const showPosition = async (
+  type: VaultType,
+  router: NextRouter,
+  reset = true,
+  entity?: AbstractVault | VaultWithFinancials,
+  walletChainId?: ChainId
+) => {
+  const vault = vaultFromEntity(entity);
+  if (
+    !vault ||
+    (vault instanceof BorrowingVault && type === VaultType.LEND) ||
+    (vault instanceof LendingVault && type === VaultType.BORROW)
+  )
+    return;
+
+  if (vault instanceof BorrowingVault) {
+    updateBorrowingStoreBeforeNavigation(vault, reset, walletChainId);
+  } else if (vault instanceof LendingVault) {
+    updateLendingStoreBeforeNavigation(vault, walletChainId);
+  }
+
+  const positions =
+    type === VaultType.BORROW
+      ? usePositions.getState().borrowPositions
+      : usePositions.getState().lendingPositions;
   if (
     positions?.some(
       (p) =>
@@ -80,10 +107,20 @@ export const showBorrowPosition = async (
         p.vault?.chainId === vault.chainId
     )
   ) {
-    router.push(`${PATH.MY_POSITIONS}/${vault.address.value}-${vault.chainId}`);
-  } else {
+    router.push(
+      `${PATH.MY_POSITIONS}/${
+        type === VaultType.BORROW ? 'borrow' : 'lending'
+      }&${vault.address.value}-${vault.chainId}`
+    );
+  } else if (type === VaultType.BORROW) {
     showBorrow(router, false);
+  } else {
+    showLend(router);
   }
+};
+
+export const showLend = async (router: NextRouter) => {
+  router.push(PATH.LEND);
 };
 
 export const showBorrow = async (router: NextRouter, override = true) => {

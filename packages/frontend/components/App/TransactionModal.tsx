@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep } from '@x-fuji/sdk';
+import { RoutingStep, VaultType } from '@x-fuji/sdk';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import React, { MouseEvent, useEffect, useState } from 'react';
@@ -28,7 +28,7 @@ import {
   HistoryEntry,
   HistoryEntryStatus,
 } from '../../helpers/history';
-import { myPositionPage, showBorrowPosition } from '../../helpers/navigation';
+import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromPosition } from '../../helpers/positions';
 import { transactionSteps } from '../../helpers/transactions';
 import { userHasFundsInVault } from '../../helpers/vaults';
@@ -119,7 +119,7 @@ function TransactionModal({
       // If the user has no funds in the vault, redirect to the my-positions page
       if (vault && !userHasFundsInVault(vault, availableVaults)) {
         // TODO: lend, check type
-        showBorrowPosition(router, true, vault, undefined);
+        showPosition(VaultType.BORROW, router, true, vault, undefined);
       } else {
         showPositions = true;
       }

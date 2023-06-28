@@ -9,13 +9,14 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 import { recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { aprData } from '../../helpers/markets';
-import { showBorrowPosition } from '../../helpers/navigation';
+import { showPosition } from '../../helpers/navigation';
 import {
   getRows,
   PositionRow,
@@ -80,7 +81,7 @@ function MyPositionsBorrowTable() {
   function handleClick(row: PositionRow) {
     if (!row.address || !row.chainId) return;
     const entity = vaultFromPosition(row.address, row.chainId);
-    showBorrowPosition(router, true, entity, entity?.chainId);
+    showPosition(VaultType.BORROW, router, true, entity, entity?.chainId);
   }
 
   return (

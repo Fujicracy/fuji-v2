@@ -1,3 +1,4 @@
+import { VaultType } from '@x-fuji/sdk';
 import { ethers } from 'ethers';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -17,15 +18,23 @@ const PositionPage: NextPage = () => {
 
   const changeFormType = useBorrow((state) => state.changeFormType);
 
-  const query = typeof pid === 'string' ? pid.split('-') : [];
-  const address = query[0];
-  const chain = query[1];
+  const query = typeof pid === 'string' ? pid.split('&') : [];
+  const urlType = query[0];
+  const vault = query[1]?.split('-') || [];
+  const type =
+    urlType === 'borrow'
+      ? VaultType.BORROW
+      : urlType === 'lend'
+      ? VaultType.LEND
+      : undefined;
+  const address = vault[0];
+  const chain = vault[1];
 
   useEffect(() => {
     changeFormType(formType);
   }, [changeFormType]);
 
-  if (!address || !chain) {
+  if (!type || !address || !chain) {
     return <></>;
   }
 
@@ -35,6 +44,7 @@ const PositionPage: NextPage = () => {
   ) {
     showBorrow(router);
   }
+  // TODO: Show LendingWrapper if type is LEND
   return (
     <BorrowWrapper
       formType={formType}
