@@ -72,6 +72,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
   string[] chainNames;
 
   constructor() {
+    chainNames.push("ethereum");
     chainNames.push("polygon");
     chainNames.push("optimism");
     chainNames.push("arbitrum");
