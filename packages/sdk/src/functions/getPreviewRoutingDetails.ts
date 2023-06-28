@@ -4,13 +4,13 @@ import { BN_ZERO } from '../constants';
 import { CHAIN } from '../constants/chains';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import {
-  BorrowingVault,
+  // BorrowingVault,
   Chain,
   Currency,
   FujiResultError,
   FujiResultSuccess,
 } from '../entities';
-import { LendingVault } from '../entities/LendingVault';
+// import { LendingVault } from '../entities/LendingVault';
 import { ChainId, OperationType, PreviewName, RoutingStep } from '../enums';
 import { Nxtp } from '../Nxtp';
 import { PreviewNxtpResult } from '../types';
@@ -115,8 +115,8 @@ async function depositOrPayback(
   let { estimateSlippage, bridgeFees } = rest;
 
   const vaultToken =
-    step === RoutingStep.PAYBACK && vault instanceof BorrowingVault
-      ? vault.debt
+    step === RoutingStep.PAYBACK && 'debt' in vault
+      ? (vault.debt as Currency)
       : vault.collateral;
 
   const steps: RoutingStepDetails[] = [
@@ -175,8 +175,8 @@ async function borrowOrWithdraw(
   let { estimateSlippage, bridgeFees } = rest;
 
   const vaultToken =
-    step === RoutingStep.BORROW && vault instanceof BorrowingVault
-      ? vault.debt
+    step === RoutingStep.BORROW && 'debt' in vault
+      ? (vault.debt as Currency)
       : vault.collateral;
 
   const steps: RoutingStepDetails[] = [_step(RoutingStep.START, srcChainId)];
@@ -264,10 +264,10 @@ async function depositAndBorrow(
   params: DepositAndBorrowPreviewParams
 ): FujiResultPromise<MetaRoutingResult> {
   const { vault, amountIn, tokenIn, amountOut, tokenOut } = params;
-  if (vault instanceof LendingVault) {
+  if (!('debt' in vault)) {
     return new FujiResultError('Wrong vault type');
   }
-  const debt = (vault as BorrowingVault).debt;
+  const debt = vault.debt as Currency;
   const activeProvider = vault.activeProvider;
 
   const { estimateTime, ...rest } = defaultXChainArguments();
@@ -414,10 +414,10 @@ async function paybackAndWithdraw(
   params: PaybackAndWithdrawPreviewParams
 ): FujiResultPromise<MetaRoutingResult> {
   const { vault, amountIn, tokenIn, amountOut, tokenOut } = params;
-  if (vault instanceof LendingVault) {
+  if (!('debt' in vault)) {
     return new FujiResultError('Wrong vault type');
   }
-  const debt = (vault as BorrowingVault).debt;
+  const debt = vault.debt as Currency;
   const activeProvider = vault.activeProvider;
 
   const { estimateTime, ...rest } = defaultXChainArguments();
