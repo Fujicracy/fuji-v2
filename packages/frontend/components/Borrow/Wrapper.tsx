@@ -45,7 +45,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const router = useRouter();
 
   const address = useAuth((state) => state.address);
-  const positions = usePositions((state) => state.positions);
+  const positions = usePositions((state) => state.borrowPositions);
   const baseCollateral = useBorrow((state) => state.collateral);
   const baseDebt = useBorrow((state) => state.debt);
   const baseLtv = useBorrow((state) => state.ltv);

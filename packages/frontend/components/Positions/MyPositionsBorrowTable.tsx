@@ -44,7 +44,7 @@ function MyPositionsBorrowTable() {
 
   const account = useAuth((state) => state.address);
   const markets = useMarkets((state) => state.borrow.rows);
-  const positions = usePositions((state) => state.positions);
+  const positions = usePositions((state) => state.borrowPositions);
   const isLoading = usePositions((state) => state.loading);
 
   const loading = isLoading && positions.length === 0;

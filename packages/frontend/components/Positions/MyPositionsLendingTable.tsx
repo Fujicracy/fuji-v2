@@ -32,7 +32,7 @@ function MyPositionsLendingTable() {
   const { palette } = useTheme();
   const router = useRouter();
   const account = useAuth((state) => state.address);
-  const positions = usePositions((state) => state.positions);
+  const positions = usePositions((state) => state.lendingPositions);
   const isLoading = usePositions((state) => state.loading);
 
   const loading = isLoading && positions.length === 0;

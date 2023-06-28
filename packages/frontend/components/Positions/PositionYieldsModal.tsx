@@ -36,17 +36,21 @@ export function PositionYieldsModal({
   const loading = usePositions((state) => state.loading);
   const totalAPY = usePositions((state) => state.totalAPY);
   const account = useAuth((state) => state.address);
-  const positions = usePositions((state) => state.positions);
+  const borrowPositions = usePositions((state) => state.lendingPositions);
+  const lendingPositions = usePositions((state) => state.lendingPositions);
 
   const [daysPeriod, setDaysPeriod] = useState<number>(1);
   const [currentTab, setCurrentTab] = useState(0);
   const [estEarnings, setEstEarnings] = useState(0);
 
   useEffect(() => {
-    if (!account || positions.length === 0) {
+    if (
+      !account ||
+      (borrowPositions.length === 0 && lendingPositions.length === 0)
+    ) {
       onClose();
     }
-  }, [account, positions, onClose]);
+  }, [account, borrowPositions, lendingPositions, onClose]);
 
   return (
     <Dialog

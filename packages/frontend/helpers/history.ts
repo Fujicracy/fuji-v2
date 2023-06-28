@@ -1,5 +1,7 @@
 import {
+  BorrowingVault,
   ChainId,
+  LendingVault,
   RoutingStep,
   RoutingStepDetails,
   VaultType,
@@ -148,6 +150,23 @@ export const stepForFinishing = (entry: HistoryEntry) => {
     return chainCompleted(entry.sourceChain) ? 1 : 0;
   }
   return 0;
+};
+
+export const isVaultTheCurrentPosition = (
+  entry: HistoryEntry,
+  borrowActiveVault: BorrowingVault | undefined,
+  lendingActiveVault: LendingVault | undefined
+): boolean => {
+  const isCurrentPosition =
+    entry.vaultChainId !== undefined
+      ? (borrowActiveVault?.address.value === entry.vaultAddress &&
+          borrowActiveVault?.chainId === entry.vaultChainId) ||
+        (lendingActiveVault?.address.value === entry.vaultAddress &&
+          lendingActiveVault?.chainId === entry.vaultChainId)
+      : borrowActiveVault?.address.value === entry.vaultAddress ||
+        lendingActiveVault?.address.value === entry.vaultAddress;
+
+  return isCurrentPosition;
 };
 
 const connextLinkify = (id: string) => `https://amarok.connextscan.io/tx/${id}`;

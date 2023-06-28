@@ -8,6 +8,8 @@ import {
 
 import { DUST_AMOUNT_IN_WEI } from '../constants';
 import { sdk } from '../services/sdk';
+import { useBorrow } from '../store/borrow.store';
+import { useLend } from '../store/lend.store';
 import { chains } from './chains';
 
 export type FinancialsOrError = VaultWithFinancials | FujiError;
@@ -81,3 +83,8 @@ export const vaultFromEntity = (
       ? entity
       : entity.vault
     : undefined;
+
+export const allAvailableVaults = (): VaultWithFinancials[] => [
+  ...useBorrow.getState().availableVaults,
+  ...useLend.getState().availableVaults,
+];

@@ -34,7 +34,7 @@ function PositionLendYieldTable({
 }: PositionLendYieldTableProps) {
   const { palette } = useTheme();
   const account = useAuth((state) => state.address);
-  const positions = usePositions((state) => state.positions);
+  const positions = usePositions((state) => state.lendingPositions);
   const [rows, setRows] = useState<PositionRow[]>([]);
 
   useEffect(() => {

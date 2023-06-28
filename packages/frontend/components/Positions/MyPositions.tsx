@@ -2,8 +2,8 @@ import { Grid, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import MyPositionLendingTable from './MyPositionLendingTable';
 import MyPositionsBorrowTable from './MyPositionsBorrowTable';
+import MyPositionLendingTable from './MyPositionsLendingTable';
 import MyPositionsSummary from './MyPositionsSummary';
 
 function MyPositions() {

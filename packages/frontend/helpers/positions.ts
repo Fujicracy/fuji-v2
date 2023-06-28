@@ -331,7 +331,7 @@ export function getEstimatedEarnings({
 
 export function vaultFromPosition(address: string, chainId?: ChainId) {
   if (!address) return undefined;
-  const positions = usePositions.getState().positions;
+  const positions = usePositions.getState().allPositions();
   return positions.find((pos) =>
     chainId !== undefined
       ? pos.vault?.address.value === address && pos.vault?.chainId === chainId

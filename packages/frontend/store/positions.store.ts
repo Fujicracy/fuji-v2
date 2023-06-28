@@ -16,7 +16,6 @@ import { useAuth } from './auth.store';
 import { Position } from './models/Position';
 
 type PositionsState = {
-  positions: Position[];
   borrowPositions: Position[];
   lendingPositions: Position[];
   totalDepositsUSD?: number;
@@ -27,11 +26,11 @@ type PositionsState = {
 };
 
 type PositionsActions = {
+  allPositions: () => Position[];
   fetchUserPositions: () => void;
 };
 
 const initialState: PositionsState = {
-  positions: [],
   borrowPositions: [],
   lendingPositions: [],
   loading: false,
@@ -41,8 +40,12 @@ export type PositionsStore = PositionsState & PositionsActions;
 
 export const usePositions = create<PositionsStore>()(
   devtools(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
+
+      allPositions: () => {
+        return [...get().borrowPositions, ...get().lendingPositions];
+      },
 
       fetchUserPositions: async () => {
         set({ loading: true });

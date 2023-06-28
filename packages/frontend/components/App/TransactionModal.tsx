@@ -27,14 +27,16 @@ import {
   connextLinksForEntry,
   HistoryEntry,
   HistoryEntryStatus,
+  isVaultTheCurrentPosition,
 } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromPosition } from '../../helpers/positions';
 import { transactionSteps } from '../../helpers/transactions';
-import { userHasFundsInVault } from '../../helpers/vaults';
+import { allAvailableVaults, userHasFundsInVault } from '../../helpers/vaults';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { useHistory } from '../../store/history.store';
+import { useLend } from '../../store/lend.store';
 import { usePositions } from '../../store/positions.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import LinkIcon from '../Shared/Icons/LinkIcon';
@@ -57,15 +59,19 @@ function TransactionModal({
   const router = useRouter();
 
   const activeChainId = useAuth((state) => state.chainId);
-  const activeVault = useBorrow((state) => state.activeVault);
-  const availableVaults = useBorrow((state) => state.availableVaults);
-  const positions = usePositions((state) => state.positions);
+  const borrowActiveVault = useBorrow((state) => state.activeVault);
+  const borrowAvailableVaults = useBorrow((state) => state.availableVaults);
+  const lendingActiveVault = useLend((state) => state.activeVault);
+  const lendingAvailableVaults = useLend((state) => state.availableVaults);
+  const positions = usePositions((state) => state.allPositions);
 
   const closeModal = useHistory((state) => state.closeModal);
 
   const [isDetailsShown, setIsDetailsShown] = useState(isHistoricalTransaction);
   const [isCurrentPosition, setIsCurrentPosition] = useState(false);
   const [gif, setGif] = useState('');
+
+  const type = entry.type ?? VaultType.BORROW;
 
   useEffect(() => {
     if (isHistoricalTransaction) return;
@@ -87,13 +93,13 @@ function TransactionModal({
   }, [entry.status, isHistoricalTransaction]);
 
   useEffect(() => {
-    const isCurrentPosition =
-      entry.vaultChainId !== undefined
-        ? activeVault?.address.value === entry.vaultAddress &&
-          activeVault?.chainId === entry.vaultChainId
-        : activeVault?.address.value === entry.vaultAddress;
+    const isCurrentPosition = isVaultTheCurrentPosition(
+      entry,
+      borrowActiveVault,
+      lendingActiveVault
+    );
     setIsCurrentPosition(isCurrentPosition);
-  }, [positions, activeVault, currentPage, entry]);
+  }, [borrowActiveVault, lendingActiveVault, currentPage, entry]);
 
   if (!entry) return <></>;
 
@@ -117,16 +123,22 @@ function TransactionModal({
       // We might have to fetch available vaults in order to get the latest data
 
       // If the user has no funds in the vault, redirect to the my-positions page
-      if (vault && !userHasFundsInVault(vault, availableVaults)) {
-        // TODO: lend, check type
-        showPosition(VaultType.BORROW, router, true, vault, undefined);
+      if (vault && !userHasFundsInVault(vault, allAvailableVaults())) {
+        showPosition(type, router, true, vault, undefined);
       } else {
         showPositions = true;
       }
       // Same for the active vault in case the user is on the my-positions/[pid] page and there are no longer funds after closing the position
     } else if (
-      activeVault &&
-      !userHasFundsInVault(activeVault, availableVaults)
+      type === VaultType.BORROW &&
+      borrowActiveVault &&
+      !userHasFundsInVault(borrowActiveVault, borrowAvailableVaults)
+    ) {
+      showPositions = true;
+    } else if (
+      type === VaultType.LEND &&
+      lendingActiveVault &&
+      !userHasFundsInVault(lendingActiveVault, lendingAvailableVaults)
     ) {
       showPositions = true;
     }
