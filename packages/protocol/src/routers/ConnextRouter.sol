@@ -74,9 +74,10 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   /// @dev Custom Errors
   error ConnextRouter__setRouter_invalidInput();
   error ConnextRouter__xReceive_notReceivedAssetBalance();
-  error ConnextRouter__xReceive_notAllowedCaller();
-  error ConnextRouter__xReceiver_noValueTransferUseXbundle();
+  error ConnnextRouter__xReceive_notEnoughGasForTryCatch();
   error ConnnextRouter__xBundleConnext_notSelfCalled();
+
+  uint256 private constant TRY_CATCH_GAS_ESTIMATE = 740000;
 
   /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -161,6 +162,10 @@ contract ConnextRouter is BaseRouter, IXReceiver {
        * the action is Deposit, or Payback.
        */
       (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
+    }
+
+    if (gasleft() < TRY_CATCH_GAS_ESTIMATE) {
+      revert ConnnextRouter__xReceive_notEnoughGasForTryCatch();
     }
 
     /**
