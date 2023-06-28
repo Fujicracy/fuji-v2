@@ -17,7 +17,7 @@ import {
   FetchStatus,
   Mode,
 } from '../../helpers/assets';
-import { RouteMeta } from '../../helpers/routing';
+import { RouteMeta } from '../../helpers/routes';
 import { TransactionMeta } from '../../helpers/transactions';
 
 setAutoFreeze(false);

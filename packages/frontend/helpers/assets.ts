@@ -16,7 +16,7 @@ import { sdk } from '../services/sdk';
 import { AssetMeta } from '../store/models/Position';
 import { notify } from './notifications';
 import { BasePosition } from './positions';
-import { fetchRoutes } from './routing';
+import { fetchRoutes } from './routes';
 
 const defaultDebtCurrencies = sdk.getDebtForChain(DEFAULT_CHAIN_ID);
 const defaultCollateralCurrencies = sdk.getCollateralForChain(DEFAULT_CHAIN_ID);

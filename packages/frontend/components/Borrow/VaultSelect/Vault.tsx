@@ -15,7 +15,7 @@ import React, { createRef, useEffect, useRef, useState } from 'react';
 import { AssetType } from '../../../helpers/assets';
 import { chainName } from '../../../helpers/chains';
 import { AprData, aprData } from '../../../helpers/markets';
-import { RouteMeta } from '../../../helpers/routing';
+import { RouteMeta } from '../../../helpers/routes';
 import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
 import { vaultFromEntity } from '../../../helpers/vaults';
 import { useMarkets } from '../../../store/markets.store';

@@ -47,7 +47,7 @@ import {
   NotificationId,
   notify,
 } from '../../helpers/notifications';
-import { fetchRoutes, RouteMeta } from '../../helpers/routing';
+import { fetchRoutes, RouteMeta } from '../../helpers/routes';
 import { sdk } from '../../services/sdk';
 import { useAuth } from '../auth.store';
 import { useHistory } from '../history.store';

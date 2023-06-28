@@ -11,7 +11,7 @@ import {
   remainingBorrowLimit,
 } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
-import { isCrossChainTransaction } from '../../../helpers/routing';
+import { isCrossChainTransaction } from '../../../helpers/routes';
 import {
   stringifiedBridgeFeeSum,
   TransactionMeta,

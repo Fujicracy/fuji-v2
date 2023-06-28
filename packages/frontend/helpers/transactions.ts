@@ -19,7 +19,7 @@ import {
   HistoryRoutingStep,
   isValidStep,
 } from './history';
-import { BridgeFee } from './routing';
+import { BridgeFee } from './routes';
 import { camelize, toNotSoFixed } from './values';
 
 export type TransactionMeta = {
