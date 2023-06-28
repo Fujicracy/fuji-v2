@@ -1,4 +1,4 @@
-import { Address } from '@x-fuji/sdk';
+import { Address, VaultType } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
 import { setAutoFreeze } from 'immer';
 import { create } from 'zustand';
@@ -180,7 +180,7 @@ export const useLend = create<LendStore>()(
       },
 
       async signAndExecute() {
-        await signAndExecute(api);
+        await signAndExecute(api, VaultType.LEND);
       },
     }),
     storeOptions('lend')

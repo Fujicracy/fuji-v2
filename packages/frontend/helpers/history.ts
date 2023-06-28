@@ -1,4 +1,9 @@
-import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import {
+  ChainId,
+  RoutingStep,
+  RoutingStepDetails,
+  VaultType,
+} from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 
 import { useBorrow } from '../store/borrow.store';
@@ -43,6 +48,7 @@ export type HistoryEntryConnext = {
 };
 
 export type HistoryEntry = {
+  type?: VaultType; // Default to borrow
   hash: string;
   address: string;
   steps: HistoryRoutingStep[];

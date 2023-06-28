@@ -1,9 +1,10 @@
 import {
-  BorrowingVault,
+  AbstractVault,
   ChainId,
   ConnextTxStatus,
   FujiError,
   RoutingStepDetails,
+  VaultType,
 } from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
@@ -53,9 +54,10 @@ type HistoryState = {
 
 type HistoryActions = {
   add: (
+    type: VaultType,
     hash: string,
     address: string,
-    vault: BorrowingVault,
+    vault: AbstractVault,
     steps: RoutingStepDetails[]
   ) => void;
   update: (hash: string, patch: Partial<HistoryEntry>) => void;
@@ -86,7 +88,7 @@ export const useHistory = create<HistoryStore>()(
       (set, get) => ({
         ...initialState,
 
-        async add(hash, address, vault, steps) {
+        async add(type, hash, address, vault, steps) {
           const distinctChains = steps
             .map((s) => s.chainId)
             .reduce((acc: ChainId[], current: ChainId, i: number) => {
@@ -120,6 +122,7 @@ export const useHistory = create<HistoryStore>()(
             : undefined;
 
           const entry: HistoryEntry = {
+            type,
             vaultAddress: vault.address.value,
             vaultChainId: vault.chainId,
             hash,

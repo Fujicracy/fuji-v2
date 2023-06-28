@@ -13,6 +13,7 @@ import {
   FujiResultSuccess,
   LendingVault,
   Sdk,
+  VaultType,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 import { BigNumber, ethers } from 'ethers';
@@ -666,7 +667,7 @@ export const execute = async (
     api.setState({ isExecuting: false });
   }
 };
-export const signAndExecute = async (api: StoreApi) => {
+export const signAndExecute = async (api: StoreApi, type: VaultType) => {
   if (api.getState().needsSignature) {
     await api.getState().sign();
   }
@@ -679,12 +680,7 @@ export const signAndExecute = async (api: StoreApi) => {
     // TODO: add needs to support AbstractVault for lending operations
     useHistory
       .getState()
-      .add(
-        tx.hash,
-        tx.from,
-        vault as BorrowingVault,
-        api.getState().transactionMeta.steps
-      );
+      .add(type, tx.hash, tx.from, vault, api.getState().transactionMeta.steps);
 
     api.getState().clearInputValues();
   }
