@@ -6,9 +6,11 @@ import {
   FujiResultError,
   FujiResultPromise,
   FujiResultSuccess,
+  VaultType,
 } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 
+import { DUST_AMOUNT } from '../constants';
 import { useBorrow } from '../store/borrow.store';
 import { AssetMeta, Position } from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
@@ -16,10 +18,7 @@ import { AssetChange, AssetType, debtForCurrency, Mode } from './assets';
 import { shouldShowStoreNotification } from './navigation';
 import { showOnchainErrorNotification } from './notifications';
 import { bigToFloat, formatNumber } from './values';
-import {
-  getAllBorrowingVaultFinancials,
-  vaultsFromFinancialsOrError,
-} from './vaults';
+import { getVaultFinancials, vaultsFromFinancialsOrError } from './vaults';
 
 export type BasePosition = {
   position: Position;
@@ -32,12 +31,15 @@ export const getTotalSum = (
 ): number => {
   return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0);
 };
+
 export const getPositionsWithBalance = async (
-  addr: string
+  type: VaultType,
+  addr?: string
 ): FujiResultPromise<Position[]> => {
+  if (!addr) return new FujiResultSuccess([]); // We want to proceed anyway. Ugly code though.
   const account = Address.from(addr);
 
-  const result = await getAllBorrowingVaultFinancials(account);
+  const result = await getVaultFinancials(type, account);
   const errors = result.data.filter((d) => d instanceof FujiError);
   const allVaults = vaultsFromFinancialsOrError(result.data);
 
@@ -99,7 +101,8 @@ export const getPositionsWithBalance = async (
     return p;
   });
 
-  return new FujiResultSuccess(vaults);
+  const filtered = vaults.filter((p) => p.collateral.amount > DUST_AMOUNT);
+  return new FujiResultSuccess(filtered);
 };
 
 export const getAccrual = (

@@ -18,11 +18,7 @@ import { AssetType } from './assets';
 import { chainName, chains } from './chains';
 import { shouldShowStoreNotification } from './navigation';
 import { notify, showOnchainErrorNotification } from './notifications';
-import {
-  getAllBorrowingVaultFinancials,
-  getAllLendingVaultFinancials,
-  vaultsFromFinancialsOrError,
-} from './vaults';
+import { getVaultFinancials, vaultsFromFinancialsOrError } from './vaults';
 
 const defaultRow: MarketRow = {
   collateral: '',
@@ -347,10 +343,7 @@ export const fetchMarkets = async (
   api.getState().changeRowsIfNeeded(type, rowsBase);
 
   const address = addr ? Address.from(addr) : undefined;
-  const result =
-    type === VaultType.BORROW
-      ? await getAllBorrowingVaultFinancials(address)
-      : await getAllLendingVaultFinancials(address);
+  const result = await getVaultFinancials(type, address);
   const errors: FujiError[] = result.data.filter(
     (d) => d instanceof FujiError
   ) as FujiError[];

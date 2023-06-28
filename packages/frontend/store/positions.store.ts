@@ -1,7 +1,7 @@
+import { VaultType } from '@x-fuji/sdk';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { DUST_AMOUNT } from '../constants';
 import { AssetType } from '../helpers/assets';
 import { shouldShowStoreNotification } from '../helpers/navigation';
 import { showOnchainErrorNotification } from '../helpers/notifications';
@@ -49,27 +49,42 @@ export const usePositions = create<PositionsStore>()(
 
       fetchUserPositions: async () => {
         set({ loading: true });
-        const addr = useAuth.getState().address;
-        const result = addr
-          ? await getPositionsWithBalance(addr)
-          : { success: true, error: undefined, data: [] };
 
-        if (!result.success) {
-          console.error(result.error?.message);
-          if (shouldShowStoreNotification('positions') && result.error) {
-            showOnchainErrorNotification(result.error);
+        const addr = useAuth.getState().address;
+        const borrowResult = await getPositionsWithBalance(
+          VaultType.BORROW,
+          addr
+        );
+
+        const lendingResult = await getPositionsWithBalance(
+          VaultType.LEND,
+          addr
+        );
+        const error = !borrowResult.success
+          ? borrowResult.error
+          : !lendingResult.success
+          ? lendingResult.error
+          : undefined;
+        if (error) {
+          console.error(error.message);
+          if (shouldShowStoreNotification('positions') && error) {
+            showOnchainErrorNotification(error);
           }
         }
-        const positions = result.success
-          ? (result.data as Position[]).filter(
-              (p) => p.collateral.amount > DUST_AMOUNT
-            )
+        const borrowPositions = borrowResult.success ? borrowResult.data : [];
+        const lendingPositions = lendingResult.success
+          ? lendingResult.data
           : [];
 
-        const totalDepositsUSD = getTotalSum(positions, AssetType.Collateral);
-        const totalDebtUSD = getTotalSum(positions, AssetType.Debt);
+        // TODO: Update the following taking into account lending positions
 
-        const totalAccrued = positions.reduce((acc, p) => {
+        const totalDepositsUSD = getTotalSum(
+          borrowPositions,
+          AssetType.Collateral
+        );
+        const totalDebtUSD = getTotalSum(borrowPositions, AssetType.Debt);
+
+        const totalAccrued = borrowPositions.reduce((acc, p) => {
           const accrueCollateral = getAccrual(
             p.collateral.amount * p.collateral.usdPrice,
             AssetType.Collateral,
@@ -88,11 +103,12 @@ export const usePositions = create<PositionsStore>()(
           : 0;
 
         const availableBorrowPowerUSD =
-          getCurrentAvailableBorrowingPower(positions);
+          getCurrentAvailableBorrowingPower(borrowPositions);
 
         set(() => {
           return {
-            positions,
+            borrowPositions,
+            lendingPositions,
             totalDepositsUSD,
             totalDebtUSD,
             totalAPY: parseFloat(totalAPY.toFixed(2)),

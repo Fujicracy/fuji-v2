@@ -14,27 +14,7 @@ import { chains } from './chains';
 
 export type FinancialsOrError = VaultWithFinancials | FujiError;
 
-/*
-  Convenience functions that call the SDK to get all the vaults with
-  financials and returns both the data and errors.
-*/
-export const getAllBorrowingVaultFinancials = async (
-  address?: Address
-): Promise<{
-  data: FinancialsOrError[];
-}> => {
-  return getAllVaultFinancials(VaultType.BORROW, address);
-};
-
-export const getAllLendingVaultFinancials = async (
-  address?: Address
-): Promise<{
-  data: FinancialsOrError[];
-}> => {
-  return getAllVaultFinancials(VaultType.LEND, address);
-};
-
-const getAllVaultFinancials = async (
+export const getVaultFinancials = async (
   type: VaultType,
   address?: Address
 ): Promise<{
