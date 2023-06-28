@@ -473,7 +473,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * - Must return updated "beneficiary" and "tokensToCheck".
    * - Must check swapper is a valid swapper at {Chief}.
    * - Must check `receiver` and `sweeper` args are the expected
-   *   beneficiary when the receiver and swweeper are not address(this).
+   *   beneficiary when the receiver and sweeper are not address(this).
    *
    * @param arg of the ongoing action
    * @param beneficiary_ passed through `_bundleInternal()`
