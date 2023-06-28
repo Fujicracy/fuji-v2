@@ -106,7 +106,13 @@ contract MockProvider is ILendingProvider {
   }
 
   /// @inheritdoc ILendingProvider
-  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
-    return false;
+  //@dev mocking rewards for test purposes
+  // will assume rewards are given in vault.asset and always 1e18
+  function harvest(bytes memory data) external returns (bool success) {
+    IVault vault = abi.decode(data, (IVault));
+    MockERC20 merc20 = MockERC20(vault.asset());
+    try merc20.mintRewards(address(vault), 1e18, providerName()) returns (bool result) {
+      success = result;
+    } catch {}
   }
 }
