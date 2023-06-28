@@ -581,12 +581,16 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   /**
    * @dev Function to be implemented on the bridge-specific contract
    * used to transfer funds WITHOUT calldata to a destination chain.
+   *
+   * Note Check requirements at children contract.
    */
   function _crossTransfer(bytes memory, address beneficiary) internal virtual returns (address);
 
   /**
    * @dev Function to be implemented on the bridge-specific contract
    * used to transfer funds WITH calldata to a destination chain.
+   *
+   * Note Check requirements at children contract.
    */
   function _crossTransferWithCalldata(
     bytes memory,
@@ -673,6 +677,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (currentBalance != previousBalance) {
           revert BaseRouter__bundleInternal_noBalanceChange();
         }
+      } else {
+        break;
       }
       unchecked {
         ++i;
