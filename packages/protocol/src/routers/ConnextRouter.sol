@@ -77,7 +77,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   error ConnnextRouter__xReceive_notEnoughGasForTryCatch();
   error ConnnextRouter__xBundleConnext_notSelfCalled();
 
-  uint256 private constant TRY_CATCH_GAS_ESTIMATE = 740000;
+  uint256 private constant CATCH_EXECUTION_GAS_COST = 645000;
 
   /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -164,16 +164,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
     }
 
-    if (gasleft() < TRY_CATCH_GAS_ESTIMATE) {
-      revert ConnnextRouter__xReceive_notEnoughGasForTryCatch();
-    }
-
     /**
      * @dev Connext will keep the custody of the bridged amount if the call
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
      * Therefore we try/catch instead of directly calling _bundleInternal(...).
      */
-    try this.xBundleConnext(actions, args, beforeSlipped) {
+    try this.xBundleConnext{gas: gasleft() - CATCH_EXECUTION_GAS_COST}(actions, args, beforeSlipped)
+    {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
