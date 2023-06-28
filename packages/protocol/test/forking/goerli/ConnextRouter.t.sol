@@ -58,6 +58,12 @@ contract MockTestFlasher is Routines, IFlasher {
   }
 }
 
+contract MaliciousReceiver {
+  receive() external payable {
+    while (true) {}
+  }
+}
+
 contract ConnextRouterForkingTests is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
@@ -265,30 +271,33 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
   }
 
-  function testFail_InboundXBundleNotEnoughGas() public {
-    uint256 amount = 2 ether;
-    uint256 borrowAmount = 1000e6;
+  function test_gasGriefingInboundXBundle() public {
+    MaliciousReceiver maliciousReceiver = new MaliciousReceiver();
 
-    // make the callData to fail
-    bytes memory callData = _getDepositAndBorrowCallData(
-      ALICE, ALICE_PK, amount, borrowAmount, address(0), address(vault)
-    );
+    uint256 amount = 1 ether;
+
+    // make the callData with malicious receiver
+    IRouter.Action[] memory actions_ = new IRouter.Action[](1);
+    actions_[0] = IRouter.Action.WithdrawETH;
+
+    bytes[] memory args_ = new bytes[](1);
+    args_[0] = abi.encode(amount, address(maliciousReceiver));
+
+    bytes memory callData = abi.encode(actions_, args_);
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
     deal(collateralAsset, address(connextRouter), amount);
 
     vm.startPrank(registry[domain].connext);
-    // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
-    // the same address as the one on GOERLI
-    connextRouter.xReceive{gas: 150000}(
+    // Limit the amount of gas being passed
+    connextRouter.xReceive{gas: 750000}(
       "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
     );
     vm.stopPrank();
 
-    // No funds were moved
-    assertEq(vault.balanceOf(ALICE), 0);
-    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), 0);
+    // Funds were moved to ConnextHandler regardles of maliciousReceiver
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
   }
 
   function test_retryFailedInboundXReceive() public {
