@@ -15,7 +15,8 @@ import {
 } from '../../constants';
 import { LENDING_PROVIDERS } from '../../constants/lending-providers';
 import { ChainId, RouterAction, VaultType } from '../../enums';
-import { encodeActionArgs, findPermitAction } from '../../functions';
+import { encodeActionArgs } from '../../functions/encodeActionArgs';
+import { findPermitAction } from '../../functions/findPermitAction';
 import {
   AprResult,
   ChainConfig,

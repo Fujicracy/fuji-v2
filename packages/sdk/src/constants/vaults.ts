@@ -1,4 +1,5 @@
-import { Address, BorrowingVault } from '../entities';
+import { Address } from '../entities';
+import { BorrowingVault } from '../entities/BorrowingVault';
 import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
 import { DAI, MATICX, USDC, USDT, WETH9 } from './tokens';

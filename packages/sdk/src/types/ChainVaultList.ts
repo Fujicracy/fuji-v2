@@ -1,4 +1,4 @@
-import { AbstractVault } from '../entities';
+import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { ChainId } from '../enums';
 
 export type ChainVaultList = {

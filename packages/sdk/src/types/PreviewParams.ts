@@ -1,6 +1,6 @@
 import { BigNumber } from '@ethersproject/bignumber';
 
-import { AbstractVault } from '../entities';
+import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { Address } from '../entities/Address';
 import { Currency } from '../entities/Currency';
 import { PreviewName } from '../enums';

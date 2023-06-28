@@ -5,7 +5,8 @@ import { formatUnits, parseUnits } from '@ethersproject/units';
 import { BigNumber, utils, Wallet } from 'ethers';
 
 import { NATIVE, USDC, VAULT_LIST, WETH9, WNATIVE } from '../src/constants';
-import { Address, BorrowingVault } from '../src/entities';
+import { Address } from '../src/entities';
+import { BorrowingVault } from '../src/entities/BorrowingVault';
 import { ChainId, PreviewName, RouterAction } from '../src/enums';
 import * as batchLoad from '../src/functions/batchLoad';
 import { Sdk } from '../src/Sdk';

@@ -2,7 +2,7 @@ import { defaultAbiCoder } from '@ethersproject/abi';
 import { AddressZero } from '@ethersproject/constants';
 import { BigNumber } from 'ethers';
 
-import { FujiResultError, FujiResultSuccess } from '../entities';
+import { FujiResultError, FujiResultSuccess } from '../entities/FujiError';
 import { RouterAction } from '../enums';
 import { FujiResult, PermitParams, RouterActionParams } from '../types';
 

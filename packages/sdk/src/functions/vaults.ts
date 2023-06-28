@@ -1,13 +1,13 @@
 import { CHAIN, VAULT_LIST } from '../constants';
 import {
-  AbstractVault,
   Address,
-  BorrowingVault,
   Currency,
   FujiResultError,
   FujiResultSuccess,
   Token,
 } from '../entities';
+import { AbstractVault } from '../entities/abstract/AbstractVault';
+import { BorrowingVault } from '../entities/BorrowingVault';
 import { ChainId, ChainType, VaultType } from '../enums';
 import {
   ChainConfig,

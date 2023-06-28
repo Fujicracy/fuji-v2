@@ -7,13 +7,13 @@ import { FujiErrorCode } from '../constants';
 import { CHIEF_ADDRESS, FUJI_ORACLE_ADDRESS } from '../constants/addresses';
 import { LENDING_PROVIDERS } from '../constants/lending-providers';
 import {
-  AbstractVault,
   Address,
-  BorrowingVault,
   FujiError,
   FujiResultError,
   FujiResultSuccess,
 } from '../entities';
+import { AbstractVault } from '../entities/abstract/AbstractVault';
+import { BorrowingVault } from '../entities/BorrowingVault';
 import { Chain } from '../entities/Chain';
 import { VaultType } from '../enums';
 import { FujiResult, FujiResultPromise, VaultWithFinancials } from '../types';

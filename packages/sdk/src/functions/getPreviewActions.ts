@@ -5,8 +5,10 @@ import invariant from 'tiny-invariant';
 import { CONNEXT_ROUTER_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
 import { BN_ZERO, DEFAULT_SLIPPAGE } from '../constants/common';
-import { AbstractVault, BorrowingVault, Currency } from '../entities';
+import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { Address } from '../entities/Address';
+import { BorrowingVault } from '../entities/BorrowingVault';
+import { Currency } from '../entities/Currency';
 import {
   ChainId,
   ConnextDomain,
