@@ -7,8 +7,8 @@ import {IVault} from "../../../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {BorrowingVaultFactory} from "../../../src/vaults/borrowing/BorrowingVaultFactory.sol";
-import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
-import {YieldVaultFactory} from "../../../src/vaults/yield/YieldVaultFactory.sol";
+import {YieldVault} from "../../../src/vaults/yields/YieldVault.sol";
+import {YieldVaultFactory} from "../../../src/vaults/yields/YieldVaultFactory.sol";
 
 contract VaultFactoryDeploymentUnitTests is MockingSetup {
   BorrowingVaultFactory public bVaultFactory;
