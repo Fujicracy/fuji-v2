@@ -969,4 +969,35 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__checkRebalanceFee_excessFee();
     }
   }
+
+  /// @inheritdoc IVault
+  function harvest(
+    Strategy strategy,
+    ILendingProvider provider,
+    bytes memory data
+  )
+    external
+    hasRole(msg.sender, HARVESTER_ROLE)
+  {
+    //check provider is valid TODO
+
+    //collect rewards from provider
+    _harvest(provider, data);
+
+    //strategy 1 = convert rewards to collateral
+    if (strategy == Strategy.ConvertToCollateral) {}
+
+    //strategy 2 = repay debt
+    if (strategy == Strategy.RepayDebt) {}
+
+    //strategy 3 = distribute rewards
+    if (strategy == Strategy.Distribute) {}
+  }
+
+  function _harvest(ILendingProvider provider, bytes memory data) internal {
+    address(provider).functionDelegateCall(
+      abi.encodeWithSelector(ILendingProvider.harvest.selector, data),
+      string(abi.encodePacked("harvest", ": delegate call failed"))
+    );
+  }
 }
