@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 
 contract ScriptUtilities is Script {
   // https://docs.connext.network/resources/deployments
-  uint32 public constant MAINNET_DOMAIN = 6648936;
+  uint32 public constant ETHEREUM_DOMAIN = 6648936;
   uint32 public constant OPTIMISM_DOMAIN = 1869640809;
   uint32 public constant ARBITRUM_DOMAIN = 1634886255;
   uint32 public constant POLYGON_DOMAIN = 1886350457;
@@ -110,7 +110,9 @@ contract ScriptUtilities is Script {
   }
 
   function getDomainByChainName(string memory name) internal pure returns (uint32 domain) {
-    if (areEq(name, "gnosis")) {
+    if (areEq(name, "ethereum")) {
+      domain = ETHEREUM_DOMAIN;
+    } else if (areEq(name, "gnosis")) {
       domain = GNOSIS_DOMAIN;
     } else if (areEq(name, "polygon")) {
       domain = POLYGON_DOMAIN;
