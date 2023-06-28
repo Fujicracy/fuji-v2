@@ -471,6 +471,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
    * Requirements:
    * - Must return updated "beneficiary" and "tokensToCheck".
+   * - Must check swapper is a valid swapper at {Chief}.
+   * - Must check `receiver` and `sweeper` args are the expected
+   *   beneficiary when the receiver and sweeper are not address(this).
    *
    * @param arg of the ongoing action
    * @param beneficiary_ passed through `_bundleInternal()`
