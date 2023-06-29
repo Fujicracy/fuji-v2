@@ -1,5 +1,6 @@
 import { Address } from '../entities';
 import { BorrowingVault } from '../entities/BorrowingVault';
+import { LendingVault } from '../entities/LendingVault';
 import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
 import { DAI, MATICX, USDC, USDT, WETH9 } from './tokens';
@@ -14,6 +15,10 @@ export const VAULT_LIST: ChainVaultList = {
     ),
   ],
   [ChainId.MATIC]: [
+    new LendingVault(
+      Address.from('0x2D932f0adEC52d3213DA5e129dafdD428068DD73'),
+      WETH9[ChainId.MATIC]
+    ),
     new BorrowingVault(
       Address.from('0xC9341E23F5C4d0E5248e6eBa558Dbc656Eee9CcC'),
       WETH9[ChainId.MATIC],
@@ -59,6 +64,10 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.FANTOM]: [],
   [ChainId.ARBITRUM]: [
+    new LendingVault(
+      Address.from('0xCc790B043A60a0F1cfB2b638C74ea0E4a28FD745'),
+      WETH9[ChainId.ARBITRUM]
+    ),
     new BorrowingVault(
       Address.from('0x9201E10E4C269D6528d2d153f2145348A399f540'),
       WETH9[ChainId.ARBITRUM],
@@ -86,6 +95,10 @@ export const VAULT_LIST: ChainVaultList = {
     //),
   ],
   [ChainId.OPTIMISM]: [
+    new LendingVault(
+      Address.from('0xDa917380247b48382674Bd159d75D75314Cb21fB'),
+      WETH9[ChainId.OPTIMISM]
+    ),
     new BorrowingVault(
       Address.from('0x92964c1EeE607358CCCe7e8F53E7624eB8356f15'),
       WETH9[ChainId.OPTIMISM],
@@ -125,6 +138,10 @@ export const VAULT_LIST: ChainVaultList = {
     ),
   ],
   [ChainId.GNOSIS]: [
+    new LendingVault(
+      Address.from('0x4AeF47117628EbC3ae78A9EdBE558794f1500de6'),
+      WETH9[ChainId.GNOSIS]
+    ),
     new BorrowingVault(
       Address.from('0x1f9137C0007341A78b83097027CE99cF540BD0E0'),
       WETH9[ChainId.GNOSIS],
