@@ -29,8 +29,6 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
 
-import {console} from "forge-std/console.sol";
-
 contract BorrowingVault is BaseVault {
   using Math for uint256;
 
@@ -531,7 +529,8 @@ contract BorrowingVault is BaseVault {
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
-      uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtDecimals);
+      // uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtDecimals);
+      uint256 lockedAssets = debt.mulDiv(price * 1e18, maxLtv * 10 ** _debtDecimals);
 
       if (lockedAssets == 0) {
         // Handle wei level amounts in where 'lockedAssets' < 1 wei.
