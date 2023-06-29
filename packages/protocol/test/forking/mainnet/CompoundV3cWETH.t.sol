@@ -13,7 +13,7 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Chief} from "../../../src/Chief.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
+import {YieldVault} from "../../../src/vaults/yields/YieldVault.sol";
 
 contract CompoundV3ForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
