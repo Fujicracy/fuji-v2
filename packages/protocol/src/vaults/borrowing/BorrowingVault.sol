@@ -544,7 +544,8 @@ contract BorrowingVault is BaseVault {
     uint256 debtShares = _debtShares[borrower];
     uint256 debt = convertToDebt(debtShares);
 
-    uint256 baseUserMaxBorrow = ((assets * maxLtv * price) / (1e18 * 10 ** decimals()));
+    // uint256 baseUserMaxBorrow = ((assets * maxLtv * price) / (1e18 * 10 ** decimals()));
+    uint256 baseUserMaxBorrow = assets.mulDiv(maxLtv.mulDiv(price, 1e18), 10 ** decimals());
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
