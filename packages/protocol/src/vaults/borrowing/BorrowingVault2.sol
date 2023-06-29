@@ -57,7 +57,6 @@ contract BorrowingVault2 is BaseVault {
   error BorrowingVault__borrow_invalidInput();
   error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
-  error BorrowingVault__payback_moreThanMax();
   error BorrowingVault__beforeTokenTransfer_moreThanMax();
   error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
@@ -298,7 +297,7 @@ contract BorrowingVault2 is BaseVault {
   function payback(uint256 debt, address owner) public override returns (uint256) {
     uint256 shares = previewPayback(debt);
 
-    _paybackChecks(owner, debt, shares);
+    shares = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
 
     return shares;
@@ -308,7 +307,7 @@ contract BorrowingVault2 is BaseVault {
   function burnDebt(uint256 shares, address owner) public override returns (uint256) {
     uint256 debt = previewBurnDebt(shares);
 
-    _paybackChecks(owner, debt, shares);
+    shares = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
 
     return debt;
@@ -586,7 +585,8 @@ contract BorrowingVault2 is BaseVault {
   }
 
   /**
-   * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault.
+   * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault and returns maximum
+   * shares to payback if exceeding `owner` debtShares balance.
    * Requirements:
    * - Must revert for all conditions not passed.
    *
@@ -594,13 +594,22 @@ contract BorrowingVault2 is BaseVault {
    * @param debt or borrowed amount of debt asset
    * @param shares of debt being burned
    */
-  function _paybackChecks(address owner, uint256 debt, uint256 shares) private view {
+  function _paybackChecks(
+    address owner,
+    uint256 debt,
+    uint256 shares
+  )
+    private
+    view
+    returns (uint256)
+  {
     if (debt == 0 || shares == 0 || owner == address(0)) {
       revert BorrowingVault__payback_invalidInput();
     }
     if (shares > _debtShares[owner]) {
-      revert BorrowingVault__payback_moreThanMax();
+      shares = _debtShares[owner];
     }
+    return shares;
   }
 
   /**
