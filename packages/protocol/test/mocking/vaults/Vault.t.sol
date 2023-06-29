@@ -484,7 +484,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.payback(borrowAmount, address(0));
   }
 
-  //error BorrowingVault__payback_moreThanMax();
   function test_paybackMoreThanMax(uint256 amountPayback) public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
@@ -492,8 +491,14 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    vm.expectRevert(BorrowingVault.BorrowingVault__payback_moreThanMax.selector);
+    // NOTE: we use deal(...) instead of _dealMockERC20
+    // using the false arg for `totalSupply`update
+    // in order to be capable of fuzzing very large numbers.
+    deal(debtAsset, address(this), amountPayback, false);
+    IERC20(debtAsset).approve(address(vault), amountPayback);
     vault.payback(amountPayback, ALICE);
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+    assertEq(vault.balanceOfDebtShares(ALICE), 0);
   }
 
   //error BorrowingVault__liquidate_invalidInput();
