@@ -502,20 +502,17 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.liquidate(ALICE, address(0));
   }
 
-  function test_withdrawWhenFullDebtIsPaybackExternally() public {
-    uint256 TROUBLEMAKER_PK = 0x1122;
-    address TROUBLEMAKER = vm.addr(TROUBLEMAKER_PK);
+  function test_withdrawWhenFullDebtIsPaybackExternally(uint256 amount) public {
+    // 1 million ether as collateral is sufficient for vault testing.
+    vm.assume(amount > 1e6 && amount < 1000000 ether);
+
+    address TROUBLEMAKER = vm.addr(0x1122);
     vm.label(TROUBLEMAKER, "TROUBLEMAKER");
 
     // Alice deposits and borrows
-    uint256 amount = 500000 ether;
-    uint256 borrowAmount = 50000000e18;
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
+    uint256 borrowAmount = amount * price * DEFAULT_MAX_LTV / 1e36;
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
-
-    console.log("ALICE does deposit and borrow");
-    console.log("vault.balanceOf(ALICE), shares", vault.balanceOf(ALICE));
-    console.log("vault.balanceOfDebtShares(ALICE), debtShares", vault.balanceOfDebtShares(ALICE));
-    console.log("vault.balanceOfDebt(ALICE), debt", vault.balanceOfDebt(ALICE));
 
     // We fake that a Troublemaker paysback fully the vault's debt externally
     uint256 fullPaybackAmount =
@@ -526,34 +523,19 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     mockProvider.payback(fullPaybackAmount, IVault(address(vault)));
     vm.stopPrank();
 
-    console.log("After troubleMaker pays all debt ALICE stands:");
-    console.log("vault.balanceOf(ALICE), shares", vault.balanceOf(ALICE));
-    console.log("vault.balanceOfDebtShares(ALICE), debtShares", vault.balanceOfDebtShares(ALICE));
-    console.log("vault.balanceOfDebt(ALICE), debt", vault.balanceOfDebt(ALICE));
-
     assertEq(vault.balanceOf(ALICE), amount);
     assertEq(vault.balanceOfDebtShares(ALICE), borrowAmount);
     assertEq(vault.balanceOfDebt(ALICE), 1);
 
-    console.log("BOB makes a borrow after debt has been fully payback)");
-    do_depositAndBorrow(amount / 2, borrowAmount / 2, vault, BOB);
-
-    console.log("ALICE stands:");
-    console.log("vault.balanceOf(ALICE)", vault.balanceOf(ALICE));
-    console.log("vault.balanceOfDebtShares(ALICE)", vault.balanceOfDebtShares(ALICE));
-    console.log("vault.balanceOfDebt(ALICE)", vault.balanceOfDebt(ALICE));
-
-    console.log("BOB stands:");
-    console.log("vault.balanceOf(BOB)", vault.balanceOf(BOB));
-    console.log("vault.balanceOfDebtShares(BOB)", vault.balanceOfDebtShares(BOB));
-    console.log("vault.balanceOfDebt(BOB)", vault.balanceOfDebt(BOB));
+    // Bob now deposits and borrow after debt has been paid back
+    // To ensure there is no DOS due to payback.
+    do_depositAndBorrow(amount, borrowAmount, vault, BOB);
 
     // Withdraw should not fail
-    // uint256 maxAmount = vault.maxRedeem(ALICE);
-    // vm.prank(ALICE);
-    // vault.redeem(maxAmount, ALICE, ALICE);
+    uint256 maxAmount = vault.maxRedeem(ALICE);
+    vm.prank(ALICE);
+    vault.redeem(maxAmount, ALICE, ALICE);
 
-    // console.log("vault.balanceOf(ALICE)", vault.balanceOf(ALICE));
-    // console.log("vault.balanceOfAsset(ALICE)", vault.balanceOfAsset(ALICE));
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), maxAmount);
   }
 }
