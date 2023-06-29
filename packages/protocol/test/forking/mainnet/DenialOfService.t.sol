@@ -67,38 +67,4 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     vault.redeem(maxAmount, ALICE, ALICE);
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), maxAmount);
   }
-
-  // function test_correctDebtUnpauseAndWithdraw() public {
-  //   uint256 amountCorrected = BORROW_AMOUNT;
-
-  //   do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
-  //   do_borrow(BORROW_AMOUNT, vault, ALICE);
-
-  //   // Troublemaker pays vaults debt
-  //   deal(debtAsset, TROUBLEMAKER, BORROW_AMOUNT * 10);
-  //   vm.startPrank(TROUBLEMAKER);
-  //   //TODO check this after rounding issue is fixed
-  //   //approve more than needed because of rounding issues
-  //   IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT + 10);
-  //   //pay full amount, sometimes bigger than BORROW_AMOUNT
-  //   aaveV2pool.repay(
-  //     vault.debtAsset(), aaveV2.getBorrowBalance(address(vault), vault), 2, address(vault)
-  //   );
-  //   vm.stopPrank();
-
-  //   bytes memory data = abi.encodeWithSelector(BorrowingVault.correctDebt.selector, TREASURY);
-  //   _callWithTimelock(address(vault), data);
-  //   skip(2 days);
-
-  //   //try to payback and withdraw and check it works
-  //   do_payback(BORROW_AMOUNT, vault, ALICE);
-  //   do_withdraw(DEPOSIT_AMOUNT, vault, ALICE);
-
-  //   //DEPOSIT_AMOUNT has built up some interest after the call with timelock (lets assume 1%)
-  //   assertApproxEqAbs(vault.balanceOf(ALICE), 0, DEPOSIT_AMOUNT / 100);
-
-  //   //check the actual corrected amount is in TREASURY
-  //   assertEq(aaveV2.getBorrowBalance(address(vault), vault), 0);
-  //   assertEq(IERC20(debtAsset).balanceOf(TREASURY), amountCorrected);
-  // }
 }
