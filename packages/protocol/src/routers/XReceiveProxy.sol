@@ -18,7 +18,6 @@ import {ConnextRouter} from "./ConnextRouter.sol";
 contract XReceiveProxy is IXReceiver {
   using SafeERC20 for IERC20;
 
-  error XReceiveProxy__xReceive_noValueTransfer();
   error XReceiveProxy__xReceive_notReceivedAssetBalance();
 
   ConnextRouter public immutable connextRouter;
@@ -42,17 +41,13 @@ contract XReceiveProxy is IXReceiver {
     external
     returns (bytes memory)
   {
-    IERC20 asset_ = IERC20(asset);
-
-    if (amount == 0) {
-      revert XReceiveProxy__xReceive_noValueTransfer();
+    if (amount > 0) {
+      uint256 balance = IERC20(asset).balanceOf(address(this));
+      if (balance < amount) {
+        revert XReceiveProxy__xReceive_notReceivedAssetBalance();
+      }
+      IERC20(asset).safeIncreaseAllowance(address(connextRouter), amount);
     }
-
-    uint256 balance = asset_.balanceOf(address(this));
-    if (balance < amount) {
-      revert XReceiveProxy__xReceive_notReceivedAssetBalance();
-    }
-    asset_.safeIncreaseAllowance(address(connextRouter), amount);
 
     return connextRouter.xReceive(transferId, amount, asset, originSender, originDomain, callData);
   }
