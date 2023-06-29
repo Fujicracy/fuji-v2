@@ -268,20 +268,22 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /// @inheritdoc IERC4626
-  function maxWithdraw(address owner) public view override returns (uint256) {
-    if (paused(VaultActions.Withdraw)) {
-      return 0;
-    }
-    return _computeFreeAssets(owner);
-  }
+  function maxWithdraw(address owner) public view virtual override returns (uint256);
+  // function maxWithdraw(address owner) public view override returns (uint256) {
+  //   if (paused(VaultActions.Withdraw)) {
+  //     return 0;
+  //   }
+  //   return _computeFreeAssets(owner);
+  // }
 
   /// @inheritdoc IERC4626
-  function maxRedeem(address owner) public view override returns (uint256) {
-    if (paused(VaultActions.Withdraw)) {
-      return 0;
-    }
-    return convertToShares(maxWithdraw(owner));
-  }
+  function maxRedeem(address owner) public view virtual override returns (uint256);
+  // function maxRedeem(address owner) public view override returns (uint256) {
+  //   if (paused(VaultActions.Withdraw)) {
+  //     return 0;
+  //   }
+  //   return convertToShares(maxWithdraw(owner));
+  // }
 
   /// @inheritdoc IERC4626
   function previewDeposit(uint256 assets) public view virtual override returns (uint256) {
@@ -805,7 +807,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    *
    * @param owner address to whom free assets is being checked
    */
-  function _computeFreeAssets(address owner) internal view virtual returns (uint256);
+  // function _computeFreeAssets(address owner) internal view virtual returns (uint256);
 
   /*//////////////////////////
       Fuji Vault functions
