@@ -516,7 +516,6 @@ contract BorrowingVault is BaseVault {
     uint256 debtShares = _debtShares[borrower];
     uint256 debt = convertToDebt(debtShares);
 
-    // uint256 baseUserMaxBorrow = ((assets * maxLtv * price) / (PRECISION_CONSTANT * 10 ** decimals()));
     uint256 baseUserMaxBorrow = assets.mulDiv(maxLtv * price, 10 ** decimals() * PRECISION_CONSTANT);
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
@@ -532,7 +531,6 @@ contract BorrowingVault is BaseVault {
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
-      // uint256 lockedAssets = (debt * PRECISION_CONSTANT * price) / (maxLtv * 10 ** _debtDecimals);
       uint256 lockedAssets = debt.mulDiv(price * PRECISION_CONSTANT, maxLtv * 10 ** _debtDecimals);
 
       if (lockedAssets == 0) {
