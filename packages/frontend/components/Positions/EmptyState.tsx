@@ -10,16 +10,20 @@ import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { shallow } from 'zustand/shallow';
 
-import { showBorrow } from '../../helpers/navigation';
+import { showBorrow, showLend } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 
 function EmptyState({
   reason,
   columnsCount,
   minHeight,
+  withButton = true,
+  type = 'borrow',
 }: {
   reason: 'no-wallet' | 'no-positions';
   columnsCount: number;
+  type?: 'lend' | 'borrow';
+  withButton?: boolean;
   minHeight?: string;
 }) {
   const { palette } = useTheme();
@@ -48,15 +52,18 @@ function EmptyState({
                 whiteSpace: 'normal',
               }}
             >
-              Deposit and borrow in a vault to view your dashboard metrics
+              {type === 'borrow' ? 'Deposit and borrow in ' : 'Lend to '} a
+              vault to view your dashboard metrics
             </Typography>
           ),
           button: {
-            label: 'Borrow',
-            action: () => showBorrow(router),
+            label: type === 'borrow' ? 'Borrow' : 'Lend',
+            action: () => {
+              type === 'borrow' ? showBorrow(router) : showLend(router);
+            },
           },
         };
-  }, [reason, login, router]);
+  }, [reason, login, router, type]);
 
   return (
     <TableRow>
@@ -87,16 +94,18 @@ function EmptyState({
 
           {config.infoText}
 
-          <Button
-            variant="gradient"
-            size="large"
-            onClick={() => config.button.action()}
-            data-cy="connect-wallet"
-            fullWidth
-            sx={{ mt: '1.5rem', maxWidth: '17rem' }}
-          >
-            {config.button.label}
-          </Button>
+          {withButton && (
+            <Button
+              variant="gradient"
+              size="large"
+              onClick={() => config.button.action()}
+              data-cy="connect-wallet"
+              fullWidth
+              sx={{ mt: '1.5rem', maxWidth: '17rem' }}
+            >
+              {config.button.label}
+            </Button>
+          )}
         </Box>
       </TableCell>
     </TableRow>

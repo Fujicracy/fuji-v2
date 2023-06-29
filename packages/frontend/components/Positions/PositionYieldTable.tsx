@@ -23,6 +23,7 @@ import { useAuth } from '../../store/auth.store';
 import { Position } from '../../store/models/Position';
 import { CurrencyWithNetworkIcon } from '../Shared/Icons';
 import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
+import EmptyState from './EmptyState';
 
 type PositionYieldTableProps = {
   loading: boolean;
@@ -66,70 +67,82 @@ function PositionYieldTable({
 
   return (
     <PositionYieldTableContainer isLend={isLend}>
-      {rows.map((row, i) => (
-        <TableRow key={i}>
-          {!isLend && (
-            <TableCell>
-              <Stack direction="row" alignItems="center" pt={1} pb={1}>
-                <CurrencyWithNetworkIcon
-                  currency={row.debt.symbol}
-                  network={chainName(row.chainId)}
-                  innerTop="1.1rem"
-                />
-                {row.debt.symbol}
-              </Stack>
-            </TableCell>
-          )}
-          <TableCell>
-            <Stack direction="row" alignItems="center" pt={1} pb={1}>
-              <CurrencyTableItem
-                currency={row.collateral.symbol}
-                label={row.collateral.symbol}
-                iconDimensions={32}
-              />
-            </Stack>
-          </TableCell>
-          {!isLend && (
-            <TableCell align="right">
-              <Typography variant="small" color={palette.warning.main}>
-                {formatValue(row.debt.baseAPR)}%
-              </Typography>
-            </TableCell>
-          )}
-          <TableCell align="right">
-            <Typography variant="small" color={palette.success.main}>
-              {formatValue(row.collateral.baseAPR)}%
-            </Typography>
-          </TableCell>
-          {!isLend && (
-            <TableCell align="right">
-              <Typography variant="small">
-                {formatValue(
-                  Number(row.collateral.baseAPR) - Number(row.debt.baseAPR)
-                )}
-                %
-              </Typography>
-            </TableCell>
-          )}
-          <TableCell align="right">
-            <Typography variant="small">
-              {formatValue(
-                getEstimatedEarnings({
-                  days,
-                  collateralInUsd: row.collateral.usdValue,
-                  collateralAPR: row.collateral.baseAPR,
-                  debtInUsd: row.debt.usdValue,
-                  debtAPR: row.debt.baseAPR,
-                }),
-                {
-                  style: 'currency',
-                  maximumFractionDigits: 2,
-                }
+      {rows.length === 0 && positions.length === 0 ? (
+        <EmptyState
+          reason="no-positions"
+          columnsCount={numberOfColumns}
+          minHeight="10rem"
+          type={isLend ? 'lend' : 'borrow'}
+          withButton={false}
+        />
+      ) : (
+        <>
+          {rows.map((row, i) => (
+            <TableRow key={i}>
+              {!isLend && (
+                <TableCell>
+                  <Stack direction="row" alignItems="center" pt={1} pb={1}>
+                    <CurrencyWithNetworkIcon
+                      currency={row.debt.symbol}
+                      network={chainName(row.chainId)}
+                      innerTop="1.1rem"
+                    />
+                    {row.debt.symbol}
+                  </Stack>
+                </TableCell>
               )}
-            </Typography>
-          </TableCell>
-        </TableRow>
-      ))}
+              <TableCell>
+                <Stack direction="row" alignItems="center" pt={1} pb={1}>
+                  <CurrencyTableItem
+                    currency={row.collateral.symbol}
+                    label={row.collateral.symbol}
+                    iconDimensions={32}
+                  />
+                </Stack>
+              </TableCell>
+              {!isLend && (
+                <TableCell align="right">
+                  <Typography variant="small" color={palette.warning.main}>
+                    {formatValue(row.debt.baseAPR)}%
+                  </Typography>
+                </TableCell>
+              )}
+              <TableCell align="right">
+                <Typography variant="small" color={palette.success.main}>
+                  {formatValue(row.collateral.baseAPR)}%
+                </Typography>
+              </TableCell>
+              {!isLend && (
+                <TableCell align="right">
+                  <Typography variant="small">
+                    {formatValue(
+                      Number(row.collateral.baseAPR) - Number(row.debt.baseAPR)
+                    )}
+                    %
+                  </Typography>
+                </TableCell>
+              )}
+              <TableCell align="right">
+                <Typography variant="small">
+                  {formatValue(
+                    getEstimatedEarnings({
+                      days,
+                      collateralInUsd: row.collateral.usdValue,
+                      collateralAPR: row.collateral.baseAPR,
+                      debtInUsd: row.debt.usdValue,
+                      debtAPR: row.debt.baseAPR,
+                    }),
+                    {
+                      style: 'currency',
+                      maximumFractionDigits: 2,
+                    }
+                  )}
+                </Typography>
+              </TableCell>
+            </TableRow>
+          ))}
+        </>
+      )}
     </PositionYieldTableContainer>
   );
 }

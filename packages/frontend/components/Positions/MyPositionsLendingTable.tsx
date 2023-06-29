@@ -74,7 +74,11 @@ function MyPositionsLendingTable() {
   return (
     <MyPositionsLendingTableContainer>
       {rows.length === 0 && positions.length === 0 ? (
-        <EmptyState reason="no-positions" columnsCount={NUMBER_OF_COLUMNS} />
+        <EmptyState
+          reason="no-positions"
+          columnsCount={NUMBER_OF_COLUMNS}
+          type="lend"
+        />
       ) : (
         <>
           {rows.map((row, i) => (
