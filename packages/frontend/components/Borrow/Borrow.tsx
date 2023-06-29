@@ -13,7 +13,7 @@ import {
   needsAllowance,
 } from '../../helpers/assets';
 import { chainName, isSupported } from '../../helpers/chains';
-import { modeForContext } from '../../helpers/mode';
+import { borrowingModeForContext } from '../../helpers/mode';
 import { showBorrow, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
@@ -169,7 +169,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   }, [address, vault, availableVaults, updateAll]);
 
   useEffect(() => {
-    const mode = modeForContext(
+    const mode = borrowingModeForContext(
       isEditing,
       actionType,
       Number(collateral.input),

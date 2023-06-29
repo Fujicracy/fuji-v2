@@ -19,7 +19,7 @@ import {
   needsAllowance,
 } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
-import { modeForContext } from '../../helpers/mode';
+import { lendingModeForContext } from '../../helpers/mode';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
@@ -148,14 +148,9 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   }, [address, vault]);
 
   useEffect(() => {
-    const mode = modeForContext(
-      isEditing,
-      actionType,
-      Number(collateral.input),
-      0
-    );
+    const mode = lendingModeForContext(actionType);
     changeMode(mode);
-  }, [changeMode, isEditing, collateral.input, actionType]);
+  }, [changeMode, actionType]);
 
   const proceedWithConfirmation = (action?: () => void) => {
     setConfirmationModalAction(() => action);

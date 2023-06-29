@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { TRANSACTION_META_DEBOUNCE_INTERVAL } from '../constants';
-import { AssetType, FetchStatus } from '../helpers/assets';
+import { AssetType, FetchStatus, Mode } from '../helpers/assets';
 import { storeOptions } from '../helpers/stores';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -81,6 +81,7 @@ export const useLend = create<LendStore>()(
       },
 
       async changeMode(mode) {
+        if (mode !== Mode.DEPOSIT && mode !== Mode.WITHDRAW) return;
         changeMode(api, mode);
       },
 
