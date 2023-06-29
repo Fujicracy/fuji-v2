@@ -58,6 +58,12 @@ contract MockTestFlasher is Routines, IFlasher {
   }
 }
 
+contract MaliciousReceiver {
+  receive() external payable {
+    while (true) {}
+  }
+}
+
 contract ConnextRouterForkingTests is Routines, ForkingSetup {
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
@@ -262,6 +268,35 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
     assertEq(vault.balanceOf(ALICE), 0);
     // funds are kept at the ConnextHandler contract
+    assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
+  }
+
+  function test_gasGriefingInboundXBundle() public {
+    MaliciousReceiver maliciousReceiver = new MaliciousReceiver();
+
+    uint256 amount = 1 ether;
+
+    // make the callData with malicious receiver
+    IRouter.Action[] memory actions_ = new IRouter.Action[](1);
+    actions_[0] = IRouter.Action.WithdrawETH;
+
+    bytes[] memory args_ = new bytes[](1);
+    args_[0] = abi.encode(amount, address(maliciousReceiver));
+
+    bytes memory callData = abi.encode(actions_, args_);
+
+    // send directly the bridged funds to our router
+    // thus mocking Connext behavior
+    deal(collateralAsset, address(connextRouter), amount);
+
+    vm.startPrank(registry[domain].connext);
+    // Limit the amount of gas being passed
+    connextRouter.xReceive{gas: 750000}(
+      "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+    );
+    vm.stopPrank();
+
+    // Funds were moved to ConnextHandler regardles of maliciousReceiver
     assertEq(IERC20(collateralAsset).balanceOf(address(connextHandler)), amount);
   }
 

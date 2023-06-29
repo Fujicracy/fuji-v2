@@ -32,6 +32,13 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   event NewRouterAdded(address indexed router, uint256 indexed domain);
 
   /**
+   * @dev Emitted when a new _catchGasCost value is set.
+   *
+   * @param newCatchGasCost value
+   */
+  event CatchGasCostChanged(uint256 newCatchGasCost);
+
+  /**
    * @dev Emitted when Connext `xCall` is invoked.
    *
    * @param transferId the unique identifier of the crosschain transfer
@@ -74,9 +81,11 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   /// @dev Custom Errors
   error ConnextRouter__setRouter_invalidInput();
   error ConnextRouter__xReceive_notReceivedAssetBalance();
-  error ConnextRouter__xReceive_notAllowedCaller();
-  error ConnextRouter__xReceiver_noValueTransferUseXbundle();
+  error ConnnextRouter__xReceive_notEnoughGasForTryCatch();
   error ConnnextRouter__xBundleConnext_notSelfCalled();
+  error ConnextRouter__setCatchExecutionGasCost_zeroValue();
+
+  uint256 private _catchGasCost;
 
   /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -102,6 +111,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     connext = connext_;
     handler = new ConnextHandler(address(this));
     _allowCaller(msg.sender, true);
+    _catchGasCost = 670000;
   }
 
   /*////////////////////////////////////
@@ -168,7 +178,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
      * Therefore we try/catch instead of directly calling _bundleInternal(...).
      */
-    try this.xBundleConnext(actions, args, beforeSlipped) {
+    try this.xBundleConnext{gas: gasleft() - _catchGasCost}(actions, args, beforeSlipped) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
@@ -464,5 +474,24 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     routerByDomain[domain] = router;
 
     emit NewRouterAdded(router, domain);
+  }
+
+  /**
+   * @notice Sets a new value for `_catchGasCost`.
+   *
+   * @param newCatchGasCost value
+   *
+   * @dev Requirements:
+   *  - Must be restricted to timelock.
+   *  - Must ensure through testing that `newCatchGasCost` > than most
+   *    gas heavy call in {ConnextHandler-recordFailed(...)}.
+   */
+  function setCatchGasExecutionCost(uint256 newCatchGasCost) external onlyTimelock {
+    if (newCatchGasCost == 0) {
+      revert ConnextRouter__setCatchExecutionGasCost_zeroValue();
+    }
+    _catchGasCost = newCatchGasCost;
+
+    emit CatchGasCostChanged(newCatchGasCost);
   }
 }
