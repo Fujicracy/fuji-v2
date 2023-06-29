@@ -35,58 +35,6 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
 
   const walletChainId = useAuth((state) => state.chainId);
 
-  // useEffect(() => {
-  //   const addr = address ? Address.from(address) : undefined;
-
-  //   const vaults = sdk.getAllBorrowingVaults();
-  //   const rowsBase = vaults.map(setBase);
-  //   setRows(rowsBase);
-
-  //   (async () => {
-  //     // TODO: take from main
-  //     const result = await getAllBorrowingVaultFinancials(addr);
-
-  //     if (result.errors.length > 0) {
-  //       notify({
-  //         type: 'error',
-  //         message: NOTIFICATION_MESSAGES.MARKETS_FAILURE,
-  //       });
-  //     }
-
-  //     if (result.data.length === 0) {
-  //       const rows = rowsBase
-  //         .map((r) => setFinancials(r, Status.Error))
-  //         .map((r) => setLlamas(r, Status.Error));
-  //       setRows(setBest(rows));
-  //       return;
-  //     }
-
-  //     const financials = result.data;
-  //     const rowsFin = financials.map((fin, i) =>
-  //       setFinancials(rowsBase[i], Status.Ready, fin)
-  //     );
-  //     setRows(setBest(rowsFin));
-
-  //     const llamaResult = await sdk.getLlamaFinancials(financials);
-  //     if (!llamaResult.success) {
-  //       notify({
-  //         type: 'error',
-  //         message: llamaResult.error.message,
-  //       });
-  //       const rows = rowsFin.map((r) => setLlamas(r, Status.Error));
-  //       setRows(setBest(rows));
-  //       return;
-  //     }
-
-  //     const rowsLlama = llamaResult.data.map((llama, i) =>
-  //       setLlamas(rowsFin[i], Status.Ready, llama)
-  //     );
-  //     setRows(setBest(rowsLlama));
-  //   })().finally(() => {
-  //     setIsLoading(false);
-  //   });
-  // }, [address]);
-
   // Filters original rows depends on search or chain
   useEffect(() => {
     setFilteredRows(filterMarketRows(rows.slice(), filters));
@@ -141,7 +89,7 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {isLoading ? (
+          {isLoading && vaults.length === 0 ? (
             <TableRow>
               {new Array(5).fill('').map((_, index) => (
                 <TableCell
