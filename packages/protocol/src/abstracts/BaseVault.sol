@@ -145,6 +145,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     override(ERC20, IERC20)
     returns (uint256)
   {
+    /// @dev operator = receiver
     return convertToShares(withdrawAllowance(owner, receiver, receiver));
   }
 
@@ -160,6 +161,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * - Must convert `shares` into `assets` amount before calling internal functions.
    */
   function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
+    /// @dev operator = receiver and owner = msg.sender
     _setWithdrawAllowance(msg.sender, receiver, receiver, convertToAssets(shares));
     return true;
   }
@@ -176,6 +178,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    *   VaultPermissions-increaseWithdrawAllowance.
    */
   function increaseAllowance(address receiver, uint256 shares) public override returns (bool) {
+    /// @dev operator = receiver
     increaseWithdrawAllowance(receiver, receiver, convertToAssets(shares));
     return true;
   }
@@ -191,6 +194,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * - Must convert `shares` to `assets` before calling internal functions.
    */
   function decreaseAllowance(address receiver, uint256 shares) public override returns (bool) {
+    /// @dev operator = receiver
     decreaseWithdrawAllowance(receiver, receiver, convertToAssets(shares));
     return true;
   }
