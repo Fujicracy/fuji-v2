@@ -6,6 +6,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { shallow } from 'zustand/shallow';
@@ -18,11 +19,11 @@ function EmptyState({
   columnsCount,
   minHeight,
   withButton = true,
-  type = 'borrow',
+  type = VaultType.BORROW,
 }: {
   reason: 'no-wallet' | 'no-positions';
   columnsCount: number;
-  type?: 'lend' | 'borrow';
+  type?: VaultType;
   withButton?: boolean;
   minHeight?: string;
 }) {
@@ -31,6 +32,8 @@ function EmptyState({
   const router = useRouter();
 
   const login = useAuth((state) => state.login, shallow);
+
+  const isLend = type === VaultType.LEND;
 
   const config = useMemo(() => {
     return reason === 'no-wallet'
@@ -52,18 +55,18 @@ function EmptyState({
                 whiteSpace: 'normal',
               }}
             >
-              {type === 'borrow' ? 'Deposit and borrow in ' : 'Lend to '} a
-              vault to view your dashboard metrics
+              {!isLend ? 'Deposit and borrow in ' : 'Lend to '} a vault to view
+              your dashboard metrics
             </Typography>
           ),
           button: {
-            label: type === 'borrow' ? 'Borrow' : 'Lend',
+            label: !isLend ? 'Borrow' : 'Lend',
             action: () => {
-              type === 'borrow' ? showBorrow(router) : showLend(router);
+              !isLend ? showBorrow(router) : showLend(router);
             },
           },
         };
-  }, [reason, login, router, type]);
+  }, [reason, login, router, isLend]);
 
   return (
     <TableRow>

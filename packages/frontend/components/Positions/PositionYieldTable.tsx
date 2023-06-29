@@ -10,6 +10,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { useEffect, useState } from 'react';
 
 import { chainName } from '../../helpers/chains';
@@ -29,19 +30,20 @@ type PositionYieldTableProps = {
   loading: boolean;
   days: number;
   positions: Position[];
-  isLend: boolean;
+  type: VaultType;
 };
 
 function PositionYieldTable({
   loading,
   days,
   positions,
-  isLend,
+  type,
 }: PositionYieldTableProps) {
   const { palette } = useTheme();
   const account = useAuth((state) => state.address);
   const [rows, setRows] = useState<PositionRow[]>([]);
 
+  const isLend = type === VaultType.LEND;
   const numberOfColumns = isLend ? 3 : 6;
 
   useEffect(() => {
@@ -72,7 +74,7 @@ function PositionYieldTable({
           reason="no-positions"
           columnsCount={numberOfColumns}
           minHeight="10rem"
-          type={isLend ? 'lend' : 'borrow'}
+          type={type}
           withButton={false}
         />
       ) : (

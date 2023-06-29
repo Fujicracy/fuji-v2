@@ -1,13 +1,20 @@
 import { Grid, Typography } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { useState } from 'react';
 
+import { useMarkets } from '../../store/markets.store';
+import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import MyPositionsBorrowTable from './MyPositionsBorrowTable';
-import MyPositionLendingTable from './MyPositionsLendingTable';
 import MyPositionsSummary from './MyPositionsSummary';
+import MyPositionsTable from './MyPositionsTable';
 
 function MyPositions() {
   const [currentTab, setCurrentTab] = useState(0);
+
+  const borrowPositions = usePositions((state) => state.borrowPositions);
+  const lendingPositions = usePositions((state) => state.lendingPositions);
+  const borrowMarkets = useMarkets((state) => state.borrow.rows);
+  const lendMarkets = useMarkets((state) => state.lending.rows);
 
   return (
     <>
@@ -25,11 +32,11 @@ function MyPositions() {
         <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
       </Grid>
 
-      {currentTab === 0 ? (
-        <MyPositionsBorrowTable />
-      ) : (
-        <MyPositionLendingTable />
-      )}
+      <MyPositionsTable
+        positions={currentTab === 0 ? borrowPositions : lendingPositions}
+        type={currentTab === 0 ? VaultType.BORROW : VaultType.LEND}
+        markets={currentTab === 0 ? borrowMarkets : lendMarkets}
+      />
     </>
   );
 }

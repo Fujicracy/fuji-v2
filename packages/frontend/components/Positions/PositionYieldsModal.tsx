@@ -9,6 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
@@ -175,7 +176,7 @@ export function PositionYieldsModal({
             loading={loading}
             days={daysPeriod}
             positions={currentTab === 0 ? borrowPositions : lendingPositions}
-            isLend={currentTab !== 0}
+            type={currentTab === 0 ? VaultType.BORROW : VaultType.LEND}
           />
         </Box>
 
