@@ -84,7 +84,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   IConnext public immutable connext;
 
   ConnextHandler public immutable handler;
-  address public immutable xreceiveProxy;
+  address public immutable xReceiveProxy;
 
   /**
    * @notice A mapping of a domain of another chain and a deployed router there.
@@ -101,8 +101,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     _;
   }
 
-  modifier onlyXReceiveProxy() {
-    if (msg.sender != xreceiveProxy) {
+  modifier onlyxReceiveProxy() {
+    if (msg.sender != xReceiveProxy) {
       revert ConnextRouter__xReceive_notAllowedCaller();
     }
     _;
@@ -110,7 +110,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
-    xreceiveProxy = address(new XReceiveProxy(address(this)));
+    xReceiveProxy = address(new XReceiveProxy(address(this)));
     handler = new ConnextHandler(address(this));
     _allowCaller(msg.sender, true);
   }
@@ -148,7 +148,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes memory callData
   )
     external
-    onlyXReceiveProxy
+    onlyxReceiveProxy
     returns (bytes memory)
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
@@ -156,7 +156,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     IERC20 asset_ = IERC20(asset);
 
     _tempTokenToCheck = Snapshot(asset, asset_.balanceOf(address(this)));
-    asset_.safeTransferFrom(xreceiveProxy, address(this), amount);
+    asset_.safeTransferFrom(xReceiveProxy, address(this), amount);
     /**
      * @dev Due to the AMM nature of Connext, there could be some slippage
      * incurred on the amount that this contract receives after bridging.
