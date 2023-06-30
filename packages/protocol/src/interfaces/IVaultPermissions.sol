@@ -17,9 +17,9 @@ interface IVaultPermissions {
    * @param owner who provides allowance
    * @param operator who can execute the use of the allowance
    * @param receiver who can spend the allowance
-   * @param amount of allowance given
+   * @param shares of allowance given
    */
-  event WithdrawApproval(address indexed owner, address operator, address receiver, uint256 amount);
+  event WithdrawApproval(address indexed owner, address operator, address receiver, uint256 shares);
 
   /**
    * @dev Emitted when `debtAsset` borrow allowance is set.
