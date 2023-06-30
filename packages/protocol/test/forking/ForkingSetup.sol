@@ -7,7 +7,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
-import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
+import {YieldVault} from "../../src/vaults/yields/YieldVault.sol";
 import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
@@ -61,7 +61,6 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
   address public debtAsset;
 
   uint256 initVaultShares;
-  uint256 initVaultDebtShares;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -221,12 +220,8 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
 
-    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
-    initVaultDebtShares = minAmount;
-    initVaultShares =
-      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
-
-    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+    initVaultShares = 10 ether;
+    _initializeVault(address(vault), INITIALIZER, initVaultShares);
   }
 
   function deployVault(
@@ -270,44 +265,20 @@ contract ForkingSetup is CoreRoles, Test, ChainlinkFeeds {
     _callWithTimelock(address(chief), executionCall);
 
     uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
-    initVaultDebtShares = minAmount;
-    initVaultShares =
-      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
+    initVaultShares = 10 * minAmount;
 
-    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+    _initializeVault(address(vault), INITIALIZER, initVaultShares);
   }
 
-  function _initalizeVault(
-    address vault_,
-    address initializer,
-    uint256 assets,
-    uint256 debt
-  )
-    internal
-  {
+  function _initializeVault(address vault_, address initializer, uint256 assets) internal {
     BorrowingVault bVault = BorrowingVault(payable(vault_));
     address collatAsset_ = bVault.asset();
-    address debtAsset_ = bVault.debtAsset();
 
     deal(collatAsset_, initializer, assets /*,true*/ );
-    deal(debtAsset_, initializer, debt /*,true*/ );
 
     vm.startPrank(initializer);
     SafeERC20.safeIncreaseAllowance(IERC20(collatAsset_), vault_, assets);
-    SafeERC20.safeIncreaseAllowance(IERC20(debtAsset_), vault_, debt);
-    bVault.initializeVaultShares(assets, debt);
-    vm.stopPrank();
-  }
-
-  function _initalizeYieldVault(address vault_, address initializer, uint256 assets) internal {
-    YieldVault yvault = YieldVault(payable(vault_));
-    address collatAsset_ = yvault.asset();
-
-    deal(collatAsset_, initializer, assets /*,true*/ );
-
-    vm.startPrank(initializer);
-    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, assets);
-    yvault.initializeVaultShares(assets, 0);
+    bVault.initializeVaultShares(assets);
     vm.stopPrank();
   }
 

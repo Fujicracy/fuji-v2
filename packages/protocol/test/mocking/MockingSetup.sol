@@ -7,7 +7,7 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
-import {YieldVault} from "../../src/vaults/yield/YieldVault.sol";
+import {YieldVault} from "../../src/vaults/yields/YieldVault.sol";
 import {MockOracle} from "../../src/mocks/MockOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -39,7 +39,6 @@ contract MockingSetup is CoreRoles, Test {
   address public INITIALIZER = vm.addr(0x111A13); //arbitrary address
 
   uint256 initVaultShares;
-  uint256 initVaultDebtShares;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -102,42 +101,19 @@ contract MockingSetup is CoreRoles, Test {
 
     uint256 minAmount = vault.minAmount();
     initVaultShares = 10 * minAmount;
-    initVaultDebtShares = minAmount;
 
-    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+    _initializeVault(address(vault), INITIALIZER, initVaultShares);
   }
 
-  function _initalizeVault(
-    address vault_,
-    address initializer,
-    uint256 assets,
-    uint256 debt
-  )
-    internal
-  {
+  function _initializeVault(address vault_, address initializer, uint256 assets) internal {
     BorrowingVault bVault = BorrowingVault(payable(vault_));
     address collatAsset_ = bVault.asset();
-    address debtAsset_ = bVault.debtAsset();
 
     _dealMockERC20(collatAsset_, initializer, assets);
-    _dealMockERC20(debtAsset_, initializer, debt);
 
     vm.startPrank(initializer);
     SafeERC20.safeApprove(IERC20(collatAsset_), vault_, assets);
-    SafeERC20.safeApprove(IERC20(debtAsset_), vault_, debt);
-    bVault.initializeVaultShares(assets, debt);
-    vm.stopPrank();
-  }
-
-  function _initalizeYieldVault(address vault_, address initializer, uint256 assets) internal {
-    YieldVault yvault = YieldVault(payable(vault_));
-    address collatAsset_ = yvault.asset();
-
-    _dealMockERC20(collatAsset_, initializer, assets);
-
-    vm.startPrank(initializer);
-    SafeERC20.safeApprove(IERC20(collateralAsset), vault_, assets);
-    yvault.initializeVaultShares(assets, 0);
+    bVault.initializeVaultShares(assets);
     vm.stopPrank();
   }
 
