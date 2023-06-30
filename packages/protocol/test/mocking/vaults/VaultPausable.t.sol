@@ -43,7 +43,7 @@ contract VaultPausableUnitTests is MockingSetup, MockRoutines {
         );
 
     // Initialize vaults
-    _initalizeVault(address(vault2), INITIALIZER, initVaultShares, initVaultDebtShares);
+    _initializeVault(address(vault2), INITIALIZER, initVaultShares);
 
     // Set up {Chief-_vaults} manually to bypass vault factory set-up.
     IPausableVault[] memory vaults_ = new IPausableVault[](2);
