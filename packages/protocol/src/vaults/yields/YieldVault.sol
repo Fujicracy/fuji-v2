@@ -57,6 +57,26 @@ contract YieldVault is BaseVault {
 
   receive() external payable {}
 
+  /*//////////////////////////////////////////
+      Asset management: overrides IERC4626
+  //////////////////////////////////////////*/
+
+  /// @inheritdoc BaseVault
+  function maxWithdraw(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
+    }
+    return convertToAssets(balanceOf(owner));
+  }
+
+  /// @inheritdoc BaseVault
+  function maxRedeem(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
+    }
+    return balanceOf(owner);
+  }
+
   /*///////////////////////////////
       Debt management overrides 
   ///////////////////////////////*/
@@ -189,12 +209,6 @@ contract YieldVault is BaseVault {
     override
   {
     revert YieldVault__notApplicable();
-  }
-
-  /// @inheritdoc BaseVault
-  function _computeFreeAssets(address owner) internal view override returns (uint256) {
-    // There is no restriction on asset-share movements in a {YieldVault}.
-    return convertToAssets(balanceOf(owner));
   }
 
   /*/////////////////
