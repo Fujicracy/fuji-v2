@@ -9,6 +9,7 @@ import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { Address } from '../entities/Address';
 import { BorrowingVault } from '../entities/BorrowingVault';
 import { Currency } from '../entities/Currency';
+import { LendingVault } from '../entities/LendingVault';
 import {
   ChainId,
   ConnextDomain,
@@ -229,6 +230,13 @@ function depositOrPayback(
 ): RouterActionParams[] {
   const { vault, tokenIn, amountIn, account, slippage } = params;
 
+  if (vault instanceof LendingVault) {
+    invariant(
+      action === RouterAction.PAYBACK,
+      'No PAYBACK action on LendingVault!'
+    );
+  }
+
   const wrap = tokenIn.isNative;
   if (op === OperationType.ONE_CHAIN) {
     // everything happens on the same chain
@@ -276,6 +284,12 @@ function borrowOrWithdraw(
     deadline,
     slippage,
   } = params;
+  if (vault instanceof LendingVault) {
+    invariant(
+      action === RouterAction.BORROW,
+      'No BORROW action on LendingVault!'
+    );
+  }
   const unwrap = tokenOut.isNative;
   const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
 
@@ -287,7 +301,6 @@ function borrowOrWithdraw(
       ..._borrowOrWithdraw(action, vault, amountOut, account, account, unwrap),
     ];
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_SRC) {
-    invariant(vault instanceof BorrowingVault, 'Wrong vault type');
     // start from chain A, borrow on chain A and transfer to chain B
     return [
       _permit(action, vault, amountOut, connextRouter, account, deadline),
@@ -301,7 +314,9 @@ function borrowOrWithdraw(
       ),
       _xTransfer(
         tokenOut.chainId,
-        vault.debt,
+        action === RouterAction.BORROW && vault instanceof BorrowingVault
+          ? vault.debt
+          : vault.collateral,
         amountOut,
         account,
         connextRouter,
@@ -335,7 +350,6 @@ function borrowOrWithdraw(
       ),
     ];
   } else {
-    invariant(vault instanceof BorrowingVault, 'Wrong vault type');
     // start from chain A, borrow/withdraw on chain B where's also the position and transfer to chain C
     const innerActions = [
       _permit(action, vault, amountOut, connextRouter, account, deadline),
@@ -349,7 +363,9 @@ function borrowOrWithdraw(
       ),
       _xTransfer(
         tokenOut.chainId,
-        vault.debt,
+        action === RouterAction.BORROW && vault instanceof BorrowingVault
+          ? vault.debt
+          : vault.collateral,
         amountOut,
         account,
         connextRouter,
@@ -390,6 +406,11 @@ function depositAndBorrow(
     slippage,
   } = params;
 
+  invariant(
+    vault instanceof BorrowingVault,
+    'No DEPOSIT_AND_BORROW on LendingVault!'
+  );
+
   const destChainId = tokenOut.chainId;
   const DEPOSIT = RouterAction.DEPOSIT;
   const BORROW = RouterAction.BORROW;
@@ -405,7 +426,6 @@ function depositAndBorrow(
       ..._borrowOrWithdraw(BORROW, vault, amountOut, account, account, unwrap),
     ];
   } else if (op === OperationType.TWO_CHAIN_VAULT_ON_SRC) {
-    invariant(vault instanceof BorrowingVault, 'Wrong vault type');
     // deposit and borrow on chain A and transfer to chain B
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[srcChainId];
     return [
@@ -458,7 +478,6 @@ function depositAndBorrow(
       ),
     ];
   } else {
-    invariant(vault instanceof BorrowingVault, 'Wrong vault type');
     const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
     const innerActions = [
       ..._depositOrPayback(
@@ -518,6 +537,11 @@ function paybackAndWithdraw(
     deadline,
     slippage,
   } = params;
+
+  invariant(
+    vault instanceof BorrowingVault,
+    'No PAYBACK_AND_WITHDRAW on LendingVault!'
+  );
 
   const destChainId = tokenOut.chainId;
   const PAYBACK = RouterAction.PAYBACK;
