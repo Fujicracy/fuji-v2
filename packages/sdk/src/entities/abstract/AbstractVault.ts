@@ -26,6 +26,7 @@ import {
   RouterActionParams,
   XTransferWithCallParams,
 } from '../../types';
+import { BaseVaultMulticall } from '../../types/contracts/src/abstracts/BaseVault';
 import {
   GetLlamaAssetPoolsResponse,
   GetLlamaPoolStatsResponse,
@@ -116,6 +117,7 @@ export abstract class AbstractVault {
    * The multicall RPC provider for the specific chain
    */
   multicallRpcProvider?: IMulticallProvider;
+  abstract multicallContract?: BaseVaultMulticall;
 
   constructor(address: Address, collateral: Token, type: VaultType) {
     this.name = '';

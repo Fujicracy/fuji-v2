@@ -46,7 +46,7 @@ export async function getVaultsWithFinancials(
   const vaults = _vaultsForType(type, chain.chainId).map((v) =>
     v.setConnection(configParams)
   );
-  return await batchLoad(type, vaults, account, chain);
+  return await batchLoad(vaults, account, chain);
 }
 
 export async function getVaultsFor(
@@ -74,13 +74,13 @@ export async function getVaultsFor(
       const r1 = _vaults.filter((v) => v.chainId === collateral.chainId);
       const r2 = _vaults.filter((v) => v.chainId === debt.chainId);
       const [a, b] = await Promise.all([
-        batchLoad(type, r1, account, collateral.chain),
-        batchLoad(type, r2, account, debt.chain),
+        batchLoad(r1, account, collateral.chain),
+        batchLoad(r2, account, debt.chain),
       ]);
       if (a.success && b.success) vaults.push(...a.data, ...b.data);
       else return a.success ? b : a;
     } else {
-      const r = await batchLoad(type, _vaults, account, collateral.chain);
+      const r = await batchLoad(_vaults, account, collateral.chain);
       if (r.success) vaults.push(...r.data);
       else return r;
     }

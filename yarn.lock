@@ -1964,7 +1964,19 @@
   dependencies:
     "@hapi/hoek" "^9.0.0"
 
-"@hovoh/ethcall@^9.9.4", "@hovoh/ethcall@^9.9.8":
+"@hovoh/ethcall@^9.9.12":
+  version "9.9.12"
+  resolved "https://registry.yarnpkg.com/@hovoh/ethcall/-/ethcall-9.9.12.tgz#e7d656e2d9c1eef63a9ea937d77f651c51eed76c"
+  integrity sha512-xwO/mnpI1FQxXkWZuVVNBFEF9tgQ9apWMyDi2ovTnbQpULTnKwDzGXaV7F3WW5LnEkUKttACO0L1M3XmmlDoFQ==
+  dependencies:
+    "@ethersproject/abi" "^5.0.0"
+    "@ethersproject/bytes" "^5.0.0"
+    "@ethersproject/contracts" "^5.0.0"
+    "@ethersproject/providers" "^5.0.0"
+    "@types/node" "^18.6.3"
+    abi-coder "^4.0.0"
+
+"@hovoh/ethcall@^9.9.4":
   version "9.9.11"
   resolved "https://registry.yarnpkg.com/@hovoh/ethcall/-/ethcall-9.9.11.tgz#1ced52bfdcc0bb3a95fdd9de979b6ddd2cbe2e6f"
   integrity sha512-wNWgLHDnYNgbTCsOAcpj6V0cTZ6kVo6xESygCa4H4vWTbNqEA1vq1BKJFdgC4R4SZ5vjCYsqUunBGMxiRFCXKA==

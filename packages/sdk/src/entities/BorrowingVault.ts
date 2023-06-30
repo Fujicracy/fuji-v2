@@ -126,7 +126,7 @@ export class BorrowingVault extends AbstractVault {
         this.multicallContract.getProviders(),
       ]);
 
-    this.setBorrowingPreLoads(
+    this.setPreLoads(
       maxLtv,
       liqRatio,
       safetyRating,
@@ -174,7 +174,7 @@ export class BorrowingVault extends AbstractVault {
     return this._getProvidersStatsFor(this.debt, true);
   }
 
-  setBorrowingPreLoads(
+  setPreLoads(
     maxLtv: BigNumber,
     liqRatio: BigNumber,
     safetyRating: BigNumber,

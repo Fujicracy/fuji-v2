@@ -103,6 +103,15 @@ export class LendingVault extends AbstractVault {
     return rates;
   }
 
+  setPreLoads(
+    safetyRating: BigNumber,
+    name: string,
+    activeProvider: string,
+    allProviders: string[]
+  ) {
+    this._setPreLoads(safetyRating, name, activeProvider, allProviders);
+  }
+
   async getBalances(account: Address): Promise<AccountBalances> {
     invariant(
       this.multicallContract && this.multicallRpcProvider,

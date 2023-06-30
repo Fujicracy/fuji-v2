@@ -679,7 +679,8 @@ export class Sdk {
     const chain = CHAIN[v.vault.chainId].llamaKey;
     const project = v.activeProvider.llamaKey;
     const collateralSym = v.vault.collateral.symbol;
-    const debtSym = v.vault.debt.symbol;
+    const debtSym =
+      v.vault instanceof BorrowingVault ? v.vault.debt.symbol : null;
 
     const borrowPool = pools.find(
       (p: LlamaAssetPool) =>
