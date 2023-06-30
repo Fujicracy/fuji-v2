@@ -134,7 +134,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @param receiver that can receive the shares
    *
    * @dev Requirements:
-   * - Must be overriden to call {VaultPermissions-withdrawAllowance}.
+   * - Must be overriden to call {VaultPermissions-_withdrawAllowance}.
    */
   function allowance(
     address owner,
@@ -146,7 +146,21 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     returns (uint256)
   {
     /// @dev operator = receiver
-    return convertToShares(withdrawAllowance(owner, receiver, receiver));
+    return _withdrawAllowance[owner][receiver][receiver];
+  }
+
+  /// @inheritdoc VaultPermissions
+  function withdrawAllowance(
+    address owner,
+    address operator,
+    address receiver
+  )
+    public
+    view
+    override
+    returns (uint256)
+  {
+    return convertToAssets(_withdrawAllowance[owner][operator][receiver]);
   }
 
   /**
@@ -162,7 +176,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
     /// @dev operator = receiver and owner = msg.sender
-    _setWithdrawAllowance(msg.sender, receiver, receiver, convertToAssets(shares));
+    _setWithdrawAllowance(msg.sender, receiver, receiver, shares);
     return true;
   }
 
@@ -178,8 +192,30 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    *   VaultPermissions-increaseWithdrawAllowance.
    */
   function increaseAllowance(address receiver, uint256 shares) public override returns (bool) {
-    /// @dev operator = receiver
-    increaseWithdrawAllowance(receiver, receiver, convertToAssets(shares));
+    /// @dev operator = receiver and owner = msg.sender
+    _setWithdrawAllowance(
+      msg.sender, receiver, receiver, _withdrawAllowance[msg.sender][receiver][receiver] + shares
+    );
+    return true;
+  }
+
+  /// @inheritdoc VaultPermissions
+  function increaseWithdrawAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    public
+    override
+    returns (bool)
+  {
+    /// @dev owner = msg.sender
+    _setWithdrawAllowance(
+      msg.sender,
+      operator,
+      receiver,
+      _withdrawAllowance[msg.sender][operator][receiver] + convertToShares(byAmount)
+    );
     return true;
   }
 
@@ -190,13 +226,82 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @param shares amount to decrease allowance
    *
    * @dev Requirements:
-   * - Must be overriden to call {VaultPermissions-decreaseWithdrawAllowance}.
-   * - Must convert `shares` to `assets` before calling internal functions.
+   * - Must assume `operator` == `receiver`.
    */
   function decreaseAllowance(address receiver, uint256 shares) public override returns (bool) {
     /// @dev operator = receiver
-    decreaseWithdrawAllowance(receiver, receiver, convertToAssets(shares));
+    uint256 currentAllowance = _withdrawAllowance[msg.sender][receiver][receiver];
+    if (shares > currentAllowance) {
+      revert VaultPermissions__allowanceBelowZero();
+    }
+    unchecked {
+      _setWithdrawAllowance(msg.sender, receiver, receiver, currentAllowance - shares);
+    }
     return true;
+  }
+
+  /// @inheritdoc VaultPermissions
+  function decreaseWithdrawAllowance(
+    address operator,
+    address receiver,
+    uint256 byAmount
+  )
+    public
+    override
+    returns (bool)
+  {
+    /// @dev owner = msg.sender
+    uint256 currentAllowance = _withdrawAllowance[msg.sender][operator][receiver];
+    uint256 byAmountShares = convertToShares(byAmount);
+    if (byAmountShares > currentAllowance) {
+      revert VaultPermissions__allowanceBelowZero();
+    }
+    unchecked {
+      _setWithdrawAllowance(msg.sender, operator, receiver, currentAllowance - byAmountShares);
+    }
+    return true;
+  }
+
+  /// @inheritdoc VaultPermissions
+  function permitWithdraw(
+    address owner,
+    address receiver,
+    uint256 amount,
+    uint256 deadline,
+    bytes32 actionArgsHash,
+    uint8 v,
+    bytes32 r,
+    bytes32 s
+  )
+    public
+    override
+  {
+    _checkDeadline(deadline);
+    address operator = msg.sender;
+    bytes32 structHash;
+    // Scoped code to avoid "Stack too deep"
+    {
+      bytes memory data;
+      uint256 currentNonce = _useNonce(owner);
+      {
+        data = abi.encode(
+          PERMIT_WITHDRAW_TYPEHASH,
+          block.chainid,
+          owner,
+          operator,
+          receiver,
+          amount,
+          currentNonce,
+          deadline,
+          actionArgsHash
+        );
+      }
+      structHash = keccak256(data);
+    }
+
+    _checkSigner(structHash, owner, v, r, s);
+
+    _setWithdrawAllowance(owner, operator, receiver, convertToShares(amount));
   }
 
   /**
@@ -211,7 +316,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @param shares amount to spend
    */
   function _spendAllowance(address owner, address spender, uint256 shares) internal override {
-    _spendWithdrawAllowance(owner, msg.sender, spender, convertToAssets(shares));
+    _spendWithdrawAllowance(owner, msg.sender, spender, shares);
   }
 
   /*//////////////////////////////////////////
@@ -608,7 +713,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__withdraw_moreThanMax();
     }
     if (caller != owner) {
-      _spendWithdrawAllowance(owner, caller, receiver, assets);
+      _spendWithdrawAllowance(owner, caller, receiver, shares);
     }
   }
 

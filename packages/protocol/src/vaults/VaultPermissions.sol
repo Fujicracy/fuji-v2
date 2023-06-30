@@ -19,7 +19,7 @@ import {EIP712} from "../abstracts/EIP712.sol";
 import {ECDSA} from "openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 import {Counters} from "openzeppelin-contracts/contracts/utils/Counters.sol";
 
-contract VaultPermissions is IVaultPermissions, EIP712 {
+abstract contract VaultPermissions is IVaultPermissions, EIP712 {
   using Counters for Counters.Counter;
 
   /// @dev Custom Errors
@@ -30,18 +30,22 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   error VaultPermissions__insufficientBorrowAllowance();
   error VaultPermissions__allowanceBelowZero();
 
-  /// @dev Allowance mapping structure: owner => operator => receiver => amount.
+  /**
+   * @dev Allowance mapping structure: owner => operator => receiver => amount.
+   * Note: _withdrawAllowance handles allowance in `shares.
+   * Note: _borrowAllowance handles allowance in underlying debt asset.
+   */
   mapping(address => mapping(address => mapping(address => uint256))) internal _withdrawAllowance;
   mapping(address => mapping(address => mapping(address => uint256))) internal _borrowAllowance;
 
   mapping(address => Counters.Counter) private _nonces;
 
   // solhint-disable-next-line var-name-mixedcase
-  bytes32 private constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
+  bytes32 internal constant PERMIT_WITHDRAW_TYPEHASH = keccak256(
     "PermitWithdraw(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline,bytes32 actionArgsHash)"
   );
   // solhint-disable-next-line var-name-mixedcase
-  bytes32 private constant PERMIT_BORROW_TYPEHASH = keccak256(
+  bytes32 internal constant PERMIT_BORROW_TYPEHASH = keccak256(
     "PermitBorrow(uint256 destChainId,address owner,address operator,address receiver,uint256 amount,uint256 nonce,uint256 deadline,bytes32 actionArgsHash)"
   );
 
@@ -69,11 +73,9 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   )
     public
     view
+    virtual
     override
-    returns (uint256)
-  {
-    return _withdrawAllowance[owner][operator][receiver];
-  }
+    returns (uint256);
 
   /// @inheritdoc IVaultPermissions
   function borrowAllowance(
@@ -97,15 +99,9 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     uint256 byAmount
   )
     public
+    virtual
     override
-    returns (bool)
-  {
-    address owner = msg.sender;
-    _setWithdrawAllowance(
-      owner, operator, receiver, _withdrawAllowance[owner][operator][receiver] + byAmount
-    );
-    return true;
-  }
+    returns (bool);
 
   /// @inheritdoc IVaultPermissions
   function decreaseWithdrawAllowance(
@@ -114,19 +110,9 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     uint256 byAmount
   )
     public
+    virtual
     override
-    returns (bool)
-  {
-    address owner = msg.sender;
-    uint256 currentAllowance = _withdrawAllowance[owner][operator][receiver];
-    if (byAmount > currentAllowance) {
-      revert VaultPermissions__allowanceBelowZero();
-    }
-    unchecked {
-      _setWithdrawAllowance(owner, operator, receiver, currentAllowance - byAmount);
-    }
-    return true;
-  }
+    returns (bool);
 
   /// @inheritdoc IVaultPermissions
   function increaseBorrowAllowance(
@@ -191,35 +177,8 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
     bytes32 s
   )
     public
-    override
-  {
-    _checkDeadline(deadline);
-    address operator = msg.sender;
-    bytes32 structHash;
-    // Scoped code to avoid "Stack too deep"
-    {
-      bytes memory data;
-      uint256 currentNonce = _useNonce(owner);
-      {
-        data = abi.encode(
-          PERMIT_WITHDRAW_TYPEHASH,
-          block.chainid,
-          owner,
-          operator,
-          receiver,
-          amount,
-          currentNonce,
-          deadline,
-          actionArgsHash
-        );
-      }
-      structHash = keccak256(data);
-    }
-
-    _checkSigner(structHash, owner, v, r, s);
-
-    _setWithdrawAllowance(owner, operator, receiver, amount);
-  }
+    virtual
+    override;
 
   /// @inheritdoc IVaultPermissions
   function permitBorrow(
@@ -278,22 +237,22 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * @param owner address who is providing `withdrawAllowance`
    * @param operator address who is allowed to operate the allowance
    * @param receiver address who can spend the allowance
-   * @param amount of allowance
+   * @param shares of allowance
    *
    */
   function _setWithdrawAllowance(
     address owner,
     address operator,
     address receiver,
-    uint256 amount
+    uint256 shares
   )
     internal
   {
     if (owner == address(0) || operator == address(0) || receiver == address(0)) {
       revert VaultPermissions__zeroAddress();
     }
-    _withdrawAllowance[owner][operator][receiver] = amount;
-    emit WithdrawApproval(owner, operator, receiver, amount);
+    _withdrawAllowance[owner][operator][receiver] = shares;
+    emit WithdrawApproval(owner, operator, receiver, shares);
   }
 
   /**
@@ -333,23 +292,23 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    * @param owner address who is spending `withdrawAllowance`
    * @param operator address who is allowed to operate the allowance
    * @param receiver address who can spend the allowance
-   * @param amount of allowance
+   * @param shares of allowance
    */
   function _spendWithdrawAllowance(
     address owner,
     address operator,
     address receiver,
-    uint256 amount
+    uint256 shares
   )
     internal
   {
     uint256 currentAllowance = withdrawAllowance(owner, operator, receiver);
     if (currentAllowance != type(uint256).max) {
-      if (amount > currentAllowance) {
+      if (shares > currentAllowance) {
         revert VaultPermissions__insufficientWithdrawAllowance();
       }
       unchecked {
-        _setWithdrawAllowance(owner, operator, receiver, currentAllowance - amount);
+        _setWithdrawAllowance(owner, operator, receiver, currentAllowance - shares);
       }
     }
   }
@@ -400,7 +359,7 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
    *
    * @param deadline timestamp to check
    */
-  function _checkDeadline(uint256 deadline) private view {
+  function _checkDeadline(uint256 deadline) internal view {
     if (block.timestamp > deadline) {
       revert VaultPermissions__expiredDeadline();
     }
