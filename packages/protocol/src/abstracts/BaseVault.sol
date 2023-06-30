@@ -51,6 +51,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__withdraw_slippageTooHigh();
   error BaseVault__redeem_slippageTooHigh();
   error BaseVault__harvest_invalidProvider();
+  error BaseVault__harvest_strategyNotImplemented();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -988,11 +989,21 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     //collect rewards from provider
     _harvest(provider, data);
 
+    IERC20 token = IERC20(provider.getHarvestToken());
+
     //strategy 1 = convert rewards to collateral
-    if (strategy == Strategy.ConvertToCollateral) {}
+    if (strategy == Strategy.ConvertToCollateral) {
+      //check if reward token is asset
+      if (address(token) != asset()) {
+        //swap for collateral
+      }
+    }
 
     //strategy 2 = repay debt
-    if (strategy == Strategy.RepayDebt) {}
+    /// @dev only implemented in BorrowingVault
+    if (strategy == Strategy.RepayDebt) {
+      revert BaseVault__harvest_strategyNotImplemented();
+    }
 
     //strategy 3 = distribute rewards
     if (strategy == Strategy.Distribute) {}
