@@ -289,7 +289,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
         );
 
-        beneficiary = _getBeneficiaryFromCalldata(innerActions, innerArgs);
+        beneficiary =
+          _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(innerActions, innerArgs));
 
         // Call Flasher.
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
@@ -470,6 +471,9 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
    * Requirements:
    * - Must return updated "beneficiary" and "tokensToCheck".
+   * - Must check swapper is a valid swapper at {Chief}.
+   * - Must check `receiver` and `sweeper` args are the expected
+   *   beneficiary when the receiver and sweeper are not address(this).
    *
    * @param arg of the ongoing action
    * @param beneficiary_ passed through `_bundleInternal()`
@@ -552,7 +556,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param amount amount to be approved
    */
   function _safeApprove(address token, address to, uint256 amount) internal {
-    SafeERC20.safeApprove(ERC20(token), to, amount);
+    SafeERC20.safeIncreaseAllowance(ERC20(token), to, amount);
   }
 
   /**
@@ -573,12 +577,16 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   /**
    * @dev Function to be implemented on the bridge-specific contract
    * used to transfer funds WITHOUT calldata to a destination chain.
+   *
+   * Note Check requirements at children contract.
    */
   function _crossTransfer(bytes memory, address beneficiary) internal virtual returns (address);
 
   /**
    * @dev Function to be implemented on the bridge-specific contract
    * used to transfer funds WITH calldata to a destination chain.
+   *
+   * Note Check requirements at children contract.
    */
   function _crossTransferWithCalldata(
     bytes memory,
@@ -665,6 +673,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (currentBalance != previousBalance) {
           revert BaseRouter__bundleInternal_noBalanceChange();
         }
+      } else {
+        break;
       }
       unchecked {
         ++i;

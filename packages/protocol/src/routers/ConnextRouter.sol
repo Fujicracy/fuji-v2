@@ -245,6 +245,15 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     }
   }
 
+  /**
+   * @dev NOTE to integrators
+   * The `beneficiary_`, of a `_crossTransfer(...)` must meet these requirement:
+   * - Must be an externally owned account (EOA) or
+   * - Must be a contract that implements or is capable of calling:
+   *   - connext.forceUpdateSlippage(TransferInfo, _slippage) add the destination chain.
+   * Refer to 'delegate' argument:
+   * https://docs.connext.network/developers/guides/handling-failures#increasing-slippage-tolerance
+   */
   /// @inheritdoc BaseRouter
   function _crossTransfer(
     bytes memory params,
@@ -292,6 +301,15 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     return beneficiary_;
   }
 
+  /**
+   * @dev NOTE to integrators
+   * The `beneficiary_`, of a `_crossTransferWithCalldata(...)` must meet these requirement:
+   * - Must be an externally owned account (EOA) or
+   * - Must be a contract that implements or is capable of calling:
+   *   - connext.forceUpdateSlippage(TransferInfo, _slippage) add the destination chain.
+   * Refer to 'delegate' argument:
+   * https://docs.connext.network/developers/guides/handling-failures#increasing-slippage-tolerance
+   */
   /// @inheritdoc BaseRouter
   function _crossTransferWithCalldata(
     bytes memory params,
