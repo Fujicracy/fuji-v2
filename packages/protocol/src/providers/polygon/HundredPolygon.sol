@@ -262,4 +262,9 @@ contract HundredPolygon is ILendingProvider {
   function harvest(bytes memory /* data */ ) external pure returns (bool success) {
     return false;
   }
+
+  //TODO
+  function getHarvestToken() external pure returns (address token) {
+    token = address(0);
+  }
 }

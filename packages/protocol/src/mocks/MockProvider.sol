@@ -115,4 +115,9 @@ contract MockProvider is ILendingProvider {
       success = result;
     } catch {}
   }
+
+  /// @dev returning address(0) to be able to keep getHarvestToken with no parameters. This may change in the future
+  function getHarvestToken() external pure returns (address token) {
+    token = address(0);
+  }
 }
