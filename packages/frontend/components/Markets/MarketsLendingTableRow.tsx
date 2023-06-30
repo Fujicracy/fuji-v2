@@ -121,11 +121,7 @@ function MarketsLendingTableRow({
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell
-          align="right"
-          width="140px"
-          sx={{ color: palette.success.main }}
-        >
+        <SizableTableCell align="right" width="140px">
           {!expandRow && loaderOrError(row.depositApr.status)}
           {row.depositApr.status === MarketRowStatus.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
