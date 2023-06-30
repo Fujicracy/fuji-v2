@@ -74,11 +74,13 @@ contract BorrowingVault2 is BaseVault {
    Liquidation controls
   ////////////////////*/
 
+  uint256 private constant PRECISION_CONSTANT = 1e18;
+
   /// @notice Returns default liquidation close factor: 50% of debt.
   uint256 public constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e18;
 
   /// @notice Returns max liquidation close factor: 100% of debt.
-  uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e18;
+  uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = PRECISION_CONSTANT;
 
   /// @notice Returns health factor threshold at which max liquidation can occur.
   uint256 public constant FULL_LIQUIDATION_THRESHOLD = 95e16;
@@ -129,27 +131,24 @@ contract BorrowingVault2 is BaseVault {
 
   receive() external payable {}
 
+  /*//////////////////////////////////////////
+      Asset management: overrides IERC4626
+  //////////////////////////////////////////*/
+
   /// @inheritdoc BaseVault
-  function initializeVaultShares(uint256 assets, uint256 debt) external override {
-    if (initialized) {
-      revert BaseVault__initializeVaultShares_alreadyInitialized();
-    } else if (assets < minAmount || debt < minAmount) {
-      revert BaseVault__initializeVaultShares_lessThanMin();
+  function maxWithdraw(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
     }
-    _unpauseForceAllActions();
+    return _computeFreeAssets(owner);
+  }
 
-    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
-
-    uint256 maxBorrow_ = (assets * maxLtv * price) / (1e18 * 10 ** decimals());
-    if (debt > maxBorrow_) {
-      revert BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
+  /// @inheritdoc BaseVault
+  function maxRedeem(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
     }
-    address timelock = chief.timelock();
-    _deposit(msg.sender, timelock, assets, assets);
-    _borrow(msg.sender, timelock, timelock, debt, debt);
-
-    initialized = true;
-    emit VaultInitialized(msg.sender);
+    return convertToShares(maxWithdraw(owner));
   }
 
   /*///////////////////////////////
@@ -338,7 +337,7 @@ contract BorrowingVault2 is BaseVault {
     uint256 totalDebt_ = totalDebt();
     uint256 supply = debtSharesSupply;
 
-    if (totalDebt_ == 0 && supply > 0 && supply > totalDebt_) {
+    if (totalDebt_ == 0 && supply > 0) {
       _pause(VaultActions.Withdraw);
     }
     super._withdraw(caller, receiver, owner, assets, shares);
@@ -423,12 +422,22 @@ contract BorrowingVault2 is BaseVault {
     uint256 debtShares = _debtShares[borrower];
     uint256 debt = convertToDebt(debtShares);
 
-    uint256 baseUserMaxBorrow = ((assets * maxLtv * price) / (1e18 * 10 ** decimals()));
+    uint256 baseUserMaxBorrow =
+      ((assets * maxLtv * price) / (PRECISION_CONSTANT * 10 ** decimals()));
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
-  /// @inheritdoc BaseVault
-  function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
+  /**
+   * @dev Compute how much free 'assets' a user can withdraw or transfer
+   * given their `balanceOfDebt()`.
+   * Requirements:
+   * - Must be implemented in {BorrowingVault} contract.
+   * - Must not be implemented in a {YieldVault} contract.
+   * - Must read price from {FujiOracle}.
+   *
+   * @param owner address to whom free assets is being checked
+   */
+  function _computeFreeAssets(address owner) internal view returns (uint256 freeAssets) {
     uint256 debtShares = _debtShares[owner];
     uint256 assets = convertToAssets(balanceOf(owner));
 
@@ -438,7 +447,7 @@ contract BorrowingVault2 is BaseVault {
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
-      uint256 lockedAssets = (debt * 1e18 * price) / (maxLtv * 10 ** _debtDecimals);
+      uint256 lockedAssets = (debt * PRECISION_CONSTANT * price) / (maxLtv * 10 ** _debtDecimals);
 
       if (lockedAssets == 0) {
         // Handle wei level amounts in where 'lockedAssets' < 1 wei.
@@ -543,9 +552,7 @@ contract BorrowingVault2 is BaseVault {
   )
     private
   {
-    if (
-      debt == 0 || shares == 0 || receiver == address(0) || owner == address(0) || debt < minAmount
-    ) {
+    if (debt == 0 || shares == 0 || receiver == address(0) || owner == address(0)) {
       revert BorrowingVault__borrow_invalidInput();
     }
     if (debt > maxBorrow(owner)) {
@@ -701,7 +708,7 @@ contract BorrowingVault2 is BaseVault {
   function getLiquidationFactor(address owner) public view returns (uint256 liquidationFactor) {
     uint256 healthFactor = getHealthFactor(owner);
 
-    if (healthFactor >= 1e18) {
+    if (healthFactor >= PRECISION_CONSTANT) {
       liquidationFactor = 0;
     } else if (FULL_LIQUIDATION_THRESHOLD <= healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt
@@ -732,12 +739,13 @@ contract BorrowingVault2 is BaseVault {
 
     // Compute debt amount that must be paid by liquidator.
     uint256 debt = convertToDebt(_debtShares[owner]);
-    uint256 debtSharesToCover = Math.mulDiv(_debtShares[owner], liquidationFactor, 1e18);
-    uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, 1e18);
+    uint256 debtSharesToCover =
+      Math.mulDiv(_debtShares[owner], liquidationFactor, PRECISION_CONSTANT);
+    uint256 debtToCover = Math.mulDiv(debt, liquidationFactor, PRECISION_CONSTANT);
 
     // Compute `gainedShares` amount that the liquidator will receive.
     uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
-    uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, 1e18);
+    uint256 discountedPrice = Math.mulDiv(price, LIQUIDATION_PENALTY, PRECISION_CONSTANT);
 
     uint256 gainedAssets = Math.mulDiv(debtToCover, 10 ** _asset.decimals(), discountedPrice);
     gainedShares = convertToShares(gainedAssets);
@@ -791,15 +799,15 @@ contract BorrowingVault2 is BaseVault {
    * Restrictions for 'liqRatio':
    * - Must be greater than 'maxLTV'.
    * - Must be at least 2% (2e16).
-   * - Must be less than 100% (1e18).
+   * - Must be less than 100% (PRECISION_CONSTANT).
    * Restrictions for 'maxLtv':
    * - Must be at least 1% (1e16).
-   * - Must be less than 100% (1e18).
+   * - Must be less than 100% (PRECISION_CONSTANT).
    */
   function setLtvFactors(uint256 maxLtv_, uint256 liqRatio_) external onlyTimelock {
     if (
-      liqRatio_ <= maxLtv_ || liqRatio_ <= maxLtv || liqRatio_ < 2e16 || liqRatio_ >= 1e18
-        || maxLtv_ < 1e16 || maxLtv_ >= 1e18
+      liqRatio_ <= maxLtv_ || liqRatio_ <= maxLtv || liqRatio_ < 2e16
+        || liqRatio_ >= PRECISION_CONSTANT || maxLtv_ < 1e16 || maxLtv_ >= PRECISION_CONSTANT
     ) {
       revert BaseVault__setter_invalidInput();
     }
