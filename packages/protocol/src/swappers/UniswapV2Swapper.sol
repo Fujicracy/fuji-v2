@@ -61,7 +61,7 @@ contract UniswapV2Swapper is ISwapper {
 
     address[] memory path = _buildPath(assetIn, assetOut);
 
-    ERC20(assetIn).safeApprove(address(uniswapRouter), computedAmountIn);
+    ERC20(assetIn).safeIncreaseAllowance(address(uniswapRouter), computedAmountIn);
     // Swap, then transfer the swapped amount to receiver (could be Flasher).
     uniswapRouter.swapTokensForExactTokens(
       amountOut,
