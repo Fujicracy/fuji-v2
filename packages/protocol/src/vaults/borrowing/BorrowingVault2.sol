@@ -155,6 +155,26 @@ contract BorrowingVault2 is BaseVault {
     emit VaultInitialized(msg.sender);
   }
 
+  /*//////////////////////////////////////////
+      Asset management: overrides IERC4626
+  //////////////////////////////////////////*/
+
+  /// @inheritdoc BaseVault
+  function maxWithdraw(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
+    }
+    return _computeFreeAssets(owner);
+  }
+
+  /// @inheritdoc BaseVault
+  function maxRedeem(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
+    }
+    return convertToShares(maxWithdraw(owner));
+  }
+
   /*///////////////////////////////
   /// Debt management overrides ///
   ///////////////////////////////*/
@@ -431,8 +451,17 @@ contract BorrowingVault2 is BaseVault {
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
-  /// @inheritdoc BaseVault
-  function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
+  /**
+   * @dev Compute how much free 'assets' a user can withdraw or transfer
+   * given their `balanceOfDebt()`.
+   * Requirements:
+   * - Must be implemented in {BorrowingVault} contract.
+   * - Must not be implemented in a {YieldVault} contract.
+   * - Must read price from {FujiOracle}.
+   *
+   * @param owner address to whom free assets is being checked
+   */
+  function _computeFreeAssets(address owner) internal view returns (uint256 freeAssets) {
     uint256 debtShares = _debtShares[owner];
     uint256 assets = convertToAssets(balanceOf(owner));
 
