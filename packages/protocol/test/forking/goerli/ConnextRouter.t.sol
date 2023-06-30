@@ -16,9 +16,10 @@ import {MockERC20} from "../../../src/mocks/MockERC20.sol";
 import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {IConnext, TransferInfo, ExecuteArgs} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
+import {
+  ConnextRouter, ConnextHandler, XReceiveProxy
+} from "../../../src/routers/ConnextRouter.sol";
 import {BaseRouter} from "../../../src/abstracts/BaseRouter.sol";
-import {ConnextHandler} from "../../../src/routers/ConnextHandler.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
 import {FlasherAaveV3} from "../../../src/flashloans/FlasherAaveV3.sol";
@@ -73,6 +74,8 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
   ConnextRouter public connextRouter;
   ConnextHandler public connextHandler;
+  XReceiveProxy public xReceiveProxy;
+
   uint32 domain;
   IConnext public connext = IConnext(registry[GOERLI_DOMAIN].connext);
 
@@ -94,17 +97,18 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     );
 
     connextHandler = connextRouter.handler();
+    xReceiveProxy = XReceiveProxy(connextRouter.xReceiveProxy());
 
     // addresses are supposed to be the same across different chains
     /*connextRouter.setRouter(OPTIMISM_GOERLI_DOMAIN, address(connextRouter));*/
     bytes memory callData = abi.encodeWithSelector(
-      ConnextRouter.setRouter.selector, OPTIMISM_GOERLI_DOMAIN, address(connextRouter)
+      ConnextRouter.setRouter.selector, OPTIMISM_GOERLI_DOMAIN, address(xReceiveProxy)
     );
     _callWithTimelock(address(connextRouter), callData);
 
     /*connextRouter.setRouter(MUMBAI_DOMAIN, address(connextRouter));*/
     callData = abi.encodeWithSelector(
-      ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(connextRouter)
+      ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(xReceiveProxy)
     );
     _callWithTimelock(address(connextRouter), callData);
   }
@@ -155,12 +159,12 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
-    deal(collateralAsset, address(connextRouter), amount);
+    deal(collateralAsset, address(xReceiveProxy), amount);
 
     vm.startPrank(registry[domain].connext);
     // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    connextRouter.xReceive(
+    xReceiveProxy.xReceive(
       "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
     );
     vm.stopPrank();
@@ -184,12 +188,12 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     );
 
     // Send directly the bridged funds to our router thus mocking Connext behavior
-    deal(collateralAsset, address(connextRouter), amount);
+    deal(collateralAsset, address(xReceiveProxy), amount);
 
     vm.startPrank(registry[domain].connext);
     // call attack faked as from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    connextRouter.xReceive(
+    xReceiveProxy.xReceive(
       "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, failingCallData
     );
     vm.stopPrank();
@@ -250,12 +254,12 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
-    deal(collateralAsset, address(connextRouter), amount);
+    deal(collateralAsset, address(xReceiveProxy), amount);
 
     vm.startPrank(registry[domain].connext);
     // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    connextRouter.xReceive(
+    xReceiveProxy.xReceive(
       "", amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
     );
     vm.stopPrank();
@@ -276,13 +280,13 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
-    deal(collateralAsset, address(connextRouter), amount);
+    deal(collateralAsset, address(xReceiveProxy), amount);
 
     vm.startPrank(registry[domain].connext);
     // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
     bytes32 transferId = 0x0000000000000000000000000000000000000000000000000000000000000001;
-    connextRouter.xReceive(
+    xReceiveProxy.xReceive(
       transferId, amount, vault.asset(), address(connextRouter), OPTIMISM_GOERLI_DOMAIN, badCallData
     );
     vm.stopPrank();
@@ -411,12 +415,12 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
-    deal(collateralAsset, address(connextRouter), amount);
+    deal(collateralAsset, address(xReceiveProxy), amount);
 
     vm.startPrank(registry[domain].connext);
     // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    connextRouter.xReceive(
+    xReceiveProxy.xReceive(
       transferId_,
       amount,
       vault.asset(),
@@ -443,12 +447,12 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
-    deal(collateralAsset, address(connextRouter), newAmount);
+    deal(collateralAsset, address(xReceiveProxy), newAmount);
 
     vm.startPrank(registry[domain].connext);
     // call from OPTIMISM_GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    connextRouter.xReceive(
+    xReceiveProxy.xReceive(
       transferId_,
       newAmount,
       vault.asset(),
