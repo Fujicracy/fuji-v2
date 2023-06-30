@@ -427,7 +427,7 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     vm.stopPrank();
 
     // Assert handler has recorded failed transfer
-    uint128 expectedNonce = connextHandler.getFailedTxnNextNonce(transferId_) - 1;
+    uint256 expectedNonce = connextHandler.getFailedTxnNextNonce(transferId_) - 1;
     ConnextHandler.FailedTxn memory ftxn = connextHandler.getFailedTxn(transferId_, expectedNonce);
 
     assertEq(ftxn.transferId, transferId_);

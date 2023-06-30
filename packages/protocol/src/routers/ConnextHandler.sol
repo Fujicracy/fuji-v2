@@ -14,7 +14,7 @@ import {ConnextRouter} from "./ConnextRouter.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ConnextHandler {
   /**
@@ -28,7 +28,7 @@ contract ConnextHandler {
     uint32 originDomain;
     IRouter.Action[] actions;
     bytes[] args;
-    uint128 nonce;
+    uint256 nonce;
     bool executed;
   }
 
@@ -52,7 +52,7 @@ contract ConnextHandler {
     uint32 originDomain,
     IRouter.Action[] actions,
     bytes[] args,
-    uint128 nonce
+    uint256 nonce
   );
 
   /**
@@ -69,14 +69,14 @@ contract ConnextHandler {
     IRouter.Action[] newActions,
     bytes[] oldArgs,
     bytes[] newArgs,
-    uint128 nonce,
+    uint256 nonce,
     bool indexed success
   );
 
   /// @dev Custom errors
   error ConnextHandler__callerNotConnextRouter();
   error ConnextHandler__executeFailed_emptyTxn();
-  error ConnextHandler__executeFailed_tranferAlreadyExecuted(bytes32 transferId, uint128 nonce);
+  error ConnextHandler__executeFailed_tranferAlreadyExecuted(bytes32 transferId, uint256 nonce);
 
   bytes32 private constant ZERO_BYTES32 =
     0x0000000000000000000000000000000000000000000000000000000000000000;
@@ -84,10 +84,10 @@ contract ConnextHandler {
   ConnextRouter public immutable connextRouter;
 
   /**
-   * @dev Maps a failed transferId -> nonce -> calldata
+   * @dev Maps a failed transferId -> calldata[]
    * Multiple failed attempts are registered with nonce
    */
-  mapping(bytes32 => mapping(uint256 => FailedTxn)) private _failedTxns;
+  mapping(bytes32 => FailedTxn[]) private _failedTxns;
 
   modifier onlyConnextRouter() {
     if (msg.sender != address(connextRouter)) {
@@ -117,35 +117,12 @@ contract ConnextHandler {
    * @param transferId the unique identifier of the cross-chain txn
    * @param nonce attempt of failed tx
    */
-  function getFailedTxn(bytes32 transferId, uint128 nonce) public view returns (FailedTxn memory) {
+  function getFailedTxn(bytes32 transferId, uint256 nonce) public view returns (FailedTxn memory) {
     return _failedTxns[transferId][nonce];
   }
 
-  function getFailedTxnNextNonce(bytes32 transferId) public view returns (uint128 next) {
-    next = 0;
-    for (uint256 i; i < type(uint8).max;) {
-      if (!isTransferIdRecorded(transferId, uint128(i))) {
-        next = uint128(i);
-        break;
-      }
-      unchecked {
-        ++i;
-      }
-    }
-  }
-
-  /**
-   * @notice Returns the true if the failed transaction is already recorded.
-   *
-   * @param transferId the unique identifier of the cross-chain txn
-   */
-  function isTransferIdRecorded(bytes32 transferId, uint128 nonce) public view returns (bool) {
-    FailedTxn memory ftxn = _failedTxns[transferId][nonce];
-    if (ftxn.transferId != ZERO_BYTES32 && ftxn.originDomain != 0) {
-      return true;
-    } else {
-      return false;
-    }
+  function getFailedTxnNextNonce(bytes32 transferId) public view returns (uint256 next) {
+    return _failedTxns[transferId].length;
   }
 
   /**
@@ -176,9 +153,11 @@ contract ConnextHandler {
     external
     onlyConnextRouter
   {
-    uint128 nextNonce = getFailedTxnNextNonce(transferId);
-    _failedTxns[transferId][nextNonce] = FailedTxn(
-      transferId, amount, asset, originSender, originDomain, actions, args, nextNonce, false
+    uint256 nextNonce = getFailedTxnNextNonce(transferId);
+    _failedTxns[transferId].push(
+      FailedTxn(
+        transferId, amount, asset, originSender, originDomain, actions, args, nextNonce, false
+      )
     );
 
     emit FailedTxnRecorded(
@@ -201,7 +180,7 @@ contract ConnextHandler {
    */
   function executeFailedWithUpdatedArgs(
     bytes32 transferId,
-    uint128 nonce,
+    uint256 nonce,
     IRouter.Action[] memory actions,
     bytes[] memory args
   )
@@ -216,13 +195,14 @@ contract ConnextHandler {
       revert ConnextHandler__executeFailed_tranferAlreadyExecuted(transferId, nonce);
     }
 
-    IERC20(txn.asset).approve(address(connextRouter), txn.amount);
+    SafeERC20.safeIncreaseAllowance(IERC20(txn.asset), address(connextRouter), txn.amount);
 
     try connextRouter.xBundle(actions, args) {
       txn.executed = true;
       _failedTxns[transferId][nonce] = txn;
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, true);
     } catch {
+      SafeERC20.safeDecreaseAllowance(IERC20(txn.asset), address(connextRouter), txn.amount);
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, false);
     }
   }
