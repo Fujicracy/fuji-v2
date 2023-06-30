@@ -132,4 +132,10 @@ interface ILendingProvider {
    *
    */
   function harvest(bytes memory data) external returns (bool success);
+
+  /**
+   * @notice Returns the address of the `token` that is harvested from the protocol.
+   *
+   */
+  function getHarvestToken() external view returns (address token);
 }
