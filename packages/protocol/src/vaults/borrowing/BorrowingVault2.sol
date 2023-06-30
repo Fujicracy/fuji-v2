@@ -131,30 +131,6 @@ contract BorrowingVault2 is BaseVault {
 
   receive() external payable {}
 
-  /// @inheritdoc BaseVault
-  function initializeVaultShares(uint256 assets, uint256 debt) external override {
-    if (initialized) {
-      revert BaseVault__initializeVaultShares_alreadyInitialized();
-    }
-    if (assets < minAmount || debt < minAmount) {
-      revert BaseVault__initializeVaultShares_lessThanMin();
-    }
-    _unpauseForceAllActions();
-
-    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
-
-    uint256 maxBorrow_ = (assets * maxLtv * price) / (PRECISION_CONSTANT * 10 ** decimals());
-    if (debt > maxBorrow_) {
-      revert BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
-    }
-    address timelock = chief.timelock();
-    _deposit(msg.sender, timelock, assets, assets);
-    _borrow(msg.sender, timelock, timelock, debt, debt);
-
-    initialized = true;
-    emit VaultInitialized(msg.sender);
-  }
-
   /*//////////////////////////////////////////
       Asset management: overrides IERC4626
   //////////////////////////////////////////*/
@@ -576,9 +552,7 @@ contract BorrowingVault2 is BaseVault {
   )
     private
   {
-    if (
-      debt == 0 || shares == 0 || receiver == address(0) || owner == address(0) || debt < minAmount
-    ) {
+    if (debt == 0 || shares == 0 || receiver == address(0) || owner == address(0)) {
       revert BorrowingVault__borrow_invalidInput();
     }
     if (debt > maxBorrow(owner)) {
