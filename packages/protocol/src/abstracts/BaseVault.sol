@@ -50,6 +50,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__mint_slippageTooHigh();
   error BaseVault__withdraw_slippageTooHigh();
   error BaseVault__redeem_slippageTooHigh();
+  error BaseVault__harvest_invalidProvider();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -979,7 +980,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     external
     hasRole(msg.sender, HARVESTER_ROLE)
   {
-    //check provider is valid TODO
+    //check provider is valid
+    if (!_isValidProvider(address(provider))) {
+      revert BaseVault__harvest_invalidProvider();
+    }
 
     //collect rewards from provider
     _harvest(provider, data);
