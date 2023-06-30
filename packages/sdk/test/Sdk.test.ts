@@ -5,10 +5,11 @@ import { formatUnits, parseUnits } from '@ethersproject/units';
 import { BigNumber, utils, Wallet } from 'ethers';
 
 import { NATIVE, USDC, VAULT_LIST, WETH9, WNATIVE } from '../src/constants';
-import { Address } from '../src/entities';
+import { Address, FujiResultSuccess } from '../src/entities';
 import { BorrowingVault } from '../src/entities/BorrowingVault';
 import { ChainId, PreviewName, RouterAction } from '../src/enums';
 import * as batchLoad from '../src/functions/batchLoad';
+import * as vaultsFunctions from '../src/functions/vaults';
 import { Sdk } from '../src/Sdk';
 import {
   BorrowParams,
@@ -116,9 +117,8 @@ describe('Sdk', () => {
         },
       }));
       jest
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
-        .mockImplementation(() => vaults);
+        .spyOn(vaultsFunctions, 'findVaultsByTokens')
+        .mockImplementation(() => new FujiResultSuccess(vaults));
       jest
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(batchLoad as any, 'batchLoad')
@@ -159,9 +159,8 @@ describe('Sdk', () => {
         },
       }));
       jest
-        /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-        .spyOn(Sdk.prototype as any, '_findVaultsByTokens')
-        .mockImplementation(() => vaults);
+        .spyOn(vaultsFunctions, 'findVaultsByTokens')
+        .mockImplementation(() => new FujiResultSuccess(vaults));
       jest
         /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
         .spyOn(batchLoad as any, 'batchLoad')
@@ -337,9 +336,9 @@ describe('Sdk', () => {
     jest.setTimeout(20000);
 
     it('returns a NON cross-chain calldata for TrasactionRequest', async () => {
-      const vault = VAULT_LIST[ChainId.MATIC][0].setConnection(
-        config
-      ) as BorrowingVault;
+      const vault = VAULT_LIST[ChainId.MATIC]
+        .find((v) => v instanceof BorrowingVault)
+        ?.setConnection(config) as BorrowingVault;
 
       const owner = new Wallet(JUNK_KEY);
 
@@ -416,9 +415,9 @@ describe('Sdk', () => {
     });
 
     it('returns a cross-chain calldata for TrasactionRequest (transfer from chain A and deposit+borrow on chain B)', async () => {
-      const vault = VAULT_LIST[ChainId.OPTIMISM][0].setConnection(
-        config
-      ) as BorrowingVault;
+      const vault = VAULT_LIST[ChainId.OPTIMISM]
+        .find((v) => v instanceof BorrowingVault)
+        ?.setConnection(config) as BorrowingVault;
 
       const owner = new Wallet(JUNK_KEY);
 

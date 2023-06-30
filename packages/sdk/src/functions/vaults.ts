@@ -61,7 +61,7 @@ export async function getVaultsFor(
 
   // find all vaults with this pair
   try {
-    const result = _findVaultsByTokens(type, _collateral, _debt);
+    const result = findVaultsByTokens(type, _collateral, _debt);
     if (!result.success) {
       return new FujiResultError(result.error.message);
     }
@@ -107,7 +107,7 @@ export async function getVaultsFor(
   }
 }
 
-function _findVaultsByTokens(
+export function findVaultsByTokens(
   type: VaultType,
   collateral: Token,
   debt?: Token
