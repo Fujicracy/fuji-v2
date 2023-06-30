@@ -68,12 +68,11 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_notAllowedFlasher();
   error BaseRouter__handlePermit_notPermitAction();
   error BaseRouter__safeTransferETH_transferFailed();
-  error BaseRouter__safeTransferETH_zeroAddress();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
-  error BaseRouter__allowCaller_zeroAddress();
   error BaseRouter__allowCaller_noAllowChange();
   error BaseRouter__bundleInternal_insufficientFlashloanBalance();
+  error BaseRouter__checkIfAddressZero_invalidZeroAddress();
 
   IWETH9 public immutable WETH9;
 
@@ -526,9 +525,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param amount amount to be transferred
    */
   function _safeTransferETH(address receiver, uint256 amount) internal {
-    if (receiver == address(0)) {
-      revert BaseRouter__safeTransferETH_zeroAddress();
-    }
+    _checkIfAddressZero(receiver);
     (bool success,) = receiver.call{value: amount}(new bytes(0));
     if (!success) {
       revert BaseRouter__safeTransferETH_transferFailed();
@@ -569,9 +566,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param allowed 'true' to allow, 'false' to disallow
    */
   function _allowCaller(address caller, bool allowed) internal {
-    if (caller == address(0)) {
-      revert BaseRouter__allowCaller_zeroAddress();
-    }
+    _checkIfAddressZero(caller);
     if (isAllowedCaller[caller] == allowed) {
       revert BaseRouter__allowCaller_noAllowChange();
     }
@@ -730,6 +725,15 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   function _checkVaultInput(address vault_) internal view {
     if (!chief.isVaultActive(vault_)) {
       revert BaseRouter__checkVaultInput_notActiveVault();
+    }
+  }
+
+  /**
+   * @dev Reverts if passed `addr` is address(0).
+   */
+  function _checkIfAddressZero(address addr) internal pure {
+    if (addr == address(0)) {
+      revert BaseRouter__checkIfAddressZero_invalidZeroAddress();
     }
   }
 
