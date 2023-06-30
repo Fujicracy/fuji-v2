@@ -13,7 +13,7 @@ import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
-import {YieldVault} from "../../../src/vaults/yield/YieldVault.sol";
+import {YieldVault} from "../../../src/vaults/yields/YieldVault.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {RebalancerManager} from "../../../src/RebalancerManager.sol";
 
@@ -69,7 +69,7 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
       DEFAULT_LIQ_RATIO
     );
 
-    _initalizeVault(address(bvault), INITIALIZER, initVaultShares, initVaultDebtShares);
+    _initializeVault(address(bvault), INITIALIZER, initVaultShares);
 
     yvault = new YieldVault(
       collateralAsset,
@@ -79,7 +79,7 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
       providers
     );
 
-    _initalizeYieldVault(address(yvault), INITIALIZER, initVaultShares);
+    _initializeVault(address(yvault), INITIALIZER, initVaultShares);
 
     bytes memory executionCall =
       abi.encodeWithSelector(chief.grantRole.selector, HARVESTER_ROLE, HARVESTER);
