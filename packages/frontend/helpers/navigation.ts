@@ -84,9 +84,11 @@ export const showPosition = async (
 ) => {
   const vault = vaultFromEntity(entity);
   if (
-    !vault ||
-    (vault instanceof BorrowingVault && type === VaultType.LEND) ||
-    (vault instanceof LendingVault && type === VaultType.BORROW)
+    !vault
+    // TODO: reverse comment when we will have real vaults
+    // ||
+    // (vault instanceof BorrowingVault && type === VaultType.LEND) ||
+    // (vault instanceof LendingVault && type === VaultType.BORROW)
   )
     return;
 

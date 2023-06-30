@@ -1,23 +1,24 @@
 import {
   Chip,
   Collapse,
-  IconButton,
   Stack,
   Table,
   TableBody,
   TableRow,
-  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
 import { LendingVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
+import { AssetType } from '../../helpers/assets';
 import { ratingToNote } from '../../helpers/ratings';
 import { MarketRow, MarketRowStatus } from '../../store/types/markets';
-import { DropletIcon, NetworkIcon } from '../Shared/Icons';
+import AprValue from '../Shared/AprValue';
+import { NetworkIcon } from '../Shared/Icons';
 import SizableTableCell from '../Shared/SizableTableCell';
 import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
+import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import Toggle from '../Shared/Table/Toggle';
 import { loaderOrError } from './LoaderOrError';
 
@@ -67,7 +68,15 @@ function MarketsLendingTableRow({
           '&:hover': { '& .MuiTableCell-root': { background: '#34363E' } },
         }}
       >
-        <SizableTableCell width="120px">
+        <SizableTableCell
+          width="120px"
+          align="left"
+          sx={{
+            position: 'sticky',
+            left: 0,
+            zIndex: 5,
+          }}
+        >
           {row.collateral && isHighLevelRow && (
             <Stack direction="row" gap={0.5} alignItems="center">
               <Toggle
@@ -84,7 +93,7 @@ function MarketsLendingTableRow({
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell width="200px">
+        <SizableTableCell width="200px" align="left">
           {loaderOrError(row.chain.status)}
           {shouldNetworkColumnBeShown && (
             <Stack
@@ -100,7 +109,7 @@ function MarketsLendingTableRow({
               />
               <Stack
                 direction="row"
-                alignItems="center"
+                alignItems="left"
                 flexWrap="nowrap"
                 data-cy="market-row-network"
               >
@@ -114,28 +123,26 @@ function MarketsLendingTableRow({
         </SizableTableCell>
         <SizableTableCell
           align="right"
-          width="130px"
+          width="140px"
           sx={{ color: palette.success.main }}
         >
-          {loaderOrError(row.depositApr.status)}
+          {!expandRow && loaderOrError(row.depositApr.status)}
           {row.depositApr.status === MarketRowStatus.Ready && !expandRow && (
             <Stack direction="row" alignItems="center" justifyContent="right">
-              {row.depositAprReward?.value > 0 && (
-                <Tooltip
-                  title={`${row.depositAprBase.value.toFixed(
-                    2
-                  )}% (base) + ${row.depositAprReward.value.toFixed(
-                    2
-                  )}% (reward)`}
-                  arrow
-                >
-                  <IconButton>
-                    <DropletIcon />
-                  </IconButton>
-                </Tooltip>
-              )}
-              {row.depositApr.value.toFixed(2)} %
+              <AprValue
+                base={row.depositAprBase.value}
+                reward={row.depositAprReward.value}
+                providerName={row.integratedProviders.value[0]}
+                type={AssetType.Debt}
+                positive
+              />
             </Stack>
+          )}
+        </SizableTableCell>
+        <SizableTableCell align="right" width="130px">
+          {!expandRow && loaderOrError(row.integratedProviders.status)}
+          {!expandRow && row.integratedProviders.value && (
+            <IntegratedProviders providers={row.integratedProviders} />
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="140px">
@@ -158,6 +165,7 @@ function MarketsLendingTableRow({
         <SizableTableCell
           sx={{ p: 0, borderBottom: 'none !important' }}
           colSpan={8}
+          align="right"
         >
           <Collapse
             in={expandRow}

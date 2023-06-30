@@ -42,7 +42,7 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
 
   const handleClick = async (entity?: LendingVault | VaultWithFinancials) => {
     if (!walletChainId) return;
-    showPosition(VaultType.LEND, router, true, entity);
+    showPosition(VaultType.LEND, router, false, entity);
   };
 
   return (
@@ -57,7 +57,7 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
               Network
             </SizableTableCell>
             <SizableTableCell width="130px" align="right">
-              Vault APY
+              Lend APY
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
               <Stack
