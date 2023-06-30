@@ -61,7 +61,8 @@ contract YieldVault is BaseVault {
   function initializeVaultShares(uint256 assets, uint256) public override {
     if (initialized) {
       revert BaseVault__initializeVaultShares_alreadyInitialized();
-    } else if (assets < minAmount) {
+    }
+    if (assets < minAmount) {
       revert BaseVault__initializeVaultShares_lessThanMin();
     }
     _unpauseForceAllActions();
