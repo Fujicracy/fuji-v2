@@ -5,6 +5,7 @@ import React from 'react';
 import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
 import { BasePosition } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
+import { BorrowingPosition } from '../../../store/models/Position';
 import Container from './Container';
 import Details from './Details';
 import LTVProgressBar from './LTVProgressBar';
@@ -28,7 +29,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
     ltvThreshold,
     liquidationDiff,
     liquidationPrice,
-  } = position;
+  } = position as BorrowingPosition;
 
   const vault = useBorrow((state) => state.activeVault);
   const allProviders = useBorrow((state) => state.allProviders);
@@ -37,7 +38,9 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt?.input);
 
-  const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
+  const dynamicLtv = editedPosition
+    ? (editedPosition as BorrowingPosition).ltv
+    : ltv;
   const recommendedLtv = recommendedLTV(ltvMax);
 
   const borrowLimit = maxBorrowLimit(
@@ -65,7 +68,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
             collateralInput={collateralInput}
             debt={debt}
             debtInput={debtInput}
-            editedPosition={editedPosition}
+            editedPosition={editedPosition as BorrowingPosition}
             liquidationDiff={liquidationDiff}
             liquidationPrice={liquidationPrice}
             recommendedLtv={recommendedLtv}

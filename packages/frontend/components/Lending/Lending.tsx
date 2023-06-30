@@ -4,7 +4,10 @@ import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 
 import { PATH } from '../../constants';
-import { BasePosition, viewDynamicPosition } from '../../helpers/positions';
+import {
+  BasePosition,
+  viewDynamicLendingPosition,
+} from '../../helpers/positions';
 import { useLend } from '../../store/lend.store';
 import { FormType } from '../../store/types/state';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
@@ -20,7 +23,7 @@ function Lending() {
   const isEditing = formType === FormType.Edit;
 
   const [basePosition, setBasePosition] = useState<BasePosition | undefined>(
-    viewDynamicPosition(isEditing, false)
+    viewDynamicLendingPosition(isEditing)
   );
 
   return (

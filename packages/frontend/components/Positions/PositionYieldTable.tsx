@@ -81,7 +81,7 @@ function PositionYieldTable({
         <>
           {rows.map((row, i) => (
             <TableRow key={i}>
-              {!isLend && (
+              {!isLend && row.debt && (
                 <TableCell>
                   <Stack direction="row" alignItems="center" pt={1} pb={1}>
                     <CurrencyWithNetworkIcon
@@ -102,7 +102,7 @@ function PositionYieldTable({
                   />
                 </Stack>
               </TableCell>
-              {!isLend && (
+              {!isLend && row.debt && (
                 <TableCell align="right">
                   <Typography variant="small" color={palette.warning.main}>
                     {formatValue(row.debt.baseAPR)}%
@@ -114,7 +114,7 @@ function PositionYieldTable({
                   {formatValue(row.collateral.baseAPR)}%
                 </Typography>
               </TableCell>
-              {!isLend && (
+              {!isLend && row.debt && (
                 <TableCell align="right">
                   <Typography variant="small">
                     {formatValue(
@@ -131,8 +131,8 @@ function PositionYieldTable({
                       days,
                       collateralInUsd: row.collateral.usdValue,
                       collateralAPR: row.collateral.baseAPR,
-                      debtInUsd: row.debt.usdValue,
-                      debtAPR: row.debt.baseAPR,
+                      debtInUsd: row.debt ? row.debt.usdValue : 0,
+                      debtAPR: row.debt ? row.debt.baseAPR : 0,
                     }),
                     {
                       style: 'currency',

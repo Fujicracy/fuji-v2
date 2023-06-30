@@ -18,6 +18,7 @@ import {
 } from '../../../helpers/transactions';
 import { formatValue } from '../../../helpers/values';
 import { useAuth } from '../../../store/auth.store';
+import { BorrowingPosition } from '../../../store/models/Position';
 import ModalHeader from '../ModalHeader';
 import WarningInfo from '../WarningInfo';
 import InfoRow from './InfoRow';
@@ -43,9 +44,13 @@ export function ConfirmTransactionModal({
   const { steps } = transactionMeta;
 
   const slippage = useAuth((state) => state.slippage);
-
-  const position = basePosition ? basePosition.position : undefined;
-  const editedPosition = basePosition ? basePosition.editedPosition : undefined;
+  // TODO: casting to BorrowingPosition just for it to compile, we need to separate things accordingly
+  const position = basePosition
+    ? (basePosition.position as BorrowingPosition)
+    : undefined;
+  const editedPosition = basePosition
+    ? (basePosition.editedPosition as BorrowingPosition)
+    : undefined;
   const dynamicLtvMeta = ltvMeta(basePosition);
 
   const estCost =

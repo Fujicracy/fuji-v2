@@ -1,7 +1,10 @@
 import { Grid } from '@mui/material';
 
 import { formatValue } from '../../../../helpers/values';
-import { AssetMeta, Position } from '../../../../store/models/Position';
+import {
+  AssetMeta,
+  BorrowingPosition,
+} from '../../../../store/models/Position';
 import SummaryCardItem, { SummaryCardItemInfo } from './SummaryCardItem';
 
 type SummaryProps = {
@@ -9,7 +12,7 @@ type SummaryProps = {
   collateralInput: string;
   debt: AssetMeta;
   debtInput: string;
-  editedPosition: Position | undefined;
+  editedPosition: BorrowingPosition | undefined;
   liquidationDiff: number;
   liquidationPrice: number;
   recommendedLtv: number;

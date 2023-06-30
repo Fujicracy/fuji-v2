@@ -1,6 +1,7 @@
 import { Palette } from '@mui/material';
 import {
   Address,
+  BorrowingVault,
   ChainId,
   FujiError,
   FujiResultError,
@@ -12,7 +13,14 @@ import { BigNumber } from 'ethers';
 
 import { DUST_AMOUNT } from '../constants';
 import { useBorrow } from '../store/borrow.store';
-import { AssetMeta, Position } from '../store/models/Position';
+import { useLend } from '../store/lend.store';
+import {
+  AssetMeta,
+  BorrowingPosition,
+  LendingPosition,
+  newPosition,
+  Position,
+} from '../store/models/Position';
 import { usePositions } from '../store/positions.store';
 import { AssetChange, AssetType, debtForCurrency, Mode } from './assets';
 import { shouldShowStoreNotification } from './navigation';
@@ -29,7 +37,14 @@ export const getTotalSum = (
   positions: Position[],
   param: AssetType
 ): number => {
-  return positions.reduce((s, p) => p[param].amount * p[param].usdPrice + s, 0);
+  const borrowingPositions = positions.filter(
+    (p) => 'debt' in p
+  ) as BorrowingPosition[];
+  return borrowingPositions.reduce(
+    (s, p) => p[param].amount * p[param].usdPrice + s,
+    0
+  );
+  // TODO: Need to refactor and add lending positions
 };
 
 export const getPositionsWithBalance = async (
@@ -62,7 +77,7 @@ export const getPositionsWithBalance = async (
   );
 
   const vaults = vaultsWithBalance.map((v) => {
-    const p = {} as Position;
+    const p = newPosition(type);
     p.vault = v.vault;
     p.collateral = {
       amount: bigToFloat(v.vault.collateral.decimals, v.depositBalance),
@@ -72,32 +87,35 @@ export const getPositionsWithBalance = async (
         return v.activeProvider.depositAprBase;
       },
     };
-    p.debt = {
-      amount: bigToFloat(v.vault.debt.decimals, v.borrowBalance),
-      currency: v.vault.debt,
-      usdPrice: bigToFloat(v.vault.debt.decimals, v.debtPriceUSD),
-      get baseAPR() {
-        return v.activeProvider.borrowAprBase;
-      },
-    };
-    p.ltv =
-      (p.debt.amount * p.debt.usdPrice) /
-      (p.collateral.amount * p.collateral.usdPrice);
-    p.ltvMax = bigToFloat(p.collateral.currency.decimals, v.vault.maxLtv);
-    p.ltvThreshold = bigToFloat(
-      p.collateral.currency.decimals,
-      v.vault.liqRatio
-    );
-    p.liquidationPrice =
-      p.debt.usdPrice === 0
-        ? 0
-        : (p.debt.amount * p.debt.usdPrice) /
-          (p.ltvThreshold * p.collateral.amount);
-    p.liquidationDiff =
-      p.liquidationPrice === 0
-        ? 0
-        : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
     p.activeProvidersNames = v.allProviders.map((provider) => provider.name);
+    if ('debt' in p && v.vault instanceof BorrowingVault) {
+      p.debt = {
+        amount: bigToFloat(v.vault.debt.decimals, v.borrowBalance),
+        currency: v.vault.debt,
+        usdPrice: bigToFloat(v.vault.debt.decimals, v.debtPriceUSD),
+        get baseAPR() {
+          return v.activeProvider.borrowAprBase;
+        },
+      };
+      p.ltv =
+        (p.debt.amount * p.debt.usdPrice) /
+        (p.collateral.amount * p.collateral.usdPrice);
+      p.ltvMax = bigToFloat(p.collateral.currency.decimals, v.vault.maxLtv);
+      p.ltvThreshold = bigToFloat(
+        p.collateral.currency.decimals,
+        v.vault.liqRatio
+      );
+      p.liquidationPrice =
+        p.debt.usdPrice === 0
+          ? 0
+          : (p.debt.amount * p.debt.usdPrice) /
+            (p.ltvThreshold * p.collateral.amount);
+      p.liquidationDiff =
+        p.liquidationPrice === 0
+          ? 0
+          : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
+    }
+
     return p;
   });
 
@@ -122,14 +140,15 @@ export const getCurrentAvailableBorrowingPower = (
   positions: Position[]
 ): number => {
   return positions.reduce((b, pos) => {
-    const collateralUsdValue = pos.collateral.amount * pos.collateral.usdPrice;
-    const debtUsdValue = pos.debt.amount * pos.debt.usdPrice;
-    return collateralUsdValue * pos.ltvMax - debtUsdValue + b;
+    // TODO:
+    // const collateralUsdValue = pos.collateral.amount * pos.collateral.usdPrice;
+    // const debtUsdValue = pos.debt.amount * pos.debt.usdPrice;
+    return 0; //  collateralUsdValue * pos.ltvMax - debtUsdValue + b;
   }, 0);
 };
 
 export type PositionRow = {
-  debt: {
+  debt?: {
     symbol: string | '-';
     amount: number | '-';
     usdValue: number | 1;
@@ -158,28 +177,36 @@ export function getRows(positions: Position[]): PositionRow[] {
     return [];
   } else {
     return positions.map((pos: Position) => {
+      const isBorrowing = 'debt' in pos;
+      const debt =
+        isBorrowing && pos.vault instanceof BorrowingVault
+          ? {
+              symbol: pos.vault?.debt.symbol || '',
+              amount: pos.debt.amount,
+              usdValue: pos.debt.amount * pos.debt.usdPrice,
+              baseAPR: pos.debt.baseAPR,
+            }
+          : undefined;
+
       return {
         safetyRating: Number(pos.vault?.safetyRating?.toString()) ?? 0,
         address: pos.vault?.address.value,
         chainId: pos.vault?.chainId,
-        debt: {
-          symbol: pos.vault?.debt.symbol || '',
-          amount: pos.debt.amount,
-          usdValue: pos.debt.amount * pos.debt.usdPrice,
-          baseAPR: pos.debt.baseAPR,
-        },
+        debt,
         collateral: {
           symbol: pos.vault?.collateral.symbol || '',
           amount: pos.collateral.amount,
           usdValue: pos.collateral.amount * pos.collateral.usdPrice,
           baseAPR: pos.collateral.baseAPR,
         },
-        apr: formatNumber(pos.debt.baseAPR, 2),
-        liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
+        apr: isBorrowing ? formatNumber(pos.debt.baseAPR, 2) : '-',
+        liquidationPrice: isBorrowing
+          ? handleDisplayLiquidationPrice(pos.liquidationPrice)
+          : '-',
         oraclePrice: pos.collateral.usdPrice,
-        percentPriceDiff: pos.liquidationDiff,
-        ltv: pos.ltv * 100,
-        ltvMax: pos.ltvMax * 100,
+        percentPriceDiff: isBorrowing ? pos.liquidationDiff : '-',
+        ltv: isBorrowing ? pos.ltv * 100 : 0,
+        ltvMax: isBorrowing ? pos.ltvMax * 100 : 0,
         activeProvidersNames: pos.activeProvidersNames,
       };
     });
@@ -202,63 +229,109 @@ function handleDisplayLiquidationPrice(liqPrice?: number) {
  * @param current
  * @param mode
  */
-export function viewEditedPosition(
+export const viewEditedPosition = (
+  type: VaultType,
   collateral: AssetChange,
   debt: AssetChange,
   current: Position,
   mode: Mode
-): Position {
-  const future = JSON.parse(JSON.stringify(current));
+): Position => {
+  if (type === VaultType.BORROW) {
+    return viewEditedBorrowingPosition(
+      collateral,
+      debt,
+      current as BorrowingPosition,
+      mode
+    );
+  }
+  return viewEditedLendingPosition(
+    collateral,
+    current as LendingPosition,
+    mode
+  );
+};
+
+const viewEditedLendingPosition = (
+  collateral: AssetChange,
+  current: LendingPosition,
+  mode: Mode
+): LendingPosition => {
+  const future = JSON.parse(JSON.stringify(current)) as LendingPosition;
+  const collateralInput = parseFloat(
+    collateral.input === '' ? '0' : collateral.input
+  );
+  if (mode === Mode.DEPOSIT) {
+    future.collateral.amount = current.collateral.amount + collateralInput;
+  } else if (mode === Mode.WITHDRAW) {
+    future.collateral.amount = current.collateral.amount - collateralInput;
+  }
+  return future;
+};
+
+const viewEditedBorrowingPosition = (
+  collateral: AssetChange,
+  debt: AssetChange,
+  current: BorrowingPosition,
+  mode: Mode
+): BorrowingPosition => {
+  const future = JSON.parse(JSON.stringify(current)) as BorrowingPosition;
   const collateralInput = parseFloat(
     collateral.input === '' ? '0' : collateral.input
   );
   const debtInput = parseFloat(debt.input === '' ? '0' : debt.input);
-  switch (mode) {
-    case Mode.DEPOSIT:
-      future.collateral.amount = current.collateral.amount + collateralInput;
-      break;
-    case Mode.BORROW:
-      future.debt.amount = current.debt.amount + debtInput;
-      break;
-    case Mode.WITHDRAW:
-      future.collateral.amount = current.collateral.amount - collateralInput;
-      break;
-    case Mode.PAYBACK:
-      future.debt.amount = current.debt.amount - debtInput;
-      break;
-    case Mode.DEPOSIT_AND_BORROW:
-      future.collateral.amount = current.collateral.amount + collateralInput;
-
-      future.debt.amount = current.debt.amount + debtInput;
-      break;
-    case Mode.PAYBACK_AND_WITHDRAW:
-      future.collateral.amount = current.collateral.amount - collateralInput;
-
-      future.debt.amount = current.debt.amount - debtInput;
-      break;
+  if (mode === Mode.DEPOSIT) {
+    future.collateral.amount = current.collateral.amount + collateralInput;
+  } else if (mode === Mode.WITHDRAW) {
+    future.collateral.amount = current.collateral.amount - collateralInput;
+  } else if (mode === Mode.DEPOSIT_AND_BORROW) {
+    future.collateral.amount = current.collateral.amount + collateralInput;
+    future.debt.amount = current.debt.amount + debtInput;
+  } else if (mode === Mode.PAYBACK_AND_WITHDRAW) {
+    future.collateral.amount = current.collateral.amount - collateralInput;
+    future.debt.amount = current.debt.amount - debtInput;
+  } else if (mode === Mode.PAYBACK) {
+    future.debt.amount = current.debt.amount - debtInput;
+  } else if (mode === Mode.BORROW) {
+    future.debt.amount = current.debt.amount + debtInput;
   }
-
-  const debtUsdValue = future.debt.amount * future.debt.usdPrice;
   const collatUsdValue = future.collateral.amount * future.collateral.usdPrice;
-
+  const debtUsdValue = future.debt.amount * future.debt.usdPrice;
   future.ltv = (debtUsdValue / collatUsdValue) * 100;
-
   future.liquidationPrice =
     debtUsdValue / (future.ltvThreshold * future.collateral.amount);
-
   future.liquidationDiff = future.collateral.usdPrice - future.liquidationPrice;
-
   future.ltvThreshold = future.ltvThreshold * 100;
-
   return future;
-}
+};
 
-export function viewDynamicPosition(
+export const viewDynamicLendingPosition = (
+  isEditing: boolean,
+  position?: LendingPosition,
+  editedPosition?: LendingPosition
+): BasePosition | undefined => {
+  const dynamic = !isEditing;
+  const baseCollateral = useLend.getState().collateral;
+
+  return {
+    position: {
+      vault: position?.vault,
+      collateral: dynamicPositionMeta(
+        dynamic,
+        baseCollateral,
+        position?.collateral
+      ),
+      activeProvidersNames: position?.activeProvidersNames || [],
+    },
+    editedPosition,
+  };
+};
+
+export const viewDynamicBorrowingPosition = (
   isEditing: boolean,
   allowSettingDebt: boolean,
-  position?: Position,
-  editedPosition?: Position
-): BasePosition | undefined {
+  position?: BorrowingPosition,
+  editedPosition?: BorrowingPosition
+): BasePosition | undefined => {
   const dynamic = !isEditing;
   const baseCollateral = useBorrow.getState().collateral;
   let baseDebt = useBorrow.getState().debt;
@@ -299,7 +372,7 @@ export function viewDynamicPosition(
     },
     editedPosition,
   };
-}
+};
 
 export function dynamicPositionMeta(
   dynamic: boolean, // If tue, it means we need to show data the user is inputting

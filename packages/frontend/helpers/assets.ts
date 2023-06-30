@@ -175,14 +175,19 @@ export const remainingBorrowLimit = (
 };
 
 export const ltvMeta = (basePosition?: BasePosition): LtvMeta | undefined => {
-  if (!basePosition?.position) return undefined;
+  if (!basePosition?.position || !('debt' in basePosition.position))
+    return undefined;
   const { position, editedPosition } = basePosition;
   return {
-    ltv: editedPosition ? editedPosition.ltv : position.ltv,
+    ltv:
+      editedPosition && 'ltv' in editedPosition
+        ? editedPosition.ltv
+        : position.ltv,
     ltvMax: position.ltvMax,
-    ltvThreshold: editedPosition
-      ? editedPosition.ltvThreshold
-      : position.ltvThreshold,
+    ltvThreshold:
+      editedPosition && 'ltvThreshold' in editedPosition
+        ? editedPosition.ltvThreshold
+        : position.ltvThreshold,
   };
 };
 
@@ -200,11 +205,13 @@ export const withdrawMaxAmount = async (
       DUST_AMOUNT / Math.pow(10, significance)
   );
 
-  let debtAmount = (
-    basePosition.editedPosition
-      ? basePosition.editedPosition.debt
-      : basePosition.position.debt
-  ).amount;
+  let debtAmount =
+    'debt' in basePosition.position
+      ? (basePosition.editedPosition && 'debt' in basePosition.editedPosition
+          ? basePosition.editedPosition.debt
+          : basePosition.position.debt
+        ).amount
+      : 0;
 
   // In the case of PAYBACK_AND_WITHDRAW mode when the operation is cross-chain and
   // the vault is on the destination chain, we need to take into account the fees and
@@ -259,7 +266,8 @@ export const withdrawMaxAmount = async (
     }
   }
 
-  const ltvMax = basePosition.position.ltvMax;
+  const ltvMax =
+    'ltvMax' in basePosition.position ? basePosition.position.ltvMax : 0;
   const currentLtvMax = ltvMax > 1 ? ltvMax / 100 : ltvMax;
 
   const amount =
