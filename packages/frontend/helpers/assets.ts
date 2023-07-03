@@ -15,7 +15,7 @@ import {
 import { sdk } from '../services/sdk';
 import { AssetMeta } from '../store/models/Position';
 import { notify } from './notifications';
-import { BasePosition } from './positions';
+import { PositionData } from './positions';
 import { fetchRoutes } from './routes';
 
 const defaultDebtCurrencies = sdk.getDebtForChain(DEFAULT_CHAIN_ID);
@@ -174,10 +174,10 @@ export const remainingBorrowLimit = (
   return max - debt?.amount * debt?.usdPrice;
 };
 
-export const ltvMeta = (basePosition?: BasePosition): LtvMeta | undefined => {
-  if (!basePosition?.position || !('debt' in basePosition.position))
+export const ltvMeta = (positionData?: PositionData): LtvMeta | undefined => {
+  if (!positionData?.position || !('debt' in positionData.position))
     return undefined;
-  const { position, editedPosition } = basePosition;
+  const { position, editedPosition } = positionData;
   return {
     ltv:
       editedPosition && 'ltv' in editedPosition
@@ -193,23 +193,23 @@ export const ltvMeta = (basePosition?: BasePosition): LtvMeta | undefined => {
 
 export const withdrawMaxAmount = async (
   mode: Mode.PAYBACK_AND_WITHDRAW | Mode.WITHDRAW,
-  basePosition: BasePosition,
+  positionData: PositionData,
   debt: AssetChange,
   collateral: AssetChange
 ): FujiResultPromise<number> => {
   // if price is too high as for BTC, deduct less
-  const significance = basePosition.position.collateral.usdPrice / 10000 + 1;
+  const significance = positionData.position.collateral.usdPrice / 10000 + 1;
   const deductedCollateral = Math.max(
     0,
-    basePosition.position.collateral.amount -
+    positionData.position.collateral.amount -
       DUST_AMOUNT / Math.pow(10, significance)
   );
 
   let debtAmount =
-    'debt' in basePosition.position
-      ? (basePosition.editedPosition && 'debt' in basePosition.editedPosition
-          ? basePosition.editedPosition.debt
-          : basePosition.position.debt
+    'debt' in positionData.position
+      ? (positionData.editedPosition && 'debt' in positionData.editedPosition
+          ? positionData.editedPosition.debt
+          : positionData.position.debt
         ).amount
       : 0;
 
@@ -219,12 +219,12 @@ export const withdrawMaxAmount = async (
   if (mode === Mode.PAYBACK_AND_WITHDRAW) {
     let failed;
 
-    if (basePosition.position.vault) {
+    if (positionData.position.vault) {
       // Fetch metadata for the operation:
       // we only need estimateSlippage, bridgeFees and steps
       const response = await fetchRoutes(
         mode,
-        basePosition.position.vault,
+        positionData.position.vault,
         collateral.currency,
         debt.currency,
         // we don't care about the collateral input
@@ -267,12 +267,12 @@ export const withdrawMaxAmount = async (
   }
 
   const ltvMax =
-    'ltvMax' in basePosition.position ? basePosition.position.ltvMax : 0;
+    'ltvMax' in positionData.position ? positionData.position.ltvMax : 0;
   const currentLtvMax = ltvMax > 1 ? ltvMax / 100 : ltvMax;
 
   const amount =
     deductedCollateral -
-    debtAmount / (currentLtvMax * basePosition.position.collateral.usdPrice);
+    debtAmount / (currentLtvMax * positionData.position.collateral.usdPrice);
 
   return new FujiResultSuccess(amount);
 };

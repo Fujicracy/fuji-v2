@@ -3,7 +3,7 @@ import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
 import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
-import { BasePosition } from '../../../helpers/positions';
+import { PositionData } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
 import { BorrowingPosition } from '../../../store/models/Position';
 import Container from './Container';
@@ -13,14 +13,14 @@ import Summary from './Summary/Summary';
 
 type OverviewProps = {
   isEditing: boolean;
-  basePosition: BasePosition;
+  positionData: PositionData;
 };
 
-function Overview({ basePosition, isEditing }: OverviewProps) {
+function Overview({ positionData, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
-  const { position, editedPosition } = basePosition;
+  const { position, editedPosition } = positionData;
   const {
     collateral,
     debt,

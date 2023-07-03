@@ -16,7 +16,7 @@ import { chainName, isSupported } from '../../helpers/chains';
 import { borrowingModeForContext } from '../../helpers/mode';
 import { showBorrow, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
-import { BasePosition } from '../../helpers/positions';
+import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { BorrowingPosition } from '../../store/models/Position';
@@ -31,9 +31,9 @@ import BorrowHeader from './Header/Header';
 
 type BorrowProps = {
   isEditing: boolean;
-  basePosition?: BasePosition;
+  positionData?: PositionData;
 };
-function Borrow({ isEditing, basePosition }: BorrowProps) {
+function Borrow({ isEditing, positionData }: BorrowProps) {
   const router = useRouter();
 
   const address = useAuth((state) => state.address);
@@ -64,10 +64,10 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
 
-  const position = basePosition
-    ? (basePosition.position as BorrowingPosition)
+  const position = positionData
+    ? (positionData.position as BorrowingPosition)
     : undefined;
-  const dynamicLtvMeta = ltvMeta(basePosition);
+  const dynamicLtvMeta = ltvMeta(positionData);
   const metaStatus = transactionMeta.status;
 
   const [actionType, setActionType] = useState(ActionType.ADD);
@@ -257,7 +257,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
                 isExecuting={isExecuting}
                 value={assetChange?.input}
                 ltvMeta={dynamicLtvMeta}
-                basePosition={basePosition}
+                positionData={positionData}
                 changeAssetChain={changeAssetChain}
                 changeAssetCurrency={changeAssetCurrency}
                 changeAssetValue={changeAssetValue}
@@ -317,7 +317,7 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
       <ConfirmTransactionModal
         open={isConfirmationModalShown}
         onClose={() => setIsConfirmationModalShown(false)}
-        basePosition={basePosition}
+        positionData={positionData}
         transactionMeta={transactionMeta}
         actionType={actionType}
         action={() => {

@@ -10,7 +10,7 @@ import {
   recommendedLTV,
   remainingBorrowLimit,
 } from '../../../helpers/assets';
-import { BasePosition } from '../../../helpers/positions';
+import { PositionData } from '../../../helpers/positions';
 import { isCrossChainTransaction } from '../../../helpers/routes';
 import {
   stringifiedBridgeFeeSum,
@@ -25,7 +25,7 @@ import InfoRow from './InfoRow';
 import RouteBox from './RouteBox';
 
 type ConfirmTransactionModalProps = {
-  basePosition: BasePosition | undefined;
+  positionData: PositionData | undefined;
   transactionMeta: TransactionMeta;
   open: boolean;
   actionType: ActionType;
@@ -34,7 +34,7 @@ type ConfirmTransactionModalProps = {
 };
 
 export function ConfirmTransactionModal({
-  basePosition,
+  positionData,
   transactionMeta,
   open,
   onClose,
@@ -45,13 +45,13 @@ export function ConfirmTransactionModal({
 
   const slippage = useAuth((state) => state.slippage);
   // TODO: casting to BorrowingPosition just for it to compile, we need to separate things accordingly
-  const position = basePosition
-    ? (basePosition.position as BorrowingPosition)
+  const position = positionData
+    ? (positionData.position as BorrowingPosition)
     : undefined;
-  const editedPosition = basePosition
-    ? (basePosition.editedPosition as BorrowingPosition)
+  const editedPosition = positionData
+    ? (positionData.editedPosition as BorrowingPosition)
     : undefined;
-  const dynamicLtvMeta = ltvMeta(basePosition);
+  const dynamicLtvMeta = ltvMeta(positionData);
 
   const estCost =
     transactionMeta.status === FetchStatus.Ready && transactionMeta.bridgeFees

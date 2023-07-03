@@ -23,7 +23,7 @@ import { chainName } from '../../helpers/chains';
 import { lendingModeForContext } from '../../helpers/mode';
 import { showLend, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
-import { BasePosition } from '../../helpers/positions';
+import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { useLend } from '../../store/lend.store';
@@ -37,9 +37,9 @@ import LendButton from './LendingFormButton';
 
 type BorrowProps = {
   isEditing: boolean;
-  basePosition?: BasePosition;
+  positionData?: PositionData;
 };
-function LendingForm({ isEditing, basePosition }: BorrowProps) {
+function LendingForm({ isEditing, positionData }: BorrowProps) {
   const theme = useTheme();
   const onMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
@@ -73,7 +73,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const updateCurrencyPrice = useLend((state) => state.updateCurrencyPrice);
   const signAndExecute = useLend((state) => state.signAndExecute);
 
-  const position = basePosition ? basePosition.position : undefined;
+  const position = positionData ? positionData.position : undefined;
 
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
@@ -216,7 +216,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
                 chainId={assetChange.chainId}
                 isExecuting={isExecuting}
                 value={assetChange.input}
-                basePosition={basePosition}
+                positionData={positionData}
                 changeAssetValue={changeAssetValue}
                 changeAssetChain={changeAssetChain}
                 changeAssetCurrency={changeAssetCurrency}
@@ -295,7 +295,7 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
       <ConfirmTransactionModal
         open={isConfirmationModalShown}
         onClose={() => setIsConfirmationModalShown(false)}
-        basePosition={basePosition}
+        positionData={positionData}
         transactionMeta={transactionMeta}
         actionType={actionType}
         action={() => {

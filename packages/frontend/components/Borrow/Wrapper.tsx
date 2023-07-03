@@ -17,7 +17,7 @@ import React, { useEffect, useState } from 'react';
 import Borrow from '../../components/Borrow/Borrow';
 import { PATH } from '../../constants';
 import {
-  BasePosition,
+  PositionData,
   viewDynamicBorrowingPosition,
   viewEditedPosition,
 } from '../../helpers/positions';
@@ -55,7 +55,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
 
   const isEditing = formType !== FormType.Create;
 
-  const [basePosition, setBasePosition] = useState<BasePosition | undefined>(
+  const [positionData, setPositionData] = useState<PositionData | undefined>(
     undefined
   );
   const [loading, setLoading] = useState<boolean>(
@@ -86,14 +86,14 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
 
     if (willLoadBorrow) return;
 
-    const newBasePosition = viewDynamicBorrowingPosition(
+    const newPositionData = viewDynamicBorrowingPosition(
       isEditing,
       willLoadBorrow,
       matchPosition,
       editedPosition as BorrowingPosition
     );
 
-    setBasePosition(newBasePosition);
+    setPositionData(newPositionData);
   }, [
     formType,
     baseCollateral,
@@ -113,15 +113,15 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
     and change the values in the store.
   */
   useEffect(() => {
-    if (isEditing && loading && basePosition) {
-      const vault = basePosition.position.vault;
+    if (isEditing && loading && positionData) {
+      const vault = positionData.position.vault;
       if (vault && vault instanceof BorrowingVault) {
         const changeAll = useBorrow.getState().changeAll;
         changeAll(vault, vault.collateral, vault.debt);
         setLoading(false);
       }
     }
-  }, [isEditing, basePosition, loading]);
+  }, [isEditing, positionData, loading]);
 
   return (
     <>
@@ -200,13 +200,13 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
             spacing={3}
           >
             <Grow
-              in={Boolean(basePosition)}
+              in={Boolean(positionData)}
               timeout={{ enter: isEditing ? 0 : ANIMATION_DURATION }}
             >
-              {basePosition ? (
+              {positionData ? (
                 <Grid item xs={12} sm={9.5} md={7} order={{ xs: 2, md: 1 }}>
                   {!isEditing && <VaultSelect />}
-                  <Overview isEditing={isEditing} basePosition={basePosition} />
+                  <Overview isEditing={isEditing} positionData={positionData} />
                 </Grid>
               ) : (
                 <div />
@@ -217,10 +217,10 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
               xs={12}
               md={5}
               order={{ xs: 1, md: 2 }}
-              mt={basePosition ? { xs: 0, md: '2.6rem' } : 0}
+              mt={positionData ? { xs: 0, md: '2.6rem' } : 0}
               sx={{ transition: `all ${isEditing ? '0ms' : '500ms'} ease-in` }}
             >
-              <Borrow isEditing={isEditing} basePosition={basePosition} />
+              <Borrow isEditing={isEditing} positionData={positionData} />
             </Grid>
           </Grid>
         )}

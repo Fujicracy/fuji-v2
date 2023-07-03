@@ -28,7 +28,7 @@ import { showOnchainErrorNotification } from './notifications';
 import { bigToFloat, formatNumber } from './values';
 import { getVaultFinancials, vaultsFromFinancialsOrError } from './vaults';
 
-export type BasePosition = {
+export type PositionData = {
   position: Position;
   editedPosition?: Position;
 };
@@ -307,7 +307,7 @@ export const viewDynamicLendingPosition = (
   isEditing: boolean,
   position?: LendingPosition,
   editedPosition?: LendingPosition
-): BasePosition | undefined => {
+): PositionData | undefined => {
   const dynamic = !isEditing;
   const baseCollateral = useLend.getState().collateral;
 
@@ -330,7 +330,7 @@ export const viewDynamicBorrowingPosition = (
   allowSettingDebt: boolean,
   position?: BorrowingPosition,
   editedPosition?: BorrowingPosition
-): BasePosition | undefined => {
+): PositionData | undefined => {
   const dynamic = !isEditing;
   const baseCollateral = useBorrow.getState().collateral;
   let baseDebt = useBorrow.getState().debt;

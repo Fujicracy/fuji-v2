@@ -8,7 +8,7 @@ import {
   AssetType,
   LtvMeta,
 } from '../../../helpers/assets';
-import { BasePosition } from '../../../helpers/positions';
+import { PositionData } from '../../../helpers/positions';
 import ChainSelect from './ChainSelect';
 import CurrencyCard from './CurrencyCard';
 
@@ -36,7 +36,7 @@ type BorrowBoxProps = {
   value?: string;
   ltvMeta?: LtvMeta;
   chainId?: ChainId;
-  basePosition?: BasePosition;
+  positionData?: PositionData;
 };
 
 function FormAssetBox({
@@ -50,7 +50,7 @@ function FormAssetBox({
   showMax,
   maxAmount,
   ltvMeta,
-  basePosition,
+  positionData,
   index,
   changeAssetChain,
   changeAssetCurrency,
@@ -94,7 +94,7 @@ function FormAssetBox({
         isExecuting={isExecuting}
         value={value}
         ltvMeta={ltvMeta}
-        basePosition={basePosition}
+        positionData={positionData}
         isFocusedByDefault={index === 0}
         onCurrencyChange={(currency, updateVault) => {
           changeAssetCurrency(type, currency, updateVault);

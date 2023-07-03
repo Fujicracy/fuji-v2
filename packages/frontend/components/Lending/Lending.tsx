@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 
 import { PATH } from '../../constants';
 import {
-  BasePosition,
+  PositionData,
   viewDynamicLendingPosition,
 } from '../../helpers/positions';
 import { useLend } from '../../store/lend.store';
@@ -22,7 +22,7 @@ function Lending() {
 
   const isEditing = formType === FormType.Edit;
 
-  const [basePosition, setBasePosition] = useState<BasePosition | undefined>(
+  const [positionData, setPositionData] = useState<PositionData | undefined>(
     viewDynamicLendingPosition(isEditing)
   );
 
@@ -74,7 +74,7 @@ function Lending() {
               />
             </Grid>
           </Grid>
-          <LendingForm isEditing={false} basePosition={basePosition} />
+          <LendingForm isEditing={false} positionData={positionData} />
         </Grid>
       </Grid>
     </Container>

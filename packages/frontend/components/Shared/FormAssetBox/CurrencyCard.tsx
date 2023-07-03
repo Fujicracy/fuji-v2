@@ -26,7 +26,7 @@ import {
   isNativeOrWrapped,
   nativeAndWrappedPair,
 } from '../../../helpers/currencies';
-import { BasePosition } from '../../../helpers/positions';
+import { PositionData } from '../../../helpers/positions';
 import {
   formatValue,
   toNotSoFixed,
@@ -50,7 +50,7 @@ type SelectCurrencyCardProps = {
   onCurrencyChange: (currency: Currency, updateVault: boolean) => void;
   onInputChange: (value: string) => void;
   ltvMeta: LtvMeta | undefined;
-  basePosition: BasePosition | undefined;
+  positionData: PositionData | undefined;
   isEditing: boolean;
   isFocusedByDefault: boolean;
 };
@@ -67,7 +67,7 @@ function CurrencyCard({
   onCurrencyChange,
   onInputChange,
   ltvMeta,
-  basePosition,
+  positionData,
   isEditing,
   isFocusedByDefault,
 }: SelectCurrencyCardProps) {
@@ -128,7 +128,7 @@ function CurrencyCard({
     if (
       actionType === ActionType.REMOVE &&
       type === AssetType.Collateral &&
-      basePosition &&
+      positionData &&
       debt
     ) {
       // `mode` has to be precalculated because we set it based on inputs,
@@ -137,7 +137,7 @@ function CurrencyCard({
         debt.input !== '' ? Mode.PAYBACK_AND_WITHDRAW : Mode.WITHDRAW;
       const result = await withdrawMaxAmount(
         precalculatedMode,
-        basePosition,
+        positionData,
         debt,
         collateral
       );
@@ -159,7 +159,7 @@ function CurrencyCard({
   const recommended = (): string => {
     if (
       !ltvMeta ||
-      !basePosition ||
+      !positionData ||
       (ltvMeta.ltv > recommendedLTV(ltvMeta.ltvMax) && !value) ||
       (!ltvMeta.ltv && collateral.amount && !collateral.input)
     ) {
@@ -167,16 +167,16 @@ function CurrencyCard({
     }
 
     const collateralValue = isEditing
-      ? basePosition.editedPosition
-        ? basePosition.editedPosition.collateral.amount
-        : basePosition.position.collateral.amount
+      ? positionData.editedPosition
+        ? positionData.editedPosition.collateral.amount
+        : positionData.position.collateral.amount
       : Number(collateral.input);
 
     const recommended =
       (recommendedLTV(ltvMeta.ltvMax) * collateralValue * collateral.usdPrice) /
         100 -
-      (isEditing && 'debt' in basePosition.position
-        ? basePosition.position.debt.amount
+      (isEditing && 'debt' in positionData.position
+        ? positionData.position.debt.amount
         : 0);
 
     return String(recommended);
