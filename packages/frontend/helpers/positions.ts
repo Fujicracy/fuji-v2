@@ -1,6 +1,7 @@
 import { Palette } from '@mui/material';
 import {
   Address,
+  BorrowingVault,
   ChainId,
   FujiError,
   FujiResultError,
@@ -72,31 +73,33 @@ export const getPositionsWithBalance = async (
         return v.activeProvider.depositAprBase;
       },
     };
-    p.debt = {
-      amount: bigToFloat(v.vault.debt.decimals, v.borrowBalance),
-      currency: v.vault.debt,
-      usdPrice: bigToFloat(v.vault.debt.decimals, v.debtPriceUSD),
-      get baseAPR() {
-        return v.activeProvider.borrowAprBase;
-      },
-    };
-    p.ltv =
-      (p.debt.amount * p.debt.usdPrice) /
-      (p.collateral.amount * p.collateral.usdPrice);
-    p.ltvMax = bigToFloat(p.collateral.currency.decimals, v.vault.maxLtv);
-    p.ltvThreshold = bigToFloat(
-      p.collateral.currency.decimals,
-      v.vault.liqRatio
-    );
-    p.liquidationPrice =
-      p.debt.usdPrice === 0
-        ? 0
-        : (p.debt.amount * p.debt.usdPrice) /
-          (p.ltvThreshold * p.collateral.amount);
-    p.liquidationDiff =
-      p.liquidationPrice === 0
-        ? 0
-        : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
+    if (v.vault instanceof BorrowingVault) {
+      p.debt = {
+        amount: bigToFloat(v.vault.debt.decimals, v.borrowBalance),
+        currency: v.vault.debt,
+        usdPrice: bigToFloat(v.vault.debt.decimals, v.debtPriceUSD),
+        get baseAPR() {
+          return v.activeProvider.borrowAprBase;
+        },
+      };
+      p.ltv =
+        (p.debt.amount * p.debt.usdPrice) /
+        (p.collateral.amount * p.collateral.usdPrice);
+      p.ltvMax = bigToFloat(p.collateral.currency.decimals, v.vault.maxLtv);
+      p.ltvThreshold = bigToFloat(
+        p.collateral.currency.decimals,
+        v.vault.liqRatio
+      );
+      p.liquidationPrice =
+        p.debt.usdPrice === 0
+          ? 0
+          : (p.debt.amount * p.debt.usdPrice) /
+            (p.ltvThreshold * p.collateral.amount);
+      p.liquidationDiff =
+        p.liquidationPrice === 0
+          ? 0
+          : Math.round((1 - p.liquidationPrice / p.collateral.usdPrice) * 100);
+    }
     p.activeProvidersNames = v.allProviders.map((provider) => provider.name);
     return p;
   });

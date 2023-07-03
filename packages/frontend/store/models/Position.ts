@@ -1,5 +1,5 @@
 import {
-  BorrowingVault,
+  AbstractVault,
   Currency,
   LendingProviderWithFinancials,
 } from '@x-fuji/sdk';
@@ -20,17 +20,17 @@ export type AssetMeta = {
  * Type representing an open position at a Fuji-V2 vault.
  */
 export type Position = {
-  vault?: BorrowingVault;
+  vault?: AbstractVault;
 
   collateral: AssetMeta;
-  debt: AssetMeta;
+  debt?: AssetMeta;
 
-  ltv: number;
-  ltvMax: number;
-  ltvThreshold: number;
+  ltv?: number;
+  ltvMax?: number;
+  ltvThreshold?: number;
 
-  liquidationPrice: number;
-  liquidationDiff: number;
+  liquidationPrice?: number;
+  liquidationDiff?: number;
 
   activeProvider?: LendingProviderWithFinancials;
   activeProvidersNames: string[];
