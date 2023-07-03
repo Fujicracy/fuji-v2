@@ -8,7 +8,7 @@ import {
   TableHead,
   TableRow,
 } from '@mui/material';
-import { LendingVault, VaultType, VaultWithFinancials } from '@x-fuji/sdk';
+import { AbstractVault, VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -40,7 +40,7 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
     setFilteredRows(filterMarketRows(rows.slice(), filters));
   }, [filters, rows]);
 
-  const handleClick = async (entity?: LendingVault | VaultWithFinancials) => {
+  const handleClick = async (entity?: AbstractVault | VaultWithFinancials) => {
     if (!walletChainId) return;
     showPosition(VaultType.LEND, router, false, entity);
   };

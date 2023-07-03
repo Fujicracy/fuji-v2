@@ -90,7 +90,7 @@ export const setFinancials = (
   ...r,
   safetyRating: {
     status,
-    value: Number((r.entity as BorrowingVault).safetyRating?.toString()) ?? 0,
+    value: Number((r.entity as AbstractVault).safetyRating?.toString()) ?? 0,
   },
   depositApr: {
     status,

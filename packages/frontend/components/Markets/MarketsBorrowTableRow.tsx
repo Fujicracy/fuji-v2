@@ -7,7 +7,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { AbstractVault, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { AssetType } from '../../helpers/assets';
@@ -26,7 +26,7 @@ import { loaderOrError } from './LoaderOrError';
 
 type MarketsTableRowProps = {
   row: MarketRow;
-  onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
+  onClick: (entity?: AbstractVault | VaultWithFinancials) => void;
   openedByDefault?: boolean;
 };
 
@@ -58,7 +58,7 @@ function MarketsBorrowTableRow({
     <>
       <TableRow
         data-cy="market-row"
-        onClick={() => onClick(row.entity as BorrowingVault)}
+        onClick={() => onClick(row.entity)}
         sx={{
           height: '3.438rem',
           cursor: 'pointer',
