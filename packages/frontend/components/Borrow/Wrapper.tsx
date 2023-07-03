@@ -8,6 +8,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { BorrowingVault, VaultType } from '@x-fuji/sdk';
 import Head from 'next/head';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -17,12 +18,12 @@ import Borrow from '../../components/Borrow/Borrow';
 import { PATH } from '../../constants';
 import {
   BasePosition,
-  viewDynamicPosition,
+  viewDynamicBorrowingPosition,
   viewEditedPosition,
 } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
-import { Position } from '../../store/models/Position';
+import { BorrowingPosition, Position } from '../../store/models/Position';
 import { useNavigation } from '../../store/navigation.store';
 import { usePositions } from '../../store/positions.store';
 import { FormType } from '../../store/types/state';
@@ -62,7 +63,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   );
 
   useEffect(() => {
-    let matchPosition: Position | undefined;
+    let matchPosition: BorrowingPosition | undefined;
     let editedPosition: Position | undefined;
 
     if (address && positions.length > 0 && query) {
@@ -73,17 +74,23 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
       );
       editedPosition =
         matchPosition && baseDebt
-          ? viewEditedPosition(baseCollateral, baseDebt, matchPosition, mode)
+          ? viewEditedPosition(
+              VaultType.BORROW, // TODO:
+              baseCollateral,
+              baseDebt,
+              matchPosition,
+              mode
+            )
           : undefined;
     }
 
     if (willLoadBorrow) return;
 
-    const newBasePosition = viewDynamicPosition(
+    const newBasePosition = viewDynamicBorrowingPosition(
       isEditing,
       willLoadBorrow,
       matchPosition,
-      editedPosition
+      editedPosition as BorrowingPosition
     );
 
     setBasePosition(newBasePosition);
@@ -108,7 +115,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   useEffect(() => {
     if (isEditing && loading && basePosition) {
       const vault = basePosition.position.vault;
-      if (vault) {
+      if (vault && vault instanceof BorrowingVault) {
         const changeAll = useBorrow.getState().changeAll;
         changeAll(vault, vault.collateral, vault.debt);
         setLoading(false);

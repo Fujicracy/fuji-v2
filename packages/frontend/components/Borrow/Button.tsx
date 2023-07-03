@@ -16,7 +16,7 @@ import {
 import { chainName } from '../../helpers/chains';
 import { isBridgeable } from '../../helpers/currencies';
 import { TransactionMeta } from '../../helpers/transactions';
-import { Position } from '../../store/models/Position';
+import { BorrowingPosition } from '../../store/models/Position';
 
 type BorrowButtonProps = {
   collateral: AssetChange;
@@ -36,7 +36,7 @@ type BorrowButtonProps = {
   onClick: () => void;
   withConfirmation: (action?: () => void) => void;
   debt?: AssetChange;
-  position?: Position;
+  position?: BorrowingPosition;
   walletChainId?: ChainId;
   ltvMeta?: LtvMeta;
   address?: string;

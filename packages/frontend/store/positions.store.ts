@@ -13,10 +13,10 @@ import {
 } from '../helpers/positions';
 import { storeOptions } from '../helpers/stores';
 import { useAuth } from './auth.store';
-import { Position } from './models/Position';
+import { BorrowingPosition, Position } from './models/Position';
 
 type PositionsState = {
-  borrowPositions: Position[];
+  borrowPositions: BorrowingPosition[];
   lendingPositions: Position[];
   totalDepositsUSD?: number;
   totalDebtUSD?: number;
@@ -71,7 +71,9 @@ export const usePositions = create<PositionsStore>()(
             showOnchainErrorNotification(error);
           }
         }
-        const borrowPositions = borrowResult.success ? borrowResult.data : [];
+        const borrowPositions = borrowResult.success
+          ? (borrowResult.data as BorrowingPosition[])
+          : [];
         const lendingPositions = lendingResult.success
           ? lendingResult.data
           : [];

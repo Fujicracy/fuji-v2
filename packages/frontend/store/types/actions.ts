@@ -65,16 +65,19 @@ export const changeActiveVault = (
 ) => {
   const { vault, activeProvider, allProviders, depositBalance, borrowBalance } =
     vaultWithFinancials;
-  const ltvMax = vault.maxLtv
-    ? parseInt(formatUnits(vault.maxLtv, 16))
-    : DEFAULT_LTV_MAX;
-  const ltvThreshold = vault.liqRatio
-    ? parseInt(formatUnits(vault.liqRatio, 16))
-    : DEFAULT_LTV_THRESHOLD;
+
+  const ltvMax =
+    vault instanceof BorrowingVault && vault.maxLtv
+      ? parseInt(formatUnits(vault.maxLtv, 16))
+      : DEFAULT_LTV_MAX;
+  const ltvThreshold =
+    vault instanceof BorrowingVault && vault.liqRatio
+      ? parseInt(formatUnits(vault.liqRatio, 16))
+      : DEFAULT_LTV_THRESHOLD;
 
   api.setState(
     produce((s: AbstractState) => {
-      s.activeVault = vault;
+      s.activeVault = vault as BorrowingVault | LendingVault; // TODO: Not the best
       s.activeProvider = activeProvider;
       s.allProviders = allProviders;
       const dec = vault.collateral.decimals;

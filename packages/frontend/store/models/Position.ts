@@ -2,6 +2,7 @@ import {
   AbstractVault,
   Currency,
   LendingProviderWithFinancials,
+  VaultType,
 } from '@x-fuji/sdk';
 
 /**
@@ -19,19 +20,32 @@ export type AssetMeta = {
  * @remarks
  * Type representing an open position at a Fuji-V2 vault.
  */
-export type Position = {
+
+export type LendingPosition = {
   vault?: AbstractVault;
-
   collateral: AssetMeta;
-  debt?: AssetMeta;
-
-  ltv?: number;
-  ltvMax?: number;
-  ltvThreshold?: number;
-
-  liquidationPrice?: number;
-  liquidationDiff?: number;
 
   activeProvider?: LendingProviderWithFinancials;
   activeProvidersNames: string[];
+};
+
+export type BorrowingPosition = LendingPosition & {
+  debt: AssetMeta;
+
+  ltv: number;
+  ltvMax: number;
+  ltvThreshold: number;
+
+  liquidationPrice: number;
+  liquidationDiff: number;
+};
+
+export type Position = BorrowingPosition | LendingPosition;
+
+export const newPosition = (
+  type: VaultType
+): BorrowingPosition | LendingPosition => {
+  return type === VaultType.BORROW
+    ? ({} as BorrowingPosition)
+    : ({} as LendingPosition);
 };

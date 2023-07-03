@@ -19,6 +19,7 @@ import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
+import { BorrowingPosition } from '../../store/models/Position';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import { SignTooltip } from '../Shared/Tooltips';
@@ -63,7 +64,9 @@ function Borrow({ isEditing, basePosition }: BorrowProps) {
   const updateCurrencyPrice = useBorrow((state) => state.updateCurrencyPrice);
   const signAndExecute = useBorrow((state) => state.signAndExecute);
 
-  const position = basePosition ? basePosition.position : undefined;
+  const position = basePosition
+    ? (basePosition.position as BorrowingPosition)
+    : undefined;
   const dynamicLtvMeta = ltvMeta(basePosition);
   const metaStatus = transactionMeta.status;
 
