@@ -22,7 +22,6 @@ function LendingDetails() {
   const [depositData, setDepositData] = useState<AprResult[]>([]);
   const vault = useLend((state) => state.activeVault);
   const availableVaults = useLend((state) => state.availableVaults);
-  console.log(availableVaults);
   const prevVault = useRef<LendingVault | undefined>(undefined);
 
   useEffect(() => {
