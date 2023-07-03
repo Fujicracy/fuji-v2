@@ -138,7 +138,7 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
                     {chainName(row.chainId)}
                   </Stack>
                 </TableCell>
-                {!isLend && row.debt && (
+                {!isLend && (
                   <TableCell>
                     {row.debt && (
                       <Stack direction="row" alignItems="center">
