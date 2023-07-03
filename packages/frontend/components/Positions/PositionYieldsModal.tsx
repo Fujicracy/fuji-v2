@@ -61,8 +61,8 @@ export function PositionYieldsModal({
           days: daysPeriod,
           collateralInUsd: c.collateral.usdPrice,
           collateralAPR: c.collateral.baseAPR,
-          debtInUsd: c.debt.usdPrice,
-          debtAPR: c.debt.baseAPR,
+          debtInUsd: c.debt?.usdPrice,
+          debtAPR: c.debt?.baseAPR,
         })
       );
     }, 0);

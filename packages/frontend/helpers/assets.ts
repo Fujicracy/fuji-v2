@@ -171,7 +171,7 @@ export const remainingBorrowLimit = (
   maxLtv: number
 ): number => {
   const max = maxBorrowLimit(collateral.amount, collateral.usdPrice, maxLtv);
-  return max - debt.amount * debt.usdPrice;
+  return max - debt?.amount * debt?.usdPrice;
 };
 
 export const ltvMeta = (basePosition?: BasePosition): LtvMeta | undefined => {

@@ -3,9 +3,11 @@ import { useTheme } from '@mui/material/styles';
 import { AprResult, LendingVault } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { bigToFloat, formatBalance } from '../../helpers/values';
 import { useLend } from '../../store/lend.store';
 import VaultSelect from '../Borrow/VaultSelect/VaultSelect';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
+import AprValue from '../Shared/AprValue';
 import APYChart from '../Shared/Charts/APYChart';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
@@ -19,6 +21,7 @@ function LendingDetails() {
   const [loading, setLoading] = useState<boolean>(false);
   const [depositData, setDepositData] = useState<AprResult[]>([]);
   const vault = useLend((state) => state.activeVault);
+  const availableVaults = useLend((state) => state.availableVaults);
   const prevVault = useRef<LendingVault | undefined>(undefined);
 
   useEffect(() => {
@@ -121,20 +124,32 @@ function LendingDetails() {
             tooltip="test"
             label="Current APY"
             value={
-              <Typography component={'span'} color={palette.warning.main}>
-                2.55%
-              </Typography>
+              availableVaults[0] && (
+                <AprValue
+                  providerName={availableVaults[0]?.activeProvider.name}
+                  base={availableVaults[0]?.activeProvider.depositAprBase || 0}
+                  justify="left"
+                  positive
+                />
+              )
             }
             contrast
           />
         </Grid>
         <Grid item xs={12} sm={6}>
-          <InfoBlock
-            label="Total Supplied"
-            value={'$820.1K'}
-            loading={loading}
-            contrast
-          />
+          {availableVaults[0] && (
+            <InfoBlock
+              label="Total Supplied"
+              value={`${formatBalance(
+                bigToFloat(
+                  availableVaults[0].vault.collateral.decimals,
+                  availableVaults[0]?.depositBalance
+                )
+              )} ${availableVaults[0].vault.collateral.symbol}`}
+              loading={loading}
+              contrast
+            />
+          )}
         </Grid>
       </Grid>
 

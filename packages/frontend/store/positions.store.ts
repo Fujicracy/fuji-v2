@@ -80,25 +80,29 @@ export const usePositions = create<PositionsStore>()(
 
         // TODO: Update the following taking into account lending positions
 
-        const totalDepositsUSD = getTotalSum(
-          borrowPositions,
-          AssetType.Collateral
-        );
+        const totalDepositsUSD =
+          getTotalSum(borrowPositions, AssetType.Collateral) +
+          getTotalSum(lendingPositions, AssetType.Collateral);
         const totalDebtUSD = getTotalSum(borrowPositions, AssetType.Debt);
 
-        const totalAccrued = borrowPositions.reduce((acc, p) => {
-          const accrueCollateral = getAccrual(
-            p.collateral.amount * p.collateral.usdPrice,
-            AssetType.Collateral,
-            p.collateral.baseAPR
-          );
-          const accrueDebt = getAccrual(
-            p.debt.amount * p.debt.usdPrice,
-            AssetType.Debt,
-            p.debt.baseAPR
-          );
-          return accrueCollateral + accrueDebt + acc;
-        }, 0);
+        const totalAccrued = [...borrowPositions, ...lendingPositions].reduce(
+          (acc, p) => {
+            const accrueCollateral = getAccrual(
+              p.collateral.amount * p.collateral.usdPrice,
+              AssetType.Collateral,
+              p.collateral.baseAPR
+            );
+            const accrueDebt = p.debt
+              ? getAccrual(
+                  p.debt.amount * p.debt.usdPrice,
+                  AssetType.Debt,
+                  p.debt.baseAPR
+                )
+              : 0;
+            return accrueCollateral + accrueDebt + acc;
+          },
+          0
+        );
         // `totalAPY` is scaled up by 100 to express in percentage %.
         const totalAPY = totalDepositsUSD
           ? (totalAccrued * 100) / totalDepositsUSD

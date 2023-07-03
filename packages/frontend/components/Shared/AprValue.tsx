@@ -5,7 +5,7 @@ import { AprData } from '../../helpers/markets';
 import { DropletIcon } from './Icons';
 import { TooltipWrapper } from './Tooltips';
 
-type BorrowAprProps = AprData;
+type BorrowAprProps = AprData & { justify?: 'left' | 'center' | 'right' };
 
 function AprValue({
   base,
@@ -13,13 +13,14 @@ function AprValue({
   positive,
   type,
   providerName,
+  justify = 'right',
 }: BorrowAprProps) {
   const { palette } = useTheme();
 
   const isHiddenReward = providerName
-    .toLowerCase()
-    .split(' ')
-    .some((word) => ['compound', 'dforce'].includes(word));
+    ?.toLowerCase()
+    ?.split(' ')
+    ?.some((word) => ['compound', 'dforce'].includes(word));
 
   const diff = (Number(reward) || 0) * (type === AssetType.Collateral ? 1 : -1);
   const resultAPR = Math.abs(base - diff);
@@ -28,7 +29,7 @@ function AprValue({
     <Stack
       direction="row"
       alignItems="center"
-      justifyContent="right"
+      justifyContent={justify}
       sx={{
         color: positive ? palette.success.main : palette.warning.main,
       }}

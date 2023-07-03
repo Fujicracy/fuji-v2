@@ -138,26 +138,28 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
                     {chainName(row.chainId)}
                   </Stack>
                 </TableCell>
-                {!isLend && row.debt && (
+                {!isLend && (
                   <TableCell>
-                    <Stack direction="row" alignItems="center">
-                      <CurrencyTableItem
-                        currency={row.debt.symbol}
-                        label={`${formatValue(row.debt.amount)} ${
-                          row.debt.symbol
-                        }`}
-                        iconDimensions={24}
-                        dataCy="market-row-collateral"
-                      />
-                      <Typography variant="xsmall" ml="0.25rem">
-                        (
-                        {formatValue(row.debt.usdValue, {
-                          style: 'currency',
-                          minimumFractionDigits: 2,
-                        })}
-                        )
-                      </Typography>
-                    </Stack>
+                    {row.debt && (
+                      <Stack direction="row" alignItems="center">
+                        <CurrencyTableItem
+                          currency={row.debt.symbol}
+                          label={`${formatValue(row.debt.amount)} ${
+                            row.debt.symbol
+                          }`}
+                          iconDimensions={24}
+                          dataCy="market-row-collateral"
+                        />
+                        <Typography variant="xsmall" ml="0.25rem">
+                          (
+                          {formatValue(row.debt.usdValue, {
+                            style: 'currency',
+                            minimumFractionDigits: 2,
+                          })}
+                          )
+                        </Typography>
+                      </Stack>
+                    )}
                   </TableCell>
                 )}
                 <TableCell>

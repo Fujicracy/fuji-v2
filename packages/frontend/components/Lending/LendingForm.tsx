@@ -8,7 +8,8 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { Address } from '@x-fuji/sdk';
+import { Address, VaultType } from '@x-fuji/sdk';
+import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { DUST_AMOUNT_IN_WEI } from '../../constants';
@@ -20,16 +21,19 @@ import {
 } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { lendingModeForContext } from '../../helpers/mode';
+import { showLend, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { BasePosition } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { useLend } from '../../store/lend.store';
 import Fees from '../Borrow/Fees';
+import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
+import LendButton from './LendingFormButton';
 
 type BorrowProps = {
   isEditing: boolean;
@@ -38,6 +42,7 @@ type BorrowProps = {
 function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const theme = useTheme();
   const onMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const router = useRouter();
 
   // TODO: replace data from borrow and get it from useLend
   const address = useAuth((state) => state.address);
@@ -67,6 +72,8 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
   const updateAllowance = useLend((state) => state.updateAllowance);
   const updateCurrencyPrice = useLend((state) => state.updateCurrencyPrice);
   const signAndExecute = useLend((state) => state.signAndExecute);
+
+  const position = basePosition ? basePosition.position : undefined;
 
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
@@ -256,22 +263,46 @@ function LendingForm({ isEditing, basePosition }: BorrowProps) {
               <WarningInfo text={warningContent} />
             </Box>
           )}
-
-          {/*TODO: it is better to implement new Lending since it needs too much on an effort and leads to corner because of complexity*/}
+          <LendButton
+            address={address}
+            collateral={collateral}
+            position={position}
+            walletChainId={walletChain}
+            metaStatus={metaStatus}
+            needsSignature={needsSignature}
+            isSigning={isSigning}
+            isExecuting={isExecuting}
+            availableVaultStatus={availableVaultStatus}
+            transactionMeta={transactionMeta}
+            mode={mode}
+            isEditing={isEditing}
+            hasBalanceInVault={hasBalanceInVault}
+            onLoginClick={login}
+            onChainChangeClick={(chainId) => changeChain(chainId)}
+            onApproveClick={(type) => allow(type)}
+            onRedirectClick={(lend) => {
+              if (lend) {
+                showLend(router);
+              } else {
+                showPosition(VaultType.LEND, router, false, vault, walletChain);
+              }
+            }}
+            onClick={signAndExecute}
+            withConfirmation={proceedWithConfirmation}
+          />
         </CardContent>
       </Card>
-      {/* <ConfirmTransactionModal
+      <ConfirmTransactionModal
         open={isConfirmationModalShown}
         onClose={() => setIsConfirmationModalShown(false)}
         basePosition={basePosition}
         transactionMeta={transactionMeta}
-        isEditing={isEditing}
         actionType={actionType}
         action={() => {
           setIsConfirmationModalShown(false);
           confirmationModalAction && confirmationModalAction();
         }}
-      /> */}
+      />
     </>
   );
 }
