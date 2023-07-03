@@ -1,10 +1,8 @@
 import { Grid } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 
 import { formatValue } from '../../../../helpers/values';
-import {
-  AssetMeta,
-  BorrowingPosition,
-} from '../../../../store/models/Position';
+import { AssetMeta, Position } from '../../../../store/models/Position';
 import SummaryCardItem, { SummaryCardItemInfo } from './SummaryCardItem';
 
 type SummaryProps = {
@@ -12,7 +10,7 @@ type SummaryProps = {
   collateralInput: string;
   debt: AssetMeta;
   debtInput: string;
-  editedPosition: BorrowingPosition | undefined;
+  editedPosition: Position | undefined;
   liquidationDiff: number;
   liquidationPrice: number;
   recommendedLtv: number;
@@ -58,7 +56,9 @@ function Summary({
         maximumFractionDigits: 2,
       })} ${debt.currency.symbol}`,
       extra:
-        editedPosition && debtInput && parseFloat(debtInput) !== 0
+        editedPosition?.type === VaultType.BORROW &&
+        debtInput &&
+        parseFloat(debtInput) !== 0
           ? formatValue(editedPosition.debt.amount * debt.usdPrice, {
               style: 'currency',
             })
@@ -75,7 +75,7 @@ function Summary({
           ? `~${liquidationDiff.toFixed(0)}% below current price`
           : `n/a`,
       extra:
-        editedPosition &&
+        editedPosition?.type === VaultType.BORROW &&
         (Number(collateralInput) !== 0 || Number(debtInput) !== 0)
           ? formatValue(editedPosition.liquidationPrice, {
               style: 'currency',

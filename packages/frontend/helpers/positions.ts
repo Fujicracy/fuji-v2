@@ -255,7 +255,7 @@ const viewEditedLendingPosition = (
   current: LendingPosition,
   mode: Mode
 ): LendingPosition => {
-  const future = JSON.parse(JSON.stringify(current)) as LendingPosition;
+  const future = JSON.parse(JSON.stringify(current));
   const collateralInput = parseFloat(
     collateral.input === '' ? '0' : collateral.input
   );
@@ -273,7 +273,7 @@ const viewEditedBorrowingPosition = (
   current: BorrowingPosition,
   mode: Mode
 ): BorrowingPosition => {
-  const future = JSON.parse(JSON.stringify(current)) as BorrowingPosition;
+  const future = JSON.parse(JSON.stringify(current));
   const collateralInput = parseFloat(
     collateral.input === '' ? '0' : collateral.input
   );

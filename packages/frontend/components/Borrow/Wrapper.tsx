@@ -75,7 +75,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
       editedPosition =
         matchPosition && baseDebt
           ? viewEditedPosition(
-              VaultType.BORROW, // TODO:
+              VaultType.BORROW,
               baseCollateral,
               baseDebt,
               matchPosition,

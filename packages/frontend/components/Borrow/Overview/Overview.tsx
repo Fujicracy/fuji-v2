@@ -68,7 +68,7 @@ function Overview({ positionData, isEditing }: OverviewProps) {
             collateralInput={collateralInput}
             debt={debt}
             debtInput={debtInput}
-            editedPosition={editedPosition as BorrowingPosition}
+            editedPosition={editedPosition}
             liquidationDiff={liquidationDiff}
             liquidationPrice={liquidationPrice}
             recommendedLtv={recommendedLtv}
