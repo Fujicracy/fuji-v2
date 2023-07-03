@@ -125,18 +125,14 @@ function LendingDetails() {
             tooltip="test"
             label="Current APY"
             value={
-              <Typography component={'span'} color={palette.success.main}>
-                {availableVaults[0] && (
-                  <AprValue
-                    providerName={availableVaults[0]?.activeProvider.name}
-                    base={
-                      availableVaults[0]?.activeProvider.depositAprBase || 0
-                    }
-                    justify="left"
-                    positive
-                  />
-                )}
-              </Typography>
+              availableVaults[0] && (
+                <AprValue
+                  providerName={availableVaults[0]?.activeProvider.name}
+                  base={availableVaults[0]?.activeProvider.depositAprBase || 0}
+                  justify="left"
+                  positive
+                />
+              )
             }
             contrast
           />
