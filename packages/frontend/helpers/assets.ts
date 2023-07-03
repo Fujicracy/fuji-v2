@@ -4,6 +4,7 @@ import {
   FujiResultPromise,
   FujiResultSuccess,
   OperationType,
+  VaultType,
 } from '@x-fuji/sdk';
 
 import {
@@ -175,7 +176,7 @@ export const remainingBorrowLimit = (
 };
 
 export const ltvMeta = (positionData?: PositionData): LtvMeta | undefined => {
-  if (!positionData?.position || !('debt' in positionData.position))
+  if (!positionData?.position || positionData.position.type === VaultType.LEND)
     return undefined;
   const { position, editedPosition } = positionData;
   return {
@@ -206,8 +207,8 @@ export const withdrawMaxAmount = async (
   );
 
   let debtAmount =
-    'debt' in positionData.position
-      ? (positionData.editedPosition && 'debt' in positionData.editedPosition
+    positionData.position.type === VaultType.BORROW
+      ? (positionData.editedPosition?.type === VaultType.BORROW
           ? positionData.editedPosition.debt
           : positionData.position.debt
         ).amount

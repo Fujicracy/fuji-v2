@@ -38,7 +38,7 @@ export const getTotalSum = (
   param: AssetType
 ): number => {
   const borrowingPositions = positions.filter(
-    (p) => 'debt' in p
+    (p) => p.type === VaultType.BORROW
   ) as BorrowingPosition[];
   return borrowingPositions.reduce(
     (s, p) => p[param].amount * p[param].usdPrice + s,
@@ -87,7 +87,7 @@ export const getPositionsWithBalance = async (
       },
     };
     p.activeProvidersNames = v.allProviders.map((provider) => provider.name);
-    if ('debt' in p && v.vault instanceof BorrowingVault) {
+    if (p.type === VaultType.BORROW && v.vault instanceof BorrowingVault) {
       p.debt = {
         amount: bigToFloat(v.vault.debt.decimals, v.borrowBalance),
         currency: v.vault.debt,
@@ -176,7 +176,7 @@ export function getRows(positions: Position[]): PositionRow[] {
     return [];
   } else {
     return positions.map((pos: Position) => {
-      const isBorrowing = 'debt' in pos;
+      const isBorrowing = pos.type === VaultType.BORROW;
       const debt =
         isBorrowing && pos.vault instanceof BorrowingVault
           ? {
@@ -313,6 +313,7 @@ export const viewDynamicLendingPosition = (
 
   return {
     position: {
+      type: VaultType.LEND,
       vault: position?.vault,
       collateral: dynamicPositionMeta(
         dynamic,
@@ -349,6 +350,7 @@ export const viewDynamicBorrowingPosition = (
   const baseLiquidation = useBorrow.getState().liquidationMeta;
   return {
     position: {
+      type: VaultType.BORROW,
       vault: position?.vault,
       collateral: dynamicPositionMeta(
         dynamic,

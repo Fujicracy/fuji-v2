@@ -21,7 +21,7 @@ export type AssetMeta = {
  * Type representing an open position at a Fuji-V2 vault.
  */
 
-export type LendingPosition = {
+type AbstractPosition = {
   vault?: AbstractVault;
   collateral: AssetMeta;
 
@@ -29,7 +29,8 @@ export type LendingPosition = {
   activeProvidersNames: string[];
 };
 
-export type BorrowingPosition = LendingPosition & {
+export type BorrowingPosition = AbstractPosition & {
+  type: VaultType.BORROW;
   debt: AssetMeta;
 
   ltv: number;
@@ -38,6 +39,10 @@ export type BorrowingPosition = LendingPosition & {
 
   liquidationPrice: number;
   liquidationDiff: number;
+};
+
+export type LendingPosition = AbstractPosition & {
+  type: VaultType.LEND;
 };
 
 export type Position = BorrowingPosition | LendingPosition;

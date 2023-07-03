@@ -9,7 +9,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { Currency } from '@x-fuji/sdk';
+import { Currency, VaultType } from '@x-fuji/sdk';
 import React, { MouseEvent, useCallback, useEffect, useState } from 'react';
 
 import {
@@ -175,7 +175,7 @@ function CurrencyCard({
     const recommended =
       (recommendedLTV(ltvMeta.ltvMax) * collateralValue * collateral.usdPrice) /
         100 -
-      (isEditing && 'debt' in positionData.position
+      (isEditing && positionData.position.type === VaultType.BORROW
         ? positionData.position.debt.amount
         : 0);
 

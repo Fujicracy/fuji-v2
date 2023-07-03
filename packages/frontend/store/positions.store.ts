@@ -93,7 +93,7 @@ export const usePositions = create<PositionsStore>()(
               p.collateral.baseAPR
             );
             const accrueDebt =
-              'debt' in p && p.debt
+              p.type === VaultType.BORROW && p.debt
                 ? getAccrual(
                     p.debt.amount * p.debt.usdPrice,
                     AssetType.Debt,
