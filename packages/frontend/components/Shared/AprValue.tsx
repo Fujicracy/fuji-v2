@@ -5,7 +5,7 @@ import { AprData } from '../../helpers/markets';
 import { DropletIcon } from './Icons';
 import { TooltipWrapper } from './Tooltips';
 
-type BorrowAprProps = AprData;
+type BorrowAprProps = AprData & { justify?: 'left' | 'center' | 'right' };
 
 function AprValue({
   base,
@@ -13,6 +13,7 @@ function AprValue({
   positive,
   type,
   providerName,
+  justify = 'right',
 }: BorrowAprProps) {
   const { palette } = useTheme();
 
@@ -28,7 +29,7 @@ function AprValue({
     <Stack
       direction="row"
       alignItems="center"
-      justifyContent="right"
+      justifyContent={justify}
       sx={{
         color: positive ? palette.success.main : palette.warning.main,
       }}

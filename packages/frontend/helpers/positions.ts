@@ -165,19 +165,21 @@ export function getRows(positions: Position[]): PositionRow[] {
         safetyRating: Number(pos.vault?.safetyRating?.toString()) ?? 0,
         address: pos.vault?.address.value,
         chainId: pos.vault?.chainId,
-        debt: {
-          symbol: pos.vault?.debt.symbol || '',
-          amount: pos.debt.amount,
-          usdValue: pos.debt.amount * pos.debt.usdPrice,
-          baseAPR: pos.debt.baseAPR,
-        },
+        debt: pos.debt
+          ? {
+              symbol: pos.vault?.debt?.symbol || '',
+              amount: pos.debt.amount,
+              usdValue: pos.debt.amount * pos.debt.usdPrice,
+              baseAPR: pos.debt.baseAPR,
+            }
+          : undefined,
         collateral: {
           symbol: pos.vault?.collateral.symbol || '',
           amount: pos.collateral.amount,
           usdValue: pos.collateral.amount * pos.collateral.usdPrice,
           baseAPR: pos.collateral.baseAPR,
         },
-        apr: formatNumber(pos.debt.baseAPR, 2),
+        apr: formatNumber(pos.debt?.baseAPR | 0, 2),
         liquidationPrice: handleDisplayLiquidationPrice(pos.liquidationPrice),
         oraclePrice: pos.collateral.usdPrice,
         percentPriceDiff: pos.liquidationDiff,
