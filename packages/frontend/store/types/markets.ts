@@ -18,7 +18,7 @@ export type MarketRow = {
   entity?: AbstractVault | VaultWithFinancials;
 
   collateral: string;
-  debt: string;
+  debt?: string;
   safetyRating: {
     status: MarketRowStatus;
     value: number;

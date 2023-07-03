@@ -1,4 +1,5 @@
 import {
+  AbstractVault,
   Address,
   BorrowingVault,
   FujiError,
@@ -68,11 +69,11 @@ const defaultRow: MarketRow = {
   isBest: false,
 };
 
-export const setBase = (v: BorrowingVault): MarketRow => ({
+export const setBase = (v: AbstractVault): MarketRow => ({
   ...defaultRow,
   entity: v,
   collateral: v.collateral.symbol,
-  debt: v.debt.symbol,
+  debt: v instanceof BorrowingVault ? v.debt.symbol : undefined,
   chain: {
     status: MarketRowStatus.Ready,
     value: chainName(v.chainId),
@@ -251,7 +252,7 @@ export const filterMarketRows = (
         (row.collateral
           .toLowerCase()
           .includes(filters.searchQuery.toLowerCase()) ||
-          row.debt.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
+          row.debt?.toLowerCase().includes(filters.searchQuery.toLowerCase()) ||
           row.integratedProviders.value.some((provider) =>
             provider.toLowerCase().includes(filters.searchQuery.toLowerCase())
           ));
@@ -336,7 +337,10 @@ export const fetchMarkets = async (
   api: StoreApi<MarketsStore>,
   addr?: string
 ) => {
-  const vaults = sdk.getAllBorrowingVaults();
+  const vaults =
+    type === VaultType.BORROW
+      ? sdk.getAllBorrowingVaults()
+      : sdk.getAllLendingVaults();
   const rowsBase = vaults.map(setBase);
 
   api.getState().changeVaults(type, vaults);

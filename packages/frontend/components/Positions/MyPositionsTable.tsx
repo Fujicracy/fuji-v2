@@ -86,7 +86,7 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
 
   function handleClick(row: PositionRow) {
     if (!row.address || !row.chainId) return;
-    const entity = vaultFromPosition(row.address, row.chainId);
+    const entity = vaultFromPosition(type, row.address, row.chainId);
     showPosition(type, router, true, entity, entity?.chainId);
   }
 

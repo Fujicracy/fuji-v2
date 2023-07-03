@@ -92,13 +92,14 @@ export const usePositions = create<PositionsStore>()(
               AssetType.Collateral,
               p.collateral.baseAPR
             );
-            const accrueDebt = p.debt
-              ? getAccrual(
-                  p.debt.amount * p.debt.usdPrice,
-                  AssetType.Debt,
-                  p.debt.baseAPR
-                )
-              : 0;
+            const accrueDebt =
+              'debt' in p && p.debt
+                ? getAccrual(
+                    p.debt.amount * p.debt.usdPrice,
+                    AssetType.Debt,
+                    p.debt.baseAPR
+                  )
+                : 0;
             return accrueCollateral + accrueDebt + acc;
           },
           0

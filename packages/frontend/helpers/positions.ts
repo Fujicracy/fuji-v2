@@ -57,7 +57,6 @@ export const getPositionsWithBalance = async (
   const result = await getVaultFinancials(type, account);
   const errors = result.data.filter((d) => d instanceof FujiError);
   const allVaults = vaultsFromFinancialsOrError(result.data);
-
   if (errors.length > 0) {
     const firstError = errors[0] as FujiError;
     if (allVaults.length > 0) {
@@ -405,9 +404,16 @@ export function getEstimatedEarnings({
   );
 }
 
-export function vaultFromPosition(address: string, chainId?: ChainId) {
+export function vaultFromPosition(
+  type: VaultType,
+  address: string,
+  chainId?: ChainId
+) {
   if (!address) return undefined;
-  const positions = usePositions.getState().allPositions();
+  const positions =
+    type === VaultType.BORROW
+      ? usePositions.getState().borrowPositions
+      : usePositions.getState().lendingPositions;
   return positions.find((pos) =>
     chainId !== undefined
       ? pos.vault?.address.value === address && pos.vault?.chainId === chainId

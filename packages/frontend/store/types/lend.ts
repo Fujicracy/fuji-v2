@@ -1,5 +1,6 @@
 import { AbstractVault, Currency, LendingVault } from '@x-fuji/sdk';
 
+import { Mode } from '../../helpers/assets';
 import { initialSharedState, SharedActions, SharedState } from './state';
 
 export type LendState = Omit<SharedState, 'activeVault'> & {
@@ -15,4 +16,5 @@ export type LendStore = LendState & LendActions;
 export const initialLendState: LendState = {
   ...initialSharedState,
   activeVault: undefined,
+  mode: Mode.DEPOSIT,
 };

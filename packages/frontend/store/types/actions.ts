@@ -478,7 +478,7 @@ export const updateTransactionMeta = async (api: StoreApi) => {
 
         return fetchRoutes(
           mode,
-          v as BorrowingVault, // TODO: Update SDK to accept AbstractVault
+          v,
           collateral.currency,
           debt?.currency,
           collateralInput,

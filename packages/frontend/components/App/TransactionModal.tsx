@@ -116,6 +116,7 @@ function TransactionModal({
     // If the user is not on the my-positions/[pid] page
     if (!(currentPage === myPositionPage.path && isCurrentPosition)) {
       const vault = vaultFromPosition(
+        type,
         entry.vaultAddress as string,
         entry.vaultChainId
       );
