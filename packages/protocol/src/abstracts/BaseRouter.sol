@@ -69,13 +69,12 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   error BaseRouter__checkValidFlasher_notAllowedFlasher();
   error BaseRouter__handlePermit_notPermitAction();
   error BaseRouter__safeTransferETH_transferFailed();
-  error BaseRouter__safeTransferETH_zeroAddress();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
-  error BaseRouter__allowCaller_zeroAddress();
   error BaseRouter__allowCaller_noAllowChange();
   error BaseRouter__isInTokenList_snapshotLimitReached();
   error BaseRouter__xBundleFlashloan_insufficientFlashloanBalance();
+  error BaseRouter__checkIfAddressZero_invalidZeroAddress();
 
   IWETH9 public immutable WETH9;
 
@@ -326,7 +325,9 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         }
         _addTokenToList(asset, tokensToCheck);
 
-        beneficiary = _getBeneficiaryFromCalldata(innerActions, innerArgs);
+        beneficiary =
+          _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(innerActions, innerArgs));
+
         bytes memory requestorCalldata = abi.encodeWithSelector(
           this.xBundleFlashloan.selector, innerActions, innerArgs, asset, flashAmount
         );
@@ -564,9 +565,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @param amount amount to be transferred
    */
   function _safeTransferETH(address receiver, uint256 amount) internal {
-    if (receiver == address(0)) {
-      revert BaseRouter__safeTransferETH_zeroAddress();
-    }
+    _checkIfAddressZero(receiver);
     (bool success,) = receiver.call{value: amount}(new bytes(0));
     if (!success) {
       revert BaseRouter__safeTransferETH_transferFailed();
@@ -607,9 +606,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @param allowed 'true' to allow, 'false' to disallow
    */
   function _allowCaller(address caller, bool allowed) internal {
-    if (caller == address(0)) {
-      revert BaseRouter__allowCaller_zeroAddress();
-    }
+    _checkIfAddressZero(caller);
     if (isAllowedCaller[caller] == allowed) {
       revert BaseRouter__allowCaller_noAllowChange();
     }
@@ -772,6 +769,16 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   function _checkValidFlasher(address flasher) internal view {
     if (!chief.allowedFlasher(flasher)) {
       revert BaseRouter__checkValidFlasher_notAllowedFlasher();
+    }
+  }
+
+  /**
+   * @dev Reverts if passed `addr` is address(0).
+   */
+
+  function _checkIfAddressZero(address addr) internal pure {
+    if (addr == address(0)) {
+      revert BaseRouter__checkIfAddressZero_invalidZeroAddress();
     }
   }
 

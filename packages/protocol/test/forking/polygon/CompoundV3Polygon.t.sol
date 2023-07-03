@@ -48,12 +48,8 @@ contract CompoundV3PolygonForkingTests is Routines, ForkingSetup {
     bytes memory executionCall =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
-
-    initVaultDebtShares = ICompoundV3(0xF25212E676D1F7F89Cd72fFEe66158f541246445).baseBorrowMin();
-    initVaultShares =
-      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
-
-    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+    initVaultShares = 10 ether;
+    _initializeVault(address(vault), INITIALIZER, initVaultShares);
   }
 
   function test_depositAndBorrow() public {

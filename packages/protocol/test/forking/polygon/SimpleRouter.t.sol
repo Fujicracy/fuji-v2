@@ -80,10 +80,9 @@ contract SimpleRouterForkingTests is Routines, ForkingSetup {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault2), true);
     _callWithTimelock(address(chief), executionCall);
 
-    initVaultShares =
-      _getMinCollateralAmount(BorrowingVault(payable(address(vault2))), initVaultDebtShares);
+    initVaultShares = 1 ether;
 
-    _initalizeVault(address(vault2), INITIALIZER, initVaultShares, initVaultDebtShares);
+    _initializeVault(address(vault2), INITIALIZER, initVaultShares);
   }
 
   function test_closePositionWithFlashloan() public {

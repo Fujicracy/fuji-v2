@@ -273,6 +273,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address sender
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
+    _checkIfAddressZero(receiver);
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
     _safePullTokenFrom(asset, sender, amount);
@@ -333,6 +334,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
+    address to_ = routerByDomain[destDomain];
+    _checkIfAddressZero(to_);
+
     _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
@@ -340,7 +344,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // _destination: Domain ID of the destination chain
       uint32(destDomain),
       // _to: address of the target contract
-      routerByDomain[destDomain],
+      to_,
       // _asset: address of the token contract
       asset,
       // _delegate: address that can revert or forceLocal on destination
@@ -455,9 +459,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    *  - `router` must be a non-zero address.
    */
   function setRouter(uint256 domain, address router) external onlyTimelock {
-    if (router == address(0)) {
-      revert ConnextRouter__setRouter_invalidInput();
-    }
+    _checkIfAddressZero(router);
     routerByDomain[domain] = router;
 
     emit NewRouterAdded(router, domain);
