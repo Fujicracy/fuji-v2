@@ -19,12 +19,12 @@ import { RouteMeta } from '../../../helpers/routes';
 import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
 import { vaultFromEntity } from '../../../helpers/vaults';
 import { useMarkets } from '../../../store/markets.store';
-import AprValue from '../../Shared/AprValue';
-import BestLabel from '../../Shared/BestLabel';
-import { NetworkIcon } from '../../Shared/Icons';
-import RoutesSteps from '../../Shared/RoutesSteps';
-import IntegratedProviders from '../../Shared/Table/IntegratedProviders';
-import SafetyRating from '../../Shared/Table/SafetyRating';
+import AprValue from '../AprValue';
+import BestLabel from '../BestLabel';
+import { NetworkIcon } from '../Icons';
+import RoutesSteps from '../RoutesSteps';
+import IntegratedProviders from '../Table/IntegratedProviders';
+import SafetyRating from '../Table/SafetyRating';
 
 type VaultProps = {
   selected: boolean;

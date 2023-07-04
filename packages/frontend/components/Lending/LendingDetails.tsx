@@ -1,16 +1,16 @@
 import { Card, Grid, Skeleton, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { AprResult, LendingVault } from '@x-fuji/sdk';
+import { AprResult, LendingVault, VaultType } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { bigToFloat, formatBalance } from '../../helpers/values';
 import { useLend } from '../../store/lend.store';
-import VaultSelect from '../Borrow/VaultSelect/VaultSelect';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
 import AprValue from '../Shared/AprValue';
 import APYChart from '../Shared/Charts/APYChart';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
+import VaultSelect from '../Shared/VaultSelect/VaultSelect';
 import RiskBlock from './RiskBlock';
 import VaultStrategy from './VaultStrategy';
 
@@ -41,7 +41,7 @@ function LendingDetails() {
 
   return (
     <>
-      <VaultSelect type="lend" />
+      <VaultSelect type={VaultType.LEND} />
       <Card
         sx={{
           display: 'flex',

@@ -28,8 +28,8 @@ import { useNavigation } from '../../store/navigation.store';
 import { usePositions } from '../../store/positions.store';
 import { FormType } from '../../store/types/state';
 import Footer from '../App/Footer';
+import VaultSelect from '../Shared/VaultSelect/VaultSelect';
 import Overview from './Overview/Overview';
-import VaultSelect from './VaultSelect/VaultSelect';
 
 type BorrowWrapperProps = {
   formType: FormType;

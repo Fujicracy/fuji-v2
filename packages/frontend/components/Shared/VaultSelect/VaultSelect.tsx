@@ -16,6 +16,7 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { VaultType } from '@x-fuji/sdk';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../../store/borrow.store';
@@ -23,7 +24,7 @@ import { useLend } from '../../../store/lend.store';
 import { useNavigation } from '../../../store/navigation.store';
 import Vault from './Vault';
 
-function VaultSelect({ type = 'borrow' }: { type?: 'borrow' | 'lend' }) {
+function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
@@ -33,7 +34,7 @@ function VaultSelect({ type = 'borrow' }: { type?: 'borrow' | 'lend' }) {
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
 
-  const useStore = type === 'borrow' ? useBorrow : useLend;
+  const useStore = type === VaultType.BORROW ? useBorrow : useLend;
 
   const collateral = useStore().collateral;
   const debt = useBorrow().debt;
