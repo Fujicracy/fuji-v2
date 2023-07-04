@@ -365,14 +365,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     return beneficiary_;
   }
 
-  /**
-   * @dev Returns who is the first receiver of value in `callData`
-   * Requirements:
-   * - Must revert if "swap" is first action
-   *
-   * @param actions to execute in {BaseRouter-xBundle}
-   * @param args to execute in {BaseRouter-xBundle}
-   */
+  /// @inheritdoc BaseRouter
   function _getBeneficiaryFromCalldata(
     Action[] memory actions,
     bytes[] memory args
@@ -417,23 +410,11 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
       beneficiary_ = _getBeneficiaryFromCalldata(actions_, args_);
     } else if (actions[0] == Action.DepositETH) {
-      /// @dev There is no beneficiary in depositETH, therefore we do a recurssion with i = 1
-      uint256 len = actions.length;
-
-      Action[] memory chopActions = new Action[](len -1);
-      bytes[] memory chopArgs = new bytes[](len -1);
-
-      for (uint256 i = 1; i < len;) {
-        chopActions[i - 1] = actions[i];
-        chopArgs[i - 1] = args[i];
-        unchecked {
-          ++i;
-        }
-      }
-      beneficiary_ = _getBeneficiaryFromCalldata(chopActions, chopArgs);
+      /// @dev depositETH cannot be actions[0] in ConnextRouter or inner-flashloan
+      revert BaseRouter__bundleInternal_notFirstAction();
     } else if (actions[0] == Action.Swap) {
       /// @dev swap cannot be actions[0].
-      revert BaseRouter__bundleInternal_swapNotFirstAction();
+      revert BaseRouter__bundleInternal_notFirstAction();
     }
   }
 
