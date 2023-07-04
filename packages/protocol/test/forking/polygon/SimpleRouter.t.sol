@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
-import "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Routines} from "../../utils/Routines.sol";
 import {ForkingSetup} from "../../forking/ForkingSetup.sol";
@@ -80,6 +80,8 @@ contract SimpleRouterForkingTests is Routines, ForkingSetup {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault2), true);
     _callWithTimelock(address(chief), executionCall);
 
+    initVaultShares = 1 ether;
+
     _initializeVault(address(vault2), INITIALIZER, initVaultShares);
   }
 
@@ -128,15 +130,12 @@ contract SimpleRouterForkingTests is Routines, ForkingSetup {
     innerArgs[1] =
       abi.encode(address(vault), ALICE, address(router), withdrawAmount, deadline, v, r, s);
 
-    bytes memory requestorCalldata =
-      abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);
-
     IRouter.Action[] memory actions = new IRouter.Action[](1);
     bytes[] memory args = new bytes[](1);
 
     actions[0] = IRouter.Action.Flashloan;
     args[0] =
-      abi.encode(address(flasher), debtAsset, flashAmount, address(router), requestorCalldata);
+      abi.encode(address(flasher), debtAsset, flashAmount, address(router), innerActions, innerArgs);
 
     vm.prank(ALICE);
     router.xBundle(actions, args);
@@ -241,11 +240,9 @@ contract SimpleRouterForkingTests is Routines, ForkingSetup {
         }
       }
 
-      bytes memory requestorCalldata =
-        abi.encodeWithSelector(BaseRouter.xBundle.selector, innerActions, innerArgs);
-
       actions[0] = IRouter.Action.Flashloan;
-      args[0] = abi.encode(address(flasher), debtAsset, 1000e6, address(router), requestorCalldata);
+      args[0] =
+        abi.encode(address(flasher), debtAsset, 1000e6, address(router), innerActions, innerArgs);
     }
 
     vm.prank(ALICE);
