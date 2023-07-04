@@ -33,7 +33,7 @@ type BorrowProps = {
   isEditing: boolean;
   positionData?: PositionData;
 };
-function Borrow({ isEditing, positionData }: BorrowProps) {
+function BorrowForm({ isEditing, positionData }: BorrowProps) {
   const router = useRouter();
 
   const address = useAuth((state) => state.address);
@@ -329,4 +329,4 @@ function Borrow({ isEditing, positionData }: BorrowProps) {
   );
 }
 
-export default Borrow;
+export default BorrowForm;

@@ -10,8 +10,8 @@ import { useLend } from '../../store/lend.store';
 import { FormType } from '../../store/types/state';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
 import BackToList from '../Shared/BackToList';
+import LendingForm from './Form';
 import LendingDetails from './LendingDetails';
-import LendingForm from './LendingForm';
 
 function Lending() {
   const formType = useLend((state) => state.formType);

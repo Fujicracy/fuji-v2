@@ -9,7 +9,6 @@ import { BorrowingVault, VaultType } from '@x-fuji/sdk';
 import Head from 'next/head';
 import React, { useEffect, useState } from 'react';
 
-import Borrow from '../../components/Borrow/Borrow';
 import {
   PositionData,
   viewDynamicBorrowingPosition,
@@ -24,6 +23,7 @@ import { FormType } from '../../store/types/state';
 import Footer from '../App/Footer';
 import BackToList from '../Shared/BackToList';
 import VaultSelect from '../Shared/VaultSelect/VaultSelect';
+import BorrowForm from './Form';
 import Overview from './Overview/Overview';
 
 type BorrowWrapperProps = {
@@ -194,7 +194,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
               mt={positionData ? { xs: 0, md: '2.6rem' } : 0}
               sx={{ transition: `all ${isEditing ? '0ms' : '500ms'} ease-in` }}
             >
-              <Borrow isEditing={isEditing} positionData={positionData} />
+              <BorrowForm isEditing={isEditing} positionData={positionData} />
             </Grid>
           </Grid>
         )}

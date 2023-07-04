@@ -25,7 +25,6 @@ import { showLend, showPosition } from '../../helpers/navigation';
 import { notify } from '../../helpers/notifications';
 import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
-import { useBorrow } from '../../store/borrow.store';
 import { useLend } from '../../store/lend.store';
 import { LendingPosition } from '../../store/models/Position';
 import Fees from '../Borrow/Fees';
@@ -145,7 +144,7 @@ function LendingForm({ isEditing, positionData }: BorrowProps) {
     (async () => {
       if (address && vault) {
         const balance = await vault.getBalances(Address.from(address));
-        const currentActiveVault = useBorrow.getState().activeVault;
+        const currentActiveVault = useLend.getState().activeVault;
         if (
           currentActiveVault &&
           currentActiveVault.address.value === vault.address.value
