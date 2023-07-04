@@ -159,32 +159,24 @@ contract BorrowingVault is BaseVault {
 
   receive() external payable {}
 
+  /*//////////////////////////////////////////
+      Asset management: overrides IERC4626
+  //////////////////////////////////////////*/
+
   /// @inheritdoc BaseVault
-  function initializeVaultShares(uint256 assets, uint256 debt) public override {
-    if (initialized) {
-      revert BaseVault__initializeVaultShares_alreadyInitialized();
+  function maxWithdraw(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
     }
-    if (assets < minAmount || debt < minAmount) {
-      revert BaseVault__initializeVaultShares_lessThanMin();
-    }
-    _unpauseForceAllActions();
-
-    _checkMaxLtv(assets, debt);
-    address timelock = chief.timelock();
-    _deposit(msg.sender, timelock, assets, assets);
-    _borrow(msg.sender, timelock, timelock, debt, debt);
-
-    initialized = true;
-    emit VaultInitialized(msg.sender);
+    return _computeFreeAssets(owner);
   }
 
-  function _checkMaxLtv(uint256 assets, uint256 debt) internal view {
-    uint256 price = oracle.getPriceOf(debtAsset(), asset(), _debtDecimals);
-
-    uint256 maxBorrow_ = (assets * maxLtv * price) / (PRECISION_CONSTANT * 10 ** decimals());
-    if (debt > maxBorrow_) {
-      revert BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
+  /// @inheritdoc BaseVault
+  function maxRedeem(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
     }
+    return convertToShares(maxWithdraw(owner));
   }
 
   /*///////////////////////////////
@@ -520,8 +512,17 @@ contract BorrowingVault is BaseVault {
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
-  /// @inheritdoc BaseVault
-  function _computeFreeAssets(address owner) internal view override returns (uint256 freeAssets) {
+  /**
+   * @dev Compute how much free 'assets' a user can withdraw or transfer
+   * given their `balanceOfDebt()`.
+   * Requirements:
+   * - Must be implemented in {BorrowingVault} contract.
+   * - Must not be implemented in a {YieldVault} contract.
+   * - Must read price from {FujiOracle}.
+   *
+   * @param owner address to whom free assets is being checked
+   */
+  function _computeFreeAssets(address owner) internal view returns (uint256 freeAssets) {
     uint256 debtShares = _debtShares[owner];
     uint256 assets = convertToAssets(balanceOf(owner));
 
@@ -635,9 +636,7 @@ contract BorrowingVault is BaseVault {
   )
     private
   {
-    if (
-      debt == 0 || shares == 0 || receiver == address(0) || owner == address(0) || debt < minAmount
-    ) {
+    if (debt == 0 || shares == 0 || receiver == address(0) || owner == address(0)) {
       revert BorrowingVault__borrow_invalidInput();
     }
     if (debt > maxBorrow(owner)) {
