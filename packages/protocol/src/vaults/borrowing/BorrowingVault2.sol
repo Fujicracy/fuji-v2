@@ -633,8 +633,8 @@ contract BorrowingVault2 is BaseVault {
     if (!_isValidProvider(address(from)) || !_isValidProvider(address(to))) {
       revert BorrowingVault__rebalance_invalidProvider();
     }
-    SafeERC20.safeTransferFrom(IERC20(debtAsset()), msg.sender, address(this), debt);
     if (debt > 0) {
+      SafeERC20.safeTransferFrom(IERC20(debtAsset()), msg.sender, address(this), debt);
       _executeProviderAction(debt, "payback", from);
     }
     if (assets > 0) {
@@ -648,8 +648,8 @@ contract BorrowingVault2 is BaseVault {
     }
     if (debt > 0) {
       _executeProviderAction(debt + fee, "borrow", to);
+      SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
     }
-    SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
 
     if (setToAsActiveProvider) {
       _setActiveProvider(to);
