@@ -1,6 +1,4 @@
-import LoadingButton from '@mui/lab/LoadingButton';
-import { Button } from '@mui/material';
-import { ChainId, RoutingStep } from '@x-fuji/sdk';
+import { RoutingStep } from '@x-fuji/sdk';
 import React from 'react';
 
 import { MINIMUM_DEBT_AMOUNT } from '../../constants';
@@ -15,31 +13,18 @@ import {
 } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { isBridgeable } from '../../helpers/currencies';
-import { TransactionMeta } from '../../helpers/transactions';
 import { BorrowingPosition } from '../../store/models/Position';
+import {
+  ActionButtonProps,
+  DisabledButton,
+  LoadingButton,
+  RegularButton,
+} from '../Shared/ActionButton';
 
-type BorrowButtonProps = {
-  collateral: AssetChange;
-  metaStatus: FetchStatus;
-  needsSignature: boolean;
-  isSigning: boolean;
-  isExecuting: boolean;
-  availableVaultStatus: FetchStatus;
-  transactionMeta: TransactionMeta;
-  mode: Mode;
-  isEditing: boolean;
-  hasBalanceInVault: boolean;
-  onLoginClick: () => void;
-  onChainChangeClick: (chainId: ChainId) => void;
-  onApproveClick: (type: AssetType) => void;
-  onRedirectClick: (position: boolean) => void;
-  onClick: () => void;
-  withConfirmation: (action?: () => void) => void;
+type BorrowButtonProps = Omit<ActionButtonProps, 'position'> & {
   debt?: AssetChange;
-  position?: BorrowingPosition;
-  walletChainId?: ChainId;
   ltvMeta?: LtvMeta;
-  address?: string;
+  position?: BorrowingPosition;
 };
 
 function BorrowButton({
@@ -65,49 +50,23 @@ function BorrowButton({
   onClick,
   withConfirmation,
 }: BorrowButtonProps) {
-  const regularButton = (title: string, onClick: () => void, data?: string) => {
-    return (
-      <Button
-        variant="gradient"
-        size="large"
-        fullWidth
-        onClick={onClick}
-        data-cy={data}
-      >
-        {title}
-      </Button>
-    );
-  };
-
   const clickWithConfirmation: (action: () => void) => void = (action) => {
     withConfirmation(action);
   };
 
-  const disabledButton = (title: string) => (
-    <Button
-      variant="gradient"
-      size="large"
-      fullWidth
-      disabled
-      data-cy="disabled-borrow-button"
-    >
-      {title}
-    </Button>
-  );
+  const regularButton = (title: string, onClick: () => void, data?: string) => {
+    return <RegularButton title={title} onClick={onClick} data={data} />;
+  };
+
+  const disabledButton = (title: string) => <DisabledButton title={title} />;
 
   const loadingButton = (disabled: boolean, loading: boolean) => (
     <LoadingButton
-      variant="gradient"
-      size="large"
-      loadingPosition="start"
-      startIcon={<></>}
-      fullWidth
       disabled={disabled}
       loading={loading}
+      title={loadingButtonTitle}
       onClick={() => clickWithConfirmation(onClick)}
-    >
-      {loadingButtonTitle}
-    </LoadingButton>
+    />
   );
 
   if (!address) {

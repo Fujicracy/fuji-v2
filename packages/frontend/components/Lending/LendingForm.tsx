@@ -27,13 +27,14 @@ import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { useLend } from '../../store/lend.store';
+import { LendingPosition } from '../../store/models/Position';
 import Fees from '../Borrow/Fees';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
-import LendButton from './LendingFormButton';
+import LendingButton from './Button';
 
 type BorrowProps = {
   isEditing: boolean;
@@ -73,7 +74,9 @@ function LendingForm({ isEditing, positionData }: BorrowProps) {
   const updateCurrencyPrice = useLend((state) => state.updateCurrencyPrice);
   const signAndExecute = useLend((state) => state.signAndExecute);
 
-  const position = positionData ? positionData.position : undefined;
+  const position = positionData
+    ? (positionData.position as LendingPosition)
+    : undefined;
 
   const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
@@ -264,7 +267,7 @@ function LendingForm({ isEditing, positionData }: BorrowProps) {
               <WarningInfo text={warningContent} />
             </Box>
           )}
-          <LendButton
+          <LendingButton
             address={address}
             collateral={collateral}
             position={position}
