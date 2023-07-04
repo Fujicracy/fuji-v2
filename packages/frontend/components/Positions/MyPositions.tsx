@@ -12,7 +12,7 @@ import MyPositionsTable from './MyPositionsTable';
 function MyPositions() {
   const router = useRouter();
   const [currentTab, setCurrentTab] = useState(
-    parseInt((router.query?.tab as string) || '0')
+    router.query?.tab === 'lend' ? 1 : 0
   );
 
   const borrowPositions = usePositions((state) => state.borrowPositions);

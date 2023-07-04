@@ -34,7 +34,7 @@ function Lending() {
         onClick={() =>
           router.push({
             pathname: isEditing ? PATH.MY_POSITIONS : PATH.MARKETS,
-            query: { tab: 1 },
+            query: { tab: 'lend' },
           })
         }
         sx={{

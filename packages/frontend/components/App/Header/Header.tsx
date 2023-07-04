@@ -76,9 +76,12 @@ const Header = () => {
 
   const isPageActive = useCallback(
     (path: string) => {
+      // removing query from comparison
+      const formattedPath = currentPage.split('?')[0];
+
       return (
-        (currentPage === '/' && path === '/') ||
-        (path !== '/' && currentPage.includes(path))
+        (formattedPath === '/' && path === '/') ||
+        (path !== '/' && formattedPath.includes(path))
       );
     },
     [currentPage]

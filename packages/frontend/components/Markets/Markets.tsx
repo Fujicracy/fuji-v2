@@ -20,8 +20,9 @@ function Markets() {
   const fetchMarkets = useMarkets((state) => state.fetchMarkets);
 
   const [currentTab, setCurrentTab] = useState<number>(
-    parseInt((router.query?.tab as string) || '0')
+    router.query?.tab === 'lend' ? 1 : 0
   );
+
   const [filters, setFilters] = useState<MarketFilters>({
     searchQuery: '',
     chains: chains.map((c) => c.name),
@@ -49,7 +50,7 @@ function Markets() {
       >
         <BorrowLendingTabNavigation
           onChange={(tab) => setCurrentTab(tab)}
-          defaultTab={parseInt((router.query?.tab as string) || '0')}
+          defaultTab={currentTab}
         />
       </Grid>
 
