@@ -69,7 +69,7 @@ abstract contract BaseFlasher is IFlasher {
     if (_entryPoint != "") {
       revert BaseFlasher__notEmptyEntryPoint();
     }
-    _entryPoint = keccak256(abi.encode(data));
+    _entryPoint = keccak256(data);
   }
 
   /**
@@ -82,7 +82,7 @@ abstract contract BaseFlasher is IFlasher {
     view
     returns (address asset, uint256 amount, address requestor, bytes memory requestorCalldata)
   {
-    if (_entryPoint == "" || _entryPoint != keccak256(abi.encode(data))) {
+    if (_entryPoint == "" || _entryPoint != keccak256(data)) {
       revert BaseFlasher__invalidEntryPoint();
     }
     (asset, amount, requestor, requestorCalldata) =

@@ -18,10 +18,11 @@ import {IChief} from "../interfaces/IChief.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IVaultPermissions} from "../interfaces/IVaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
+import {ReentrancyGuard} from "../helpers/ReentrancyGuard.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 
-abstract contract BaseRouter is SystemAccessControl, IRouter {
+abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   using SafeERC20 for ERC20;
   /**
    * @dev Contains an address of an ERC-20 and the balance the router holds
@@ -66,13 +67,14 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   error BaseRouter__bundleInternal_notBeneficiary();
   error BaseRouter__checkVaultInput_notActiveVault();
   error BaseRouter__bundleInternal_notAllowedSwapper();
-  error BaseRouter__bundleInternal_notAllowedFlasher();
+  error BaseRouter__checkValidFlasher_notAllowedFlasher();
   error BaseRouter__handlePermit_notPermitAction();
   error BaseRouter__safeTransferETH_transferFailed();
   error BaseRouter__receive_senderNotWETH();
   error BaseRouter__fallback_notAllowed();
   error BaseRouter__allowCaller_noAllowChange();
-  error BaseRouter__bundleInternal_insufficientFlashloanBalance();
+  error BaseRouter__isInTokenList_snapshotLimitReached();
+  error BaseRouter__xBundleFlashloan_insufficientFlashloanBalance();
   error BaseRouter__checkIfAddressZero_invalidZeroAddress();
 
   IWETH9 public immutable WETH9;
@@ -80,14 +82,20 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   bytes32 private constant ZERO_BYTES32 =
     0x0000000000000000000000000000000000000000000000000000000000000000;
 
+  uint256 private _flashloanEnterStatus;
+
   /// @dev Apply it on entry cross-chain calls functions as required.
   mapping(address => bool) public isAllowedCaller;
 
-  /**
-   * @dev Stores token balances of this contract at a given moment.
-   * It's used to pass tokens to check from parent contract this contract.
-   */
-  Snapshot internal _tempTokenToCheck;
+  modifier onlyValidFlasherNonReentrant() {
+    _checkValidFlasher(msg.sender);
+    if (_flashloanEnterStatus == _ENTERED) {
+      revert ReentrancyGuard_reentrantCall();
+    }
+    _flashloanEnterStatus = _ENTERED;
+    _;
+    _flashloanEnterStatus = _NOT_ENTERED;
+  }
 
   /**
    * @notice Constructor of a new {BaseRouter}.
@@ -97,11 +105,39 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    */
   constructor(IWETH9 weth, IChief chief) payable SystemAccessControl(address(chief)) {
     WETH9 = weth;
+    _flashloanEnterStatus = _NOT_ENTERED;
   }
 
   /// @inheritdoc IRouter
-  function xBundle(Action[] calldata actions, bytes[] calldata args) external payable override {
-    _bundleInternal(actions, args, 0);
+  function xBundle(
+    Action[] calldata actions,
+    bytes[] calldata args
+  )
+    external
+    payable
+    override
+    nonReentrant
+  {
+    _bundleInternal(actions, args, 0, Snapshot(address(0), 0));
+  }
+
+  /// @inheritdoc IRouter
+  function xBundleFlashloan(
+    Action[] calldata actions,
+    bytes[] calldata args,
+    address flashloanAsset,
+    uint256 flashAmount
+  )
+    external
+    payable
+    override
+    onlyValidFlasherNonReentrant
+  {
+    uint256 currentBalance = IERC20(flashloanAsset).balanceOf(address(this));
+    if (currentBalance < flashAmount) {
+      revert BaseRouter__xBundleFlashloan_insufficientFlashloanBalance();
+    }
+    _bundleInternal(actions, args, 0, Snapshot(flashloanAsset, currentBalance - flashAmount));
   }
 
   /**
@@ -137,11 +173,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
    * @param beforeSlipped amount passed by the origin cross-chain router operation
+   * @param tokenToCheck_ snapshot token balance awareness required from parent calls
    */
   function _bundleInternal(
     Action[] memory actions,
     bytes[] memory args,
-    uint256 beforeSlipped
+    uint256 beforeSlipped,
+    Snapshot memory tokenToCheck_
   )
     internal
   {
@@ -173,8 +211,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     Snapshot[] memory tokensToCheck = new Snapshot[](10);
 
     /// @dev Add token to check from parent calls.
-    if (_tempTokenToCheck.token != address(0)) {
-      tokensToCheck[0] = _tempTokenToCheck;
+    if (tokenToCheck_.token != address(0)) {
+      tokensToCheck[0] = tokenToCheck_;
     }
 
     uint256 nativeBalance = address(this).balance - msg.value;
@@ -190,7 +228,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         address token = vault.asset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        tokensToCheck = _addTokenToList(token, tokensToCheck);
+        _addTokenToList(token, tokensToCheck);
+        _addTokenToList(address(vault), tokensToCheck);
         _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -203,7 +242,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         _checkVaultInput(address(vault));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
-        tokensToCheck = _addTokenToList(vault.asset(), tokensToCheck);
+        _addTokenToList(vault.asset(), tokensToCheck);
+        _addTokenToList(address(vault), tokensToCheck);
 
         vault.withdraw(amount, receiver, owner);
       } else if (action == Action.Borrow) {
@@ -214,7 +254,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         _checkVaultInput(address(vault));
 
         beneficiary = _checkBeneficiary(beneficiary, owner);
-        tokensToCheck = _addTokenToList(vault.debtAsset(), tokensToCheck);
+        _addTokenToList(vault.debtAsset(), tokensToCheck);
 
         vault.borrow(amount, receiver, owner);
       } else if (action == Action.Payback) {
@@ -226,7 +266,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
 
         address token = vault.debtAsset();
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        tokensToCheck = _addTokenToList(token, tokensToCheck);
+        _addTokenToList(token, tokensToCheck);
         _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
@@ -265,7 +305,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           revert BaseRouter__bundleInternal_swapNotFirstAction();
         }
 
-        (beneficiary, tokensToCheck) = _handleSwapAction(args[i], beneficiary, tokensToCheck);
+        beneficiary = _handleSwapAction(args[i], beneficiary, tokensToCheck);
       } else if (action == Action.Flashloan) {
         // FLASHLOAN
 
@@ -275,23 +315,23 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
           address asset,
           uint256 flashAmount,
           address requestor,
-          bytes memory requestorCalldata
-        ) = abi.decode(args[i], (IFlasher, address, uint256, address, bytes));
+          Action[] memory innerActions,
+          bytes[] memory innerArgs
+        ) = abi.decode(args[i], (IFlasher, address, uint256, address, Action[], bytes[]));
 
-        if (!chief.allowedFlasher(address(flasher))) {
-          revert BaseRouter__bundleInternal_notAllowedFlasher();
-        }
+        _checkValidFlasher(address(flasher));
+
         if (requestor != address(this)) {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
-        tokensToCheck = _addTokenToList(asset, tokensToCheck);
-
-        (Action[] memory innerActions, bytes[] memory innerArgs) = abi.decode(
-          LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
-        );
+        _addTokenToList(asset, tokensToCheck);
 
         beneficiary =
           _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(innerActions, innerArgs));
+
+        bytes memory requestorCalldata = abi.encodeWithSelector(
+          this.xBundleFlashloan.selector, innerActions, innerArgs, asset, flashAmount
+        );
 
         // Call Flasher.
         flasher.initiateFlashloan(asset, flashAmount, requestor, requestorCalldata);
@@ -301,13 +341,13 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
         if (amount != msg.value) {
           revert BaseRouter__bundleInternal_insufficientETH();
         }
-        tokensToCheck = _addTokenToList(address(WETH9), tokensToCheck);
+        _addTokenToList(address(WETH9), tokensToCheck);
 
         WETH9.deposit{value: msg.value}();
       } else if (action == Action.WithdrawETH) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
         beneficiary = _checkBeneficiary(beneficiary, receiver);
-        tokensToCheck = _addTokenToList(address(WETH9), tokensToCheck);
+        _addTokenToList(address(WETH9), tokensToCheck);
 
         WETH9.withdraw(amount);
 
@@ -471,7 +511,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @dev Handles swap actions logic flow.
    * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
    * Requirements:
-   * - Must return updated "beneficiary" and "tokensToCheck".
+   * - Must return updated "beneficiary".
    * - Must check swapper is a valid swapper at {Chief}.
    * - Must check `receiver` and `sweeper` args are the expected
    *   beneficiary when the receiver and sweeper are not address(this).
@@ -486,7 +526,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     Snapshot[] memory tokensToCheck_
   )
     internal
-    returns (address, Snapshot[] memory)
+    returns (address)
   {
     (
       ISwapper swapper,
@@ -503,8 +543,8 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
       revert BaseRouter__bundleInternal_notAllowedSwapper();
     }
 
-    tokensToCheck_ = _addTokenToList(assetIn, tokensToCheck_);
-    tokensToCheck_ = _addTokenToList(assetOut, tokensToCheck_);
+    _addTokenToList(assetIn, tokensToCheck_);
+    _addTokenToList(assetOut, tokensToCheck_);
     _safeApprove(assetIn, address(swapper), amountIn);
 
     if (receiver != address(this) && !chief.allowedFlasher(receiver)) {
@@ -516,7 +556,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     }
 
     swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, sweeper, minSweepOut);
-    return (beneficiary_, tokensToCheck_);
+    return (beneficiary_);
   }
 
   /**
@@ -598,8 +638,7 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
     returns (address);
 
   /**
-   * @dev Returns "true" and on what `index` if token has already
-   * been added to `tokenList`.
+   * @dev Returns "true" and the `latestIndex` where a zero-address exists
    *
    * @param token address of ERC-20 to check
    * @param tokenList to check
@@ -610,19 +649,22 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   )
     private
     pure
-    returns (bool value, uint256 index)
+    returns (bool value, uint256 latestIndex)
   {
     uint256 len = tokenList.length;
     for (uint256 i; i < len;) {
       if (token == tokenList[i].token) {
-        value = true;
-        index = i;
-        break;
+        return (true, 0); // leave when the element is found
+      }
+      if (tokenList[i].token == address(0)) {
+        return (false, i); // leave if the first empty spot is found
       }
       unchecked {
         ++i;
       }
     }
+    // revert if looped through whole array and found no match or empty value
+    revert BaseRouter__isInTokenList_snapshotLimitReached();
   }
 
   /**
@@ -633,20 +675,11 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
    * @param token address of ERC-20 to be pushed
    * @param tokenList to add token
    */
-  function _addTokenToList(
-    address token,
-    Snapshot[] memory tokenList
-  )
-    private
-    view
-    returns (Snapshot[] memory)
-  {
-    (bool isInList, uint256 index) = _isInTokenList(token, tokenList);
+  function _addTokenToList(address token, Snapshot[] memory tokenList) private view {
+    (bool isInList, uint256 latestIndex) = _isInTokenList(token, tokenList);
     if (!isInList) {
-      uint256 position = index == 0 ? index : index + 1;
-      tokenList[position] = Snapshot(token, IERC20(token).balanceOf(address(this)));
+      tokenList[latestIndex] = Snapshot(token, IERC20(token).balanceOf(address(this)));
     }
-    return tokenList;
   }
 
   /**
@@ -730,8 +763,20 @@ abstract contract BaseRouter is SystemAccessControl, IRouter {
   }
 
   /**
+   * @dev Revert if flasher is not a valid flasher at {Chief}.
+   *
+   * @param flasher address to check
+   */
+  function _checkValidFlasher(address flasher) internal view {
+    if (!chief.allowedFlasher(flasher)) {
+      revert BaseRouter__checkValidFlasher_notAllowedFlasher();
+    }
+  }
+
+  /**
    * @dev Reverts if passed `addr` is address(0).
    */
+
   function _checkIfAddressZero(address addr) internal pure {
     if (addr == address(0)) {
       revert BaseRouter__checkIfAddressZero_invalidZeroAddress();
