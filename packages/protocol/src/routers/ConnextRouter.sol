@@ -137,6 +137,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes memory callData
   )
     external
+    nonReentrant
     returns (bytes memory)
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
@@ -148,8 +149,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       balance = IERC20(asset).balanceOf(address(this));
       if (balance < amount) {
         revert ConnextRouter__xReceive_notReceivedAssetBalance();
-      } else {
-        _tempTokenToCheck = Snapshot(asset, balance - amount);
       }
 
       /**
@@ -163,12 +162,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
     }
 
+    Snapshot memory tokenToCheck_ = Snapshot(asset, (balance - amount));
+
     /**
      * @dev Connext will keep the custody of the bridged amount if the call
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
      * Therefore we try/catch instead of directly calling _bundleInternal(...).
      */
-    try this.xBundleConnext(actions, args, beforeSlipped) {
+    try this.xBundleConnext(actions, args, beforeSlipped, tokenToCheck_) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
@@ -176,8 +177,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
         handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
-      // Ensure clear storage for token balance checks.
-      delete _tempTokenToCheck;
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
@@ -191,6 +190,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
    * @param beforeSlipped amount passed by the origin cross-chain router operation
+   * @param tokenToCheck_ snapshot after xReceive from Connext
    *
    * @dev Requirements:
    * - Must only be called within the context of this same contract.
@@ -198,13 +198,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   function xBundleConnext(
     Action[] calldata actions,
     bytes[] calldata args,
-    uint256 beforeSlipped
+    uint256 beforeSlipped,
+    Snapshot memory tokenToCheck_
   )
     external
     payable
     onlySelf
   {
-    _bundleInternal(actions, args, beforeSlipped);
+    _bundleInternal(actions, args, beforeSlipped, tokenToCheck_);
   }
 
   /**
@@ -272,6 +273,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address sender
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
+    _checkIfAddressZero(receiver);
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
     _safePullTokenFrom(asset, sender, amount);
@@ -332,6 +334,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
+    address to_ = routerByDomain[destDomain];
+    _checkIfAddressZero(to_);
+
     _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
@@ -339,7 +344,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // _destination: Domain ID of the destination chain
       uint32(destDomain),
       // _to: address of the target contract
-      routerByDomain[destDomain],
+      to_,
       // _asset: address of the token contract
       asset,
       // _delegate: address that can revert or forceLocal on destination
@@ -395,12 +400,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       );
       beneficiary_ = owner;
     } else if (actions[0] == Action.Flashloan) {
-      (,,,, bytes memory requestorCalldata) =
-        abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
-
-      (Action[] memory newActions, bytes[] memory newArgs) = abi.decode(
-        LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
-      );
+      (,,,, Action[] memory newActions, bytes[] memory newArgs) =
+        abi.decode(args[0], (IFlasher, address, uint256, address, Action[], bytes[]));
 
       beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
     } else if (actions[0] == Action.XTransfer) {
@@ -458,9 +459,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    *  - `router` must be a non-zero address.
    */
   function setRouter(uint256 domain, address router) external onlyTimelock {
-    if (router == address(0)) {
-      revert ConnextRouter__setRouter_invalidInput();
-    }
+    _checkIfAddressZero(router);
     routerByDomain[domain] = router;
 
     emit NewRouterAdded(router, domain);
