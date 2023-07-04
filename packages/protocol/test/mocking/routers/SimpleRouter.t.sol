@@ -536,7 +536,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(newVault), true);
     _callWithTimelock(address(chief), data);
 
-    _initalizeVault(address(newVault), INITIALIZER, 10000 ether, 1 ether);
+    _initializeVault(address(newVault), INITIALIZER, 10000 ether);
 
     _dealMockERC20(collateralAsset, ALICE, amount);
 
