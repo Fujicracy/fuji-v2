@@ -14,6 +14,7 @@ import {ConnextRouter} from "./ConnextRouter.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
+import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ConnextHandler {
@@ -205,5 +206,16 @@ contract ConnextHandler {
       SafeERC20.safeDecreaseAllowance(IERC20(txn.asset), address(connextRouter), txn.amount);
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, false);
     }
+  }
+
+  /**
+   * @notice Rescue stuck funds due to failed cross-chain calls (cf. ConnextRouter).
+   *
+   * @param token the address of the ERC-20 token to sweep
+   * @param receiver the address that will receive the swept funds
+   * @param amount amount to sweep
+   */
+  function sweepToken(ERC20 token, address receiver, uint256 amount) external onlyAllowedCaller {
+    SafeERC20.safeTransfer(token, receiver, amount);
   }
 }
