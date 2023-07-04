@@ -8,7 +8,6 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { ConnectOptions } from '@web3-onboard/core';
 import React, { ChangeEvent, useEffect, useState } from 'react';
 
@@ -34,8 +33,6 @@ const agreements: AgreementBox[] = [
 ];
 
 export function DisclaimerModal() {
-  const { palette } = useTheme();
-
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(true);
   const [hasPreviouslyAcceptedTerms, setHasPreviouslyAcceptedTerms] =
     useState<boolean>(true);
