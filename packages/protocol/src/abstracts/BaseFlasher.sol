@@ -109,6 +109,7 @@ abstract contract BaseFlasher is IFlasher {
     internal
     returns (bool)
   {
+    if (amount == 0) return false;
     IERC20(asset).safeTransfer(requestor, amount);
 
     requestor.functionCall(requestorCalldata);
