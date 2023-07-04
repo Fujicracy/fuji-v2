@@ -9,8 +9,7 @@ pragma solidity 0.8.15;
  * @notice A Router implementing Connext specific bridging logic.
  */
 
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
 import {ConnextHandler} from "./ConnextHandler.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
@@ -23,6 +22,8 @@ import {IFlasher} from "../interfaces/IFlasher.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
+  using SafeERC20 for IERC20;
+
   /**
    * @dev Emitted when a new destination router gets added.
    *
@@ -172,7 +173,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
-        SafeERC20.safeTransfer(IERC20(asset), address(handler), balance);
+        IERC20(asset).safeTransfer(address(handler), balance);
         handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
