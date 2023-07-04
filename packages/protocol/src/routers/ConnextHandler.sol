@@ -115,7 +115,7 @@ contract ConnextHandler {
    * @notice Returns the struct of failed transaction by `transferId`.
    *
    * @param transferId the unique identifier of the cross-chain txn
-   * @param nonce attempt of failed tx
+   * @param nonce or position in the array of the failed attempts to execute
    */
   function getFailedTxn(bytes32 transferId, uint256 nonce) public view returns (FailedTxn memory) {
     return _failedTxns[transferId][nonce];
@@ -169,7 +169,7 @@ contract ConnextHandler {
    * @notice Executes a failed transaction with update `args`
    *
    * @param transferId the unique identifier of the cross-chain txn
-   * @param nonce of the failed attempt to execute
+   * @param nonce or position in the array of the failed attempts to execute
    * @param actions  that will replace actions of failed txn
    * @param args taht will replace args of failed txn
    *
