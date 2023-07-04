@@ -76,18 +76,21 @@ export const changeActiveVault = (
       : DEFAULT_LTV_THRESHOLD;
 
   api.setState(
-    produce((s: AbstractState) => {
-      s.activeVault = vault as BorrowingVault | LendingVault; // TODO: Not the best
-      s.activeProvider = activeProvider;
-      s.allProviders = allProviders;
+    produce((state: AbstractState) => {
+      const hasDebt = 'debt' in state;
+      state.activeVault = hasDebt
+        ? (vault as BorrowingVault)
+        : (vault as LendingVault);
+      state.activeProvider = activeProvider;
+      state.allProviders = allProviders;
       const dec = vault.collateral.decimals;
-      s.collateral.amount = parseFloat(formatUnits(depositBalance, dec));
+      state.collateral.amount = parseFloat(formatUnits(depositBalance, dec));
 
-      if (!('debt' in s) || !s.debt || !borrowBalance) return;
-      s.ltv.ltvMax = ltvMax;
-      s.ltv.ltvThreshold = ltvThreshold;
-      const dec2 = s.debt.currency.decimals;
-      s.debt.amount = parseFloat(formatUnits(borrowBalance, dec2));
+      if (!hasDebt || !state.debt || !borrowBalance) return;
+      state.ltv.ltvMax = ltvMax;
+      state.ltv.ltvThreshold = ltvThreshold;
+      const dec2 = state.debt.currency.decimals;
+      state.debt.amount = parseFloat(formatUnits(borrowBalance, dec2));
     })
   );
   const route = api
@@ -108,13 +111,16 @@ export const changeAll = async (
   const debts = debt && sdk.getDebtForChain(debt.chainId);
   api.setState(
     produce((state: AbstractState) => {
-      state.activeVault = vault as BorrowingVault | LendingVault; // TODO: Not the best
+      const hasDebt = 'debt' in state;
+      state.activeVault = hasDebt
+        ? (vault as BorrowingVault)
+        : (vault as LendingVault);
 
       state.collateral.chainId = collateral.chainId;
       state.collateral.selectableCurrencies = collaterals;
       state.collateral.currency = collateral;
 
-      if (!('debt' in state) || !debt || !debts) return;
+      if (!hasDebt || !debt || !debts) return;
       if (!state.debt) state.debt = assetForData(debt.chainId, debts, debt);
       else {
         state.debt.chainId = debt.chainId;
@@ -207,13 +213,12 @@ export const changeAssetChain = (
   }
   api.setState(
     produce((state: AbstractState) => {
+      const hasDebt = 'debt' in state;
       let t =
-        type === AssetType.Debt && 'debt' in state
-          ? state.debt
-          : state.collateral;
+        type === AssetType.Debt && hasDebt ? state.debt : state.collateral;
       if (!t) {
         t = assetForData(chainId, currencies, defaultCurrency(currencies));
-        if ('debt' in state && type === AssetType.Debt) {
+        if (hasDebt && type === AssetType.Debt) {
           state.debt = t;
         } else if (type === AssetType.Collateral) {
           state.collateral = t;
