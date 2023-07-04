@@ -195,7 +195,6 @@ contract ConnextHandler {
       revert ConnextHandler__executeFailed_tranferAlreadyExecuted(transferId, nonce);
     }
 
-
     SafeERC20.safeIncreaseAllowance(IERC20(txn.asset), address(connextRouter), txn.amount);
     txn.executed = true;
     _failedTxns[transferId][nonce] = txn;
