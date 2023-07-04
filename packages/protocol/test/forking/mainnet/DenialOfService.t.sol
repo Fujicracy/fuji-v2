@@ -42,57 +42,29 @@ contract DenialOfServiceTest is Routines, ForkingSetup {
     aaveV2pool = IV2Pool(0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9);
   }
 
-  function testFail_tryWithdrawWithoutCorrectDebt() public {
+  function test_tryWithdrawWhenFullDebtIsPaybackExternally() public {
     // Alice deposits and borrows
     do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
     do_borrow(BORROW_AMOUNT, vault, ALICE);
 
     // Troublemaker pays vaults debt
-    deal(debtAsset, TROUBLEMAKER, BORROW_AMOUNT * 10);
+    uint256 slightlyHighBorrowAmount = (BORROW_AMOUNT * 110 / 100);
+    // For slightlyHighBorrowAmount: Refer to 3rd party repay in AaveV3 docs
+    // https://docs.aave.com/developers/core-contracts/pool#repay
+    deal(debtAsset, TROUBLEMAKER, slightlyHighBorrowAmount);
     vm.startPrank(TROUBLEMAKER);
-    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT);
-    aaveV2pool.repay(vault.debtAsset(), BORROW_AMOUNT, 2, address(vault));
+    IERC20(debtAsset).safeApprove(address(aaveV2pool), slightlyHighBorrowAmount);
+    aaveV2pool.repay(vault.debtAsset(), slightlyHighBorrowAmount, 2, address(vault));
     vm.stopPrank();
 
     assertEq(vault.balanceOf(ALICE), DEPOSIT_AMOUNT);
-    assertEq(vault.balanceOfDebt(ALICE), 0);
+    assertEq(vault.balanceOfDebtShares(ALICE), BORROW_AMOUNT);
+    assertEq(vault.balanceOfDebt(ALICE), 1);
 
-    //Withdraw will fail until debt is corrected and withdraw is unpaused
-    uint256 maxAmount = vault.maxWithdraw(ALICE);
-    do_withdraw(maxAmount, vault, ALICE);
-  }
-
-  function test_correctDebtUnpauseAndWithdraw() public {
-    uint256 amountCorrected = BORROW_AMOUNT;
-
-    do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
-    do_borrow(BORROW_AMOUNT, vault, ALICE);
-
-    // Troublemaker pays vaults debt
-    deal(debtAsset, TROUBLEMAKER, BORROW_AMOUNT * 10);
-    vm.startPrank(TROUBLEMAKER);
-    //TODO check this after rounding issue is fixed
-    //approve more than needed because of rounding issues
-    IERC20(debtAsset).safeApprove(address(aaveV2pool), BORROW_AMOUNT + 10);
-    //pay full amount, sometimes bigger than BORROW_AMOUNT
-    aaveV2pool.repay(
-      vault.debtAsset(), aaveV2.getBorrowBalance(address(vault), vault), 2, address(vault)
-    );
-    vm.stopPrank();
-
-    bytes memory data = abi.encodeWithSelector(BorrowingVault.correctDebt.selector, TREASURY);
-    _callWithTimelock(address(vault), data);
-    skip(2 days);
-
-    //try to payback and withdraw and check it works
-    do_payback(BORROW_AMOUNT, vault, ALICE);
-    do_withdraw(DEPOSIT_AMOUNT, vault, ALICE);
-
-    //DEPOSIT_AMOUNT has built up some interest after the call with timelock (lets assume 1%)
-    assertApproxEqAbs(vault.balanceOf(ALICE), 0, DEPOSIT_AMOUNT / 100);
-
-    //check the actual corrected amount is in TREASURY
-    assertEq(aaveV2.getBorrowBalance(address(vault), vault), 0);
-    assertEq(IERC20(debtAsset).balanceOf(TREASURY), amountCorrected);
+    // Withdraw should not fail
+    uint256 maxAmount = vault.maxRedeem(ALICE);
+    vm.prank(ALICE);
+    vault.redeem(maxAmount, ALICE, ALICE);
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), maxAmount);
   }
 }

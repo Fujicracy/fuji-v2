@@ -136,36 +136,30 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_depositAndBorrow(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount + initVaultDebtShares);
+    assertEq(vault.totalDebt(), borrowAmount);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
   function test_depositThenMintDebt(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     do_deposit(amount, vault, ALICE);
     uint256 debtShares = vault.previewBorrow(borrowAmount);
 
     do_mintDebt(debtShares, vault, ALICE);
 
-    assertEq(vault.totalDebt(), borrowAmount + initVaultDebtShares);
+    assertEq(vault.totalDebt(), borrowAmount);
     assertEq(IERC20(debtAsset).balanceOf(ALICE), borrowAmount);
   }
 
   function test_paybackAndWithdraw(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
@@ -178,9 +172,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_burnDebtThenWithdraw(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
@@ -204,9 +196,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_tryWithdrawWithoutRepay(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
@@ -216,9 +206,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_tryTransferWithoutRepay(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__beforeTokenTransfer_moreThanMax.selector);
@@ -228,9 +216,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_tryTransferMaxRedeemWithoutRepay(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
     uint256 maxTransferable = vault.maxRedeem(ALICE);
 
@@ -267,9 +253,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_getHealthFactor(uint40 amount, uint40 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
 
     uint256 HF = vault.getHealthFactor(ALICE);
     assertEq(HF, type(uint256).max);
@@ -320,9 +304,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
   function test_tryLiquidateHealthy(uint96 amount, uint96 borrowAmount) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(
-      amount > minAmount && borrowAmount > minAmount && _utils_checkMaxLTV(amount, borrowAmount)
-    );
+    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
@@ -500,5 +482,42 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   function test_liquidateInvalidInput() public {
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
     vault.liquidate(ALICE, address(0));
+  }
+
+  function test_withdrawWhenFullDebtIsPaybackExternally(uint256 amount) public {
+    // 1 million ether as collateral is sufficient for vault testing.
+    vm.assume(amount > 1e6 && amount < 1000000 ether);
+
+    address TROUBLEMAKER = vm.addr(0x1122);
+    vm.label(TROUBLEMAKER, "TROUBLEMAKER");
+
+    // Alice deposits and borrows
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
+    uint256 borrowAmount = amount * price * DEFAULT_MAX_LTV / 1e36;
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    // We fake that a Troublemaker paysback fully the vault's debt externally
+    uint256 fullPaybackAmount =
+      mockProvider.getBorrowBalance(address(vault), IVault(address(vault)));
+    _dealMockERC20(debtAsset, TROUBLEMAKER, fullPaybackAmount);
+    vm.startPrank(TROUBLEMAKER);
+    IERC20(debtAsset).transfer(address(vault), fullPaybackAmount);
+    mockProvider.payback(fullPaybackAmount, IVault(address(vault)));
+    vm.stopPrank();
+
+    assertEq(vault.balanceOf(ALICE), amount);
+    assertEq(vault.balanceOfDebtShares(ALICE), borrowAmount);
+    assertEq(vault.balanceOfDebt(ALICE), 1);
+
+    // Bob now deposits and borrow after debt has been paid back
+    // To ensure there is no DOS due to payback.
+    do_depositAndBorrow(amount, borrowAmount, vault, BOB);
+
+    // Withdraw should not fail
+    uint256 maxAmount = vault.maxRedeem(ALICE);
+    vm.prank(ALICE);
+    vault.redeem(maxAmount, ALICE, ALICE);
+
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), maxAmount);
   }
 }
