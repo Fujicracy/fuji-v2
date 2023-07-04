@@ -2,10 +2,10 @@ import { Card, Chip, Link, Stack, Typography } from '@mui/material';
 import React from 'react';
 
 import { ratingToNote } from '../../helpers/ratings';
-import { useBorrow } from '../../store/borrow.store';
+import { useLend } from '../../store/lend.store';
 
 function RiskBlock() {
-  const vault = useBorrow((state) => state.activeVault);
+  const vault = useLend((state) => state.activeVault);
 
   return (
     <>
