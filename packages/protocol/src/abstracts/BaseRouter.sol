@@ -153,7 +153,9 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
   /// @inheritdoc IRouter
   function sweepToken(ERC20 token, address receiver) external onlyHouseKeeper {
-    SafeERC20.safeTransfer(token, receiver, token.balanceOf(address(this)));
+    uint256 amount = token.balanceOf(address(this));
+    if (amount == 0) return;
+    SafeERC20.safeTransfer(token, receiver, amount);
   }
 
   /// @inheritdoc IRouter
@@ -565,6 +567,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @param amount amount to be transferred
    */
   function _safeTransferETH(address receiver, uint256 amount) internal {
+    if (amount == 0) return;
     _checkIfAddressZero(receiver);
     (bool success,) = receiver.call{value: amount}(new bytes(0));
     if (!success) {
@@ -583,6 +586,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @param amount amount of tokens to be pulled
    */
   function _safePullTokenFrom(address token, address sender, uint256 amount) internal {
+    if (amount == 0) return;
     if (sender != address(this) && sender == msg.sender) {
       SafeERC20.safeTransferFrom(ERC20(token), sender, address(this), amount);
     }
@@ -596,6 +600,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @param amount amount to be approved
    */
   function _safeApprove(address token, address to, uint256 amount) internal {
+    if (amount == 0) return;
     SafeERC20.safeIncreaseAllowance(ERC20(token), to, amount);
   }
 
