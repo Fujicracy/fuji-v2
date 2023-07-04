@@ -14,7 +14,6 @@ import {ConnextRouter} from "./ConnextRouter.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ConnextHandler {
@@ -217,7 +216,7 @@ contract ConnextHandler {
    * @param receiver the address that will receive the swept funds
    * @param amount amount to sweep
    */
-  function sweepToken(ERC20 token, address receiver, uint256 amount) external onlyAllowedCaller {
-    SafeERC20.safeTransfer(token, receiver, amount);
+  function sweepToken(IERC20 token, address receiver, uint256 amount) external onlyAllowedCaller {
+    token.safeTransfer(receiver, amount);
   }
 }
