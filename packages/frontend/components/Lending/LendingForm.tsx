@@ -184,45 +184,46 @@ function LendingForm({ isEditing, positionData }: BorrowProps) {
     transactionMeta.status === FetchStatus.Ready &&
     hasBalanceInVault;
 
+  const maxAmount = collateral.balances[collateral.currency.symbol];
+
   return (
     <>
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
         <CardContent
-          sx={{ width: '100%', p: '0 2rem 1.5rem 2rem', mb: '2rem' }}
+          sx={{
+            width: '100%',
+            p: `${!isEditing ? '1.5rem' : '0'} 2rem 1.5rem 2rem`,
+            mb: '2rem',
+          }}
         >
-          <TabSwitch
-            size="large"
-            options={[
-              { value: ActionType.ADD, label: 'Deposit' },
-              { value: ActionType.REMOVE, label: 'Withdraw' },
-            ]}
-            selected={actionType}
-            onChange={(type) => setActionType(type)}
+          {isEditing && (
+            <TabSwitch
+              size="large"
+              options={[
+                { value: ActionType.ADD, label: 'Deposit' },
+                { value: ActionType.REMOVE, label: 'Withdraw' },
+              ]}
+              selected={actionType}
+              onChange={(type) => setActionType(type)}
+            />
+          )}
+
+          <FormAssetBox
+            index={0}
+            type={AssetType.Collateral}
+            showMax={true}
+            maxAmount={maxAmount}
+            assetChange={collateral}
+            isEditing={isEditing}
+            actionType={actionType}
+            chainId={collateral.chainId}
+            isExecuting={isExecuting}
+            value={collateral.input}
+            positionData={positionData}
+            changeAssetValue={changeAssetValue}
+            changeAssetChain={changeAssetChain}
+            changeAssetCurrency={changeAssetCurrency}
           />
-          {[collateral].map((assetChange, index) => {
-            const collateralIndex = actionType === ActionType.ADD ? 0 : 1;
-            const type = index === collateralIndex ? 'collateral' : 'debt';
-            const maxAmount = assetChange.balances[assetChange.currency.symbol];
-            return (
-              <FormAssetBox
-                key={type}
-                index={index}
-                type={AssetType.Collateral}
-                showMax={true}
-                maxAmount={maxAmount}
-                assetChange={assetChange}
-                isEditing={isEditing}
-                actionType={actionType}
-                chainId={assetChange.chainId}
-                isExecuting={isExecuting}
-                value={assetChange.input}
-                positionData={positionData}
-                changeAssetValue={changeAssetValue}
-                changeAssetChain={changeAssetChain}
-                changeAssetCurrency={changeAssetCurrency}
-              />
-            );
-          })}
 
           {availableRoutes.length > 1 ? (
             <Stack

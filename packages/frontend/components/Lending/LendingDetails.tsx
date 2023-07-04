@@ -1,5 +1,4 @@
 import { Card, Grid, Skeleton, Stack, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 import { AprResult, LendingVault, VaultType } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -14,9 +13,7 @@ import VaultSelect from '../Shared/VaultSelect/VaultSelect';
 import RiskBlock from './RiskBlock';
 import VaultStrategy from './VaultStrategy';
 
-function LendingDetails() {
-  const { palette } = useTheme();
-
+function LendingDetails({ isEditing }: { isEditing: boolean }) {
   const [selectedPeriod, setSelectedPeriod] = useState(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [depositData, setDepositData] = useState<AprResult[]>([]);
@@ -41,7 +38,7 @@ function LendingDetails() {
 
   return (
     <>
-      <VaultSelect type={VaultType.LEND} />
+      {!isEditing && <VaultSelect type={VaultType.LEND} />}
       <Card
         sx={{
           display: 'flex',

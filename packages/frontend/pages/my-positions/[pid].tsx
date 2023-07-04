@@ -9,6 +9,7 @@ import { isChain } from '../../helpers/chains';
 import { showBorrow } from '../../helpers/navigation';
 import { useBorrow } from '../../store/borrow.store';
 import { FormType } from '../../store/types/state';
+import LendingPage from '../lend';
 
 const formType = FormType.Edit;
 
@@ -34,7 +35,7 @@ const PositionPage: NextPage = () => {
     changeFormType(formType);
   }, [changeFormType]);
 
-  if (!type || !address || !chain) {
+  if (type === undefined || !address || !chain) {
     return <></>;
   }
 
@@ -44,8 +45,8 @@ const PositionPage: NextPage = () => {
   ) {
     showBorrow(router);
   }
-  // TODO: Show LendingWrapper if type is LEND
-  return (
+
+  return type === VaultType.BORROW ? (
     <BorrowWrapper
       formType={formType}
       query={{
@@ -53,6 +54,8 @@ const PositionPage: NextPage = () => {
         chain,
       }}
     />
+  ) : (
+    <LendingPage />
   );
 };
 

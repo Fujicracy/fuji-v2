@@ -53,7 +53,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
   const mode = useBorrow((state) => state.mode);
   const willLoadBorrow = useNavigation((state) => state.borrowPage.willLoad);
 
-  const isEditing = formType !== FormType.Create;
+  const isEditing = formType === FormType.Edit;
 
   const [positionData, setPositionData] = useState<PositionData | undefined>(
     undefined
@@ -72,6 +72,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           position.vault?.address.value === query.address &&
           position.vault?.chainId.toString() === query.chain
       );
+
       editedPosition =
         matchPosition && baseDebt
           ? viewEditedPosition(

@@ -51,6 +51,6 @@ export const newPosition = (
   type: VaultType
 ): BorrowingPosition | LendingPosition => {
   return type === VaultType.BORROW
-    ? ({} as BorrowingPosition)
-    : ({} as LendingPosition);
+    ? ({ type: VaultType.BORROW } as BorrowingPosition)
+    : ({ type: VaultType.LEND } as LendingPosition);
 };

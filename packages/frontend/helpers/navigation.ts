@@ -110,9 +110,9 @@ export const showPosition = async (
     )
   ) {
     router.push(
-      `${PATH.MY_POSITIONS}/${
-        type === VaultType.BORROW ? 'borrow' : 'lending'
-      }&${vault.address.value}-${vault.chainId}`
+      `${PATH.MY_POSITIONS}/${type === VaultType.BORROW ? 'borrow' : 'lend'}&${
+        vault.address.value
+      }-${vault.chainId}`
     );
   } else if (type === VaultType.BORROW) {
     showBorrow(router, false);

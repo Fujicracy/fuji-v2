@@ -32,7 +32,10 @@ function Lending() {
         flexDirection="row"
         alignItems="center"
         onClick={() =>
-          router.push({ pathname: PATH.MARKETS, query: { tab: 1 } })
+          router.push({
+            pathname: isEditing ? PATH.MY_POSITIONS : PATH.MARKETS,
+            query: { tab: 1 },
+          })
         }
         sx={{
           cursor: 'pointer',
@@ -47,13 +50,13 @@ function Lending() {
           alt="Arrow Back"
         />
         <Typography variant="small" ml="0.75rem" color={palette.info.main}>
-          Back to All Lending Vaults
+          Back to All Lending {isEditing ? 'Positions' : 'Vaults'}
         </Typography>
       </Stack>
 
       <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
         <Grid item xs={12} md={7.5} order={{ xs: 2, md: 1 }}>
-          <LendingDetails />
+          <LendingDetails isEditing={isEditing} />
         </Grid>
         <Grid item xs={12} md={4.5} order={{ xs: 1, md: 2 }}>
           <Grid container spacing={2} mb={2}>
@@ -74,7 +77,7 @@ function Lending() {
               />
             </Grid>
           </Grid>
-          <LendingForm isEditing={false} positionData={positionData} />
+          <LendingForm isEditing={isEditing} positionData={positionData} />
         </Grid>
       </Grid>
     </Container>

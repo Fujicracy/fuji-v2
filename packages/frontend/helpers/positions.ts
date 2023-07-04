@@ -55,6 +55,7 @@ export const getPositionsWithBalance = async (
   const account = Address.from(addr);
 
   const result = await getVaultFinancials(type, account);
+
   const errors = result.data.filter((d) => d instanceof FujiError);
   const allVaults = vaultsFromFinancialsOrError(result.data);
   if (errors.length > 0) {
@@ -77,6 +78,7 @@ export const getPositionsWithBalance = async (
 
   const vaults = vaultsWithBalance.map((v) => {
     const p = newPosition(type);
+
     p.vault = v.vault;
     p.collateral = {
       amount: bigToFloat(v.vault.collateral.decimals, v.depositBalance),
@@ -335,8 +337,14 @@ export const viewDynamicBorrowingPosition = (
   const dynamic = !isEditing;
   const baseCollateral = useBorrow.getState().collateral;
   let baseDebt = useBorrow.getState().debt;
-
-  if (!baseDebt && isEditing && position && !allowSettingDebt) {
+  console.log('position', position);
+  if (
+    !baseDebt &&
+    isEditing &&
+    position &&
+    !allowSettingDebt &&
+    position.debt
+  ) {
     const debt = debtForCurrency(position.debt.currency);
     useBorrow.getState().changeDebt(debt);
     baseDebt = debt;

@@ -1,5 +1,6 @@
 import { Grid, Typography } from '@mui/material';
 import { VaultType } from '@x-fuji/sdk';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 import { useMarkets } from '../../store/markets.store';
@@ -9,7 +10,10 @@ import MyPositionsSummary from './MyPositionsSummary';
 import MyPositionsTable from './MyPositionsTable';
 
 function MyPositions() {
-  const [currentTab, setCurrentTab] = useState(0);
+  const router = useRouter();
+  const [currentTab, setCurrentTab] = useState(
+    parseInt((router.query?.tab as string) || '0')
+  );
 
   const borrowPositions = usePositions((state) => state.borrowPositions);
   const lendingPositions = usePositions((state) => state.lendingPositions);
@@ -29,7 +33,10 @@ function MyPositions() {
       <MyPositionsSummary />
 
       <Grid container mt="2.5rem" mb="1rem">
-        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+        <BorrowLendingTabNavigation
+          onChange={(tab) => setCurrentTab(tab)}
+          defaultTab={currentTab}
+        />
       </Grid>
 
       <MyPositionsTable
