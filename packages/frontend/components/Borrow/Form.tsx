@@ -21,12 +21,12 @@ import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { BorrowingPosition } from '../../store/models/Position';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
+import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
-import Fees from './Fees';
 import BorrowHeader from './Header/Header';
 
 type BorrowProps = {

@@ -27,24 +27,23 @@ import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useLend } from '../../store/lend.store';
 import { LendingPosition } from '../../store/models/Position';
-import Fees from '../Borrow/Fees';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
+import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 import LendingButton from './Button';
 
-type BorrowProps = {
+type LendingProps = {
   isEditing: boolean;
   positionData?: PositionData;
 };
-function LendingForm({ isEditing, positionData }: BorrowProps) {
+function LendingForm({ isEditing, positionData }: LendingProps) {
   const theme = useTheme();
   const onMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
 
-  // TODO: replace data from borrow and get it from useLend
   const address = useAuth((state) => state.address);
   const walletChain = useAuth((state) => state.chainId);
   const changeChain = useAuth((state) => state.changeChain);
