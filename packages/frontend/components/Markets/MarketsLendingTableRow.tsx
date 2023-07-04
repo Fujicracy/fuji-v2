@@ -16,9 +16,9 @@ import { ratingToNote } from '../../helpers/ratings';
 import { MarketRow, MarketRowStatus } from '../../store/types/markets';
 import AprValue from '../Shared/AprValue';
 import { NetworkIcon } from '../Shared/Icons';
-import SizableTableCell from '../Shared/SizableTableCell';
 import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
+import SizableTableCell from '../Shared/Table/SizableTableCell';
 import Toggle from '../Shared/Table/Toggle';
 import { loaderOrError } from './LoaderOrError';
 
