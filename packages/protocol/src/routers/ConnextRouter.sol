@@ -329,8 +329,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       bytes memory callData
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, bytes));
 
-    (Action[] memory actions, bytes[] memory args,) =
-      abi.decode(callData, (Action[], bytes[], uint256));
+    (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
