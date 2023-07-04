@@ -208,4 +208,15 @@ contract ConnextHandler {
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, false);
     }
   }
+
+  /**
+   * @notice Rescue stuck funds due to failed cross-chain calls (cf. ConnextRouter).
+   *
+   * @param token the address of the ERC-20 token to sweep
+   * @param receiver the address that will receive the swept funds
+   * @param amount amount to sweep
+   */
+  function sweepToken(IERC20 token, address receiver, uint256 amount) external onlyAllowedCaller {
+    token.safeTransfer(receiver, amount);
+  }
 }
