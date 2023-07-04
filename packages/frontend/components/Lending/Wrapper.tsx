@@ -14,10 +14,12 @@ type LendingWrapperProps = {
 };
 
 function LendingWrapper({ formType, query }: LendingWrapperProps) {
+  const isEditing = formType === FormType.Edit;
+
   return (
     <>
       <Head>
-        <title>Lending - Fuji V2 Himalaya</title>
+        <title>{`${isEditing ? 'Position' : 'Lend'} - Fuji V2 Himalaya`}</title>
         <meta name="description" content="Lend assets and earn interest" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
