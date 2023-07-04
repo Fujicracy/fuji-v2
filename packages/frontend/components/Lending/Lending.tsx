@@ -1,9 +1,7 @@
-import { Container, Grid, Stack, Typography, useTheme } from '@mui/material';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
+import { Container, Grid } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import React, { useState } from 'react';
 
-import { PATH } from '../../constants';
 import {
   PositionData,
   viewDynamicLendingPosition,
@@ -11,12 +9,11 @@ import {
 import { useLend } from '../../store/lend.store';
 import { FormType } from '../../store/types/state';
 import InfoBlock from '../Shared/Analytics/InfoBlock';
+import BackToList from '../Shared/BackToList';
 import LendingDetails from './LendingDetails';
 import LendingForm from './LendingForm';
 
 function Lending() {
-  const { palette } = useTheme();
-  const router = useRouter();
   const formType = useLend((state) => state.formType);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -28,31 +25,7 @@ function Lending() {
 
   return (
     <Container>
-      <Stack
-        flexDirection="row"
-        alignItems="center"
-        onClick={() =>
-          router.push({
-            pathname: isEditing ? PATH.MY_POSITIONS : PATH.MARKETS,
-            query: { tab: 'lend' },
-          })
-        }
-        sx={{
-          cursor: 'pointer',
-          mt: { xs: '0', sm: '-2.5rem' },
-          mb: '1rem',
-        }}
-      >
-        <Image
-          src="/assets/images/shared/arrowBack.svg"
-          height={14}
-          width={16}
-          alt="Arrow Back"
-        />
-        <Typography variant="small" ml="0.75rem" color={palette.info.main}>
-          Back to All Lending {isEditing ? 'Positions' : 'Vaults'}
-        </Typography>
-      </Stack>
+      <BackToList type={VaultType.LEND} isEditing={isEditing} />
 
       <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
         <Grid item xs={12} md={7.5} order={{ xs: 2, md: 1 }}>

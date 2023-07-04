@@ -4,18 +4,12 @@ import {
   Divider,
   Grid,
   Grow,
-  Stack,
-  Typography,
-  useTheme,
 } from '@mui/material';
 import { BorrowingVault, VaultType } from '@x-fuji/sdk';
 import Head from 'next/head';
-import Image from 'next/image';
-import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
 import Borrow from '../../components/Borrow/Borrow';
-import { PATH } from '../../constants';
 import {
   PositionData,
   viewDynamicBorrowingPosition,
@@ -28,6 +22,7 @@ import { useNavigation } from '../../store/navigation.store';
 import { usePositions } from '../../store/positions.store';
 import { FormType } from '../../store/types/state';
 import Footer from '../App/Footer';
+import BackToList from '../Shared/BackToList';
 import VaultSelect from '../Shared/VaultSelect/VaultSelect';
 import Overview from './Overview/Overview';
 
@@ -42,9 +37,6 @@ type BorrowWrapperProps = {
 const ANIMATION_DURATION = 1000;
 
 function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
-  const { palette } = useTheme();
-  const router = useRouter();
-
   const address = useAuth((state) => state.address);
   const positions = usePositions((state) => state.borrowPositions);
   const baseCollateral = useBorrow((state) => state.collateral);
@@ -159,26 +151,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
         }}
       >
         {isEditing && !loading && (
-          <Stack
-            flexDirection="row"
-            alignItems="center"
-            onClick={() => router.push(PATH.MY_POSITIONS)}
-            sx={{
-              cursor: 'pointer',
-              mt: { xs: '0', sm: '-2.5rem' },
-              mb: '1rem',
-            }}
-          >
-            <Image
-              src="/assets/images/shared/arrowBack.svg"
-              height={14}
-              width={16}
-              alt="Arrow Back"
-            />
-            <Typography variant="small" ml="0.75rem" color={palette.info.main}>
-              View all active positions
-            </Typography>
-          </Stack>
+          <BackToList type={VaultType.BORROW} isEditing={isEditing} />
         )}
 
         {loading ? (
