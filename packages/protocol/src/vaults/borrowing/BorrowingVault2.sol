@@ -68,7 +68,6 @@ contract BorrowingVault2 is BaseVault {
   error BorrowingVault__payback_slippageTooHigh();
   error BorrowingVault__burnDebt_slippageTooHigh();
   error BorrowingVault__burnDebtShares_amountExceedsBalance();
-  error BorrowingVault__correctDebt_noNeedForCorrection();
   error BorrowingVault__initializeVaultShares_assetDebtRatioExceedsMaxLtv();
 
   /*///////////////////
@@ -314,36 +313,6 @@ contract BorrowingVault2 is BaseVault {
     return debt;
   }
 
-  /**
-   * @dev Checks if vault debt has been paid off externally and pauses the vault if so.
-   * Will call withdraw if normal conditions are met.
-   *
-   * @param caller or {msg.sender}
-   * @param receiver to whom `assets` amount will be transferred to
-   * @param owner to whom `shares` will be burned
-   * @param assets amount transferred during this withraw
-   * @param shares amount burned to `owner` during this withdraw
-   */
-  function _withdraw(
-    address caller,
-    address receiver,
-    address owner,
-    uint256 assets,
-    uint256 shares
-  )
-    internal
-    override
-    whenNotPaused(VaultActions.Withdraw)
-  {
-    uint256 totalDebt_ = totalDebt();
-    uint256 supply = debtSharesSupply;
-
-    if (totalDebt_ == 0 && supply > 0) {
-      _pause(VaultActions.Withdraw);
-    }
-    super._withdraw(caller, receiver, owner, assets, shares);
-  }
-
   /*///////////////////////
       Borrow allowances 
   ///////////////////////*/
@@ -423,8 +392,7 @@ contract BorrowingVault2 is BaseVault {
     uint256 debtShares = _debtShares[borrower];
     uint256 debt = convertToDebt(debtShares);
 
-    uint256 baseUserMaxBorrow =
-      ((assets * maxLtv * price) / (PRECISION_CONSTANT * 10 ** decimals()));
+    uint256 baseUserMaxBorrow = assets.mulDiv(maxLtv * price, 10 ** decimals() * PRECISION_CONSTANT);
     max = baseUserMaxBorrow > debt ? baseUserMaxBorrow - debt : 0;
   }
 
@@ -448,7 +416,7 @@ contract BorrowingVault2 is BaseVault {
     } else {
       uint256 debt = convertToDebt(debtShares);
       uint256 price = oracle.getPriceOf(asset(), debtAsset(), decimals());
-      uint256 lockedAssets = (debt * PRECISION_CONSTANT * price) / (maxLtv * 10 ** _debtDecimals);
+      uint256 lockedAssets = debt.mulDiv(price * PRECISION_CONSTANT, maxLtv * 10 ** _debtDecimals);
 
       if (lockedAssets == 0) {
         // Handle wei level amounts in where 'lockedAssets' < 1 wei.
@@ -477,8 +445,7 @@ contract BorrowingVault2 is BaseVault {
     view
     returns (uint256 shares)
   {
-    uint256 supply = debtSharesSupply;
-    return (debt == 0 || supply == 0) ? debt : debt.mulDiv(supply, totalDebt(), rounding);
+    return debt.mulDiv(debtSharesSupply + 1, totalDebt() + 1, rounding);
   }
 
   /**
@@ -497,8 +464,7 @@ contract BorrowingVault2 is BaseVault {
     view
     returns (uint256 assets)
   {
-    uint256 supply = debtSharesSupply;
-    return (supply == 0) ? shares : shares.mulDiv(totalDebt(), supply, rounding);
+    return shares.mulDiv(totalDebt() + 1, debtSharesSupply + 1, rounding);
   }
 
   /**
@@ -848,25 +814,5 @@ contract BorrowingVault2 is BaseVault {
     _providers = providers;
 
     emit ProvidersChanged(providers);
-  }
-
-  /**
-   * @notice In case someone repays this vault's debt directly to the lending provider,
-   * a borrow is done with the amount that was repaid so no issues regarding
-   * the relationship between debt and debt shares occurs.
-   *
-   * @param  treasury address to receive the borrowed amount
-   */
-  function correctDebt(address treasury) external onlyTimelock {
-    uint256 vaultDebt = totalDebt();
-    uint256 vaultDebtShares = debtSharesSupply;
-
-    // Check if there is need for correction.
-    if (vaultDebt >= vaultDebtShares || vaultDebt != 0 || vaultDebtShares == 0) {
-      revert BorrowingVault__correctDebt_noNeedForCorrection();
-    }
-
-    _executeProviderAction(vaultDebtShares, "borrow", activeProvider);
-    SafeERC20.safeTransfer(IERC20(debtAsset()), treasury, vaultDebtShares);
   }
 }
