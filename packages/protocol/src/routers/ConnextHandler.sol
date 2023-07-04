@@ -18,9 +18,11 @@ import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ConnextHandler {
+  using SafeERC20 for IERC20;
   /**
    * @dev Contains the information of a failed transaction.
    */
+
   struct FailedTxn {
     bytes32 transferId;
     uint256 amount;
@@ -196,14 +198,14 @@ contract ConnextHandler {
       revert ConnextHandler__executeFailed_tranferAlreadyExecuted(transferId, nonce);
     }
 
-    SafeERC20.safeIncreaseAllowance(IERC20(txn.asset), address(connextRouter), txn.amount);
+    IERC20(txn.asset).safeIncreaseAllowance(address(connextRouter), txn.amount);
 
     try connextRouter.xBundle(actions, args) {
       txn.executed = true;
       _failedTxns[transferId][nonce] = txn;
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, true);
     } catch {
-      SafeERC20.safeDecreaseAllowance(IERC20(txn.asset), address(connextRouter), txn.amount);
+      IERC20(txn.asset).safeDecreaseAllowance(address(connextRouter), txn.amount);
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, false);
     }
   }

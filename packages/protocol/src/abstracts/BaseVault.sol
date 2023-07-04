@@ -17,8 +17,7 @@ pragma solidity 0.8.15;
  * signed messages defined in {VaultPermissions}.
  * A rebalancing function is implemented to move vault's funds across providers.
  */
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {ERC20, IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -34,6 +33,7 @@ import {PausableVault} from "./PausableVault.sol";
 abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
+  using SafeERC20 for IERC20Metadata;
 
   /// @dev Custom Errors
   error BaseVault__constructor_invalidInput();
@@ -538,7 +538,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     internal
     whenNotPaused(VaultActions.Deposit)
   {
-    SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
+    _asset.safeTransferFrom(caller, address(this), assets);
     _executeProviderAction(assets, "deposit", activeProvider);
     _mint(receiver, shares);
 
@@ -588,7 +588,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {
     _burn(owner, shares);
     _executeProviderAction(assets, "withdraw", activeProvider);
-    SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
+    _asset.safeTransfer(receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
   }

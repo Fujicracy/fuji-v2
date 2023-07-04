@@ -13,11 +13,12 @@ import {BaseFlasher} from "../abstracts/BaseFlasher.sol";
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IBalancerVault} from "../interfaces/balancer/IBalancerVault.sol";
 import {IFlashLoanRecipient} from "../interfaces/balancer/IFlashLoanRecipient.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IProtocolFeesCollector} from "../interfaces/balancer/IProtocolFeesCollector.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeERC20, IERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
+  using SafeERC20 for IERC20;
+
   constructor(address balancerVault) BaseFlasher("FlasherBalancer", balancerVault) {}
 
   /// @inheritdoc BaseFlasher
@@ -77,6 +78,6 @@ contract FlasherBalancer is BaseFlasher, IFlashLoanRecipient {
 
     _requestorExecution(address(tokens[0]), amounts[0], feeAmounts[0], requestor, requestorCalldata);
 
-    SafeERC20.safeTransfer(tokens[0], getFlashloanSourceAddr(asset), amounts[0] + feeAmounts[0]);
+    tokens[0].safeTransfer(getFlashloanSourceAddr(asset), amounts[0] + feeAmounts[0]);
   }
 }
