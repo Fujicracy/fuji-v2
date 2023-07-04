@@ -337,7 +337,6 @@ export const viewDynamicBorrowingPosition = (
   const dynamic = !isEditing;
   const baseCollateral = useBorrow.getState().collateral;
   let baseDebt = useBorrow.getState().debt;
-  console.log('position', position);
   if (
     !baseDebt &&
     isEditing &&
