@@ -18,28 +18,13 @@ type OnboardStatus = {
   wasExploreInfoShown?: boolean;
 };
 
-const wcV1InitOptions: WalletConnectOptions = {
-  version: 1,
-  qrcodeModalOptions: {
-    mobileLinks: [
-      'rainbow',
-      'metamask',
-      'argent',
-      'trust',
-      'imtoken',
-      'pillar',
-    ],
-  },
-  connectFirstChainId: true,
-};
-
-const wcV2InitOptions: WalletConnectOptions = {
+const wcInitOptions: WalletConnectOptions = {
   version: 2,
   projectId: `${process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY}`,
 };
 
 const injected = injectedModule();
-const walletConnect = walletConnectModule(wcV2InitOptions || wcV1InitOptions);
+const walletConnect = walletConnectModule(wcInitOptions);
 const coinbase = coinbaseModule();
 const ledger = ledgerModule();
 const mewWalletModule = mewWallet();
