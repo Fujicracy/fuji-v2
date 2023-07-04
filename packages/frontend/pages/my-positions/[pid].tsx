@@ -36,7 +36,7 @@ const PositionPage: NextPage = () => {
   useEffect(() => {
     if (type === VaultType.BORROW) {
       changeBorrowingFormType(formType);
-    } else {
+    } else if (type === VaultType.LEND) {
       changeLendingFormType(formType);
     }
   }, [type, changeBorrowingFormType, changeLendingFormType]);
