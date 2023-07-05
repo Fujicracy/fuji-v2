@@ -61,6 +61,20 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   }
 
   /// @inheritdoc ILiquidationManager
+  /**
+   * @dev Example inputs using ethersJs:
+   *  > liqManagerContract.liquidate(
+   *      ['aliceAddress','bobAddress','charlieAddress'], // Liquidating alice, bob, and charlie.
+   *      [
+   *        ethers.utils.parseUnits("0.25", 18),  // Liquidating 25% of alice's debt.
+   *        ethers.utils.parseUnits("0.75", 18),  // Liquidating 75% of bob's debt.
+   *        0,        // Allow contract to determine max debt to liquidate for charlie (either 50% or 100%).
+   *      ]
+   *      someAmount, // `someAmount` can be in excess of the sum of debt from alice + bob + charlie.
+   *      flasher,    // Valid flasher address registered at the Chief contract.
+   *      swapper,    // Valid swapper address registered at the Chief contract.
+   *  )
+   */
   function liquidate(
     address[] calldata users,
     uint256[] calldata liqCloseFactors,
