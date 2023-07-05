@@ -9,12 +9,13 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep } from '@x-fuji/sdk';
+import { RoutingStep, VaultType } from '@x-fuji/sdk';
 import { formatUnits } from 'ethers/lib/utils';
 
 import {
   HistoryEntry,
   HistoryEntryStatus,
+  HistoryRoutingStep,
   stepFromEntry,
 } from '../../../../helpers/history';
 import { toNotSoFixed } from '../../../../helpers/values';
@@ -30,8 +31,10 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
   const payback = stepFromEntry(entry, RoutingStep.PAYBACK);
   const withdraw = stepFromEntry(entry, RoutingStep.WITHDRAW);
 
-  const firstStep = deposit ?? payback;
-  const secondStep = borrow ?? withdraw;
+  const type = entry.type || VaultType.BORROW;
+
+  const firstStep = deposit ?? (type === VaultType.BORROW ? payback : withdraw);
+  const secondStep = borrow ?? withdraw; // There is no second step for lending
 
   const { palette } = useTheme();
 
@@ -53,24 +56,23 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
       />
     );
 
-  const firstTitle =
-    firstStep && firstStep.token
-      ? `${firstStep.step.toString()} ${toNotSoFixed(
-          formatUnits(firstStep.amount ?? 0, firstStep.token.decimals),
+  const titleForStep = (step?: HistoryRoutingStep) =>
+    step && step.token
+      ? `${step.step.toString()} ${toNotSoFixed(
+          formatUnits(step.amount ?? 0, step.token.decimals),
           true
-        )} ${firstStep.token.symbol}`
+        )} ${step.token.symbol}`
       : '';
 
-  const secondTitle =
-    secondStep && secondStep.token
-      ? `${secondStep.step.toString()} ${toNotSoFixed(
-          formatUnits(secondStep.amount ?? 0, secondStep.token.decimals)
-        )} ${secondStep.token.symbol}`
-      : '';
+  const firstTitle = titleForStep(firstStep);
+  const secondTitle = titleForStep(secondStep);
 
   const connector = firstTitle && secondTitle ? ' and ' : '';
 
-  const title = capitalize(firstTitle + connector + secondTitle);
+  const title =
+    type === VaultType.BORROW
+      ? capitalize(firstTitle + connector + secondTitle)
+      : firstTitle;
 
   return (
     <ListItemButton
