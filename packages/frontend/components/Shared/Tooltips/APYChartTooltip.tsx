@@ -1,12 +1,24 @@
 import { Box, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { DatumValue } from '@nivo/core';
 import { PointTooltipProps } from '@nivo/line';
 import React from 'react';
+
+type PointData = {
+  x: DatumValue;
+  xFormatted: string | number;
+  yFormatted: string | number;
+  yStacked?: number; // All of the above are required nivo properties
+  y: number;
+  date: string;
+  aprBase: number;
+  aprReward: number;
+};
 
 const APYChartTooltip = ({ point }: PointTooltipProps) => {
   const { palette } = useTheme();
 
-  const { date, aprBase, aprReward, y } = point.data as any;
+  const { date, aprBase, aprReward, y } = point.data as PointData;
 
   const renderValue = (title: string, value: number, mb?: string) => (
     <Stack

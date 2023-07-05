@@ -37,7 +37,6 @@ import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { useHistory } from '../../store/history.store';
 import { useLend } from '../../store/lend.store';
-import { usePositions } from '../../store/positions.store';
 import AddTokenButton from '../Shared/AddTokenButton';
 import LinkIcon from '../Shared/Icons/LinkIcon';
 import ModalHeader from '../Shared/ModalHeader';
@@ -63,7 +62,6 @@ function TransactionModal({
   const borrowAvailableVaults = useBorrow((state) => state.availableVaults);
   const lendingActiveVault = useLend((state) => state.activeVault);
   const lendingAvailableVaults = useLend((state) => state.availableVaults);
-  const positions = usePositions((state) => state.allPositions);
 
   const closeModal = useHistory((state) => state.closeModal);
 

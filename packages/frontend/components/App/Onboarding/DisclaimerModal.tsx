@@ -52,10 +52,12 @@ export function DisclaimerModal() {
   const onAcceptClick = () => {
     acceptTermsOfUse();
     setHasPreviouslyAcceptedTerms(true);
-    const options: ConnectOptions | undefined = window &&
-      (window as any).Cypress && {
-        autoSelect: { label: 'MetaMask', disableModals: true },
-      };
+    const options: ConnectOptions | undefined =
+      typeof window !== 'undefined' && 'Cypress' in window
+        ? {
+            autoSelect: { label: 'MetaMask', disableModals: true },
+          }
+        : undefined;
     login(options);
   };
 
