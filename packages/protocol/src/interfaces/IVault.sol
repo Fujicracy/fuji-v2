@@ -430,7 +430,7 @@ interface IVault is IERC4626 {
   function getLiquidationFactor(address owner) external returns (uint256 liquidationFactor);
 
   /**
-   * @notice Performs liquidation of an unhealthy position, meaning a 'healthFactor' below 100.
+   * @notice Performs liquidation of an unhealthy position, meaning a 'healthFactor' below 1e18.
    *
    * @param owner to be liquidated
    * @param receiver of the collateral shares of liquidation
