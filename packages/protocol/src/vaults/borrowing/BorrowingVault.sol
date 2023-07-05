@@ -18,9 +18,10 @@ pragma solidity 0.8.15;
  * functions to determine user's health factor.
  */
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IERC20Metadata} from
-  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {
+  IERC20,
+  IERC20Metadata
+} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
@@ -31,6 +32,7 @@ import {VaultPermissions} from "../VaultPermissions.sol";
 
 contract BorrowingVault is BaseVault {
   using Math for uint256;
+  using SafeERC20 for IERC20Metadata;
 
   /**
    * @dev Emitted when a user is liquidated.
@@ -57,7 +59,6 @@ contract BorrowingVault is BaseVault {
   error BorrowingVault__borrow_invalidInput();
   error BorrowingVault__borrow_moreThanAllowed();
   error BorrowingVault__payback_invalidInput();
-  error BorrowingVault__payback_moreThanMax();
   error BorrowingVault__beforeTokenTransfer_moreThanMax();
   error BorrowingVault__liquidate_invalidInput();
   error BorrowingVault__liquidate_positionHealthy();
@@ -396,7 +397,7 @@ contract BorrowingVault is BaseVault {
   function payback(uint256 debt, address owner) public override returns (uint256) {
     uint256 shares = previewPayback(debt);
 
-    _paybackChecks(owner, debt, shares);
+    shares = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
 
     return shares;
@@ -424,7 +425,7 @@ contract BorrowingVault is BaseVault {
   function burnDebt(uint256 shares, address owner) public override returns (uint256) {
     uint256 debt = previewBurnDebt(shares);
 
-    _paybackChecks(owner, debt, shares);
+    shares = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
 
     return debt;
@@ -609,10 +610,9 @@ contract BorrowingVault is BaseVault {
   {
     _mintDebtShares(owner, shares);
 
-    address asset = debtAsset();
     _executeProviderAction(assets, "borrow", activeProvider);
 
-    SafeERC20.safeTransfer(IERC20(asset), receiver, assets);
+    _debtAsset.safeTransfer(receiver, assets);
 
     emit Borrow(caller, receiver, owner, assets, shares);
   }
@@ -668,7 +668,7 @@ contract BorrowingVault is BaseVault {
     internal
     whenNotPaused(VaultActions.Payback)
   {
-    SafeERC20.safeTransferFrom(IERC20(debtAsset()), caller, address(this), assets);
+    _debtAsset.safeTransferFrom(caller, address(this), assets);
 
     _executeProviderAction(assets, "payback", activeProvider);
 
@@ -678,7 +678,8 @@ contract BorrowingVault is BaseVault {
   }
 
   /**
-   * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault.
+   * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault and returns maximum
+   * shares to payback if exceeding `owner` debtShares balance.
    * Requirements:
    * - Must revert for all conditions not passed.
    *
@@ -686,13 +687,22 @@ contract BorrowingVault is BaseVault {
    * @param debt or borrowed amount of debt asset
    * @param shares of debt being burned
    */
-  function _paybackChecks(address owner, uint256 debt, uint256 shares) private view {
+  function _paybackChecks(
+    address owner,
+    uint256 debt,
+    uint256 shares
+  )
+    private
+    view
+    returns (uint256)
+  {
     if (debt == 0 || shares == 0 || owner == address(0)) {
       revert BorrowingVault__payback_invalidInput();
     }
     if (shares > _debtShares[owner]) {
-      revert BorrowingVault__payback_moreThanMax();
+      shares = _debtShares[owner];
     }
+    return shares;
   }
 
   /**
@@ -743,7 +753,7 @@ contract BorrowingVault is BaseVault {
     if (!_isValidProvider(address(from)) || !_isValidProvider(address(to))) {
       revert BorrowingVault__rebalance_invalidProvider();
     }
-    SafeERC20.safeTransferFrom(IERC20(debtAsset()), msg.sender, address(this), debt);
+    _debtAsset.safeTransferFrom(msg.sender, address(this), debt);
     if (debt > 0) {
       _executeProviderAction(debt, "payback", from);
     }
@@ -759,7 +769,7 @@ contract BorrowingVault is BaseVault {
     if (debt > 0) {
       _executeProviderAction(debt + fee, "borrow", to);
     }
-    SafeERC20.safeTransfer(IERC20(debtAsset()), msg.sender, debt + fee);
+    _debtAsset.safeTransfer(msg.sender, debt + fee);
 
     if (setToAsActiveProvider) {
       _setActiveProvider(to);
@@ -925,15 +935,11 @@ contract BorrowingVault is BaseVault {
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
       }
-      SafeERC20.forceApprove(
-        IERC20(asset()),
-        providers[i].approvedOperator(asset(), asset(), debtAsset()),
-        type(uint256).max
+      _asset.forceApprove(
+        providers[i].approvedOperator(asset(), asset(), debtAsset()), type(uint256).max
       );
-      SafeERC20.forceApprove(
-        IERC20(debtAsset()),
-        providers[i].approvedOperator(debtAsset(), asset(), debtAsset()),
-        type(uint256).max
+      _debtAsset.forceApprove(
+        providers[i].approvedOperator(debtAsset(), asset(), debtAsset()), type(uint256).max
       );
       unchecked {
         ++i;

@@ -9,8 +9,7 @@ pragma solidity 0.8.15;
  * @notice A Router implementing Connext specific bridging logic.
  */
 
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
 import {ConnextHandler} from "./ConnextHandler.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
@@ -23,6 +22,8 @@ import {IFlasher} from "../interfaces/IFlasher.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
+  using SafeERC20 for IERC20;
+
   /**
    * @dev Emitted when a new destination router gets added.
    *
@@ -137,6 +138,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes memory callData
   )
     external
+    nonReentrant
     returns (bytes memory)
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
@@ -148,8 +150,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       balance = IERC20(asset).balanceOf(address(this));
       if (balance < amount) {
         revert ConnextRouter__xReceive_notReceivedAssetBalance();
-      } else {
-        _tempTokenToCheck = Snapshot(asset, balance - amount);
       }
 
       /**
@@ -163,21 +163,21 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
     }
 
+    Snapshot memory tokenToCheck_ = Snapshot(asset, (balance - amount));
+
     /**
      * @dev Connext will keep the custody of the bridged amount if the call
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
      * Therefore we try/catch instead of directly calling _bundleInternal(...).
      */
-    try this.xBundleConnext(actions, args, beforeSlipped) {
+    try this.xBundleConnext(actions, args, beforeSlipped, tokenToCheck_) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
       if (balance > 0) {
-        SafeERC20.safeTransfer(IERC20(asset), address(handler), balance);
+        IERC20(asset).safeTransfer(address(handler), balance);
         handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
       }
 
-      // Ensure clear storage for token balance checks.
-      delete _tempTokenToCheck;
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
@@ -191,6 +191,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
    * @param beforeSlipped amount passed by the origin cross-chain router operation
+   * @param tokenToCheck_ snapshot after xReceive from Connext
    *
    * @dev Requirements:
    * - Must only be called within the context of this same contract.
@@ -198,13 +199,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   function xBundleConnext(
     Action[] calldata actions,
     bytes[] calldata args,
-    uint256 beforeSlipped
+    uint256 beforeSlipped,
+    Snapshot memory tokenToCheck_
   )
     external
     payable
     onlySelf
   {
-    _bundleInternal(actions, args, beforeSlipped);
+    _bundleInternal(actions, args, beforeSlipped, tokenToCheck_);
   }
 
   /**
@@ -399,12 +401,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       );
       beneficiary_ = owner;
     } else if (actions[0] == Action.Flashloan) {
-      (,,,, bytes memory requestorCalldata) =
-        abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
-
-      (Action[] memory newActions, bytes[] memory newArgs) = abi.decode(
-        LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
-      );
+      (,,,, Action[] memory newActions, bytes[] memory newArgs) =
+        abi.decode(args[0], (IFlasher, address, uint256, address, Action[], bytes[]));
 
       beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
     } else if (actions[0] == Action.XTransfer) {
