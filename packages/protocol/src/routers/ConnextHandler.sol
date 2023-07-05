@@ -117,7 +117,7 @@ contract ConnextHandler {
    * @notice Returns the struct of failed transaction by `transferId`.
    *
    * @param transferId the unique identifier of the cross-chain txn
-   * @param nonce attempt of failed tx
+   * @param nonce or position in the array of the failed attempts to execute
    */
   function getFailedTxn(bytes32 transferId, uint256 nonce) public view returns (FailedTxn memory) {
     return _failedTxns[transferId][nonce];
@@ -171,7 +171,7 @@ contract ConnextHandler {
    * @notice Executes a failed transaction with update `args`
    *
    * @param transferId the unique identifier of the cross-chain txn
-   * @param nonce of the failed attempt to execute
+   * @param nonce or position in the array of the failed attempts to execute
    * @param actions  that will replace actions of failed txn
    * @param args taht will replace args of failed txn
    *
@@ -198,13 +198,16 @@ contract ConnextHandler {
     }
 
     IERC20(txn.asset).safeIncreaseAllowance(address(connextRouter), txn.amount);
+    txn.executed = true;
+    _failedTxns[transferId][nonce] = txn;
 
     try connextRouter.xBundle(actions, args) {
-      txn.executed = true;
-      _failedTxns[transferId][nonce] = txn;
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, true);
     } catch {
+      txn.executed = false;
+      _failedTxns[transferId][nonce] = txn;
       IERC20(txn.asset).safeDecreaseAllowance(address(connextRouter), txn.amount);
+
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, false);
     }
   }
