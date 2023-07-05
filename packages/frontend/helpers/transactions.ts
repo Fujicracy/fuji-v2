@@ -31,7 +31,7 @@ export type TransactionMeta = {
   estimateSlippage?: number;
 };
 
-export type TransactionStep = {
+type TransactionStep = {
   step: RoutingStep;
   label: { text: string; amount: string };
   description: string;
@@ -184,16 +184,16 @@ export const transactionSteps = (
   });
 };
 
-export const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {
-  return bridgeFees.reduce((sum, fee) => {
-    const cost = fee.amount * fee.priceUSD;
-    return sum + cost;
-  }, 0);
-};
-
 export const stringifiedBridgeFeeSum = (bridgeFees?: BridgeFee[]): string => {
   if (!bridgeFees) {
     return Number(0).toFixed(2);
   }
   return toNotSoFixed(bridgeFeeSum(bridgeFees), true);
+};
+
+const bridgeFeeSum = (bridgeFees: BridgeFee[]): number => {
+  return bridgeFees.reduce((sum, fee) => {
+    const cost = fee.amount * fee.priceUSD;
+    return sum + cost;
+  }, 0);
 };

@@ -150,7 +150,6 @@ function CurrencyCard({
   };
 
   const handleInput = (val: string) => {
-    // TODO: borrow-refactor
     if (!currency) return;
     const value = validAmount(val, currency.decimals);
     onInputChange(value);

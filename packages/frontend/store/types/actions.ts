@@ -426,14 +426,6 @@ export const updateMeta = (
   state.updateAllowance(type);
 };
 
-export const updateLtvAndLiquidationIfPossible = (api: StoreApi) => {
-  const state = api.getState();
-  if ('updateLtv' in state && 'updateLiquidation' in state) {
-    state.updateLtv();
-    state.updateLiquidation();
-  }
-};
-
 export const updateTransactionMeta = async (api: StoreApi) => {
   const { address, slippage } = useAuth.getState();
   if (!address) {
@@ -612,6 +604,7 @@ export const sign = async (api: StoreApi) => {
     api.setState({ isSigning: false });
   }
 };
+
 export const execute = async (
   api: StoreApi
 ): Promise<ethers.providers.TransactionResponse | undefined> => {
@@ -675,6 +668,7 @@ export const execute = async (
     api.setState({ isExecuting: false });
   }
 };
+
 export const signAndExecute = async (api: StoreApi, type: VaultType) => {
   if (api.getState().needsSignature) {
     await api.getState().sign();
@@ -685,11 +679,18 @@ export const signAndExecute = async (api: StoreApi, type: VaultType) => {
 
   // error was already displayed in execute()
   if (tx && vault) {
-    // TODO: add needs to support AbstractVault for lending operations
     useHistory
       .getState()
       .add(type, tx.hash, tx.from, vault, api.getState().transactionMeta.steps);
 
     api.getState().clearInputValues();
+  }
+};
+
+const updateLtvAndLiquidationIfPossible = (api: StoreApi) => {
+  const state = api.getState();
+  if ('updateLtv' in state && 'updateLiquidation' in state) {
+    state.updateLtv();
+    state.updateLiquidation();
   }
 };

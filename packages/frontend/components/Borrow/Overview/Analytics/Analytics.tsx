@@ -19,9 +19,9 @@ import APYChart from '../../../Shared/Charts/APYChart';
 import EmptyChartState from '../../../Shared/Charts/EmptyState';
 import PeriodOptions from '../../../Shared/Filters/PeriodOptions';
 import { ProviderIcon } from '../../../Shared/Icons';
+import InfoBlock from '../../../Shared/InfoBlock';
 import TabSwitch from '../../../Shared/TabSwitch/TabSwitch';
 import { TooltipWrapper } from '../../../Shared/Tooltips';
-import InfoBlock from './InfoBlock';
 import PoolInfo from './PoolInfo';
 
 const chartOptions: TabOption[] = [

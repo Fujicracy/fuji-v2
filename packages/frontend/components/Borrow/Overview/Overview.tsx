@@ -49,7 +49,7 @@ function Overview({ positionData, isEditing }: OverviewProps) {
     ltvMax
   );
 
-  if (debtInput === undefined) return <></>; // TODO: handle this case
+  if (debtInput === undefined) return <></>;
   return (
     <Container isMobile={isMobile}>
       {!isMobile && <Typography variant="body2">Position Overview</Typography>}

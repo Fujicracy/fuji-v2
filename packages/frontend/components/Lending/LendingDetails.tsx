@@ -4,11 +4,11 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import { bigToFloat, formatBalance } from '../../helpers/values';
 import { useLend } from '../../store/lend.store';
-import InfoBlock from '../Shared/Analytics/InfoBlock';
 import AprValue from '../Shared/AprValue';
 import APYChart from '../Shared/Charts/APYChart';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
+import InfoBlock from '../Shared/InfoBlock';
 import VaultSelect from '../Shared/VaultSelect/VaultSelect';
 import RiskBlock from './RiskBlock';
 import VaultStrategy from './VaultStrategy';

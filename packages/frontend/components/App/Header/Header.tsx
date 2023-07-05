@@ -37,7 +37,7 @@ import ChainSelect from './ChainSelect';
 import SocialMenu from './SocialMenu';
 import SocialMenuWrapper from './SocialMenuWrapper';
 
-export const BANNERS: BannerConfig[] = [
+const BANNERS: BannerConfig[] = [
   {
     key: 'betaTest',
     message:

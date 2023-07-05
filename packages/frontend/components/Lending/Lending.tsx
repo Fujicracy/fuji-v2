@@ -8,8 +8,8 @@ import {
 } from '../../helpers/positions';
 import { useLend } from '../../store/lend.store';
 import { FormType } from '../../store/types/state';
-import InfoBlock from '../Shared/Analytics/InfoBlock';
 import BackToList from '../Shared/BackToList';
+import InfoBlock from '../Shared/InfoBlock';
 import LendingForm from './Form';
 import LendingDetails from './LendingDetails';
 

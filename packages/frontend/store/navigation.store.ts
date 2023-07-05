@@ -30,7 +30,7 @@ const initialState: NavigationState = {
   },
 };
 
-export type NavigationStore = NavigationState & NavigationActions;
+type NavigationStore = NavigationState & NavigationActions;
 
 export const useNavigation = create<NavigationStore>()(
   devtools(

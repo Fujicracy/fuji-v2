@@ -28,10 +28,7 @@ type PositionYieldsModalProps = {
   onClose: () => void;
 };
 
-export function PositionYieldsModal({
-  open,
-  onClose,
-}: PositionYieldsModalProps) {
+function PositionYieldsModal({ open, onClose }: PositionYieldsModalProps) {
   const { palette } = useTheme();
   const router = useRouter();
   const loading = usePositions((state) => state.loading);

@@ -36,7 +36,7 @@ const initialState: PositionsState = {
   loading: false,
 };
 
-export type PositionsStore = PositionsState & PositionsActions;
+type PositionsStore = PositionsState & PositionsActions;
 
 export const usePositions = create<PositionsStore>()(
   devtools(

@@ -33,7 +33,7 @@ type ConfirmTransactionModalProps = {
   action: () => void;
 };
 
-export function ConfirmTransactionModal({
+function ConfirmTransactionModal({
   positionData,
   transactionMeta,
   open,
@@ -84,7 +84,7 @@ export function ConfirmTransactionModal({
   );
 
   if (!position || !dynamicLtvMeta) {
-    return <></>; // TODO: borrow-refactor
+    return <></>;
   }
 
   return (

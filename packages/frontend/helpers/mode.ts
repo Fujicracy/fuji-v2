@@ -25,16 +25,3 @@ export const borrowingModeForContext = (
   }
   return Mode.DEPOSIT_AND_BORROW;
 };
-
-export const failureForMode = (
-  mode: Mode,
-  collateral?: string,
-  debt?: string
-): boolean => {
-  return (
-    ((mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
-      (!collateral || !debt)) ||
-    ((mode === Mode.DEPOSIT || mode === Mode.WITHDRAW) && !collateral) ||
-    ((mode === Mode.BORROW || mode === Mode.PAYBACK) && !debt)
-  );
-};

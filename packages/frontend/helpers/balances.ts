@@ -43,7 +43,7 @@ export const updateNativeBalance = (addr?: string) => {
   onboard.state.actions.updateBalances([address]);
 };
 
-export const checkBalances = async () => {
+const checkBalances = async () => {
   const address = useAuth.getState().address;
   if (!address) return;
 
@@ -134,7 +134,7 @@ export const changeERC20PollingPolicy = (value: boolean) => {
   shouldFetchERC20 = value;
 };
 
-export const poll = (pollFn: () => void) => {
+const poll = (pollFn: () => void) => {
   if (timerId !== null) {
     return; // Do nothing if there's already a timer in place
   }

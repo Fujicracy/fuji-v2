@@ -69,178 +69,8 @@ const defaultRow: MarketRow = {
   isBest: false,
 };
 
-export const setBase = (v: AbstractVault): MarketRow => ({
-  ...defaultRow,
-  entity: v,
-  collateral: v.collateral.symbol,
-  debt: v instanceof BorrowingVault ? v.debt.symbol : undefined,
-  chain: {
-    status: MarketRowStatus.Ready,
-    value: chainName(v.chainId),
-  },
-});
-
-// set apr and aprBase as being equal
-// and re-set later when data gets fetched from the Llama API
-export const setFinancials = (
-  r: MarketRow,
-  status: MarketRowStatus,
-  f?: VaultWithFinancials
-): MarketRow => ({
-  ...r,
-  safetyRating: {
-    status,
-    value: Number((r.entity as AbstractVault).safetyRating?.toString()) ?? 0,
-  },
-  depositApr: {
-    status,
-    value: f?.activeProvider.depositAprBase ?? 0,
-  },
-  depositAprBase: {
-    status,
-    value: f?.activeProvider.depositAprBase ?? 0,
-  },
-  borrowApr: {
-    status,
-    value: f?.activeProvider.borrowAprBase ?? 0,
-  },
-  borrowAprBase: {
-    status,
-    value: f?.activeProvider.borrowAprBase ?? 0,
-  },
-  integratedProviders: {
-    status,
-    value: f?.allProviders.map((p) => p.name) ?? [],
-  },
-});
-
-export const setLlamas = (
-  r: MarketRow,
-  status: MarketRowStatus,
-  f?: VaultWithFinancials
-): MarketRow => {
-  if (status === MarketRowStatus.Ready) {
-    return {
-      ...r,
-      depositApr: {
-        status,
-        value:
-          Number(f?.activeProvider.depositAprBase) +
-          Number(f?.activeProvider.depositAprReward ?? 0),
-      },
-      depositAprReward: {
-        status:
-          f?.activeProvider.depositAprReward === undefined
-            ? MarketRowStatus.Error
-            : status,
-        value: Number(f?.activeProvider.depositAprReward),
-      },
-      borrowApr: {
-        status,
-        value:
-          Number(f?.activeProvider.borrowAprBase) +
-          Number(f?.activeProvider.borrowAprReward ?? 0),
-      },
-      borrowAprReward: {
-        status:
-          f?.activeProvider.borrowAprReward === undefined
-            ? MarketRowStatus.Error
-            : status,
-        value: Number(f?.activeProvider.borrowAprReward),
-      },
-      liquidity: {
-        status:
-          f?.activeProvider.availableToBorrowUSD === undefined
-            ? MarketRowStatus.Error
-            : status,
-        value: f?.activeProvider.availableToBorrowUSD ?? 0,
-      },
-    };
-  } else {
-    return {
-      ...r,
-      depositAprReward: {
-        status,
-        value: 0,
-      },
-      borrowAprReward: {
-        status,
-        value: 0,
-      },
-      liquidity: {
-        status,
-        value: 0,
-      },
-    };
-  }
-};
-
-export const setBest = (rows: MarketRow[], type: VaultType): MarketRow[] => {
-  const result: MarketRow[] = [];
-  const done = new Set<string>();
-
-  const isLend = type === VaultType.LEND;
-
-  for (const row of rows) {
-    const key = `${row.debt}/${row.collateral}`;
-    if (done.has(key)) continue;
-    done.add(key);
-
-    const entries = rows.filter(
-      (r) => r.debt === row.debt && r.collateral === row.collateral
-    );
-    if (entries.length > 1) {
-      const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
-      const sorted = entries.sort(sortBy.descending);
-      const children = groupByChain(sorted, type);
-      children[0].isBest = true;
-      if (children[0].children) {
-        children[0].children[0].isBest = true;
-      }
-      result.push(...children);
-    } else {
-      result.push({ ...entries[0], isBest: true });
-    }
-  }
-
-  return result;
-};
-
-export const groupByPair = (
-  rows: MarketRow[],
-  type: VaultType
-): MarketRow[] => {
-  const done = new Set<string>(); // Pair is symbol/symbol i.e WETH/USDC
-  const grouped: MarketRow[] = [];
-
-  const isLend = type === VaultType.LEND;
-
-  for (const row of rows) {
-    const key = `${row.debt}/${row.collateral}`;
-    if (done.has(key)) continue;
-    done.add(key);
-
-    const entries = rows.filter(
-      (r) => r.debt === row.debt && r.collateral === row.collateral
-    );
-    if (entries.length > 1) {
-      const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
-      const sorted = entries.sort(sortBy.descending);
-      const children = groupByChain(
-        sorted.map((r) => ({
-          ...r,
-          isChild: true,
-        })),
-        type
-      );
-      grouped.push({ ...sorted[0], children });
-    } else {
-      grouped.push(entries[0]);
-    }
-  }
-
-  return grouped;
-};
+type SortBy = 'descending' | 'ascending';
+type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;
 
 export const filterMarketRows = (
   rows: MarketRow[],
@@ -301,8 +131,38 @@ export const aprData = (
   };
 };
 
-type SortBy = 'descending' | 'ascending';
-type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;
+const groupByPair = (rows: MarketRow[], type: VaultType): MarketRow[] => {
+  const done = new Set<string>(); // Pair is symbol/symbol i.e WETH/USDC
+  const grouped: MarketRow[] = [];
+
+  const isLend = type === VaultType.LEND;
+
+  for (const row of rows) {
+    const key = `${row.debt}/${row.collateral}`;
+    if (done.has(key)) continue;
+    done.add(key);
+
+    const entries = rows.filter(
+      (r) => r.debt === row.debt && r.collateral === row.collateral
+    );
+    if (entries.length > 1) {
+      const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
+      const sorted = entries.sort(sortBy.descending);
+      const children = groupByChain(
+        sorted.map((r) => ({
+          ...r,
+          isChild: true,
+        })),
+        type
+      );
+      grouped.push({ ...sorted[0], children });
+    } else {
+      grouped.push(entries[0]);
+    }
+  }
+
+  return grouped;
+};
 
 const groupByChain = (rows: MarketRow[], type: VaultType): MarketRow[] => {
   const done = new Set<string>();
@@ -433,4 +293,141 @@ export const fetchMarkets = async (
   api
     .getState()
     .changeRowsAndFinancials(type, setBest(rowsLlama, type), vaultsWithLlamas);
+};
+
+const setBase = (v: AbstractVault): MarketRow => ({
+  ...defaultRow,
+  entity: v,
+  collateral: v.collateral.symbol,
+  debt: v instanceof BorrowingVault ? v.debt.symbol : undefined,
+  chain: {
+    status: MarketRowStatus.Ready,
+    value: chainName(v.chainId),
+  },
+});
+
+// set apr and aprBase as being equal
+// and re-set later when data gets fetched from the Llama API
+const setFinancials = (
+  r: MarketRow,
+  status: MarketRowStatus,
+  f?: VaultWithFinancials
+): MarketRow => ({
+  ...r,
+  safetyRating: {
+    status,
+    value: Number((r.entity as AbstractVault).safetyRating?.toString()) ?? 0,
+  },
+  depositApr: {
+    status,
+    value: f?.activeProvider.depositAprBase ?? 0,
+  },
+  depositAprBase: {
+    status,
+    value: f?.activeProvider.depositAprBase ?? 0,
+  },
+  borrowApr: {
+    status,
+    value: f?.activeProvider.borrowAprBase ?? 0,
+  },
+  borrowAprBase: {
+    status,
+    value: f?.activeProvider.borrowAprBase ?? 0,
+  },
+  integratedProviders: {
+    status,
+    value: f?.allProviders.map((p) => p.name) ?? [],
+  },
+});
+
+const setLlamas = (
+  r: MarketRow,
+  status: MarketRowStatus,
+  f?: VaultWithFinancials
+): MarketRow => {
+  if (status === MarketRowStatus.Ready) {
+    return {
+      ...r,
+      depositApr: {
+        status,
+        value:
+          Number(f?.activeProvider.depositAprBase) +
+          Number(f?.activeProvider.depositAprReward ?? 0),
+      },
+      depositAprReward: {
+        status:
+          f?.activeProvider.depositAprReward === undefined
+            ? MarketRowStatus.Error
+            : status,
+        value: Number(f?.activeProvider.depositAprReward),
+      },
+      borrowApr: {
+        status,
+        value:
+          Number(f?.activeProvider.borrowAprBase) +
+          Number(f?.activeProvider.borrowAprReward ?? 0),
+      },
+      borrowAprReward: {
+        status:
+          f?.activeProvider.borrowAprReward === undefined
+            ? MarketRowStatus.Error
+            : status,
+        value: Number(f?.activeProvider.borrowAprReward),
+      },
+      liquidity: {
+        status:
+          f?.activeProvider.availableToBorrowUSD === undefined
+            ? MarketRowStatus.Error
+            : status,
+        value: f?.activeProvider.availableToBorrowUSD ?? 0,
+      },
+    };
+  } else {
+    return {
+      ...r,
+      depositAprReward: {
+        status,
+        value: 0,
+      },
+      borrowAprReward: {
+        status,
+        value: 0,
+      },
+      liquidity: {
+        status,
+        value: 0,
+      },
+    };
+  }
+};
+
+const setBest = (rows: MarketRow[], type: VaultType): MarketRow[] => {
+  const result: MarketRow[] = [];
+  const done = new Set<string>();
+
+  const isLend = type === VaultType.LEND;
+
+  for (const row of rows) {
+    const key = `${row.debt}/${row.collateral}`;
+    if (done.has(key)) continue;
+    done.add(key);
+
+    const entries = rows.filter(
+      (r) => r.debt === row.debt && r.collateral === row.collateral
+    );
+    if (entries.length > 1) {
+      const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
+      const sorted = entries.sort(sortBy.descending);
+      const children = groupByChain(sorted, type);
+      children[0].isBest = true;
+      if (children[0].children) {
+        children[0].children[0].isBest = true;
+      }
+      result.push(...children);
+    } else {
+      result.push({ ...entries[0], isBest: true });
+    }
+  }
+
+  return result;
 };

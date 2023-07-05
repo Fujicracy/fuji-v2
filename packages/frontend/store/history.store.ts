@@ -39,7 +39,7 @@ import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import { usePositions } from './positions.store';
 
-export type HistoryStore = HistoryState & HistoryActions;
+type HistoryStore = HistoryState & HistoryActions;
 
 type HistoryState = {
   transactions: HistoryTransaction[];

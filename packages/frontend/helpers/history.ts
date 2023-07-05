@@ -35,14 +35,14 @@ export type SerializableToken = {
   isNative: boolean;
 };
 
-export type HistoryEntryChain = {
+type HistoryEntryChain = {
   chainId: ChainId;
   status: HistoryEntryStatus;
   hash?: string;
   shown?: boolean; // If the user reloads the page while executing a cross-chain tx, without this prop we show the initial notification again
 };
 
-export type HistoryEntryConnext = {
+type HistoryEntryConnext = {
   transferId: string;
   timestamp: number;
   secondTransferId?: string;

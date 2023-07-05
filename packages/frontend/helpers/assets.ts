@@ -52,11 +52,6 @@ export enum AllowanceStatus {
   Unneeded,
 }
 
-export type Allowance = {
-  status: AllowanceStatus;
-  value?: number;
-};
-
 export type AssetChange = {
   selectableCurrencies: Currency[];
   balances: Record<string, number>;
@@ -83,6 +78,11 @@ export enum ActionType {
   ADD = 0,
   REMOVE = 1,
 }
+
+type Allowance = {
+  status: AllowanceStatus;
+  value?: number;
+};
 
 export const foundCurrency = (
   selectable: Currency[],

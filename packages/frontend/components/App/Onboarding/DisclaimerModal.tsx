@@ -32,7 +32,7 @@ const agreements: AgreementBox[] = [
   },
 ];
 
-export function DisclaimerModal() {
+function DisclaimerModal() {
   const [hasAcceptedTerms, setHasAcceptedTerms] = useState<boolean>(true);
   const [hasPreviouslyAcceptedTerms, setHasPreviouslyAcceptedTerms] =
     useState<boolean>(true);

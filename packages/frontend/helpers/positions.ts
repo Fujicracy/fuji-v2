@@ -321,19 +321,6 @@ export const viewDynamicBorrowingPosition = (
   };
 };
 
-export const dynamicPositionMeta = (
-  dynamic: boolean, // If tue, it means we need to show data the user is inputting
-  source: AssetChange,
-  positionMeta?: AssetMeta
-): AssetMeta => {
-  if (positionMeta) return positionMeta;
-  return {
-    amount: dynamic ? Number(source.input) : source.amount,
-    usdPrice: source.usdPrice,
-    currency: source.currency,
-  };
-};
-
 export const getEstimatedEarnings = ({
   days,
   collateralInUsd,
@@ -396,6 +383,19 @@ const handleDisplayLiquidationPrice = (liqPrice?: number) => {
   } else {
     return formatNumber(liqPrice, liqPrice < 10 ? 2 : 0);
   }
+};
+
+const dynamicPositionMeta = (
+  dynamic: boolean, // If tue, it means we need to show data the user is inputting
+  source: AssetChange,
+  positionMeta?: AssetMeta
+): AssetMeta => {
+  if (positionMeta) return positionMeta;
+  return {
+    amount: dynamic ? Number(source.input) : source.amount,
+    usdPrice: source.usdPrice,
+    currency: source.currency,
+  };
 };
 
 const viewEditedLendingPosition = (

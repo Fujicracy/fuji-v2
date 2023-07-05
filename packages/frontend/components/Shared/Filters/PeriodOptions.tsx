@@ -11,7 +11,7 @@ const periodOptions: TabOption[] = [
   { label: '365D', value: Period.YEAR },
 ];
 
-export function PeriodOptions({
+function PeriodOptions({
   onChange,
   isDayExcluded = false,
 }: {

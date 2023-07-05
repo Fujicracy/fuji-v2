@@ -7,7 +7,7 @@ export type LendState = Omit<SharedState, 'activeVault'> & {
   activeVault: LendingVault | undefined;
 };
 
-export type LendActions = SharedActions & {
+type LendActions = SharedActions & {
   changeAll: (vault: AbstractVault, collateral: Currency) => void;
 };
 

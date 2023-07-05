@@ -38,7 +38,7 @@ import { useBorrow } from '../../store/borrow.store';
 import { useHistory } from '../../store/history.store';
 import { useLend } from '../../store/lend.store';
 import AddTokenButton from '../Shared/AddTokenButton';
-import LinkIcon from '../Shared/Icons/LinkIcon';
+import { LinkIcon } from '../Shared/Icons';
 import ModalHeader from '../Shared/ModalHeader';
 import { stepIcon } from '../Shared/RoutesSteps';
 import WarningInfo from '../Shared/WarningInfo';
