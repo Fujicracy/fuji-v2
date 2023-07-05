@@ -44,8 +44,8 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
 
   // Filters original rows depends on search or chain
   useEffect(() => {
-    setFilteredRows(filterMarketRows(rows.slice(), filters));
-  }, [filters, rows]);
+    setFilteredRows(filterMarketRows(rows.slice(), filters, type));
+  }, [filters, rows, type]);
 
   const handleClick = async (entity?: AbstractVault | VaultWithFinancials) => {
     showPosition(type, router, true, entity, walletChainId);

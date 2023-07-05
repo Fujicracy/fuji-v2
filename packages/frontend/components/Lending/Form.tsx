@@ -1,13 +1,4 @@
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import {
-  Box,
-  Card,
-  CardContent,
-  Stack,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, Card, CardContent } from '@mui/material';
 import { Address, VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -39,9 +30,8 @@ type LendingProps = {
   isEditing: boolean;
   positionData?: PositionData;
 };
+
 function LendingForm({ isEditing, positionData }: LendingProps) {
-  const theme = useTheme();
-  const onMobile = useMediaQuery(theme.breakpoints.down('md'));
   const router = useRouter();
 
   const address = useAuth((state) => state.address);
@@ -76,7 +66,6 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
     ? (positionData.position as LendingPosition)
     : undefined;
 
-  const [showRoutingModal, setShowRoutingModal] = useState(false);
   const [actionType, setActionType] = useState(ActionType.ADD);
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false);
   const [isConfirmationModalShown, setIsConfirmationModalShown] =
@@ -225,34 +214,6 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
             changeAssetChain={changeAssetChain}
             changeAssetCurrency={changeAssetCurrency}
           />
-
-          {availableRoutes.length > 1 ? (
-            <Stack
-              direction="row"
-              mt="1rem"
-              justifyContent="space-between"
-              onClick={() => {
-                !isEditing && !onMobile && address && setShowRoutingModal(true);
-              }}
-              sx={{ cursor: address && 'pointer' }}
-            >
-              <Typography variant="smallDark">Routes</Typography>
-              <Stack direction="row">
-                <Typography variant="h6" sx={{ fontSize: '0.875rem' }}>
-                  View all Routes
-                </Typography>
-                <ArrowForwardIosIcon
-                  viewBox="0 0 24 24"
-                  sx={{
-                    fontSize: 24,
-                    p: '5px',
-                  }}
-                />
-              </Stack>
-            </Stack>
-          ) : (
-            <></>
-          )}
 
           <Box m="1rem 0">
             <Fees />

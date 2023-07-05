@@ -96,8 +96,8 @@ function MarketsTableRow({
                   onClick={handleExpand}
                 />
                 <CurrencyTableItem
-                  currency={isLend ? row.collateral! : row.debt!}
-                  label={isLend ? row.collateral! : row.debt!}
+                  currency={isLend ? row.collateral : row.debt || ''}
+                  label={isLend ? row.collateral : row.debt || ''}
                   iconDimensions={32}
                   dataCy={`market-row-${isLend ? 'collateral' : 'debt'}`}
                 />
