@@ -485,7 +485,9 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     do_deposit(amount, vault, ALICE);
 
     vm.prank(ALICE);
-    BorrowingVault(payable(address(vault))).increaseAllowance(address(connextRouter), amount);
+    BorrowingVault(payable(address(vault))).increaseWithdrawAllowance(
+      address(connextRouter), address(connextRouter), amount
+    );
 
     IRouter.Action[] memory actions = new IRouter.Action[](2);
     bytes[] memory args = new bytes[](2);
