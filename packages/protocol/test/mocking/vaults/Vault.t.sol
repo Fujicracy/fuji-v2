@@ -309,7 +309,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
     vm.prank(BOB);
-    vault.liquidate(ALICE, BOB);
+    vault.liquidate(ALICE, BOB, 1e18);
   }
 
   function test_liquidateMax(uint256 borrowAmount) public {
@@ -344,7 +344,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     vm.startPrank(BOB);
     IERC20(debtAsset).approve(address(vault), borrowAmount);
-    vault.liquidate(ALICE, BOB);
+    vault.liquidate(ALICE, BOB, 1e18);
     vm.stopPrank();
 
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
@@ -397,7 +397,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     vm.startPrank(BOB);
     IERC20(debtAsset).approve(address(vault), liquidatorAmount);
-    vault.liquidate(ALICE, BOB);
+    vault.liquidate(ALICE, BOB, 0.5e18);
     vm.stopPrank();
 
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
@@ -486,7 +486,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
   //error BorrowingVault__liquidate_invalidInput();
   function test_liquidateInvalidInput() public {
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
-    vault.liquidate(ALICE, address(0));
+    vault.liquidate(ALICE, address(0), 1e18);
   }
 
   function test_withdrawWhenFullDebtIsPaybackExternally(uint256 amount) public {
