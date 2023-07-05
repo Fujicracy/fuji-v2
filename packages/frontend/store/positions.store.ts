@@ -78,8 +78,6 @@ export const usePositions = create<PositionsStore>()(
           ? lendingResult.data
           : [];
 
-        // TODO: Update the following taking into account lending positions
-
         const totalDepositsUSD =
           getTotalSum(borrowPositions, AssetType.Collateral) +
           getTotalSum(lendingPositions, AssetType.Collateral);
