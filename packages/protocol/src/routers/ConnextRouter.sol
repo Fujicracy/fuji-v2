@@ -414,8 +414,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       (,,,, bytes memory callData) =
         abi.decode(args[0], (uint256, uint256, address, uint256, bytes));
 
-      (Action[] memory actions_, bytes[] memory args_,) =
-        abi.decode(callData, (Action[], bytes[], uint256));
+      (Action[] memory actions_, bytes[] memory args_) = abi.decode(callData, (Action[], bytes[]));
 
       beneficiary_ = _getBeneficiaryFromCalldata(actions_, args_);
     } else if (actions[0] == Action.DepositETH) {
