@@ -1,4 +1,5 @@
 import { Box, Grid, Typography, useMediaQuery } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -7,10 +8,8 @@ import { useAuth } from '../../store/auth.store';
 import { useMarkets } from '../../store/markets.store';
 import { theme } from '../../styles/theme';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import { MarketFilters } from './MarketFiltersHeader';
-import MarketFiltersHeader from './MarketFiltersHeader';
-import MarketsBorrowTable from './MarketsBorrowTable';
-import MarketsLendingTable from './MarketsLendingTable';
+import MarketFiltersHeader, { MarketFilters } from './MarketFiltersHeader';
+import MarketsTable from './MarketsTable';
 
 function Markets() {
   const router = useRouter();
@@ -18,6 +17,10 @@ function Markets() {
 
   const address = useAuth((state) => state.address);
   const fetchMarkets = useMarkets((state) => state.fetchMarkets);
+  const borrowVaults = useMarkets((state) => state.borrow.vaults);
+  const borrowRows = useMarkets((state) => state.borrow.rows);
+  const lendingVaults = useMarkets((state) => state.lending.vaults);
+  const lendingRows = useMarkets((state) => state.lending.rows);
 
   const [currentTab, setCurrentTab] = useState<number>(
     router.query?.tab === 'lend' ? 1 : 0
@@ -31,6 +34,19 @@ function Markets() {
   useEffect(() => {
     fetchMarkets(address);
   }, [address, fetchMarkets]);
+
+  const tableData =
+    currentTab === 0
+      ? {
+          type: VaultType.BORROW,
+          rows: borrowRows,
+          vaults: borrowVaults,
+        }
+      : {
+          type: VaultType.LEND,
+          rows: lendingRows,
+          vaults: lendingVaults,
+        };
 
   return (
     <Box>
@@ -56,11 +72,12 @@ function Markets() {
 
       <Box>
         <MarketFiltersHeader filters={filters} setFilters={setFilters} />
-        {currentTab === 0 ? (
-          <MarketsBorrowTable filters={filters} />
-        ) : (
-          <MarketsLendingTable filters={filters} />
-        )}
+        <MarketsTable
+          filters={filters}
+          rows={tableData.rows}
+          vaults={tableData.vaults}
+          type={tableData.type}
+        />
       </Box>
     </Box>
   );

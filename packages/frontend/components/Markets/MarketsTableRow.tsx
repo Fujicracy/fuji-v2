@@ -7,7 +7,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import { AbstractVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { AbstractVault, VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
 import { AssetType } from '../../helpers/assets';
@@ -27,12 +27,16 @@ import { loaderOrError } from './LoaderOrError';
 type MarketsTableRowProps = {
   row: MarketRow;
   onClick: (entity?: AbstractVault | VaultWithFinancials) => void;
+  type: VaultType;
+  numberOfColumns: number;
   openedByDefault?: boolean;
 };
 
-function MarketsBorrowTableRow({
+function MarketsTableRow({
   row,
   onClick,
+  type,
+  numberOfColumns,
   openedByDefault = false,
 }: MarketsTableRowProps) {
   const { palette } = useTheme();
@@ -54,6 +58,8 @@ function MarketsBorrowTableRow({
     row.chain.status === MarketRowStatus.Ready &&
     (!isHighLevelRow || (isHighLevelRow && !expandRow));
 
+  const isLend = type === VaultType.LEND;
+
   return (
     <>
       <TableRow
@@ -74,40 +80,45 @@ function MarketsBorrowTableRow({
       >
         <SizableTableCell
           width="160px"
+          align="left"
           sx={{
             position: 'sticky',
             left: 0,
             zIndex: 5,
           }}
         >
-          {row.debt && isHighLevelRow && (
-            <Stack direction="row" gap={0.5} alignItems="center">
-              <Toggle
-                expandRow={expandRow}
-                isVisible={Boolean(row.children && row.children.length > 0)}
-                onClick={handleExpand}
-              />
+          {((!isLend && row.debt) || (isLend && row.collateral)) &&
+            isHighLevelRow && (
+              <Stack direction="row" gap={0.5} alignItems="center">
+                <Toggle
+                  expandRow={expandRow}
+                  isVisible={Boolean(row.children && row.children.length > 0)}
+                  onClick={handleExpand}
+                />
+                <CurrencyTableItem
+                  currency={isLend ? row.collateral! : row.debt!}
+                  label={isLend ? row.collateral! : row.debt!}
+                  iconDimensions={32}
+                  dataCy={`market-row-${isLend ? 'collateral' : 'debt'}`}
+                />
+              </Stack>
+            )}
+        </SizableTableCell>
+        {!isLend && (
+          <SizableTableCell width="120px">
+            {row.collateral && isHighLevelRow && (
               <CurrencyTableItem
-                currency={row.debt}
-                label={row.debt}
+                currency={row.collateral}
+                label={row.collateral}
                 iconDimensions={32}
-                dataCy="market-row-debt"
+                dataCy="market-row-collateral"
               />
-            </Stack>
-          )}
-        </SizableTableCell>
-        <SizableTableCell width="120px">
-          {row.collateral && isHighLevelRow && (
-            <CurrencyTableItem
-              currency={row.collateral}
-              label={row.collateral}
-              iconDimensions={32}
-              dataCy="market-row-collateral"
-            />
-          )}
-        </SizableTableCell>
+            )}
+          </SizableTableCell>
+        )}
         <SizableTableCell width="200px">
-          {!expandRow && loaderOrError(row.chain.status)}
+          {((isLend && !expandRow) || !isLend) &&
+            loaderOrError(row.chain.status)}
           {shouldNetworkColumnBeShown && (
             <Stack
               direction="row"
@@ -122,7 +133,7 @@ function MarketsBorrowTableRow({
               />
               <Stack
                 direction="row"
-                alignItems="center"
+                alignItems="left"
                 flexWrap="nowrap"
                 data-cy="market-row-network"
               >
@@ -135,17 +146,19 @@ function MarketsBorrowTableRow({
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
-          {!expandRow && loaderOrError(row.borrowApr.status)}
-          {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
-            <AprValue
-              base={borrowApr.base || 0}
-              reward={borrowApr.reward}
-              positive={borrowApr.positive}
-              providerName={row.integratedProviders.value[0]}
-            />
-          )}
-        </SizableTableCell>
+        {!isLend && (
+          <SizableTableCell align="right" width="140px">
+            {!expandRow && loaderOrError(row.borrowApr.status)}
+            {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
+              <AprValue
+                base={borrowApr.base || 0}
+                reward={borrowApr.reward}
+                positive={borrowApr.positive}
+                providerName={row.integratedProviders.value[0]}
+              />
+            )}
+          </SizableTableCell>
+        )}
         <SizableTableCell
           align="right"
           width="130px"
@@ -178,22 +191,25 @@ function MarketsBorrowTableRow({
             </>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
-          {!expandRow && loaderOrError(row.liquidity.status)}
-          {row.liquidity.status === MarketRowStatus.Ready &&
-            !expandRow &&
-            formatValue(row.liquidity.value, {
-              maximumSignificantDigits: 3,
-              notation: 'compact',
-              style: 'currency',
-            })}
-        </SizableTableCell>
+        {!isLend && (
+          <SizableTableCell align="right" width="140px">
+            {!expandRow && loaderOrError(row.liquidity.status)}
+            {row.liquidity.status === MarketRowStatus.Ready &&
+              !expandRow &&
+              formatValue(row.liquidity.value, {
+                maximumSignificantDigits: 3,
+                notation: 'compact',
+                style: 'currency',
+              })}
+          </SizableTableCell>
+        )}
       </TableRow>
 
       <TableRow>
         <SizableTableCell
           sx={{ p: 0, borderBottom: 'none !important' }}
-          colSpan={8}
+          colSpan={numberOfColumns}
+          align="right"
         >
           <Collapse
             in={expandRow}
@@ -206,7 +222,12 @@ function MarketsBorrowTableRow({
                 sx={{ borderCollapse: 'initial' }}
               >
                 <TableBody>
-                  <MarketsBorrowTableRow row={collapsedRow} onClick={onClick} />
+                  <MarketsTableRow
+                    row={collapsedRow}
+                    onClick={onClick}
+                    type={type}
+                    numberOfColumns={numberOfColumns}
+                  />
                 </TableBody>
               </Table>
             ))}
@@ -217,4 +238,4 @@ function MarketsBorrowTableRow({
   );
 }
 
-export default MarketsBorrowTableRow;
+export default MarketsTableRow;

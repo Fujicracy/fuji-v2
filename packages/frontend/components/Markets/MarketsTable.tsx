@@ -7,6 +7,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  useTheme,
 } from '@mui/material';
 import { AbstractVault, VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
@@ -20,18 +21,24 @@ import { useMarkets } from '../../store/markets.store';
 import { MarketRow } from '../../store/types/markets';
 import EmptyRowsState from '../Shared/Table/EmptyRowsState';
 import SizableTableCell from '../Shared/Table/SizableTableCell';
-import { DocsTooltip } from '../Shared/Tooltips';
-import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
+import { DocsTooltip, RebalanceTooltip } from '../Shared/Tooltips';
 import { MarketFilters } from './MarketFiltersHeader';
-import MarketsLendingTableRow from './MarketsLendingTableRow';
+import MarketsTableRow from './MarketsTableRow';
 
-function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
-  const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
+type MarketsTableProps = {
+  rows: MarketRow[];
+  filters: MarketFilters;
+  vaults: AbstractVault[];
+  type: VaultType;
+};
+
+function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
+  const { palette } = useTheme();
   const router = useRouter();
 
+  const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
+
   const isLoading = useMarkets((state) => state.loading);
-  const vaults = useMarkets((state) => state.lending.vaults);
-  const rows = useMarkets((state) => state.lending.rows);
 
   const walletChainId = useAuth((state) => state.chainId);
 
@@ -41,38 +48,61 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
   }, [filters, rows]);
 
   const handleClick = async (entity?: AbstractVault | VaultWithFinancials) => {
-    if (!walletChainId) return;
-    showPosition(VaultType.LEND, router, false, entity);
+    showPosition(type, router, true, entity, walletChainId);
   };
+
+  const numberOfColumns = type === VaultType.BORROW ? 8 : 5;
+  const isLend = type === VaultType.LEND;
 
   return (
     <TableContainer sx={{ mt: '0.75rem' }}>
-      <Table aria-label="Markets table" sx={{ borderCollapse: 'initial' }}>
+      <Table
+        aria-label="Markets table"
+        // border-collapse fix bug on borders on firefox with sticky column
+        sx={{ borderCollapse: 'initial' }}
+      >
         <TableHead>
           <TableRow sx={{ height: '2.625rem' }}>
-            <SizableTableCell align="left" width="120px">
-              Asset
+            <SizableTableCell
+              width="160px"
+              sx={{
+                position: 'sticky',
+                left: 0,
+                zIndex: 1,
+                background: palette.secondary.contrastText,
+                pl: '48px',
+              }}
+              align="left"
+            >
+              {isLend ? 'Asset' : 'Borrow'}
             </SizableTableCell>
+            {!isLend && (
+              <SizableTableCell align="left" width="120px">
+                Collateral
+              </SizableTableCell>
+            )}
             <SizableTableCell width="200px" align="left" sx={{ pl: '48px' }}>
               Network
             </SizableTableCell>
+            {!isLend && (
+              <SizableTableCell width="140px" align="right">
+                <Stack
+                  direction="row"
+                  spacing="0.25rem"
+                  alignItems="center"
+                  justifyContent="right"
+                >
+                  Borrow APR
+                </Stack>
+              </SizableTableCell>
+            )}
             <SizableTableCell width="130px" align="right">
-              Lend APY
+              {isLend ? 'Lend APY' : 'Supply APY'}
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing="0.0rem"
-                justifyContent="right"
-              >
-                <InfoTooltip
-                  title={
-                    'In the background, Fuji rebalances between these protocols to provide the best terms.'
-                  }
-                  isLeft
-                />
-                <span>Protocols</span>
+              <Stack direction="row" alignItems="center" justifyContent="right">
+                <RebalanceTooltip />
+                Protocols
               </Stack>
             </SizableTableCell>
             <SizableTableCell width="140px">
@@ -83,15 +113,20 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
                 justifyContent="right"
               >
                 <DocsTooltip />
-                <span>Safety Rating</span>
+                Safety Rating
               </Stack>
             </SizableTableCell>
+            {!isLend && (
+              <SizableTableCell width="140px" align="right">
+                Liquidity
+              </SizableTableCell>
+            )}
           </TableRow>
         </TableHead>
         <TableBody>
           {isLoading && vaults.length === 0 ? (
             <TableRow>
-              {new Array(5).fill('').map((_, index) => (
+              {new Array(numberOfColumns).fill('').map((_, index) => (
                 <TableCell
                   key={`loading${index}`}
                   sx={{
@@ -105,10 +140,12 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
           ) : filteredRows.length > 0 ? (
             filteredRows.map((row, i) => {
               return (
-                <MarketsLendingTableRow
+                <MarketsTableRow
                   key={i}
                   row={row}
                   onClick={handleClick}
+                  type={type}
+                  numberOfColumns={numberOfColumns}
                   openedByDefault={Boolean(i === 0 && row.children)}
                 />
               );
@@ -126,4 +163,4 @@ function MarketsLendingTable({ filters }: { filters: MarketFilters }) {
   );
 }
 
-export default MarketsLendingTable;
+export default MarketsTable;
