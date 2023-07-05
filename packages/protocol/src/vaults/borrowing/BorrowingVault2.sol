@@ -720,8 +720,7 @@ contract BorrowingVault2 is BaseVault {
 
     // Compute debt amount that must be paid by liquidator.
     uint256 debt = convertToDebt(_debtShares[owner]);
-    uint256 debtSharesToCover = 
-      Math.mulDiv(_debtShares[owner], liqCloseFactor_, PRECISION_CONSTANT);
+    uint256 debtSharesToCover = Math.mulDiv(_debtShares[owner], liqCloseFactor_, PRECISION_CONSTANT);
     uint256 debtToCover = Math.mulDiv(debt, liqCloseFactor_, PRECISION_CONSTANT);
 
     // Compute `gainedShares` amount that the liquidator will receive.
