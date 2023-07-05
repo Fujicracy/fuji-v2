@@ -50,6 +50,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__mint_slippageTooHigh();
   error BaseVault__withdraw_slippageTooHigh();
   error BaseVault__redeem_slippageTooHigh();
+  error BaseVault__useIncreaseWithdrawAllowance();
+  error BaseVault__useDecreaseWithdrawAllowance();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -167,48 +169,31 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @param receiver to whom share allowance is being set
    * @param shares amount of allowance
    *
-   * @dev Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
-   * Requirements:
+   * @dev Recommend to use increase/decrease WithdrawAllowance methods.
    * - Must be overriden to call {VaultPermissions-_setWithdrawAllowance}.
    * - Must convert `shares` into `assets` amount before calling internal functions.
    */
   function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
     /// @dev operator = receiver and owner = msg.sender
     _setWithdrawAllowance(msg.sender, receiver, receiver, convertToAssets(shares));
+    emit Approval(msg.sender, receiver, shares);
     return true;
   }
 
   /**
-   * @notice Increase allowance of token-shares to `receiver` by `shares`.
-   *
-   * @param receiver to whom shares allowance is being increased
-   * @param shares amount to increase allowance
-   *
-   * @dev Requirements:
-   * - Must be overriden to call {VaultPermissions-increaseWithdrawAllowance}
-   * - Must convert `shares` to `assets` amount before calling internal functions.
-   *   VaultPermissions-increaseWithdrawAllowance.
+   * @notice This method in OZ erc20-implementation has been disabled in favor of
+   * {VaultPermissions-increaseWithdrawAllowance()}.
    */
-  function increaseAllowance(address receiver, uint256 shares) public override returns (bool) {
-    /// @dev operator = receiver
-    increaseWithdrawAllowance(receiver, receiver, convertToAssets(shares));
-    return true;
+  function increaseAllowance(address, uint256) public pure override returns (bool) {
+    revert BaseVault__useIncreaseWithdrawAllowance();
   }
 
   /**
-   * @notice Decrease allowance of token-shares to `receiver` by `shares`.
-   *
-   * @param receiver to whom shares allowance is decreased
-   * @param shares amount to decrease allowance
-   *
-   * @dev Requirements:
-   * - Must be overriden to call {VaultPermissions-decreaseWithdrawAllowance}.
-   * - Must convert `shares` to `assets` before calling internal functions.
+   * @notice This method in OZ erc20-implementation has been disabled in favor of
+   * {VaultPermissions-decreaseWithdrawAllowance()}.
    */
-  function decreaseAllowance(address receiver, uint256 shares) public override returns (bool) {
-    /// @dev operator = receiver
-    decreaseWithdrawAllowance(receiver, receiver, convertToAssets(shares));
-    return true;
+  function decreaseAllowance(address, uint256) public pure override returns (bool) {
+    revert BaseVault__useDecreaseWithdrawAllowance();
   }
 
   /**
