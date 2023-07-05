@@ -175,9 +175,11 @@ export const setLlamas = (
   }
 };
 
-export const setBest = (rows: MarketRow[]): MarketRow[] => {
+export const setBest = (rows: MarketRow[], type: VaultType): MarketRow[] => {
   const result: MarketRow[] = [];
   const done = new Set<string>();
+
+  const isLend = type === VaultType.LEND;
 
   for (const row of rows) {
     const key = `${row.debt}/${row.collateral}`;
@@ -188,8 +190,9 @@ export const setBest = (rows: MarketRow[]): MarketRow[] => {
       (r) => r.debt === row.debt && r.collateral === row.collateral
     );
     if (entries.length > 1) {
+      const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
       const sorted = entries.sort(sortBy.descending);
-      const children = groupByChain(sorted);
+      const children = groupByChain(sorted, type);
       children[0].isBest = true;
       if (children[0].children) {
         children[0].children[0].isBest = true;
@@ -203,9 +206,14 @@ export const setBest = (rows: MarketRow[]): MarketRow[] => {
   return result;
 };
 
-export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
+export const groupByPair = (
+  rows: MarketRow[],
+  type: VaultType
+): MarketRow[] => {
   const done = new Set<string>(); // Pair is symbol/symbol i.e WETH/USDC
   const grouped: MarketRow[] = [];
+
+  const isLend = type === VaultType.LEND;
 
   for (const row of rows) {
     const key = `${row.debt}/${row.collateral}`;
@@ -216,12 +224,14 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
       (r) => r.debt === row.debt && r.collateral === row.collateral
     );
     if (entries.length > 1) {
+      const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
       const sorted = entries.sort(sortBy.descending);
       const children = groupByChain(
         sorted.map((r) => ({
           ...r,
           isChild: true,
-        }))
+        })),
+        type
       );
       grouped.push({ ...sorted[0], children });
     } else {
@@ -234,10 +244,11 @@ export const groupByPair = (rows: MarketRow[]): MarketRow[] => {
 
 export const filterMarketRows = (
   rows: MarketRow[],
-  filters: MarketFilters
+  filters: MarketFilters,
+  type: VaultType
 ): MarketRow[] => {
   if (!filters.searchQuery && filters.chains.length === chains.length)
-    return groupByPair(rows);
+    return groupByPair(rows, type);
   const filteredRows: MarketRow[] = [];
 
   function filterRows(rows: MarketRow[], filters: MarketFilters) {
@@ -265,7 +276,7 @@ export const filterMarketRows = (
 
   filterRows(rows, filters);
 
-  return groupByPair(filteredRows);
+  return groupByPair(filteredRows, type);
 };
 
 export type AprData = {
@@ -293,9 +304,10 @@ export const aprData = (
 type SortBy = 'descending' | 'ascending';
 type CompareFn = (r1: MarketRow, r2: MarketRow) => 1 | -1;
 
-const groupByChain = (rows: MarketRow[]): MarketRow[] => {
+const groupByChain = (rows: MarketRow[], type: VaultType): MarketRow[] => {
   const done = new Set<string>();
   const grouped: MarketRow[] = [];
+  const isLend = type === VaultType.LEND;
 
   for (const row of rows) {
     const key = row.chain.value;
@@ -304,6 +316,7 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
 
     const entries = rows.filter((r) => r.chain.value === row.chain.value);
     if (entries.length > 1) {
+      const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
       const sorted = entries.sort(sortBy.descending);
 
       const children = sorted.map((r) => ({
@@ -319,7 +332,7 @@ const groupByChain = (rows: MarketRow[]): MarketRow[] => {
   return grouped;
 };
 
-const sortBy: Record<SortBy, CompareFn> = {
+const sortByBorrowAPR: Record<SortBy, CompareFn> = {
   ascending: (a, b) =>
     a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) <
     b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
@@ -328,6 +341,19 @@ const sortBy: Record<SortBy, CompareFn> = {
   descending: (a, b) =>
     a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) >
     b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
+      ? 1
+      : -1,
+};
+
+const sortByLendAPY: Record<SortBy, CompareFn> = {
+  ascending: (a, b) =>
+    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) <
+    b.depositAprBase.value + (Number(b.depositAprReward.value) || 0)
+      ? 1
+      : -1,
+  descending: (a, b) =>
+    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) >
+    b.depositAprBase.value + (Number(b.depositAprReward.value) || 0)
       ? 1
       : -1,
 };
@@ -361,7 +387,7 @@ export const fetchMarkets = async (
     const rows = rowsBase
       .map((r) => setFinancials(r, MarketRowStatus.Error))
       .map((r) => setLlamas(r, MarketRowStatus.Error));
-    api.getState().changeRows(type, setBest(rows));
+    api.getState().changeRows(type, setBest(rows, type));
   }
   const vaultsWithFinancials = result.data;
   const rowsFin = vaultsWithFinancials.map((obj, i) => {
@@ -377,7 +403,7 @@ export const fetchMarkets = async (
     currentFinancials.length === 0 ||
     currentFinancials.length !== allVaults.length
   ) {
-    api.getState().changeRows(type, setBest(rowsFin));
+    api.getState().changeRows(type, setBest(rowsFin, type));
     api.getState().changeVaultsWithFinancials(type, vaultsWithFinancials);
   }
   const llamaResult = await sdk.getLlamaFinancials(allVaults);
@@ -387,7 +413,7 @@ export const fetchMarkets = async (
       message: llamaResult.error.message,
     });
     const rows = rowsFin.map((r) => setLlamas(r, MarketRowStatus.Error));
-    api.getState().changeRows(type, setBest(rows));
+    api.getState().changeRows(type, setBest(rows, type));
     return;
   }
   const vaultsWithLlamas = llamaResult.data;
@@ -406,5 +432,5 @@ export const fetchMarkets = async (
   });
   api
     .getState()
-    .changeRowsAndFinancials(type, setBest(rowsLlama), vaultsWithLlamas);
+    .changeRowsAndFinancials(type, setBest(rowsLlama, type), vaultsWithLlamas);
 };

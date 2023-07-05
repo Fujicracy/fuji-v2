@@ -56,9 +56,9 @@ function VaultStrategy() {
               mt: '0.5rem',
             }}
           >
-            {rearrangedProviders.map((provider) => (
+            {rearrangedProviders.map((provider, index) => (
               <Box
-                key={provider.name}
+                key={`${provider.name}-${index}`}
                 sx={{
                   display: 'flex',
                   alignItems: 'center',

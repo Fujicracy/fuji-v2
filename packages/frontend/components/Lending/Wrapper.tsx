@@ -13,7 +13,7 @@ type LendingWrapperProps = {
   };
 };
 
-function LendingWrapper({ formType, query }: LendingWrapperProps) {
+function LendingWrapper({ formType }: LendingWrapperProps) {
   const isEditing = formType === FormType.Edit;
 
   return (
