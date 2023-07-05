@@ -44,7 +44,8 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
 
   bytes32 private _entryPoint;
 
-  constructor(address chief_, address treasury_) SystemAccessControl(chief_) {
+  constructor(address chief_, address treasury_) {
+    __SystemAccessControl_init(chief_);
     treasury = treasury_;
   }
 
