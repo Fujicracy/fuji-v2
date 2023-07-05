@@ -18,7 +18,6 @@ pragma solidity 0.8.15;
  * A rebalancing function is implemented to move vault's funds across providers.
  */
 import {ERC20, IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import {UUPSUpgradeable} from "openzeppelin-contracts/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -31,14 +30,7 @@ import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {PausableVault} from "./PausableVault.sol";
 
-abstract contract BaseVault is
-  ERC20,
-  UUPSUpgradeable,
-  SystemAccessControl,
-  PausableVault,
-  VaultPermissions,
-  IVault
-{
+abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
   using SafeERC20 for IERC20Metadata;
@@ -878,9 +870,6 @@ abstract contract BaseVault is
     minAmount = amount;
     emit MinAmountChanged(amount);
   }
-
-  /// @inheritdoc UUPSUpgradeable
-  function _authorizeUpgrade(address newImplementation) internal override onlyTimelock {}
 
   /// @inheritdoc PausableVault
   function pauseForceAll() external override hasRole(msg.sender, PAUSER_ROLE) {
