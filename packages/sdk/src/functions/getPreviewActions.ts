@@ -284,7 +284,7 @@ function borrowOrWithdraw(
     deadline,
     slippage,
   } = params;
-  if (vault instanceof LendingVault) {
+  if (vault instanceof LendingVault && action === RouterAction.BORROW) {
     invariant(
       action === RouterAction.BORROW,
       'No BORROW action on LendingVault!'
