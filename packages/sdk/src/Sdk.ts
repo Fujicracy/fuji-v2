@@ -54,9 +54,9 @@ import {
 import { ConnextRouter__factory } from './types/contracts';
 import {
   GetLlamaAssetPoolsResponse,
-  GetLlamaBorrowPoolsResponse,
+  GetLlamaLendBorrowPoolsResponse,
   LlamaAssetPool,
-  LlamaBorrowPool,
+  LlamaLendBorrowPool,
 } from './types/LlamaResponses';
 
 export class Sdk {
@@ -366,9 +366,9 @@ export class Sdk {
       pools: defillamaproxy ? defillamaproxy + 'pools' : URLS.DEFILLAMA_POOLS,
     };
     try {
-      const [borrows, pools] = await Promise.all([
+      const [lendBorrows, pools] = await Promise.all([
         axios
-          .get<GetLlamaBorrowPoolsResponse>(uri.lendBorrow)
+          .get<GetLlamaLendBorrowPoolsResponse>(uri.lendBorrow)
           .then(({ data }) => data),
         axios
           .get<GetLlamaAssetPoolsResponse>(uri.pools)
@@ -376,7 +376,7 @@ export class Sdk {
       ]);
 
       const data = vaults.map((vault) =>
-        this._getFinancialsFor(vault, pools, borrows)
+        this._getFinancialsFor(vault, pools, lendBorrows)
       );
       return new FujiResultSuccess(data);
     } catch (e) {
@@ -674,7 +674,7 @@ export class Sdk {
   private _getFinancialsFor(
     v: VaultWithFinancials,
     pools: LlamaAssetPool[],
-    borrows: LlamaBorrowPool[]
+    lendBorrows: LlamaLendBorrowPool[]
   ): VaultWithFinancials {
     const chain = CHAIN[v.vault.chainId].llamaKey;
     const project = v.activeProvider.llamaKey;
@@ -682,15 +682,15 @@ export class Sdk {
     const debtSym =
       v.vault instanceof BorrowingVault ? v.vault.debt.symbol : null;
 
-    const borrowPool = pools.find(
+    const lendBorrowPool = pools.find(
       (p: LlamaAssetPool) =>
         p.chain === chain && p.project === project && p.symbol === debtSym
     );
 
-    let borrowData;
-    if (borrowPool) {
-      borrowData = borrows.find(
-        (b: LlamaBorrowPool) => b.pool === borrowPool.pool
+    let lendBorrowData;
+    if (lendBorrowPool) {
+      lendBorrowData = lendBorrows.find(
+        (b: LlamaLendBorrowPool) => b.pool === lendBorrowPool.pool
       );
     }
 
@@ -705,10 +705,11 @@ export class Sdk {
         ...v.activeProvider,
         depositAprReward: depositData?.apyReward,
         depositRewardTokens: depositData?.rewardTokens,
-        borrowAprReward: borrowData?.apyRewardBorrow,
-        borrowRewardTokens: borrowData?.rewardTokens,
-        availableToBorrowUSD: borrowData
-          ? borrowData.totalSupplyUsd - borrowData.totalBorrowUsd
+        totalSupplyUsd: lendBorrowData?.totalSupplyUsd,
+        borrowAprReward: lendBorrowData?.apyRewardBorrow,
+        borrowRewardTokens: lendBorrowData?.rewardTokens,
+        availableToBorrowUSD: lendBorrowData
+          ? lendBorrowData.totalSupplyUsd - lendBorrowData.totalBorrowUsd
           : undefined,
       },
     };
