@@ -8,17 +8,22 @@ import {CompoundV3} from "../../../src/providers/mainnet/CompoundV3.sol";
 import {ICompoundV3} from "../../../src/interfaces/compoundV3/ICompoundV3.sol";
 import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
+import {IVault} from "../../../src/interfaces/IVault.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
+import {YieldVault} from "../../../src/vaults/yields/YieldVault.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Chief} from "../../../src/Chief.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
+import {ICompoundV3Rewards} from "../../../src/interfaces/compoundV3/ICompoundV3Rewards.sol";
 
 contract CompoundV3ForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
   uint256 public constant BORROW_AMOUNT = 200 * 1e6;
+
+  IVault public yieldVault;
 
   function setUp() public {
     setUpFork(MAINNET_DOMAIN);
@@ -45,13 +50,25 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
             DEFAULT_LIQ_RATIO
         );
 
+    yieldVault = new YieldVault(
+      debtAsset, //yield vault with compoundV3 base asset
+      address(chief),
+      "Fuji-V2 WETH-USDC Yield Vault Shares",
+      "fv2USDC",
+      providers
+    );
+
     bytes memory executionCall =
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
+    _callWithTimelock(address(chief), executionCall);
+
+    executionCall = abi.encodeWithSelector(chief.setVaultStatus.selector, address(yieldVault), true);
     _callWithTimelock(address(chief), executionCall);
 
     initVaultShares = 10 ether;
 
     _initializeVault(address(vault), INITIALIZER, initVaultShares);
+    _initializeVault(address(yieldVault), INITIALIZER, initVaultShares);
   }
 
   function test_depositAndBorrow() public {
@@ -139,5 +156,29 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
   function test_twoDeposits() public {
     do_deposit(DEPOSIT_AMOUNT, vault, ALICE);
     do_deposit(DEPOSIT_AMOUNT, vault, BOB);
+  }
+
+  function test_harvest() public {
+    do_deposit(DEPOSIT_AMOUNT, yieldVault, ALICE);
+
+    for (uint256 i = 0; i < 100; i++) {
+      vm.warp(block.timestamp + 13 seconds);
+      vm.roll(block.number + 1);
+      do_deposit(DEPOSIT_AMOUNT, yieldVault, ALICE);
+    }
+
+    //Check view functions are working as expected
+    address market = CompoundV3(address(compoundV3)).getMapper().getAddressNestedMapping(
+      compoundV3.providerName(), debtAsset, address(0)
+    );
+    ICompoundV3Rewards.RewardOwed memory rewardOwed = ICompoundV3Rewards(
+      0x1B0e765F6224C21223AeA2af16c1C46E38885a40
+    ).getRewardOwed(market, address(yieldVault));
+
+    address token = compoundV3.getHarvestToken(yieldVault);
+    uint256 amount = compoundV3.previewHarvest(yieldVault);
+
+    assertEq(rewardOwed.token, token);
+    assertEq(rewardOwed.owed, amount);
   }
 }
