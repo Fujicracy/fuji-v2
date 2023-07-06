@@ -38,11 +38,38 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
   return (
     <>
       {!isEditing && <VaultSelect type={VaultType.LEND} />}
+
+      <Grid container spacing={2} mb={2}>
+        <Grid item xs={12} sm={6}>
+          <InfoBlock
+            label="My Deposits"
+            value={`${formatBalance(
+              bigToFloat(
+                availableVaults[0].vault.collateral.decimals,
+                availableVaults[0]?.depositBalance
+              )
+            )} ${availableVaults[0].vault.collateral.symbol}`}
+            loading={loading}
+            contrast
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          {availableVaults[0] && (
+            <InfoBlock
+              label="Total Supplied"
+              value={'-'}
+              loading={loading}
+              contrast
+            />
+          )}
+        </Grid>
+      </Grid>
+
       <Card
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          p: '0 1.5rem 1.5rem 1.5rem',
+          p: '0 1.5rem',
         }}
       >
         <Stack
@@ -112,32 +139,6 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
           <EmptyChartState />
         )}
       </Card>
-
-      <Grid container spacing={2} mt={0}>
-        <Grid item xs={12} sm={6}>
-          <InfoBlock
-            label="My Deposits"
-            value={`${formatBalance(
-              bigToFloat(
-                availableVaults[0].vault.collateral.decimals,
-                availableVaults[0]?.depositBalance
-              )
-            )} ${availableVaults[0].vault.collateral.symbol}`}
-            loading={loading}
-            contrast
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          {availableVaults[0] && (
-            <InfoBlock
-              label="Total Supplied"
-              value={'-'}
-              loading={loading}
-              contrast
-            />
-          )}
-        </Grid>
-      </Grid>
 
       <VaultStrategy />
 
