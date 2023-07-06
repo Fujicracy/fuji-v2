@@ -137,5 +137,11 @@ interface ILendingProvider {
    * @notice Returns the address of the `token` that is harvested from the protocol.
    *
    */
-  function getHarvestToken() external view returns (address token);
+  function getHarvestToken(IVault vault) external view returns (address token);
+
+  /**
+   * @notice Returns the amount of rewards expected to be harvested from the protocol.
+   *
+   */
+  function previewHarvest(IVault vault) external returns (uint256 amount);
 }
