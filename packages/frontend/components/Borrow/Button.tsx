@@ -16,8 +16,10 @@ import { isBridgeable } from '../../helpers/currencies';
 import { BorrowingPosition } from '../../store/models/Position';
 import {
   ActionButtonProps,
+  ActionButtonTitles,
   DisabledButton,
   LoadingButton,
+  loadingTitle,
   RegularButton,
 } from '../Shared/ActionButton';
 
@@ -70,7 +72,11 @@ function BorrowButton({
   );
 
   if (!address) {
-    return regularButton('Connect wallet', onLoginClick, 'borrow-login');
+    return regularButton(
+      ActionButtonTitles.CONNECT,
+      onLoginClick,
+      'borrow-login'
+    );
   }
   if (!debt || !position || !ltvMeta) {
     return disabledButton('Select a network to borrow on');
@@ -80,28 +86,28 @@ function BorrowButton({
   const collateralBalance = collateral.balances[collateral.currency.symbol];
   const debtBalance = debt.balances[debt.currency.symbol];
 
-  const executionStep = needsSignature ? 2 : 1;
-  const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
+  const actionTitle = `${needsSignature ? ActionButtonTitles.SIGN : ''}${
     mode === Mode.DEPOSIT_AND_BORROW
       ? `${needsSignature ? '' : 'Deposit & '}Borrow`
       : mode === Mode.BORROW
       ? 'Borrow'
       : mode === Mode.DEPOSIT
-      ? 'Deposit'
+      ? ActionButtonTitles.DEPOSIT
       : mode === Mode.PAYBACK_AND_WITHDRAW
       ? 'Payback & Withdraw'
       : mode === Mode.WITHDRAW
-      ? 'Withdraw'
+      ? ActionButtonTitles.WITHDRAW
       : 'Payback'
   }`;
 
-  const loadingButtonTitle =
-    (collateral.allowance.status === AllowanceStatus.Approving &&
-      'Approving...') ||
-    (debt.allowance.status === AllowanceStatus.Approving && 'Approving...') ||
-    (isSigning && '(1/2) Signing...') ||
-    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
-    actionTitle;
+  const loadingButtonTitle = loadingTitle(
+    collateral.allowance.status === AllowanceStatus.Approving ||
+      debt.allowance.status === AllowanceStatus.Approving,
+    needsSignature,
+    isSigning,
+    isExecuting,
+    actionTitle
+  );
 
   const firstStep = transactionMeta.steps[0];
   const bridgeStep = transactionMeta.steps.find(
@@ -113,7 +119,7 @@ function BorrowButton({
   ) {
     return loadingButton(false, true);
   } else if (availableVaultStatus === FetchStatus.Error) {
-    return disabledButton('Problems fetching on-chain data');
+    return disabledButton(ActionButtonTitles.ERROR);
   } else if (bridgeStep?.token && !isBridgeable(bridgeStep.token)) {
     return disabledButton(
       `${bridgeStep.token.symbol}: not supported cross-chain`
@@ -124,7 +130,7 @@ function BorrowButton({
     availableVaultStatus === FetchStatus.Ready &&
     transactionMeta.status === FetchStatus.Ready
   ) {
-    return regularButton('Manage position', () => {
+    return regularButton(ActionButtonTitles.MANAGE, () => {
       onRedirectClick(false);
     });
   } else if (firstStep && firstStep?.chainId !== walletChainId) {
@@ -167,13 +173,17 @@ function BorrowButton({
     (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     collateralAmount > position.collateral.amount
   ) {
-    return disabledButton('Withdraw more than allowed');
+    return disabledButton(ActionButtonTitles.WITHDRAW_MAX);
   } else if (
     needsAllowance(mode, AssetType.Collateral, collateral, collateralAmount)
   ) {
-    return regularButton('Approve', () => onApproveClick(AssetType.Collateral));
+    return regularButton(ActionButtonTitles.APPROVE, () =>
+      onApproveClick(AssetType.Collateral)
+    );
   } else if (needsAllowance(mode, AssetType.Debt, debt, debtAmount)) {
-    return regularButton('Approve', () => onApproveClick(AssetType.Debt));
+    return regularButton(ActionButtonTitles.APPROVE, () =>
+      onApproveClick(AssetType.Debt)
+    );
   } else {
     return loadingButton(
       !(

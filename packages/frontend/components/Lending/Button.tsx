@@ -11,8 +11,10 @@ import { chainName } from '../../helpers/chains';
 import { LendingPosition } from '../../store/models/Position';
 import {
   ActionButtonProps,
+  ActionButtonTitles,
   DisabledButton,
   LoadingButton,
+  loadingTitle,
   RegularButton,
 } from '../Shared/ActionButton';
 
@@ -61,35 +63,41 @@ function LendingButton({
   );
 
   if (!address) {
-    return regularButton('Connect wallet', onLoginClick, 'lend-login');
+    return regularButton(
+      ActionButtonTitles.CONNECT,
+      onLoginClick,
+      'lend-login'
+    );
   }
   const collateralAmount = parseFloat(collateral.input);
   const collateralBalance = collateral.balances[collateral.currency.symbol];
 
-  const executionStep = needsSignature ? 2 : 1;
-  const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
-    mode === Mode.DEPOSIT ? 'Deposit' : 'Withdraw'
+  const actionTitle = `${needsSignature ? ActionButtonTitles.SIGN : ''}${
+    mode === Mode.DEPOSIT
+      ? ActionButtonTitles.DEPOSIT
+      : ActionButtonTitles.WITHDRAW
   }`;
 
-  const loadingButtonTitle =
-    (collateral.allowance.status === AllowanceStatus.Approving &&
-      'Approving...') ||
-    (isSigning && '(1/2) Signing...') ||
-    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
-    actionTitle;
+  const loadingButtonTitle = loadingTitle(
+    collateral.allowance.status === AllowanceStatus.Approving,
+    needsSignature,
+    isSigning,
+    isExecuting,
+    actionTitle
+  );
 
   const firstStep = transactionMeta.steps[0];
   if (collateral.allowance.status === AllowanceStatus.Approving) {
     return loadingButton(false, true);
   } else if (availableVaultStatus === FetchStatus.Error) {
-    return disabledButton('Problems fetching on-chain data');
+    return disabledButton(ActionButtonTitles.ERROR);
   } else if (
     !isEditing &&
     hasBalanceInVault &&
     availableVaultStatus === FetchStatus.Ready &&
     transactionMeta.status === FetchStatus.Ready
   ) {
-    return regularButton('Manage position', () => {
+    return regularButton(ActionButtonTitles.MANAGE, () => {
       onRedirectClick(false);
     });
   } else if (firstStep && firstStep?.chainId !== walletChainId) {
@@ -107,11 +115,13 @@ function LendingButton({
     mode === Mode.WITHDRAW &&
     collateralAmount > Number(position?.collateral?.amount)
   ) {
-    return disabledButton('Withdraw more than allowed');
+    return disabledButton(ActionButtonTitles.WITHDRAW_MAX);
   } else if (
     needsAllowance(mode, AssetType.Collateral, collateral, collateralAmount)
   ) {
-    return regularButton('Approve', () => onApproveClick(AssetType.Collateral));
+    return regularButton(ActionButtonTitles.APPROVE, () =>
+      onApproveClick(AssetType.Collateral)
+    );
   } else {
     return loadingButton(
       !(
