@@ -213,6 +213,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
             changeAssetValue={changeAssetValue}
             changeAssetChain={changeAssetChain}
             changeAssetCurrency={changeAssetCurrency}
+            vaultType={VaultType.LEND}
           />
 
           <Box m="1rem 0">
