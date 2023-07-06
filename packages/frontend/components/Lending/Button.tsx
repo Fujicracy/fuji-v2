@@ -82,7 +82,7 @@ function LendingButton({
   if (collateral.allowance.status === AllowanceStatus.Approving) {
     return loadingButton(false, true);
   } else if (availableVaultStatus === FetchStatus.Error) {
-    return disabledButton('Unsupported pair');
+    return disabledButton('Problem fetching on-chain data');
   } else if (
     !isEditing &&
     hasBalanceInVault &&
