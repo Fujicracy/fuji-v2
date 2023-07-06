@@ -679,14 +679,20 @@ export class Sdk {
     const chain = CHAIN[v.vault.chainId].llamaKey;
     const project = v.activeProvider.llamaKey;
     const collateralSym = v.vault.collateral.symbol;
+    const isBorrowingVault = v.vault instanceof BorrowingVault;
     const debtSym =
       v.vault instanceof BorrowingVault ? v.vault.debt.symbol : null;
+    const poolSym = isBorrowingVault ? debtSym : collateralSym;
+
+    const depositData = pools.find(
+      (p: LlamaAssetPool) =>
+        p.chain === chain && p.project === project && p.symbol === collateralSym
+    );
 
     const lendBorrowPool = pools.find(
       (p: LlamaAssetPool) =>
-        p.chain === chain && p.project === project && p.symbol === debtSym
+        p.chain === chain && p.project === project && p.symbol === poolSym
     );
-
     let lendBorrowData;
     if (lendBorrowPool) {
       lendBorrowData = lendBorrows.find(
@@ -694,23 +700,24 @@ export class Sdk {
       );
     }
 
-    const depositData = pools.find(
-      (p: LlamaAssetPool) =>
-        p.chain === chain && p.project === project && p.symbol === collateralSym
-    );
+    const borrowingVaultProviderData = isBorrowingVault
+      ? {
+          borrowAprReward: lendBorrowData?.apyRewardBorrow,
+          borrowRewardTokens: lendBorrowData?.rewardTokens,
+          availableToBorrowUSD: lendBorrowData
+            ? lendBorrowData.totalSupplyUsd - lendBorrowData.totalBorrowUsd
+            : undefined,
+        }
+      : {};
 
     return {
       ...v,
       activeProvider: {
         ...v.activeProvider,
+        ...borrowingVaultProviderData,
         depositAprReward: depositData?.apyReward,
         depositRewardTokens: depositData?.rewardTokens,
         totalSupplyUsd: lendBorrowData?.totalSupplyUsd,
-        borrowAprReward: lendBorrowData?.apyRewardBorrow,
-        borrowRewardTokens: lendBorrowData?.rewardTokens,
-        availableToBorrowUSD: lendBorrowData
-          ? lendBorrowData.totalSupplyUsd - lendBorrowData.totalBorrowUsd
-          : undefined,
       },
     };
   }
