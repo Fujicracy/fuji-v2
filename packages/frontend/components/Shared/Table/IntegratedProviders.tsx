@@ -25,7 +25,7 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
           }}
         >
           {providers.value.map((name, i) => (
-            <Tooltip key={name} title={name} arrow>
+            <Tooltip key={`${name}-${i}`} title={name} arrow>
               <Box
                 sx={{
                   position: 'relative',

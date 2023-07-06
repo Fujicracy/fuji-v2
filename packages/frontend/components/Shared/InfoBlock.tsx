@@ -50,6 +50,7 @@ function InfoBlock({
           fontSize="1rem"
           lineHeight="160%"
           fontWeight={400}
+          component={'span'}
           mt="0.5rem"
         >
           {value}
