@@ -15,6 +15,7 @@ pragma solidity 0.8.15;
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ICompoundV3} from "../../interfaces/compoundV3/ICompoundV3.sol";
+import {ICompoundV3Rewards} from "../../interfaces/compoundV3/ICompoundV3Rewards.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
 contract CompoundV3 is ILendingProvider {
@@ -150,13 +151,26 @@ contract CompoundV3 is ILendingProvider {
     cMarketV3 = ICompoundV3(market);
   }
 
+  function _getRewards() private pure returns (ICompoundV3Rewards compoundV3Rewards) {
+    compoundV3Rewards = ICompoundV3Rewards(0x1B0e765F6224C21223AeA2af16c1C46E38885a40);
+  }
+
   /// @inheritdoc ILendingProvider
   function harvest(bytes memory /* data */ ) external pure returns (bool success) {
     return false;
   }
 
   //TODO
-  function getHarvestToken() external pure returns (address token) {
-    token = address(0);
+  function getHarvestToken(IVault vault) external view returns (address token) {
+    (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
+    ICompoundV3Rewards.RewardConfig memory rewardConfig =
+      _getRewards().rewardConfig(address(cMarketV3));
+    token = rewardConfig.token;
+  }
+
+  //TODO
+  /// @dev compound rewards are scaled by up by 10
+  function previewHarvest(IVault /* vault */ ) external pure returns (uint256 amount) {
+    return 0;
   }
 }

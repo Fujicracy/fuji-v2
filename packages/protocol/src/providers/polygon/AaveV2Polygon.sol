@@ -120,7 +120,11 @@ contract AaveV2Polygon is ILendingProvider {
   }
 
   //TODO
-  function getHarvestToken() external pure returns (address token) {
+  function getHarvestToken(IVault /* vault */ ) external pure returns (address token) {
     token = address(0);
+  }
+
+  function previewHarvest(IVault /* vault */ ) external pure returns (uint256 amount) {
+    return 0;
   }
 }
