@@ -17,6 +17,7 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
   const [loading, setLoading] = useState<boolean>(false);
   const [depositData, setDepositData] = useState<AprResult[]>([]);
   const vault = useLend((state) => state.activeVault);
+  const activeProvider = useLend((state) => state.activeProvider);
   const availableVaults = useLend((state) => state.availableVaults);
   const prevVault = useRef<LendingVault | undefined>(undefined);
 
@@ -45,10 +46,10 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
             label="My Deposits"
             value={`${formatBalance(
               bigToFloat(
-                availableVaults[0].vault.collateral.decimals,
+                availableVaults[0]?.vault?.collateral?.decimals,
                 availableVaults[0]?.depositBalance
               )
-            )} ${availableVaults[0].vault.collateral.symbol}`}
+            )} ${availableVaults[0]?.vault?.collateral?.symbol}`}
             loading={loading}
             contrast
           />
@@ -57,7 +58,7 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
           {availableVaults[0] && (
             <InfoBlock
               label="Total Supplied"
-              value={'-'}
+              value={`${activeProvider?.totalSupplyUsd || '-'}`}
               loading={loading}
               contrast
             />
