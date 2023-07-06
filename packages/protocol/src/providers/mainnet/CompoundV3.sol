@@ -156,8 +156,11 @@ contract CompoundV3 is ILendingProvider {
   }
 
   /// @inheritdoc ILendingProvider
-  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
-    return false;
+  function harvest(bytes memory data) external returns (bool success) {
+    IVault vault = abi.decode(data, (IVault));
+    (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
+    _getRewards().claim(address(cMarketV3), address(vault), true);
+    success = true;
   }
 
   //TODO
