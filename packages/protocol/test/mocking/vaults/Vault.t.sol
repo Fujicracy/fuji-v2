@@ -309,7 +309,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_positionHealthy.selector);
     vm.prank(BOB);
-    vault.liquidate(ALICE, BOB);
+    vault.liquidate(ALICE, BOB, 1e18);
   }
 
   function test_liquidateMax(uint256 borrowAmount) public {
@@ -344,7 +344,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     vm.startPrank(BOB);
     IERC20(debtAsset).approve(address(vault), borrowAmount);
-    vault.liquidate(ALICE, BOB);
+    vault.liquidate(ALICE, BOB, 1e18);
     vm.stopPrank();
 
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
@@ -397,7 +397,7 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     vm.startPrank(BOB);
     IERC20(debtAsset).approve(address(vault), liquidatorAmount);
-    vault.liquidate(ALICE, BOB);
+    vault.liquidate(ALICE, BOB, 0.5e18);
     vm.stopPrank();
 
     assertEq(IERC20(collateralAsset).balanceOf(ALICE), 0);
@@ -466,7 +466,6 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.payback(borrowAmount, address(0));
   }
 
-  //error BorrowingVault__payback_moreThanMax();
   function test_paybackMoreThanMax(uint256 amountPayback) public {
     uint256 amount = 1 ether;
     uint256 borrowAmount = 1000e18;
@@ -474,13 +473,56 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    vm.expectRevert(BorrowingVault.BorrowingVault__payback_moreThanMax.selector);
+    // NOTE: we use deal(...) instead of _dealMockERC20
+    // using the false arg for `totalSupply`update
+    // in order to be capable of fuzzing very large numbers.
+    deal(debtAsset, address(this), amountPayback, false);
+    IERC20(debtAsset).approve(address(vault), amountPayback);
     vault.payback(amountPayback, ALICE);
+    assertEq(vault.balanceOfDebt(ALICE), 0);
+    assertEq(vault.balanceOfDebtShares(ALICE), 0);
   }
 
   //error BorrowingVault__liquidate_invalidInput();
   function test_liquidateInvalidInput() public {
     vm.expectRevert(BorrowingVault.BorrowingVault__liquidate_invalidInput.selector);
-    vault.liquidate(ALICE, address(0));
+    vault.liquidate(ALICE, address(0), 1e18);
+  }
+
+  function test_withdrawWhenFullDebtIsPaybackExternally(uint256 amount) public {
+    // 1 million ether as collateral is sufficient for vault testing.
+    vm.assume(amount > 1e6 && amount < 1000000 ether);
+
+    address TROUBLEMAKER = vm.addr(0x1122);
+    vm.label(TROUBLEMAKER, "TROUBLEMAKER");
+
+    // Alice deposits and borrows
+    uint256 price = oracle.getPriceOf(debtAsset, collateralAsset, DEBT_DECIMALS);
+    uint256 borrowAmount = amount * price * DEFAULT_MAX_LTV / 1e36;
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    // We fake that a Troublemaker paysback fully the vault's debt externally
+    uint256 fullPaybackAmount =
+      mockProvider.getBorrowBalance(address(vault), IVault(address(vault)));
+    _dealMockERC20(debtAsset, TROUBLEMAKER, fullPaybackAmount);
+    vm.startPrank(TROUBLEMAKER);
+    IERC20(debtAsset).transfer(address(vault), fullPaybackAmount);
+    mockProvider.payback(fullPaybackAmount, IVault(address(vault)));
+    vm.stopPrank();
+
+    assertEq(vault.balanceOf(ALICE), amount);
+    assertEq(vault.balanceOfDebtShares(ALICE), borrowAmount);
+    assertEq(vault.balanceOfDebt(ALICE), 1);
+
+    // Bob now deposits and borrow after debt has been paid back
+    // To ensure there is no DOS due to payback.
+    do_depositAndBorrow(amount, borrowAmount, vault, BOB);
+
+    // Withdraw should not fail
+    uint256 maxAmount = vault.maxRedeem(ALICE);
+    vm.prank(ALICE);
+    vault.redeem(maxAmount, ALICE, ALICE);
+
+    assertEq(IERC20(collateralAsset).balanceOf(ALICE), maxAmount);
   }
 }
