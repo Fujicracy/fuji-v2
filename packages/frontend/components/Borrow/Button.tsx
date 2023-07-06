@@ -113,7 +113,7 @@ function BorrowButton({
   ) {
     return loadingButton(false, true);
   } else if (availableVaultStatus === FetchStatus.Error) {
-    return disabledButton('Problem fetching on-chain data');
+    return disabledButton('Problems fetching on-chain data');
   } else if (bridgeStep?.token && !isBridgeable(bridgeStep.token)) {
     return disabledButton(
       `${bridgeStep.token.symbol}: not supported cross-chain`
