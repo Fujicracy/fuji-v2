@@ -230,7 +230,7 @@ function depositOrPayback(
 ): RouterActionParams[] {
   const { vault, tokenIn, amountIn, account, slippage } = params;
 
-  if (vault instanceof LendingVault) {
+  if (vault instanceof LendingVault && action === RouterAction.PAYBACK) {
     invariant(
       action === RouterAction.PAYBACK,
       'No PAYBACK action on LendingVault!'
