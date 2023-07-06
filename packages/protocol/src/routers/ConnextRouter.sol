@@ -9,8 +9,7 @@ pragma solidity 0.8.15;
  * @notice A Router implementing Connext specific bridging logic.
  */
 
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
 import {XReceiveProxy} from "./XReceiveProxy.sol";
 import {ConnextHandler} from "./ConnextHandler.sol";
@@ -153,10 +152,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
-    IERC20 asset_ = IERC20(asset);
+    Snapshot memory tokenToCheck_ = Snapshot(asset, IERC20(asset).balanceOf(address(this)));
 
-    _tempTokenToCheck = Snapshot(asset, asset_.balanceOf(address(this)));
-    asset_.safeTransferFrom(xReceiveProxy, address(this), amount);
+    IERC20(asset).safeTransferFrom(xReceiveProxy, address(this), amount);
     /**
      * @dev Due to the AMM nature of Connext, there could be some slippage
      * incurred on the amount that this contract receives after bridging.
@@ -173,14 +171,12 @@ contract ConnextRouter is BaseRouter, IXReceiver {
      * to `xReceive` fails. That's why we need to ensure the funds are not stuck at Connext.
      * Therefore we try/catch instead of directly calling _bundleInternal(...).
      */
-    try this.xBundleConnext(actions, args, beforeSlipped) {
+    try this.xBundleConnext(actions, args, beforeSlipped, tokenToCheck_) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
-      asset_.safeTransfer(address(handler), amount);
+      IERC20(asset).safeTransfer(address(handler), amount);
       handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
 
-      // Ensure clear storage for token balance checks.
-      delete _tempTokenToCheck;
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
 
@@ -194,6 +190,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
    * @param beforeSlipped amount passed by the origin cross-chain router operation
+   * @param tokenToCheck_ snapshot after xReceive from Connext
    *
    * @dev Requirements:
    * - Must only be called within the context of this same contract.
@@ -201,13 +198,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   function xBundleConnext(
     Action[] calldata actions,
     bytes[] calldata args,
-    uint256 beforeSlipped
+    uint256 beforeSlipped,
+    Snapshot memory tokenToCheck_
   )
     external
     payable
     onlySelf
   {
-    _bundleInternal(actions, args, beforeSlipped);
+    _bundleInternal(actions, args, beforeSlipped, tokenToCheck_);
   }
 
   /**
@@ -275,6 +273,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       address sender
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
+    _checkIfAddressZero(receiver);
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
     _safePullTokenFrom(asset, sender, amount);
@@ -335,6 +334,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
+    address to_ = routerByDomain[destDomain];
+    _checkIfAddressZero(to_);
+
     _safePullTokenFrom(asset, sender, amount);
     _safeApprove(asset, address(connext), amount);
 
@@ -342,7 +344,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // _destination: Domain ID of the destination chain
       uint32(destDomain),
       // _to: address of the target contract
-      routerByDomain[destDomain],
+      to_,
       // _asset: address of the token contract
       asset,
       // _delegate: address that can revert or forceLocal on destination
@@ -398,12 +400,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       );
       beneficiary_ = owner;
     } else if (actions[0] == Action.Flashloan) {
-      (,,,, bytes memory requestorCalldata) =
-        abi.decode(args[0], (IFlasher, address, uint256, address, bytes));
-
-      (Action[] memory newActions, bytes[] memory newArgs) = abi.decode(
-        LibBytes.slice(requestorCalldata, 4, requestorCalldata.length - 4), (Action[], bytes[])
-      );
+      (,,,, Action[] memory newActions, bytes[] memory newArgs) =
+        abi.decode(args[0], (IFlasher, address, uint256, address, Action[], bytes[]));
 
       beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
     } else if (actions[0] == Action.XTransfer) {
@@ -461,9 +459,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    *  - `router` must be a non-zero address.
    */
   function setRouter(uint256 domain, address router) external onlyTimelock {
-    if (router == address(0)) {
-      revert ConnextRouter__setRouter_invalidInput();
-    }
+    _checkIfAddressZero(router);
     routerByDomain[domain] = router;
 
     emit NewRouterAdded(router, domain);

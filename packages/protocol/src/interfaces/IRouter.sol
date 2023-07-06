@@ -37,6 +37,25 @@ interface IRouter {
   function xBundle(Action[] memory actions, bytes[] memory args) external payable;
 
   /**
+   * @notice Similar to `xBundle(..)` but with additional arguments for flashloan.
+   *
+   * @param actions an array of actions that will be executed in a row
+   * @param args an array of encoded inputs needed to execute each action
+   * @param flashloanAsset being sent by the IFlasher
+   * @param amount of flashloan
+   *
+   * @dev Note this method cannot be re-entered further by another IFlasher call.
+   */
+  function xBundleFlashloan(
+    Action[] memory actions,
+    bytes[] memory args,
+    address flashloanAsset,
+    uint256 amount
+  )
+    external
+    payable;
+
+  /**
    * @notice Sweeps accidental ERC-20 transfers to this contract or stuck funds due to failed
    * cross-chain calls (cf. ConnextRouter).
    *

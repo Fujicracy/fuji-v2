@@ -13,16 +13,19 @@ pragma solidity 0.8.15;
  * This vault can aggregate protocols that implement yield strategies.
  */
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {IERC20Metadata} from
-  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {
+  IERC20,
+  IERC20Metadata
+} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 
 contract YieldVault is BaseVault {
+  using SafeERC20 for IERC20Metadata;
   /// @dev Custom Errors
+
   error YieldVault__notApplicable();
   error YieldVault__rebalance_invalidProvider();
 
@@ -57,19 +60,24 @@ contract YieldVault is BaseVault {
 
   receive() external payable {}
 
-  /// @inheritdoc BaseVault
-  function initializeVaultShares(uint256 assets, uint256) public override {
-    if (initialized) {
-      revert BaseVault__initializeVaultShares_alreadyInitialized();
-    }
-    if (assets < minAmount) {
-      revert BaseVault__initializeVaultShares_lessThanMin();
-    }
-    _unpauseForceAllActions();
-    _deposit(msg.sender, chief.timelock(), assets, assets);
+  /*//////////////////////////////////////////
+      Asset management: overrides IERC4626
+  //////////////////////////////////////////*/
 
-    initialized = true;
-    emit VaultInitialized(msg.sender);
+  /// @inheritdoc BaseVault
+  function maxWithdraw(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
+    }
+    return convertToAssets(balanceOf(owner));
+  }
+
+  /// @inheritdoc BaseVault
+  function maxRedeem(address owner) public view override returns (uint256) {
+    if (paused(VaultActions.Withdraw)) {
+      return 0;
+    }
+    return balanceOf(owner);
   }
 
   /*///////////////////////////////
@@ -206,12 +214,6 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
-  /// @inheritdoc BaseVault
-  function _computeFreeAssets(address owner) internal view override returns (uint256) {
-    // There is no restriction on asset-share movements in a {YieldVault}.
-    return convertToAssets(balanceOf(owner));
-  }
-
   /*/////////////////
       Rebalancing
   /////////////////*/
@@ -265,7 +267,7 @@ contract YieldVault is BaseVault {
   }
 
   /// @inheritdoc IVault
-  function liquidate(address, address) public pure returns (uint256) {
+  function liquidate(address, address, uint256) public pure returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
@@ -280,10 +282,8 @@ contract YieldVault is BaseVault {
       if (address(providers[i]) == address(0)) {
         revert BaseVault__setter_invalidInput();
       }
-      SafeERC20.forceApprove(
-        IERC20(asset()),
-        providers[i].approvedOperator(asset(), asset(), debtAsset()),
-        type(uint256).max
+      _asset.forceApprove(
+        providers[i].approvedOperator(asset(), asset(), debtAsset()), type(uint256).max
       );
       unchecked {
         ++i;
