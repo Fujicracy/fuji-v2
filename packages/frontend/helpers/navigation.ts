@@ -18,6 +18,12 @@ import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
 import { vaultFromEntity } from './vaults';
 
+export type OperationPageNavigation = {
+  shouldReset: boolean;
+  willLoad: boolean;
+  lock: boolean;
+};
+
 type Page = {
   title: string;
   path: string;
@@ -38,20 +44,8 @@ export const myPositionPage: Page = {
 export const isTopLevelUrl = (url: string) =>
   topLevelPages.some((p) => p.path === url);
 
-const updateLendingStoreBeforeNavigation = (
-  vault: LendingVault,
-  walletChainId?: ChainId
-) => {
-  const changeAll = useLend.getState().changeAll;
-  if (walletChainId && isSupported(walletChainId)) {
-    const collaterals = sdk.getCollateralForChain(walletChainId);
-    const collateralCurrency = collaterals.find(
-      (t: Currency) => t.symbol === vault.collateral.symbol
-    );
-    changeAll(vault, collateralCurrency ?? vault.collateral);
-  } else {
-    changeAll(vault, vault.collateral);
-  }
+const updateLendingStoreBeforeNavigation = (vault: LendingVault) => {
+  useLend.getState().changeAll(vault, vault.collateral);
 };
 
 const updateBorrowingStoreBeforeNavigation = (
@@ -95,7 +89,7 @@ export const showPosition = async (
   if (vault instanceof BorrowingVault) {
     updateBorrowingStoreBeforeNavigation(vault, reset, walletChainId);
   } else if (vault instanceof LendingVault) {
-    updateLendingStoreBeforeNavigation(vault, walletChainId);
+    updateLendingStoreBeforeNavigation(vault);
   }
 
   const positions =
@@ -121,27 +115,20 @@ export const showPosition = async (
   }
 };
 
-export const showLend = async (router: NextRouter) => {
-  router.push(PATH.LEND);
+export const pathForVaultType = (type: VaultType) =>
+  type === VaultType.BORROW ? PATH.BORROW : PATH.LEND;
+
+export const showLend = async (router: NextRouter, override = true) => {
+  showOperationPage(VaultType.LEND, router, override);
 };
 
 export const showBorrow = async (router: NextRouter, override = true) => {
-  // I'm not exactly thrilled about this solution, but it works for now
-  useNavigation
-    .getState()
-    .changeBorrowPageShouldReset(override, !override ? true : undefined);
-  router.push(PATH.BORROW);
+  showOperationPage(VaultType.BORROW, router, override);
 };
 
 export const shouldShowStoreNotification = (type: 'markets' | 'positions') =>
   useNavigation.getState().currentPath ===
   (type === 'markets' ? PATH.MARKETS : PATH.MARKETS);
-
-export type BorrowPageNavigation = {
-  shouldReset: boolean;
-  willLoad: boolean;
-  lock: boolean;
-};
 
 export const navigationalTaskDelay = (func: () => void) => {
   setTimeout(func, NAVIGATION_TASK_DELAY);
@@ -157,4 +144,15 @@ export const navigationalRunAndResetWithDelay = (
       callback(false);
     }, NAVIGATION_TASK_DELAY * 2);
   }
+};
+
+const showOperationPage = (
+  type: VaultType,
+  router: NextRouter,
+  override: boolean
+) => {
+  useNavigation
+    .getState()
+    .changePageShouldReset(type, override, !override ? true : undefined);
+  router.push(pathForVaultType(type));
 };

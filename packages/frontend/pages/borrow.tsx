@@ -1,3 +1,4 @@
+import { VaultType } from '@x-fuji/sdk';
 import { NextPage } from 'next';
 import React, { useEffect, useState } from 'react';
 
@@ -21,7 +22,7 @@ const BorrowPage: NextPage = () => {
   const changeAssetChain = useBorrow((state) => state.changeAssetChain);
   const clearInputValues = useBorrow((state) => state.clearInputValues);
   const changeShouldPageReset = useNavigation(
-    (state) => state.changeBorrowPageShouldReset
+    (state) => state.changePageShouldReset
   );
   const clearDebt = useBorrow((state) => state.clearDebt);
 
@@ -30,7 +31,7 @@ const BorrowPage: NextPage = () => {
   if (shouldResetPage) {
     clearDebt();
     clearInputValues();
-    navigationalTaskDelay(() => changeShouldPageReset(false));
+    navigationalTaskDelay(() => changeShouldPageReset(VaultType.BORROW, false));
   }
 
   useEffect(() => {

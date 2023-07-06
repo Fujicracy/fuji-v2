@@ -41,7 +41,11 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   const activeVault = useStore().activeVault;
   const availableRoutes = useStore().availableRoutes;
   const availableVaults = useStore().availableVaults;
-  const override = useNavigation((state) => state.borrowPage.shouldReset);
+  const override = useNavigation(
+    (state) =>
+      (type === VaultType.BORROW ? state.borrowPage : state.lendPage)
+        .shouldReset
+  );
   const changeActiveVault = useStore().changeActiveVault;
 
   const aggregatedData = availableVaults.map((vault, i) => ({
