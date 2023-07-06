@@ -8,7 +8,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { VaultWithFinancials } from '@x-fuji/sdk';
+import { VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 
@@ -27,6 +27,7 @@ import IntegratedProviders from '../Table/IntegratedProviders';
 import SafetyRating from '../Table/SafetyRating';
 
 type VaultProps = {
+  type: VaultType;
   selected: boolean;
   data: VaultWithFinancials & { route: RouteMeta } & { index: number };
   onChange: () => void;
@@ -36,6 +37,7 @@ type VaultProps = {
 };
 
 function Vault({
+  type,
   selected,
   data,
   onChange,
@@ -168,14 +170,16 @@ function Vault({
             </TableCell>
           </>
         )}
-        <TableCell align="right">
-          <AprValue
-            base={aprRef.current.base ?? 0}
-            reward={aprRef.current.reward}
-            positive={aprRef.current.positive}
-            providerName={data.activeProvider.name}
-          />
-        </TableCell>
+        {type === VaultType.BORROW && (
+          <TableCell align="right">
+            <AprValue
+              base={aprRef.current.base ?? 0}
+              reward={aprRef.current.reward}
+              positive={aprRef.current.positive}
+              providerName={data.activeProvider.name}
+            />
+          </TableCell>
+        )}
         {!isMobile && (
           <TableCell>
             <Button

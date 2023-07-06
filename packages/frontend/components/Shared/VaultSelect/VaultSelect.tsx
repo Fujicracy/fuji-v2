@@ -253,9 +253,11 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
                           </TableCell>
                         </>
                       )}
-                      <TableCell align="right" width="35%">
-                        Borrow APR
-                      </TableCell>
+                      {type === VaultType.BORROW && (
+                        <TableCell align="right" width="35%">
+                          Borrow APR
+                        </TableCell>
+                      )}
                       {!isMobile && <TableCell align="right" />}
                     </TableRow>
                   </TableHead>
@@ -273,6 +275,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
                           item && (
                             <Vault
                               key={item.index}
+                              type={type}
                               selected={item.index === selectedRoute}
                               data={item}
                               onChange={() => didSelectRoute(item.index)}
