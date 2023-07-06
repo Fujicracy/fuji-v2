@@ -81,7 +81,7 @@ const Header = () => {
 
       return (
         (formattedPath === '/' && path === '/') ||
-        (path !== '/' && formattedPath.includes(path))
+        (path !== '/' && `/${formattedPath.split('/')[1]}`.includes(path))
       );
     },
     [currentPage]
