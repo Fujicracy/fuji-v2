@@ -12,6 +12,7 @@ pragma solidity 0.8.15;
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {ILendingProvider} from "./ILendingProvider.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
 
 interface IVault is IERC4626 {
   /**
@@ -497,8 +498,15 @@ interface IVault is IERC4626 {
    *
    * @param strategy enum of the strategy to apply after harvesting rewards.
    * @param provider lending provider to be harvested.
+   * @param swapper ISwapper to be used to swap rewards.
    * @param data bytes to be used to call the harvest function at the lending provider.
    *
    */
-  function harvest(Strategy strategy, ILendingProvider provider, bytes memory data) external;
+  function harvest(
+    Strategy strategy,
+    ILendingProvider provider,
+    ISwapper swapper,
+    bytes memory data
+  )
+    external;
 }
