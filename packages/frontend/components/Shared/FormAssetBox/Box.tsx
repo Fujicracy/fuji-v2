@@ -58,6 +58,17 @@ function FormAssetBox({
   changeAssetValue,
   vaultType = VaultType.BORROW,
 }: BorrowBoxProps) {
+  const assetActionLabel =
+    type === AssetType.Collateral
+      ? actionType === ActionType.ADD
+        ? vaultType === VaultType.LEND
+          ? 'Deposit from'
+          : 'Collateral from'
+        : 'Withdraw to'
+      : actionType === ActionType.ADD
+      ? 'Borrow to'
+      : 'Payback from';
+
   return (
     <Box
       mb={
@@ -69,17 +80,7 @@ function FormAssetBox({
       }
     >
       <ChainSelect
-        label={
-          type === AssetType.Collateral
-            ? actionType === ActionType.ADD
-              ? vaultType === VaultType.LEND
-                ? 'Deposit from'
-                : 'Collateral from'
-              : 'Withdraw to'
-            : actionType === ActionType.ADD
-            ? 'Borrow to'
-            : 'Payback from'
-        }
+        label={assetActionLabel}
         type={type}
         value={chainId}
         disabled={isExecuting}
