@@ -201,7 +201,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
           <FormAssetBox
             index={0}
             type={AssetType.Collateral}
-            showMax={true}
+            showMax={actionType === ActionType.ADD}
             maxAmount={maxAmount}
             assetChange={collateral}
             isEditing={isEditing}
@@ -265,6 +265,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
           setIsConfirmationModalShown(false);
           confirmationModalAction && confirmationModalAction();
         }}
+        type={VaultType.LEND}
       />
     </>
   );

@@ -31,6 +31,7 @@ type ConfirmTransactionModalProps = {
   actionType: ActionType;
   onClose: () => void;
   action: () => void;
+  type?: VaultType;
 };
 
 function ConfirmTransactionModal({
@@ -39,6 +40,7 @@ function ConfirmTransactionModal({
   open,
   onClose,
   action,
+  type = VaultType.BORROW,
 }: ConfirmTransactionModalProps) {
   const { palette } = useTheme();
   const { steps } = transactionMeta;
@@ -87,7 +89,7 @@ function ConfirmTransactionModal({
     [transactionMeta.estimateSlippage, slippage]
   );
 
-  if (!position || !dynamicLtvMeta) {
+  if (!position || (type === VaultType.BORROW && !dynamicLtvMeta)) {
     return <></>;
   }
 
@@ -254,7 +256,8 @@ function ConfirmTransactionModal({
             />
 
             {/*I did this (check) just to exclude weird error we got before*/}
-            {dynamicLtvMeta.ltv !== undefined &&
+            {dynamicLtvMeta &&
+            dynamicLtvMeta.ltv !== undefined &&
             dynamicLtvMeta.ltvMax !== undefined &&
             dynamicLtvMeta.ltv >= dynamicLtvMeta.ltvMax - 5 ? (
               <Box mt="1rem">
