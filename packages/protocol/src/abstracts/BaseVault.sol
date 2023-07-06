@@ -30,6 +30,7 @@ import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {PausableVault} from "./PausableVault.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
 
 abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {
   using Math for uint256;
@@ -52,6 +53,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__redeem_slippageTooHigh();
   error BaseVault__harvest_invalidProvider();
   error BaseVault__harvest_strategyNotImplemented();
+  error BaseVault__harvest_notValidSwapper();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -977,6 +979,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   function harvest(
     Strategy strategy,
     ILendingProvider provider,
+    ISwapper swapper,
     bytes memory data
   )
     external
@@ -987,27 +990,34 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       revert BaseVault__harvest_invalidProvider();
     }
 
-    //collect rewards from provider
-    _harvest(provider, data);
-
-    IERC20 token = IERC20(provider.getHarvestToken());
-
-    //strategy 1 = convert rewards to collateral
-    if (strategy == Strategy.ConvertToCollateral) {
-      //check if reward token is asset
-      if (address(token) != asset()) {
-        //swap for collateral
-      }
-    }
-
     //strategy 2 = repay debt
     /// @dev only implemented in BorrowingVault
     if (strategy == Strategy.RepayDebt) {
       revert BaseVault__harvest_strategyNotImplemented();
     }
 
+    //collect rewards from provider
+    _harvest(provider, data);
+
+    IERC20 token = IERC20(provider.getHarvestToken(this));
+    uint256 rewardAmount = provider.previewHarvest(this);
+
+    //strategy 1 = convert rewards to collateral
+    if (strategy == Strategy.ConvertToCollateral) {
+      //check if reward token is asset
+      if (address(token) != asset()) {
+        if (!chief.allowedSwapper(address(swapper))) {
+          revert BaseVault__harvest_notValidSwapper();
+        }
+        //swap for collateral
+        _swap(swapper, address(token), asset(), rewardAmount);
+      }
+    }
+
     //strategy 3 = distribute rewards
-    if (strategy == Strategy.Distribute) {}
+    if (strategy == Strategy.Distribute) {
+      return;
+    }
   }
 
   function _harvest(ILendingProvider provider, bytes memory data) internal {
@@ -1015,5 +1025,12 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       abi.encodeWithSelector(ILendingProvider.harvest.selector, data),
       string(abi.encodePacked("harvest", ": delegate call failed"))
     );
+  }
+
+  function _swap(ISwapper swapper, address assetIn, address assetOut, uint256 amountIn) internal {
+    uint256 amountOut = swapper.getAmountOut(assetIn, assetOut, amountIn);
+
+    SafeERC20.safeIncreaseAllowance(ERC20(asset()), address(swapper), amountIn);
+    swapper.swap(assetIn, asset(), amountIn, amountOut, address(this), address(this), 0);
   }
 }
