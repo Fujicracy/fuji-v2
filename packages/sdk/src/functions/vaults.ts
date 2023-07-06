@@ -8,6 +8,7 @@ import {
 } from '../entities';
 import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { BorrowingVault } from '../entities/BorrowingVault';
+import { LendingVault } from '../entities/LendingVault';
 import { ChainId, ChainType, VaultType } from '../enums';
 import {
   ChainConfig,
@@ -26,7 +27,7 @@ export function getAllVaults(
   const chains = Object.values(CHAIN).filter((c) => c.chainType === chainType);
 
   for (const chain of chains) {
-    const filtered = _vaultsForType(type, chain.chainId);
+    const filtered = _vaultsForChain(type, chain.chainId);
     vaults.push(...filtered);
   }
 
@@ -43,7 +44,7 @@ export async function getVaultsWithFinancials(
   if (!chain.isDeployed) {
     return new FujiResultError(`${chain.name} not deployed`);
   }
-  const vaults = _vaultsForType(type, chain.chainId).map((v) =>
+  const vaults = _vaultsForChain(type, chain.chainId).map((v) =>
     v.setConnection(configParams)
   );
   return await batchLoad(vaults, account, chain);
@@ -125,28 +126,51 @@ export function findVaultsByTokens(
     ? [collateral.chainId, debt.chainId]
     : [collateral.chainId];
 
-  return new FujiResultSuccess(
-    Object.entries(VAULT_LIST)
-      .map(([, list]) => list)
-      .reduce((acc, list) => {
-        const vaults = list
-          .filter(
-            (v: AbstractVault) =>
-              chains.includes(v.collateral.chainId) ||
-              (v instanceof BorrowingVault && chains.includes(v.debt.chainId))
-          )
-          .filter((v: AbstractVault) =>
-            type === VaultType.BORROW
-              ? v.collateral.symbol === collateralSym &&
-                v instanceof BorrowingVault &&
-                v.debt.symbol === debtSym
-              : v.collateral.symbol === collateralSym
-          );
-        return [...acc, ...vaults];
-      }, [])
-  );
+  const data =
+    type === VaultType.BORROW
+      ? _borrowingVaultsForToken(chains, collateralSym, debtSym)
+      : _lendingVaultsForToken(chains, collateralSym);
+  return new FujiResultSuccess(data);
 }
 
-function _vaultsForType(type: VaultType, chainId: ChainId): AbstractVault[] {
+function _vaultsForChain(type: VaultType, chainId: ChainId): AbstractVault[] {
   return VAULT_LIST[chainId].filter((v) => v.type === type);
+}
+
+function _borrowingVaultsForToken(
+  chains: ChainId[],
+  collateralSymbol: string,
+  debtSymbol?: string
+): BorrowingVault[] {
+  return (_allVaults(VaultType.BORROW) as BorrowingVault[])
+    .filter(
+      (v: BorrowingVault) =>
+        chains.includes(v.collateral.chainId) || chains.includes(v.debt.chainId)
+    )
+    .filter(
+      (v: BorrowingVault) =>
+        v.collateral.symbol === collateralSymbol && v.debt.symbol === debtSymbol
+    );
+}
+
+function _lendingVaultsForToken(
+  chains: ChainId[],
+  symbol: string
+): LendingVault[] {
+  return (_allVaults(VaultType.LEND) as LendingVault[])
+    .filter((v: LendingVault) => chains.includes(v.collateral.chainId))
+    .filter((v: LendingVault) => v.collateral.symbol === symbol);
+}
+
+function _allVaults(type: VaultType): AbstractVault[] {
+  return Object.entries(VAULT_LIST)
+    .map(([, list]) => list)
+    .reduce((acc, list) => {
+      const vaults = list.filter((v: AbstractVault) =>
+        type === VaultType.BORROW
+          ? v instanceof BorrowingVault
+          : v instanceof LendingVault
+      );
+      return [...acc, ...vaults];
+    }, []);
 }
