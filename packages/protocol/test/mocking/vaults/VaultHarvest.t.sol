@@ -16,6 +16,7 @@ import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {YieldVault} from "../../../src/vaults/yields/YieldVault.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {RebalancerManager} from "../../../src/RebalancerManager.sol";
+import {ISwapper} from "../../../src/interfaces/ISwapper.sol";
 
 contract MockProviderIdA is MockProvider {
   function providerName() public pure override returns (string memory) {
@@ -99,7 +100,7 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
   function test_simpleHarvest() public {
     bytes memory data = abi.encode(bvault);
     vm.startPrank(HARVESTER);
-    bvault.harvest(IVault.Strategy.ConvertToCollateral, mockProviderA, data);
+    bvault.harvest(IVault.Strategy.Distribute, mockProviderA, ISwapper(address(0)), data);
     vm.stopPrank();
 
     uint256 expectedRewards = 1e18;
