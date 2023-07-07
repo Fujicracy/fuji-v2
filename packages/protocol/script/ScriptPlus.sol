@@ -156,8 +156,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
 
   function setOrDeployBorrowingVaultFactory(
     bool deployFactory,
-    bool deployMasterImplementation,
-    bool setMasterImplementation
+    bool deployMasterImplementation
   )
     internal
   {
@@ -176,13 +175,13 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
      */
     if (deployMasterImplementation) {
       masterImplementation = address(new BorrowingVault());
-      saveAddress("Master_BorrowingVault", masterImplementation);
+      saveAddress("BorrowingVault-Impl", masterImplementation);
     } else {
-      masterImplementation = getAddress("Master_BorrowingVault");
+      masterImplementation = getAddress("BorrowingVault-Impl");
     }
 
     // This boolean will set a master copy of BorrowingVault implementation
-    if (setMasterImplementation) {
+    if (factory.masterImplementation() != masterImplementation) {
       console.log("Setting master implementation BorrowingVault ...");
       bytes memory data1 =
         abi.encodeWithSelector(factory.setMasterImplementation.selector, masterImplementation);
