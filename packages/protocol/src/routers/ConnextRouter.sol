@@ -78,6 +78,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   error ConnextRouter__xReceive_notAllowedCaller();
   error ConnextRouter__xReceiver_noValueTransferUseXbundle();
   error ConnnextRouter__xBundleConnext_notSelfCalled();
+  error ConnextRouter__crossTransfer_checkReceiver();
 
   /// @dev The connext contract on the origin domain.
   IConnext public immutable connext;
@@ -274,6 +275,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, address));
 
     _checkIfAddressZero(receiver);
+    /// @dev In a simple _crossTransfer funds should not be left in destination `ConnextRouter.sol`
+    if (receiver == routerByDomain[destDomain]) revert ConnextRouter__crossTransfer_checkReceiver();
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
     _safePullTokenFrom(asset, sender, amount);
@@ -329,8 +332,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       bytes memory callData
     ) = abi.decode(params, (uint256, uint256, address, uint256, address, bytes));
 
-    (Action[] memory actions, bytes[] memory args,) =
-      abi.decode(callData, (Action[], bytes[], uint256));
+    (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
@@ -405,8 +407,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       (,,,, bytes memory callData) =
         abi.decode(args[0], (uint256, uint256, address, uint256, bytes));
 
-      (Action[] memory actions_, bytes[] memory args_,) =
-        abi.decode(callData, (Action[], bytes[], uint256));
+      (Action[] memory actions_, bytes[] memory args_) = abi.decode(callData, (Action[], bytes[]));
 
       beneficiary_ = _getBeneficiaryFromCalldata(actions_, args_);
     } else if (actions[0] == Action.DepositETH) {
