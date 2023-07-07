@@ -7,33 +7,44 @@ pragma solidity 0.8.15;
  * @author Fujidao Labs
  *
  * @notice A factory contract through which new borrowing vaults are created.
- * The BorrowingVault contract is quite big in size. Creating new instances of it with
- * `new BorrowingVault()` makes the factory contract exceed the 24K limit. That's why
- * we use an approach found at Fraxlend. We split and store the BorrowingVault bytecode
- * in two different locations and when used they get concatanated and deployed by using assembly.
- * ref: https://github.com/FraxFinance/fraxlend/blob/main/src/contracts/FraxlendPairDeployer.sol
+ * This vault factory deploys (OZ implementation) ERC1967Proxies that
+ * point to `masterImplementation` state variable as the targe
+ * implementation of the proxy.
  */
 
 import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
-import {LibSSTORE2} from "../../libraries/LibSSTORE2.sol";
-import {LibBytes} from "../../libraries/LibBytes.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {BorrowingVaultUpgradeable as BVault} from "./BorrowingVaultUpgradeable.sol";
+import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 
 contract BorrowingVaultFactory2 is VaultDeployer {
+  using SafeERC20 for IERC20;
+
   struct BVaultData {
-    bytes bytecode;
     address asset;
     address debtAsset;
     string name;
     string symbol;
     bytes32 salt;
+    bytes bytecode;
   }
 
   /// @dev Custom Errors
-  error BorrowingVaultFactory__deployVault_failed();
-  error BorrowingVaultFactory__deployVault_noContractCode();
+  error BorrowingVaultFactory__deployVault_noMasterImplementation();
 
+  /**
+   * @dev Emit when a new BorrowingVault is deployed.
+   *
+   * @param vault address
+   * @param asset of this vault
+   * @param debtAsset of this vault
+   * @param name  of the tokenized asset shares
+   * @param symbol of the tokenized aset shares
+   * @param salt distinguishing this vault
+   */
   event DeployBorrowingVault(
     address indexed vault,
     address indexed asset,
@@ -43,10 +54,16 @@ contract BorrowingVaultFactory2 is VaultDeployer {
     bytes32 salt
   );
 
+  /**
+   * @dev Emit when `masterImplementation` address changes.
+   *
+   * @param implementation new address
+   */
+  event NewMasterImplementation(address implementation);
+
   uint256 public nonce;
 
-  address private _creationAddress1;
-  address private _creationAddress2;
+  address public masterImplementation;
 
   /**
    * @notice Constructor of a new {BorrowingVaultFactory}.
@@ -67,10 +84,20 @@ contract BorrowingVaultFactory2 is VaultDeployer {
    * - Must be called from {Chief} contract only.
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
+    if (masterImplementation == address(0)) {
+      revert BorrowingVaultFactory__deployVault_noMasterImplementation();
+    }
+
+    uint256 initAssets = BVault(payable(masterImplementation)).minAmount();
+
     BVaultData memory vdata;
+
     ///@dev Scoped section created to avoid stack too big error.
     {
       (address asset, address debtAsset) = abi.decode(deployData, (address, address));
+
+      // Use tx.origin because it will pull assets from EOA who originated the `Chief.deployVault(...)`.
+      IERC20(asset).safeTransferFrom(tx.origin, address(this), initAssets);
 
       vdata.asset = asset;
       vdata.debtAsset = debtAsset;
@@ -78,32 +105,39 @@ contract BorrowingVaultFactory2 is VaultDeployer {
       string memory assetSymbol = IERC20Metadata(asset).symbol();
       string memory debtSymbol = IERC20Metadata(debtAsset).symbol();
 
-      // Example of `name_`: "Fuji-V2 WETH-DAI BorrowingVault".
-      vdata.name =
-        string(abi.encodePacked("Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault"));
-      // Example of `symbol_`: "fbvWETHDAI".
-      vdata.symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol));
-
-      vdata.salt = keccak256(abi.encode(deployData, nonce));
-      nonce++;
-
-      bytes memory creationCode =
-        LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
-
-      if (creationCode.length == 0) revert BorrowingVaultFactory__deployVault_noContractCode();
-
-      vdata.bytecode = abi.encodePacked(
-        creationCode, abi.encode(asset, debtAsset, chief, vdata.name, vdata.symbol)
+      // Example of `name_`: "Fuji-V2 WETH-DAI BorrowingVault-1".
+      vdata.name = string(
+        abi.encodePacked("Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault", "-", nonce)
       );
+      // Example of `symbol_`: "fbvWETHDAI-1".
+      vdata.symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol, "-", nonce));
+
+      vdata.salt = keccak256(abi.encode(deployData, nonce, block.number));
+
+      bytes memory initCall = abi.encodeWithSignature(
+        "initialize(address,address,address,string,string,uint256)",
+        vdata.asset,
+        vdata.debtAsset,
+        chief,
+        vdata.name,
+        vdata.symbol,
+        initAssets
+      );
+
+      vdata.bytecode =
+        abi.encode(type(ERC1967Proxy).creationCode, abi.encode(masterImplementation, initCall));
+
+      // Predict address to safeIncreaseAllowance to future vault initialization of shares.
+      address futureVault = Create2.computeAddress(vdata.salt, keccak256(vdata.bytecode));
+
+      // Allow future vault to pull assets from factory for deployment.
+      IERC20(asset).safeIncreaseAllowance(futureVault, initAssets);
+
+      nonce++;
     }
 
-    bytes32 salt_ = vdata.salt;
-    bytes memory bytecode_ = vdata.bytecode;
-
-    assembly {
-      vault := create2(0, add(bytecode_, 32), mload(bytecode_), salt_)
-    }
-    if (vault == address(0)) revert BorrowingVaultFactory__deployVault_failed();
+    // Create2 Library reverts if returned address is zero.
+    vault = Create2.deploy(0, vdata.salt, vdata.bytecode);
 
     _registerVault(vault, vdata.asset, vdata.salt);
 
@@ -113,28 +147,17 @@ contract BorrowingVaultFactory2 is VaultDeployer {
   }
 
   /**
-   * @notice Gets the bytecode for the BorrowingVault.
+   * @notice Sets the implementation for further deployments of BorrowingVault proxies.
+   * NOTE: This function DOES NOT upgrade previously deployed proxies.
    *
-   */
-  function getContractCode() external view returns (bytes memory creationCode) {
-    creationCode =
-      LibBytes.concat(LibSSTORE2.read(_creationAddress1), LibSSTORE2.read(_creationAddress2));
-  }
-
-  /**
-   * @notice Sets the bytecode for the BorrowingVault.
-   *
-   * @param creationCode The creationCode for the vault contracts
+   * @param newMaster The new implementtion for the further proxy contracts
    *
    * @dev Requirements:
    * - Must be called from a timelock.
+   * - Must allow to set address(0) if further proxy deployments shoudl be blocked.
    */
-  function setContractCode(bytes calldata creationCode) external onlyTimelock {
-    bytes memory firstHalf = LibBytes.slice(creationCode, 0, 13000);
-    _creationAddress1 = LibSSTORE2.write(firstHalf);
-    if (creationCode.length > 13000) {
-      bytes memory secondHalf = LibBytes.slice(creationCode, 13000, creationCode.length - 13000);
-      _creationAddress2 = LibSSTORE2.write(secondHalf);
-    }
+  function setMasterImplementation(address newMaster) external onlyTimelock {
+    masterImplementation = newMaster;
+    emit NewMasterImplementation(newMaster);
   }
 }
