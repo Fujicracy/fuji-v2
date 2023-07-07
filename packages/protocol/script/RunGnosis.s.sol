@@ -18,7 +18,7 @@ contract RunGnosis is ScriptPlus {
     setOrDeployChief(false);
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
-    setOrDeployBorrowingVaultFactory2(false, false);
+    setOrDeployBorrowingVaultFactory(false, false, false);
     /*setOrDeployAddrMapper(false);*/
     setOrDeployFlasherBalancer(false);
     setOrDeployRebalancer(false);
@@ -28,9 +28,9 @@ contract RunGnosis is ScriptPlus {
     /*saveAddress("Agave_Gnosis", address(agave));*/
 
     if (chief.allowedVaultFactory(address(factory))) {
-      deployBorrowingVaults2();
-      setBorrowingVaults2();
-      initBorrowingVaults2();
+      deployBorrowingVaults();
+      setBorrowingVaults();
+      // initBorrowingVaults2();
     }
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 55);*/
