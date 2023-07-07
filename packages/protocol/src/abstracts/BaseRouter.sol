@@ -59,11 +59,10 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   event AllowCaller(address caller, bool allowed);
 
   /// @dev Custom Errors
-  error BaseRouter__bundleInternal_swapNotFirstAction();
+  error BaseRouter__bundleInternal_notFirstAction();
   error BaseRouter__bundleInternal_paramsMismatch();
   error BaseRouter__bundleInternal_flashloanInvalidRequestor();
   error BaseRouter__bundleInternal_noBalanceChange();
-  error BaseRouter__bundleInternal_insufficientETH();
   error BaseRouter__bundleInternal_notBeneficiary();
   error BaseRouter__checkVaultInput_notActiveVault();
   error BaseRouter__bundleInternal_notAllowedSwapper();
@@ -302,7 +301,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
         if (i == 0) {
           /// @dev swap cannot be actions[0].
-          revert BaseRouter__bundleInternal_swapNotFirstAction();
+          revert BaseRouter__bundleInternal_notFirstAction();
         }
 
         beneficiary = _handleSwapAction(args[i], beneficiary, tokensToCheck);
@@ -338,12 +337,10 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
       } else if (action == Action.DepositETH) {
         uint256 amount = abi.decode(args[i], (uint256));
 
-        if (amount != msg.value) {
-          revert BaseRouter__bundleInternal_insufficientETH();
-        }
+        ///@dev There is no check for msg.value as that is already done via `nativeBalance`
         _addTokenToList(address(WETH9), tokensToCheck);
 
-        WETH9.deposit{value: msg.value}();
+        WETH9.deposit{value: amount}();
       } else if (action == Action.WithdrawETH) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
         beneficiary = _checkBeneficiary(beneficiary, receiver);
@@ -741,8 +738,14 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   /**
    * @dev Extracts the beneficiary from a set of actions and args.
    * Requirements:
-   * - Must be implemented in child contract, and added to `_crossTransfer` and
-   * `crossTansferWithCalldata` when applicable.
+   * - Must be implemented in child contracts, and added to `_crossTransfer` and
+   *  `crossTansferWithCalldata` as applicable.
+   * - Must revert if `actions[0]` == IRouter.Action.Swap
+   * - Must revert if `actions[0]` == IRouter.Action.DepositETH
+   *
+   * NOTE: This function is also implemented in Action.Flashloan of
+   * `_internalBundle(...)`, meaning that within a flashloan
+   * the Action.DepositETH cannot be the first action either.
    *
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action
