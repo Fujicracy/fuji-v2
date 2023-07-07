@@ -8,6 +8,7 @@ import {CompoundV3} from "../../../src/providers/mainnet/CompoundV3.sol";
 import {ICompoundV3} from "../../../src/interfaces/compoundV3/ICompoundV3.sol";
 import {AaveV2} from "../../../src/providers/mainnet/AaveV2.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
+import {IHarvestable} from "../../../src/interfaces/IHarvestable.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {YieldVault} from "../../../src/vaults/yields/YieldVault.sol";
@@ -175,10 +176,11 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
       0x1B0e765F6224C21223AeA2af16c1C46E38885a40
     ).getRewardOwed(market, address(yieldVault));
 
-    address token = compoundV3.getHarvestToken(yieldVault);
-    uint256 amount = compoundV3.previewHarvest(yieldVault);
+    (address[] memory tokens, uint256[] memory amounts) =
+      IHarvestable(address(compoundV3)).previewHarvest(yieldVault, IVault.Strategy.Distribute);
 
-    assertEq(rewardOwed.token, token);
-    assertEq(rewardOwed.owed, amount);
+    //compoundV3 will only return on token as reward
+    assertEq(rewardOwed.token, tokens[0]);
+    assertEq(rewardOwed.owed, amounts[0]);
   }
 }

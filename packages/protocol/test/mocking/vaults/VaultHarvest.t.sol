@@ -10,6 +10,7 @@ import {MockFlasher} from "../../../src/mocks/MockFlasher.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
+import {IHarvestable} from "../../../src/interfaces/IHarvestable.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
@@ -100,7 +101,9 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
   function test_simpleHarvest() public {
     bytes memory data = abi.encode(bvault);
     vm.startPrank(HARVESTER);
-    bvault.harvest(IVault.Strategy.Distribute, mockProviderA, ISwapper(address(0)), data);
+    bvault.harvest(
+      IVault.Strategy.Distribute, IHarvestable(address(mockProviderA)), ISwapper(address(0)), data
+    );
     vm.stopPrank();
 
     uint256 expectedRewards = 1e18;
