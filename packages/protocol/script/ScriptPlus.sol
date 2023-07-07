@@ -446,11 +446,30 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
 
       uint256 providersLen = providerNames.length;
       ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      address vault;
       for (uint256 j; j < providersLen; j++) {
         providers[j] = ILendingProvider(getAddress(providerNames[j]));
       }
-      address vault = chief.deployVault(address(yieldFactory), abi.encode(asset, providers), rating);
-      saveAddress(name, vault);
+      try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
+        console.log(string.concat("Skip deploying: ", name));
+        vault = getAddress(name);
+      } catch {
+        console.log(string.concat("Deploying: ", name, " ..."));
+        vault = chief.deployVault(address(yieldFactory), abi.encode(asset, providers), rating);
+        saveAddress(name, vault);
+      }
+
+      YieldVault v = YieldVault(payable(vault));
+      if (!v.initialized()) {
+        console.log(string.concat("Initializing: ", name, " ..."));
+
+        uint256 minCollateral = v.minAmount();
+
+        SafeERC20.safeIncreaseAllowance(IERC20(asset), address(v), minCollateral);
+        v.initializeVaultShares(minCollateral);
+      } else {
+        console.log(string.concat("Skip initializing ", name));
+      }
     }
   }
 
