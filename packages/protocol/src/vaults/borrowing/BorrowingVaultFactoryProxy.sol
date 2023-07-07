@@ -17,7 +17,6 @@ import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {BorrowingVaultUpgradeable as BVault} from "./BorrowingVaultUpgradeable.sol";
 import {Create2Upgradeable} from
   "openzeppelin-contracts-upgradeable/contracts/utils/Create2Upgradeable.sol";
 
@@ -89,9 +88,10 @@ contract BorrowingVaultFactoryProxy is VaultDeployer {
       revert BorrowingVaultFactory__deployVault_noMasterImplementation();
     }
 
-    uint256 initAssets = BVault(payable(masterImplementation)).minAmount();
+    uint256 initAssets = 1e6;
 
     BVaultData memory vdata;
+    address futureVault;
 
     ///@dev Scoped section created to avoid stack too big error.
     {
@@ -125,11 +125,12 @@ contract BorrowingVaultFactoryProxy is VaultDeployer {
         initAssets
       );
 
-      vdata.bytecode =
-        abi.encode(type(ERC1967Proxy).creationCode, abi.encode(masterImplementation, initCall));
+      vdata.bytecode = abi.encodePacked(
+        type(ERC1967Proxy).creationCode, abi.encode(masterImplementation, initCall)
+      );
 
       // Predict address to safeIncreaseAllowance to future vault initialization of shares.
-      address futureVault = Create2Upgradeable.computeAddress(vdata.salt, keccak256(vdata.bytecode));
+      futureVault = Create2Upgradeable.computeAddress(vdata.salt, keccak256(vdata.bytecode));
 
       // Allow future vault to pull assets from factory for deployment.
       IERC20(asset).safeIncreaseAllowance(futureVault, initAssets);
@@ -139,6 +140,7 @@ contract BorrowingVaultFactoryProxy is VaultDeployer {
 
     // Create2 Library reverts if returned address is zero.
     vault = Create2Upgradeable.deploy(0, vdata.salt, vdata.bytecode);
+    require(vault == futureVault, "Addresses not equal");
 
     _registerVault(vault, vdata.asset, vdata.salt);
 

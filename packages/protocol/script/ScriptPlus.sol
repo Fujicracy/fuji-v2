@@ -78,6 +78,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     chainNames.push("optimism");
     chainNames.push("arbitrum");
     chainNames.push("gnosis");
+    chainNames.push("goerli");
   }
 
   function setUpOn(string memory chain) internal {
@@ -333,7 +334,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       } catch {
         console.log(string.concat("Deploying: ", name, " ..."));
 
-        SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(factory), minCollateral);
+        /*SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(factory), minCollateral);*/
 
         address vault = chief.deployVault(address(factory), abi.encode(collateral, debt), rating);
         saveAddress(name, vault);
