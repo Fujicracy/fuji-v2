@@ -110,6 +110,13 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
    * @param chief_ that deploys and controls this vault
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
+   * @param providers_ array that will initialize this vault
+   * @param initAssets amount to initialize asset shares
+   *
+   * @dev Requirements:
+   * - Must be initialized with a set of providers.
+   * - Must set first provider in `providers_` array as `activeProvider`.
+   * - Must call `__BaseVault_initializeShares(...)` after setting `activeProvider`.
    */
   function initialize(
     address asset_,
@@ -117,14 +124,18 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
     address chief_,
     string memory name_,
     string memory symbol_,
+    ILendingProvider[] memory providers_,
     uint256 initAssets
   )
     public
     initializer
   {
-    __BaseVault_initialize(asset_, chief_, name_, symbol_, initAssets);
+    __BaseVault_initialize(asset_, chief_, name_, symbol_);
     _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = IERC20Metadata(debtAsset_).decimals();
+    _setProviders(providers_);
+    _setActiveProvider(providers_[0]);
+    __BaseVault_initializeShares(initAssets);
   }
 
   receive() external payable {}

@@ -40,6 +40,7 @@ contract YieldVaultUpgradeable is BaseVaultUpgradeable {
    * @dev Requirements:
    * - Must be initialized with a set of providers.
    * - Must set first provider in `providers_` array as `activeProvider`.
+   * - Must call `__BaseVault_initializeShares(...)` after setting `activeProvider`.
    */
   function initialize(
     address asset_,
@@ -52,9 +53,10 @@ contract YieldVaultUpgradeable is BaseVaultUpgradeable {
     public
     initializer
   {
-    __BaseVault_initialize(asset_, chief_, name_, symbol_, initAssets);
+    __BaseVault_initialize(asset_, chief_, name_, symbol_);
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
+    __BaseVault_initializeShares(initAssets);
   }
 
   receive() external payable {}
