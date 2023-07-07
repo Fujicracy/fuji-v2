@@ -14,9 +14,7 @@ const formType = FormType.Create;
 
 const LendingPage: NextPage = () => {
   const chainId = useAuth((state) => state.chainId);
-  const shouldResetPage = useNavigation(
-    (state) => state.borrowPage.shouldReset
-  );
+  const shouldResetPage = useNavigation((state) => state.lendPage.shouldReset);
 
   const changeFormType = useLend((state) => state.changeFormType);
   const changeAssetChain = useLend((state) => state.changeAssetChain);

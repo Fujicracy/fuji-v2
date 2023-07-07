@@ -111,7 +111,7 @@ export const showPosition = async (
   } else if (type === VaultType.BORROW) {
     showBorrow(router, false);
   } else {
-    showLend(router);
+    showLend(router, false);
   }
 };
 
