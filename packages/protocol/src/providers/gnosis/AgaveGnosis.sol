@@ -113,18 +113,4 @@ contract AgaveGnosis is ILendingProvider {
     IV2Pool.ReserveData memory rdata = agaveData.getReserveData(vault.debtAsset());
     balance = IERC20(rdata.variableDebtTokenAddress).balanceOf(user);
   }
-
-  /// @inheritdoc ILendingProvider
-  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
-    return false;
-  }
-
-  //TODO
-  function getHarvestToken(IVault /* vault */ ) external pure returns (address token) {
-    token = address(0);
-  }
-
-  function previewHarvest(IVault /* vault */ ) external pure returns (uint256 amount) {
-    return 0;
-  }
 }

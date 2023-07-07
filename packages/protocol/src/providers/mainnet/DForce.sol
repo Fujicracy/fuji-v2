@@ -230,18 +230,4 @@ contract DForce is ILendingProvider {
     IGenIToken iToken = IGenIToken(_getiToken(asset));
     balance = LibDForce.viewBorrowingBalanceOf(iToken, user);
   }
-
-  /// @inheritdoc ILendingProvider
-  function harvest(bytes memory /* data */ ) external pure returns (bool success) {
-    return false;
-  }
-
-  //TODO
-  function getHarvestToken(IVault /* vault */ ) external pure returns (address token) {
-    token = address(0);
-  }
-
-  function previewHarvest(IVault /* vault */ ) external pure returns (uint256 amount) {
-    return 0;
-  }
 }
