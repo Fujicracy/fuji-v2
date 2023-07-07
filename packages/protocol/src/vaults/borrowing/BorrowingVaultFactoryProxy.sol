@@ -16,6 +16,7 @@ import {VaultDeployer} from "../../abstracts/VaultDeployer.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Create2Upgradeable} from
   "openzeppelin-contracts-upgradeable/contracts/utils/Create2Upgradeable.sol";
@@ -95,7 +96,8 @@ contract BorrowingVaultFactoryProxy is VaultDeployer {
 
     ///@dev Scoped section created to avoid stack too big error.
     {
-      (address asset, address debtAsset) = abi.decode(deployData, (address, address));
+      (address asset, address debtAsset, ILendingProvider[] memory providers) =
+        abi.decode(deployData, (address, address, ILendingProvider[]));
 
       // Use tx.origin because it will pull assets from EOA who originated the `Chief.deployVault(...)`.
       IERC20(asset).safeTransferFrom(tx.origin, address(this), initAssets);
@@ -116,12 +118,13 @@ contract BorrowingVaultFactoryProxy is VaultDeployer {
       vdata.salt = keccak256(abi.encode(deployData, nonce, block.number));
 
       bytes memory initCall = abi.encodeWithSignature(
-        "initialize(address,address,address,string,string,uint256)",
+        "initialize(address,address,address,string,string,ILendingProvider[],uint256)",
         vdata.asset,
         vdata.debtAsset,
         chief,
         vdata.name,
         vdata.symbol,
+        providers,
         initAssets
       );
 
