@@ -19,6 +19,8 @@ import {BorrowingVaultFactoryProxy as BorrowingVaultFactory} from
   "../src/vaults/borrowing/BorrowingVaultFactoryProxy.sol";
 import {BorrowingVaultUpgradeable as BorrowingVault} from
   "../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
+import {YieldVaultFactory} from "../src/vaults/yields/YieldVaultFactory.sol";
+import {YieldVault} from "../src/vaults/yields/YieldVault.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {Chief} from "../src/Chief.sol";
@@ -56,10 +58,18 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     uint256 rating;
   }
 
+  struct YieldVaultConfig {
+    string asset;
+    string name;
+    string[] providers;
+    uint256 rating;
+  }
+
   AddrMapper mapper;
   Chief chief;
   TimelockController timelock;
   BorrowingVaultFactory factory;
+  YieldVaultFactory yieldFactory;
   FujiOracle oracle;
   ConnextRouter connextRouter;
   RebalancerManager rebalancer;
@@ -191,6 +201,21 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     if (!chief.allowedVaultFactory(address(factory))) {
       bytes memory data2 =
         abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true);
+      callWithTimelock(address(chief), data2);
+    }
+  }
+
+  function setOrDeployYieldVaultFactory(bool deploy) internal {
+    if (deploy) {
+      yieldFactory = new YieldVaultFactory(address(chief));
+      saveAddress("YieldVaultFactory", address(yieldFactory));
+    } else {
+      yieldFactory = YieldVaultFactory(getAddress("YieldVaultFactory"));
+    }
+
+    if (!chief.allowedVaultFactory(address(yieldFactory))) {
+      bytes memory data2 =
+        abi.encodeWithSelector(chief.allowVaultFactory.selector, address(yieldFactory), true);
       callWithTimelock(address(chief), data2);
     }
   }
@@ -429,6 +454,50 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
 
   //   callBatchWithTimelock();
   // }
+
+  function deployYieldVaults() internal {
+    bytes memory raw = vm.parseJson(configJson, ".yield-vaults");
+    YieldVaultConfig[] memory vaults = abi.decode(raw, (YieldVaultConfig[]));
+
+    uint256 len = vaults.length;
+    address asset;
+    string memory name;
+    string[] memory providerNames;
+    uint256 rating;
+    for (uint256 i; i < len; i++) {
+      asset = readAddrFromConfig(vaults[i].asset);
+      name = vaults[i].name;
+      providerNames = vaults[i].providers;
+      rating = vaults[i].rating;
+
+      uint256 providersLen = providerNames.length;
+      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      address vault;
+      for (uint256 j; j < providersLen; j++) {
+        providers[j] = ILendingProvider(getAddress(providerNames[j]));
+      }
+      try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
+        console.log(string.concat("Skip deploying: ", name));
+        vault = getAddress(name);
+      } catch {
+        console.log(string.concat("Deploying: ", name, " ..."));
+        vault = chief.deployVault(address(yieldFactory), abi.encode(asset, providers), rating);
+        saveAddress(name, vault);
+      }
+
+      YieldVault v = YieldVault(payable(vault));
+      if (!v.initialized()) {
+        console.log(string.concat("Initializing: ", name, " ..."));
+
+        uint256 minCollateral = v.minAmount();
+
+        SafeERC20.safeIncreaseAllowance(IERC20(asset), address(v), minCollateral);
+        v.initializeVaultShares(minCollateral);
+      } else {
+        console.log(string.concat("Skip initializing ", name));
+      }
+    }
+  }
 
   function setOrDeployFlasherBalancer(bool deploy) internal {
     if (deploy) {

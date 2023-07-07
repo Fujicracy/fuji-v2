@@ -23,6 +23,7 @@ contract RunOptimism is ScriptPlus {
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
+    setOrDeployYieldVaultFactory(false);
     setOrDeployAddrMapper(false);
     setOrDeployFlasherBalancer(false);
     setOrDeployRebalancer(false);
@@ -33,6 +34,10 @@ contract RunOptimism is ScriptPlus {
       deployBorrowingVaults();
       setBorrowingVaults();
       // initBorrowingVaults2();
+    }
+
+    if (chief.allowedVaultFactory(address(yieldFactory))) {
+      deployYieldVaults();
     }
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
