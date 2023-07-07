@@ -99,6 +99,15 @@
       "providers": ["Aave_V3_Optimism"],
       "rating": 95
     }
+  ],
+  "yield-vaults": [
+    {
+      "asset": "WETH",
+      "name": "YieldVault-WETH-1",
+      "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 90
+    }
   ]
+
 }
 
