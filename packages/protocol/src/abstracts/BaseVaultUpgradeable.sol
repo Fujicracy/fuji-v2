@@ -2,45 +2,50 @@
 pragma solidity 0.8.15;
 
 /**
- * @title BaseVault
+ * @title BaseVaultUpgradeable
  *
  * @author Fujidao Labs
  *
- * @notice Abstract contract that defines the basic common functions and interface
- * for all vault types. User state is kept in vaults via tokenized shares compliant to ERC4626.
- * BaseVault defines but does not implement the debt handling functions. Slippage protected
- * functions are available through ERC5143 extension. The `_providers` of this vault are the
- * liquidity source for lending, borrowing and/or yielding operations.
- * Setter functions are controlled by timelock, and roles defined in {SystemAccessControl}.
- * Pausability in core functions is implemented for emergency cases.
- * Allowance and approvals for value extracting operations  is possible via
- * signed messages defined in {VaultPermissions}.
- * A rebalancing function is implemented to move vault's funds across providers.
+ * @notice Upgradeable version of {BaseVault}.
  */
-import {ERC20, IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import {IERC20Metadata} from
-  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
-import {IVault} from "../interfaces/IVault.sol";
+import {
+  ERC20Upgradeable,
+  IERC20Upgradeable
+} from "openzeppelin-contracts-upgradeable/contracts/token/ERC20/ERC20Upgradeable.sol";
+import {Initializable} from
+  "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import {IERC20MetadataUpgradeable as IERC20Metadata} from
+  "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import {SafeERC20Upgradeable} from
+  "openzeppelin-contracts-upgradeable/contracts/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {MathUpgradeable} from
+  "openzeppelin-contracts-upgradeable/contracts/utils/math/MathUpgradeable.sol";
+import {AddressUpgradeable} from
+  "openzeppelin-contracts-upgradeable/contracts/utils/AddressUpgradeable.sol";
+import {IVaultUpgradeable} from "../interfaces/IVaultUpgradeable.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
-import {IHarvestable} from "../interfaces/IHarvestable.sol";
-import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
+import {IERC4626Upgradeable} from
+  "openzeppelin-contracts-upgradeable/contracts/interfaces/IERC4626Upgradeable.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
 import {PausableVault} from "./PausableVault.sol";
-import {ISwapper} from "../interfaces/ISwapper.sol";
 
-abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {
-  using Math for uint256;
-  using Address for address;
-  using SafeERC20 for IERC20Metadata;
+abstract contract BaseVaultUpgradeable is
+  Initializable,
+  ERC20Upgradeable,
+  SystemAccessControl,
+  PausableVault,
+  VaultPermissions,
+  IVaultUpgradeable
+{
+  using MathUpgradeable for uint256;
+  using AddressUpgradeable for address;
+  using SafeERC20Upgradeable for IERC20Metadata;
 
   /// @dev Custom Errors
-  error BaseVault__constructor_invalidInput();
+  error BaseVault__initialize_invalidInput();
   error BaseVault__initializeVaultShares_alreadyInitialized();
-  error BaseVault__initializeVaultShares_lessThanMin();
+  error BaseVault__initialize_lessThanMin();
   error BaseVault__deposit_invalidInput();
   error BaseVault__deposit_moreThanMax();
   error BaseVault__deposit_lessThanMin();
@@ -54,11 +59,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__redeem_slippageTooHigh();
   error BaseVault__useIncreaseWithdrawAllowance();
   error BaseVault__useDecreaseWithdrawAllowance();
-  error BaseVault__harvest_invalidProvider();
-  error BaseVault__harvest_strategyNotImplemented();
-  error BaseVault__harvest_notValidSwapper();
-  error BaseVault__harvest_noRewards();
-  error BaseVault__harvest_invalidRewards();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -69,78 +69,50 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   string public constant VERSION = string("0.2.0");
 
-  bool public initialized;
+  IERC20Metadata internal _asset;
 
-  IERC20Metadata internal immutable _asset;
-
-  uint8 private immutable _decimals;
+  uint8 private _decimals;
 
   ILendingProvider[] internal _providers;
   ILendingProvider public activeProvider;
 
   uint256 public minAmount;
 
+  /// @custom:oz-upgrades-unsafe-allow constructor
+  constructor() {
+    _disableInitializers();
+  }
+
   /**
-   * @notice Constructor of a new {BaseVault}.
-   *
-   * @param asset_ this vault will handle as main asset (collateral)
-   * @param chief_ that deploys and controls this vault
-   * @param name_ of the token-shares handled in this vault
-   * @param symbol_ of the token-shares handled in this vault
-   *
-   * @dev Requirements:
-   * - Must assign `asset_` {ERC20-decimals} and `_decimals` equal.
-   * - Must check initial `minAmount` is not < 1e6. Refer to https://rokinot.github.io/hatsfinance.
+   * TODO
    */
-  constructor(
+  function __BaseVault_initialize(
     address asset_,
     address chief_,
     string memory name_,
-    string memory symbol_
+    string memory symbol_,
+    uint256 initAssets
   )
-    ERC20(name_, symbol_)
+    internal
   {
     if (asset_ == address(0) || chief_ == address(0)) {
-      revert BaseVault__constructor_invalidInput();
+      revert BaseVault__initialize_invalidInput();
     }
-
-    __SystemAccessControl_init(chief_);
-    __EIP712_initialize(name_, VERSION);
-
     _asset = IERC20Metadata(asset_);
     _decimals = IERC20Metadata(asset_).decimals();
     minAmount = 1e6;
 
-    // @dev pause all actions that will be unpaused when initializing the vault
-    _pauseForceAllActions();
-  }
+    __ERC20_init(name_, symbol_);
+    __SystemAccessControl_init(chief_);
+    __EIP712_initialize(name_, VERSION);
 
-  /**
-   * @notice Implement at children contract.
-   *
-   * @param assets amount to initialize asset shares
-   *
-   * Requirements:
-   * - Must create shares and balance to avoid inflation attack.
-   * - Must have `assets` be > `minAmount`.
-   * - Must account any created shares to the {Chief.timelock()}.
-   * - Must pull assets from msg.sender
-   * - Must unpause all actions at the end.
-   * - Must emit a VaultInitialized event.
-   */
-  function initializeVaultShares(uint256 assets) public {
-    if (initialized) {
-      revert BaseVault__initializeVaultShares_alreadyInitialized();
+    if (initAssets < minAmount) {
+      revert BaseVault__initialize_lessThanMin();
     }
-    if (assets < minAmount) {
-      revert BaseVault__initializeVaultShares_lessThanMin();
-    }
-    _unpauseForceAllActions();
 
     address timelock = chief.timelock();
-    _deposit(msg.sender, timelock, assets, assets);
+    _deposit(msg.sender, timelock, initAssets, initAssets);
 
-    initialized = true;
     emit VaultInitialized(msg.sender);
   }
 
@@ -165,7 +137,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   )
     public
     view
-    override(ERC20, IERC20)
+    override(ERC20Upgradeable, IERC20Upgradeable)
     returns (uint256)
   {
     /// @dev operator = receiver
@@ -182,7 +154,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * - Must be overriden to call {VaultPermissions-_setWithdrawAllowance}.
    * - Must convert `shares` into `assets` amount before calling internal functions.
    */
-  function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
+  function approve(
+    address receiver,
+    uint256 shares
+  )
+    public
+    override(ERC20Upgradeable, IERC20Upgradeable)
+    returns (bool)
+  {
     /// @dev operator = receiver and owner = msg.sender
     _setWithdrawAllowance(msg.sender, receiver, receiver, convertToAssets(shares));
     emit Approval(msg.sender, receiver, shares);
@@ -221,42 +200,48 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /*//////////////////////////////////////////
-      Asset management: overrides IERC4626
+      Asset management: overrides IERC4626Upgradeable
   //////////////////////////////////////////*/
 
   /**
    * @notice Returns the number of decimals used to get number representation.
    */
-  function decimals() public view virtual override(IERC20Metadata, ERC20) returns (uint8) {
+  function decimals()
+    public
+    view
+    virtual
+    override(ERC20Upgradeable, IERC20Metadata)
+    returns (uint8)
+  {
     return _decimals;
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function asset() public view virtual override returns (address) {
     return address(_asset);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function balanceOfAsset(address owner) external view virtual override returns (uint256 assets) {
     return convertToAssets(balanceOf(owner));
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function totalAssets() public view virtual override returns (uint256 assets) {
     return _checkProvidersBalance("getDepositBalance");
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function convertToShares(uint256 assets) public view virtual override returns (uint256 shares) {
-    return _convertToShares(assets, Math.Rounding.Down);
+    return _convertToShares(assets, MathUpgradeable.Rounding.Down);
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function convertToAssets(uint256 shares) public view virtual override returns (uint256 assets) {
-    return _convertToAssets(shares, Math.Rounding.Down);
+    return _convertToAssets(shares, MathUpgradeable.Rounding.Down);
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function maxDeposit(address) public view virtual override returns (uint256) {
     if (paused(VaultActions.Deposit)) {
       return 0;
@@ -264,7 +249,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return type(uint256).max;
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function maxMint(address) public view virtual override returns (uint256) {
     if (paused(VaultActions.Deposit)) {
       return 0;
@@ -272,30 +257,30 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return type(uint256).max;
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function maxWithdraw(address owner) public view virtual override returns (uint256);
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function maxRedeem(address owner) public view virtual override returns (uint256);
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function previewDeposit(uint256 assets) public view virtual override returns (uint256) {
-    return _convertToShares(assets, Math.Rounding.Down);
+    return _convertToShares(assets, MathUpgradeable.Rounding.Down);
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function previewMint(uint256 shares) public view virtual override returns (uint256) {
-    return _convertToAssets(shares, Math.Rounding.Up);
+    return _convertToAssets(shares, MathUpgradeable.Rounding.Up);
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function previewWithdraw(uint256 assets) public view virtual override returns (uint256) {
-    return _convertToShares(assets, Math.Rounding.Up);
+    return _convertToShares(assets, MathUpgradeable.Rounding.Up);
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function previewRedeem(uint256 shares) public view virtual override returns (uint256) {
-    return _convertToAssets(shares, Math.Rounding.Down);
+    return _convertToAssets(shares, MathUpgradeable.Rounding.Down);
   }
 
   /**
@@ -325,7 +310,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return receivedShares;
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
     uint256 shares = previewDeposit(assets);
 
@@ -362,7 +347,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return pulledAssets;
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function mint(uint256 shares, address receiver) public virtual override returns (uint256) {
     uint256 assets = previewMint(shares);
 
@@ -401,7 +386,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return burnedShares;
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function withdraw(
     uint256 assets,
     address receiver,
@@ -449,7 +434,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     return receivedAssets;
   }
 
-  /// @inheritdoc IERC4626
+  /// @inheritdoc IERC4626Upgradeable
   function redeem(
     uint256 shares,
     address receiver,
@@ -480,7 +465,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function _convertToShares(
     uint256 assets,
-    Math.Rounding rounding
+    MathUpgradeable.Rounding rounding
   )
     internal
     view
@@ -501,7 +486,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    */
   function _convertToAssets(
     uint256 shares,
-    Math.Rounding rounding
+    MathUpgradeable.Rounding rounding
   )
     internal
     view
@@ -513,7 +498,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Perform `_deposit()` at provider {IERC4626-deposit}.
+   * @dev Perform `_deposit()` at provider {IERC4626Upgradeable-deposit}.
    * Requirements:
    * - Must call `activeProvider` in `_executeProviderAction()`.
    * - Must emit a Deposit event.
@@ -558,7 +543,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Perform `_withdraw()` at provider {IERC4626-withdraw}.
+   * @dev Perform `_withdraw()` at provider {IERC4626Upgradeable-withdraw}.
    * Requirements:
    * - Must call `activeProvider` in `_executeProviderAction()`.
    * - Must emit a Withdraw event.
@@ -619,19 +604,19 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /*//////////////////////////////////////////////////
-      Debt management: based on IERC4626 semantics
+      Debt management: based on IERC4626Upgradeable semantics
   //////////////////////////////////////////////////*/
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function debtDecimals() public view virtual override returns (uint8);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function debtAsset() public view virtual returns (address);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function balanceOfDebt(address account) public view virtual override returns (uint256 debt);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function balanceOfDebtShares(address owner)
     external
     view
@@ -639,40 +624,40 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     override
     returns (uint256 debtShares);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function totalDebt() public view virtual returns (uint256);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function convertDebtToShares(uint256 debt) public view virtual returns (uint256 shares);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function convertToDebt(uint256 shares) public view virtual returns (uint256 debt);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxBorrow(address borrower) public view virtual returns (uint256);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxPayback(address borrower) public view virtual returns (uint256);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxMintDebt(address borrower) public view virtual returns (uint256);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxBurnDebt(address borrower) public view virtual returns (uint256);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewBorrow(uint256 debt) public view virtual returns (uint256 shares);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewMintDebt(uint256 shares) public view virtual returns (uint256 debt);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewPayback(uint256 debt) public view virtual returns (uint256 shares);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewBurnDebt(uint256 shares) public view virtual returns (uint256 debt);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function borrow(
     uint256 debt,
     address receiver,
@@ -682,7 +667,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     virtual
     returns (uint256 shares);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function mintDebt(
     uint256 shares,
     address receiver,
@@ -692,10 +677,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     virtual
     returns (uint256 debt);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function payback(uint256 debt, address owner) public virtual returns (uint256 shares);
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function burnDebt(uint256 shares, address owner) public virtual returns (uint256 debt);
 
   /**
@@ -864,17 +849,17 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
        Admin set functions
   /////////////////////////*/
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function setProviders(ILendingProvider[] memory providers) external onlyTimelock {
     _setProviders(providers);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function setActiveProvider(ILendingProvider activeProvider_) external override onlyTimelock {
     _setActiveProvider(activeProvider_);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function setMinAmount(uint256 amount) external override onlyTimelock {
     minAmount = amount;
     emit MinAmountChanged(amount);
@@ -963,82 +948,5 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     if (fee > reasonableFee) {
       revert BaseVault__checkRebalanceFee_excessFee();
     }
-  }
-
-  /// @inheritdoc IVault
-  function harvest(
-    Strategy strategy,
-    IHarvestable provider,
-    ISwapper swapper,
-    bytes memory data
-  )
-    external
-    hasRole(msg.sender, HARVESTER_ROLE)
-  {
-    _harvestChecks(strategy, provider, swapper);
-
-    //collect rewards from provider
-    _harvest(strategy, provider, data);
-    (address[] memory tokens, uint256[] memory amounts) = provider.previewHarvest(this, strategy);
-
-    if (tokens.length == 0) {
-      revert BaseVault__harvest_noRewards();
-    }
-    if (tokens.length != amounts.length) {
-      revert BaseVault__harvest_invalidRewards();
-    }
-
-    for (uint256 i = 0; i < tokens.length; i++) {
-      //strategy 1 = convert rewards to collateral
-      if (strategy == Strategy.ConvertToCollateral) {
-        //check if reward token is asset
-        if (address(tokens[i]) != asset()) {
-          //swap for collateral
-          _swap(swapper, tokens[i], asset(), amounts[i]);
-        }
-      }
-
-      //strategy 3 = distribute rewards
-      if (strategy == Strategy.Distribute) {
-        return;
-      }
-    }
-  }
-
-  /**
-   * @dev Harvests rewards from `provider` and converts them to `asset`, `debtAsset` or distributes them depending on `strategy`.
-   * Requirements:
-   *
-   * @param strategy 1 = convert rewards to collateral, 2 = repay debt, 3 = distribute rewards
-   * @param provider address of provider to harvest from
-   * @param data bytes data to be used by the harvest function of the provider, specific to each provider way of harvesting
-   */
-  function _harvest(Strategy strategy, IHarvestable provider, bytes memory data) internal {
-    bytes memory callData = abi.encodeWithSelector(provider.harvest.selector, strategy, data);
-    address(provider).functionDelegateCall(
-      callData, string(abi.encodePacked("harvest", ": delegate call failed"))
-    );
-  }
-
-  function _harvestChecks(Strategy strategy, IHarvestable provider, ISwapper swapper) internal view {
-    //check provider is valid
-    if (!_isValidProvider(address(provider))) {
-      revert BaseVault__harvest_invalidProvider();
-    }
-    /// @dev strategy 2 = repay debt, only implemented in BorrowingVault
-    if (strategy == Strategy.RepayDebt) {
-      revert BaseVault__harvest_strategyNotImplemented();
-    }
-
-    if (strategy == Strategy.ConvertToCollateral && !chief.allowedSwapper(address(swapper))) {
-      revert BaseVault__harvest_notValidSwapper();
-    }
-  }
-
-  function _swap(ISwapper swapper, address assetIn, address assetOut, uint256 amountIn) internal {
-    uint256 amountOut = swapper.getAmountOut(assetIn, assetOut, amountIn);
-
-    SafeERC20.safeIncreaseAllowance(ERC20(asset()), address(swapper), amountIn);
-    swapper.swap(assetIn, asset(), amountIn, amountOut, address(this), address(this), 0);
   }
 }

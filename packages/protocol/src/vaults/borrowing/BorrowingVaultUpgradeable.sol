@@ -6,31 +6,25 @@ pragma solidity 0.8.15;
  *
  * @author Fujidao Labs
  *
- * @notice Implementation vault that handles pooled collateralized debt positions.
- * User state is kept at vaults via token-shares compliant to ERC4626, including
- * extension for debt asset and their equivalent debtshares.
- * Debt shares are not transferable.
- * Slippage protected functions include `borrow()` and `payback()`,
- * thru an implementation similar to ERC5143.
- * Setter functions for maximum loan-to-value and liquidation ratio factors
- * are defined and controlled by timelock.
- * A primitive liquidation function is implemented along additional view
- * functions to determine user's health factor.
+ * @notice Upgradeable implementation of {BorrowingVault.sol}.
  */
 
 import {
-  IERC20,
-  IERC20Metadata
-} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IVault} from "../../interfaces/IVault.sol";
+  IERC20Upgradeable as IERC20,
+  IERC20MetadataUpgradeable as IERC20Metadata
+} from
+  "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import {IVaultUpgradeable} from "../../interfaces/IVaultUpgradeable.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {BaseVault} from "../../abstracts/BaseVault.sol";
+import {SafeERC20Upgradeable as SafeERC20} from
+  "openzeppelin-contracts-upgradeable/contracts/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {MathUpgradeable as Math} from
+  "openzeppelin-contracts-upgradeable/contracts/utils/math/MathUpgradeable.sol";
+import {BaseVaultUpgradeable} from "../../abstracts/BaseVaultUpgradeable.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
 
-contract BorrowingVault is BaseVault {
+contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   using Math for uint256;
   using SafeERC20 for IERC20Metadata;
 
@@ -89,8 +83,8 @@ contract BorrowingVault is BaseVault {
   /// @notice Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
-  IERC20Metadata internal immutable _debtAsset;
-  uint8 internal immutable _debtDecimals;
+  IERC20Metadata internal _debtAsset;
+  uint8 internal _debtDecimals;
 
   uint256 public debtSharesSupply;
 
@@ -109,54 +103,28 @@ contract BorrowingVault is BaseVault {
   uint256 public liqRatio;
 
   /**
-   * @notice Constructor of a new {BorrowingVault}.
+   * @notice Initialize a new {BorrowingVault}.
    *
    * @param asset_ this vault will handle as main asset (collateral)
    * @param debtAsset_ this vault will handle as debt asset
-   * @param oracle_ of {FujiOracle} implementation
    * @param chief_ that deploys and controls this vault
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
-   * @param providers_ array that will initialize this vault
-   * @param maxLtv_ initially set in vault
-   * @param liqRatio_ initially set in vault
-   *
-   * @dev Requirements:
-   * - Must be initialized with a set of providers.
-   * - Must set first provider in `providers_` array as `activeProvider`.
-   * - Must initialize `maxLTV` and `liqRatio` with a non-zero value.
-   * - Must check `maxLTV` Must < `liqRatio`.
-   * - Must check `debtAsset_` erc20-decimals and `_debtDecimals` of this vault are equal.
    */
-  constructor(
+  function initialize(
     address asset_,
     address debtAsset_,
-    address oracle_,
     address chief_,
     string memory name_,
     string memory symbol_,
-    ILendingProvider[] memory providers_,
-    uint256 maxLtv_,
-    uint256 liqRatio_
+    uint256 initAssets
   )
-    BaseVault(asset_, chief_, name_, symbol_)
+    public
+    initializer
   {
+    __BaseVault_initialize(asset_, chief_, name_, symbol_, initAssets);
     _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = IERC20Metadata(debtAsset_).decimals();
-
-    oracle = IFujiOracle(oracle_);
-
-    if (
-      maxLtv_ == 0 || liqRatio_ == 0 || maxLtv_ < 1e16 || maxLtv_ >= PRECISION_CONSTANT
-        || liqRatio_ < maxLtv_
-    ) {
-      revert BaseVault__setter_invalidInput();
-    }
-    maxLtv = maxLtv_;
-    liqRatio = liqRatio_;
-
-    _setProviders(providers_);
-    _setActiveProvider(providers_[0]);
   }
 
   receive() external payable {}
@@ -165,7 +133,7 @@ contract BorrowingVault is BaseVault {
       Asset management: overrides IERC4626
   //////////////////////////////////////////*/
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxWithdraw(address owner) public view override returns (uint256) {
     if (paused(VaultActions.Withdraw)) {
       return 0;
@@ -173,7 +141,7 @@ contract BorrowingVault is BaseVault {
     return _computeFreeAssets(owner);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxRedeem(address owner) public view override returns (uint256) {
     if (paused(VaultActions.Withdraw)) {
       return 0;
@@ -199,47 +167,49 @@ contract BorrowingVault is BaseVault {
      * @dev Hook check activated only when called by OZ {ERC20-_transfer}
      * User must not be able to transfer asset-shares locked as collateral
      */
-    if (from != address(0) && to != address(0) && amount > maxRedeem(from)) {
-      revert BorrowingVault__beforeTokenTransfer_moreThanMax();
+    if (from != address(0) && to != address(0)) {
+      if (amount > maxRedeem(from)) {
+        revert BorrowingVault__beforeTokenTransfer_moreThanMax();
+      }
     }
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function debtDecimals() public view override returns (uint8) {
     return _debtDecimals;
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function debtAsset() public view override returns (address) {
     return address(_debtAsset);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function balanceOfDebt(address owner) public view override returns (uint256 debt) {
     return convertToDebt(_debtShares[owner]);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function balanceOfDebtShares(address owner) external view override returns (uint256 debtShares) {
     return _debtShares[owner];
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function totalDebt() public view override returns (uint256) {
     return _checkProvidersBalance("getBorrowBalance");
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function convertToDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Up);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxBorrow(address borrower) public view override returns (uint256) {
     if (paused(VaultActions.Borrow)) {
       return 0;
@@ -247,7 +217,7 @@ contract BorrowingVault is BaseVault {
     return _computeMaxBorrow(borrower);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxPayback(address borrower) public view override returns (uint256) {
     if (paused(VaultActions.Payback)) {
       return 0;
@@ -255,7 +225,7 @@ contract BorrowingVault is BaseVault {
     return previewBurnDebt(maxBurnDebt(borrower));
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxMintDebt(address borrower) public view override returns (uint256) {
     if (paused(VaultActions.Borrow)) {
       return 0;
@@ -263,7 +233,7 @@ contract BorrowingVault is BaseVault {
     return convertDebtToShares(maxBorrow(borrower));
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxBurnDebt(address borrower) public view override returns (uint256) {
     if (paused(VaultActions.Payback)) {
       return 0;
@@ -271,54 +241,27 @@ contract BorrowingVault is BaseVault {
     return _debtShares[borrower];
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewBorrow(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewMintDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Down);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewPayback(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Down);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewBurnDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Up);
   }
 
-  /**
-   * @notice Slippage protected `borrow()` inspired by EIP5143.
-   *
-   * @param debt amount to borrow
-   * @param receiver address to whom borrowed amount will be transferred
-   * @param owner address who will incur the debt
-   * @param maxDebtShares amount that Must be minted in this borrow call
-   *
-   * @dev Requirements:
-   * - Must mint maximum `maxDebtShares` when calling `borrow()`.
-   */
-  function borrow(
-    uint256 debt,
-    address receiver,
-    address owner,
-    uint256 maxDebtShares
-  )
-    public
-    returns (uint256)
-  {
-    uint256 receivedDebtShares = borrow(debt, receiver, owner);
-    if (receivedDebtShares > maxDebtShares) {
-      revert BorrowingVault__borrow_slippageTooHigh();
-    }
-    return receivedDebtShares;
-  }
-
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = msg.sender;
 
@@ -329,34 +272,7 @@ contract BorrowingVault is BaseVault {
     return shares;
   }
 
-  /**
-   * @notice Slippage protected `mintDebt()` inspired by EIP5143.
-   *
-   * @param shares of debt to mint
-   * @param receiver address to whom borrowed amount will be transferred
-   * @param owner address who will incur the debt
-   * @param minDebt amount that must be sent to receiver in this call
-   *
-   * @dev Requirements:
-   * - Must transfer at least `minDebt` when calling `mintDebt()`.
-   */
-  function mintDebt(
-    uint256 shares,
-    address receiver,
-    address owner,
-    uint256 minDebt
-  )
-    public
-    returns (uint256)
-  {
-    uint256 receivedDebt = mintDebt(shares, receiver, owner);
-    if (receivedDebt < minDebt) {
-      revert BorrowingVault__mintDebt_slippageTooHigh();
-    }
-    return receivedDebt;
-  }
-
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function mintDebt(
     uint256 shares,
     address receiver,
@@ -375,25 +291,7 @@ contract BorrowingVault is BaseVault {
     return debt;
   }
 
-  /**
-   * @notice Slippage protected `payback()` inspired by EIP5143.
-   *
-   * @param debt amount to payback
-   * @param owner address whose debt will be reduced
-   * @param minDebtShares amount that Must be burned in this payback call
-   *
-   * @dev Requirements:
-   * - Must burn at least `minDebtShares` when calling `payback()`.
-   */
-  function payback(uint256 debt, address owner, uint256 minDebtShares) public returns (uint256) {
-    uint256 burnedDebtShares = payback(debt, owner);
-    if (burnedDebtShares < minDebtShares) {
-      revert BorrowingVault__payback_slippageTooHigh();
-    }
-    return burnedDebtShares;
-  }
-
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function payback(uint256 debt, address owner) public override returns (uint256) {
     uint256 shares = previewPayback(debt);
 
@@ -403,25 +301,7 @@ contract BorrowingVault is BaseVault {
     return shares;
   }
 
-  /**
-   * @notice Slippage protected `burnDebt()` inspired by EIP5143.
-   *
-   * @param shares of debt to payback
-   * @param owner address whose debt will be reduced
-   * @param maxAmount of debt asset that must be pulled from caller to payback in this call
-   *
-   * @dev Requirements:
-   * - Must pull a maximum of `maxAmount` debt asset when calling `maxAmount()`.
-   */
-  function burnDebt(uint256 shares, address owner, uint256 maxAmount) public returns (uint256) {
-    uint256 maxPulledAmount = burnDebt(shares, owner);
-    if (maxPulledAmount > maxAmount) {
-      revert BorrowingVault__burnDebt_slippageTooHigh();
-    }
-    return maxPulledAmount;
-  }
-
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function burnDebt(uint256 shares, address owner) public override returns (uint256) {
     uint256 debt = previewBurnDebt(shares);
 
@@ -435,7 +315,7 @@ contract BorrowingVault is BaseVault {
       Borrow allowances 
   ///////////////////////*/
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function borrowAllowance(
     address owner,
     address operator,
@@ -450,7 +330,7 @@ contract BorrowingVault is BaseVault {
     return VaultPermissions.borrowAllowance(owner, operator, receiver);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function increaseBorrowAllowance(
     address operator,
     address receiver,
@@ -464,7 +344,7 @@ contract BorrowingVault is BaseVault {
     return VaultPermissions.increaseBorrowAllowance(operator, receiver, byAmount);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function decreaseBorrowAllowance(
     address operator,
     address receiver,
@@ -478,7 +358,7 @@ contract BorrowingVault is BaseVault {
     return VaultPermissions.decreaseBorrowAllowance(operator, receiver, byAmount);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function permitBorrow(
     address owner,
     address receiver,
@@ -582,8 +462,7 @@ contract BorrowingVault is BaseVault {
     view
     returns (uint256 assets)
   {
-    uint256 totaldebt = totalDebt();
-    return shares.mulDiv(totaldebt + 1, debtSharesSupply + 1, rounding);
+    return shares.mulDiv(totalDebt() + 1, debtSharesSupply + 1, rounding);
   }
 
   /**
@@ -737,7 +616,7 @@ contract BorrowingVault is BaseVault {
       Rebalancing 
   /////////////////*/
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function rebalance(
     uint256 assets,
     uint256 debt,
@@ -783,7 +662,7 @@ contract BorrowingVault is BaseVault {
        Liquidation  
   ////////////////////*/
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function getHealthFactor(address owner) public view returns (uint256 healthFactor) {
     uint256 debtShares = _debtShares[owner];
     uint256 debt = convertToDebt(debtShares);
@@ -799,20 +678,20 @@ contract BorrowingVault is BaseVault {
     }
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function getLiquidationFactor(address owner) public view returns (uint256 liquidationFactor) {
     uint256 healthFactor = getHealthFactor(owner);
 
     if (healthFactor >= PRECISION_CONSTANT) {
       liquidationFactor = 0;
-    } else if (FULL_LIQUIDATION_THRESHOLD < healthFactor) {
+    } else if (FULL_LIQUIDATION_THRESHOLD <= healthFactor) {
       liquidationFactor = DEFAULT_LIQUIDATION_CLOSE_FACTOR; // 50% of owner's debt
     } else {
       liquidationFactor = MAX_LIQUIDATION_CLOSE_FACTOR; // 100% of owner's debt
     }
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function liquidate(
     address owner,
     address receiver,
@@ -886,48 +765,38 @@ contract BorrowingVault is BaseVault {
   }
 
   /**
-   * @notice Sets the maximum loan-to-value factor of this vault.
+   * @notice Sets the maximum loan-to-value factor and the Loan-To-Value liquidation threshold factor of this vault.
    *
    * @param maxLtv_ factor to be set
-   *
-   *  @dev See factor
-   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
-   * Restrictions:
-   * - Must be called from a timelock.
-   * - Must be at least 1% (1e16).
-   * - Must be less than 100% (PRECISION_CONSTANT).
-   * - Must be less than `liqRation`.
-   */
-  function setMaxLtv(uint256 maxLtv_) external onlyTimelock {
-    if (maxLtv_ < 1e16 || maxLtv_ >= PRECISION_CONSTANT || maxLtv_ >= liqRatio) {
-      revert BaseVault__setter_invalidInput();
-    }
-    maxLtv = maxLtv_;
-    emit MaxLtvChanged(maxLtv);
-  }
-
-  /**
-   * @notice Sets the Loan-To-Value liquidation threshold factor of this vault.
-   *
    * @param liqRatio_ factor to be set
    *
    * @dev See factor
-   * https://github.com/Fujicracy/CrossFuji/tree/main/packages/protocol#readme.
-   * Restrictions:
-   * - Must be called from a timelock.
-   * - Must be greater than 'maxLTV', and non zero.
-   * - Must be greater than 2% (2e16).
+   * https://github.com/Fujicracy/fuji-v2/tree/main/packages/protocol#readme.
+   *
+   * Restrictions for 'liqRatio':
+   * - Must be greater than 'maxLTV'.
+   * - Must be at least 2% (2e16).
+   * - Must be less than 100% (PRECISION_CONSTANT).
+   * Restrictions for 'maxLtv':
+   * - Must be at least 1% (1e16).
    * - Must be less than 100% (PRECISION_CONSTANT).
    */
-  function setLiqRatio(uint256 liqRatio_) external onlyTimelock {
-    if (liqRatio_ <= maxLtv || liqRatio_ < 2e16 || liqRatio_ >= PRECISION_CONSTANT) {
+  function setLtvFactors(uint256 maxLtv_, uint256 liqRatio_) external onlyTimelock {
+    if (
+      liqRatio_ <= maxLtv_ || liqRatio_ <= maxLtv || liqRatio_ < 2e16
+        || liqRatio_ >= PRECISION_CONSTANT || maxLtv_ < 1e16 || maxLtv_ >= PRECISION_CONSTANT
+    ) {
       revert BaseVault__setter_invalidInput();
     }
+
+    maxLtv = maxLtv_;
     liqRatio = liqRatio_;
+
+    emit MaxLtvChanged(maxLtv);
     emit LiqRatioChanged(liqRatio);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function _setProviders(ILendingProvider[] memory providers) internal override {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {

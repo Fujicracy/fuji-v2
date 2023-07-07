@@ -219,7 +219,7 @@ const Header = () => {
                     {topLevelPages.map((page) => (
                       <MenuItem key={page.path} onClick={handleCloseNavMenu}>
                         <ListItemText>
-                          <Link href={page.path}>
+                          <Link href={page.path} replace={true}>
                             <Typography variant="small">
                               {page.title}
                             </Typography>
@@ -268,7 +268,7 @@ const Header = () => {
             }}
           >
             {topLevelPages.map((page) => (
-              <Link key={page.path} href={page.path}>
+              <Link key={page.path} href={page.path} replace={true}>
                 <MenuItem
                   sx={{
                     lineHeight: '160%',

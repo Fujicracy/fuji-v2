@@ -40,7 +40,9 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
 
   bytes32 private _entryPoint;
 
-  constructor(address chief_) SystemAccessControl(chief_) {}
+  constructor(address chief_) {
+    __SystemAccessControl_init(chief_);
+  }
 
   /// @inheritdoc IRebalancerManager
   function rebalanceVault(

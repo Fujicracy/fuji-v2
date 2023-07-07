@@ -11,8 +11,7 @@ pragma solidity 0.8.15;
 
 import {IFlasher} from "../interfaces/IFlasher.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 
 abstract contract BaseFlasher is IFlasher {
@@ -70,7 +69,7 @@ abstract contract BaseFlasher is IFlasher {
     if (_entryPoint != "") {
       revert BaseFlasher__notEmptyEntryPoint();
     }
-    _entryPoint = keccak256(abi.encode(data));
+    _entryPoint = keccak256(data);
   }
 
   /**
@@ -83,7 +82,7 @@ abstract contract BaseFlasher is IFlasher {
     view
     returns (address asset, uint256 amount, address requestor, bytes memory requestorCalldata)
   {
-    if (_entryPoint == "" || _entryPoint != keccak256(abi.encode(data))) {
+    if (_entryPoint == "" || _entryPoint != keccak256(data)) {
       revert BaseFlasher__invalidEntryPoint();
     }
     (asset, amount, requestor, requestorCalldata) =
@@ -109,6 +108,7 @@ abstract contract BaseFlasher is IFlasher {
     internal
     returns (bool)
   {
+    if (amount == 0) return false;
     IERC20(asset).safeTransfer(requestor, amount);
 
     requestor.functionCall(requestorCalldata);

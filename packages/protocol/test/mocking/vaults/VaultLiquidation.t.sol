@@ -107,8 +107,11 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     //liquidate ALICE
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    //do not specify a liquidation close factor
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, borrowAmount, flasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, borrowAmount, flasher, swapper);
     vm.stopPrank();
 
     //check balance of alice
@@ -167,9 +170,13 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     //liquidate ALICE
     address[] memory users = new address[](1);
     users[0] = ALICE;
-
+    //do not specify a liquidation close factor
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, borrowAmount * 0.5e18 / 1e18, flasher, swapper);
+    liquidationManager.liquidate(
+      users, liqCloseFactors, vault, borrowAmount * 0.5e18 / 1e18, flasher, swapper
+    );
     vm.stopPrank();
 
     //check balance of alice
@@ -210,9 +217,15 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     users[1] = BOB;
     users[2] = CHARLIE;
 
+    //do not specify a liquidation close factor
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
+    liqCloseFactors[1] = 0;
+    liqCloseFactors[2] = 0;
+
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector);
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, 0, flasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, 0, flasher, swapper);
     vm.stopPrank();
   }
 
@@ -255,8 +268,15 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
     users[0] = ALICE;
     users[1] = BOB;
     users[2] = CHARLIE;
+
+    //do not specify a liquidation close factor
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
+    liqCloseFactors[1] = 0;
+    liqCloseFactors[2] = 0;
+
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, borrowAmount, flasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, borrowAmount, flasher, swapper);
     vm.stopPrank();
 
     //check balance of alice
@@ -280,10 +300,13 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    //do not specify a liquidation close factor
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
 
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
     vm.startPrank(address(CHARLIE));
-    liquidationManager.liquidate(users, vault, 1000e18, flasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, 1000e18, flasher, swapper);
     vm.stopPrank();
   }
 
@@ -295,11 +318,13 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
 
     IFlasher invalidFlasher = IFlasher(address(0x0));
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidFlasher.selector);
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, 1000e18, invalidFlasher, swapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, 1000e18, invalidFlasher, swapper);
     vm.stopPrank();
   }
 
@@ -311,11 +336,13 @@ contract VaultLiquidationUnitTests is MockingSetup, MockRoutines {
 
     address[] memory users = new address[](1);
     users[0] = ALICE;
+    uint256[] memory liqCloseFactors = new uint256[](users.length);
+    liqCloseFactors[0] = 0;
 
     ISwapper invalidSwapper = ISwapper(address(0x0));
     vm.expectRevert(LiquidationManager.LiquidationManager__liquidate_notValidSwapper.selector);
     vm.startPrank(address(KEEPER));
-    liquidationManager.liquidate(users, vault, 1000e18, flasher, invalidSwapper);
+    liquidationManager.liquidate(users, liqCloseFactors, vault, 1000e18, flasher, invalidSwapper);
     vm.stopPrank();
   }
 }

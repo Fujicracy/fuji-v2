@@ -2,60 +2,59 @@
 pragma solidity 0.8.15;
 
 /**
- * @title YieldVault
+ * @title YieldVaultUpgradeable
  *
  * @author Fujidao Labs
  *
- * @notice Implementation vault that handles pooled single sided asset for
- * lending and strategies seeking yield.
- * All debt handling functions return zero or revert accordingly.
- * User state is kept at vaults via token-shares compliant to ERC4626.
- * This vault can aggregate protocols that implement yield strategies.
+ * @notice Upgradeable implementation of {YieldVault.sol}.
  */
 
 import {
-  IERC20,
-  IERC20Metadata
-} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IVault} from "../../interfaces/IVault.sol";
+  IERC20Upgradeable as IERC20,
+  IERC20MetadataUpgradeable as IERC20Metadata
+} from
+  "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import {IVaultUpgradeable as IVault} from "../../interfaces/IVaultUpgradeable.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {BaseVault} from "../../abstracts/BaseVault.sol";
+import {SafeERC20Upgradeable as SafeERC20} from
+  "openzeppelin-contracts-upgradeable/contracts/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {BaseVaultUpgradeable} from "../../abstracts/BaseVaultUpgradeable.sol";
 
-contract YieldVault is BaseVault {
+contract YieldVaultUpgradeable is BaseVaultUpgradeable {
   using SafeERC20 for IERC20Metadata;
-  /// @dev Custom Errors
 
+  /// @dev Custom Errors
   error YieldVault__notApplicable();
   error YieldVault__rebalance_invalidProvider();
 
   /**
-   * @notice Constructor of a new {YieldVault}.
+   * @notice Initialize a new {YieldVaultUpgradeable}.
    *
    * @param asset_ this vault will handle as main asset (collateral)
    * @param chief_ that deploys and controls this vault
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
    * @param providers_ array that will initialize this vault
+   * @param initAssets amount to initialize asset shares
    *
    * @dev Requirements:
    * - Must be initialized with a set of providers.
    * - Must set first provider in `providers_` array as `activeProvider`.
-   *
    */
-  constructor(
+  function initialize(
     address asset_,
     address chief_,
     string memory name_,
     string memory symbol_,
-    ILendingProvider[] memory providers_
+    ILendingProvider[] memory providers_,
+    uint256 initAssets
   )
-    BaseVault(asset_, chief_, name_, symbol_)
+    public
+    initializer
   {
+    __BaseVault_initialize(asset_, chief_, name_, symbol_, initAssets);
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
-
-    _pauseForceAllActions();
   }
 
   receive() external payable {}
@@ -64,7 +63,7 @@ contract YieldVault is BaseVault {
       Asset management: overrides IERC4626
   //////////////////////////////////////////*/
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxWithdraw(address owner) public view override returns (uint256) {
     if (paused(VaultActions.Withdraw)) {
       return 0;
@@ -72,7 +71,7 @@ contract YieldVault is BaseVault {
     return convertToAssets(balanceOf(owner));
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxRedeem(address owner) public view override returns (uint256) {
     if (paused(VaultActions.Withdraw)) {
       return 0;
@@ -84,67 +83,67 @@ contract YieldVault is BaseVault {
       Debt management overrides 
   ///////////////////////////////*/
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function debtDecimals() public pure override returns (uint8) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function debtAsset() public pure override returns (address) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function balanceOfDebt(address) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function balanceOfDebtShares(address owner) public pure override returns (uint256 debtShares) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function totalDebt() public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function convertDebtToShares(uint256) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function convertToDebt(uint256) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxBorrow(address) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxPayback(address) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxMintDebt(address) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxBurnDebt(address) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function previewBorrow(uint256) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function previewMintDebt(uint256) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function previewPayback(uint256) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function previewBurnDebt(uint256) public pure override returns (uint256) {}
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function borrow(uint256, address, address) public pure override returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function mintDebt(uint256, address, address) public pure override returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function payback(uint256, address) public pure override returns (uint256) {
     revert YieldVault__notApplicable();
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function burnDebt(uint256, address) public pure override returns (uint256) {
     revert YieldVault__notApplicable();
   }
@@ -153,7 +152,7 @@ contract YieldVault is BaseVault {
       Borrow allowances
   ///////////////////////*/
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function borrowAllowance(
     address,
     address,
@@ -168,7 +167,7 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function increaseBorrowAllowance(
     address,
     address,
@@ -182,7 +181,7 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function decreaseBorrowAllowance(
     address,
     address,
@@ -196,7 +195,7 @@ contract YieldVault is BaseVault {
     revert YieldVault__notApplicable();
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function permitBorrow(
     address,
     address,
@@ -275,7 +274,7 @@ contract YieldVault is BaseVault {
       Admin set functions
   /////////////////////////*/
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function _setProviders(ILendingProvider[] memory providers) internal override {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {

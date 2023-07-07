@@ -85,7 +85,7 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     assertEq(vault.withdrawAllowance(owner, receiver, receiver), amount);
   }
 
-  function test_checkAllowanceIncreaseViaERC4626IncreaseAllowance(uint256 amount) public {
+  function testFail_checkAllowanceIncreaseViaERC4626Reverts(uint256 amount) public {
     vm.assume(amount > 0);
 
     assertEq(vault.allowance(owner, receiver), 0);
@@ -95,20 +95,19 @@ contract VaultPermissionsUnitTests is MockingSetup, MockRoutines {
     // the same address when calling an "approve".
     vault.increaseAllowance(receiver, amount);
 
-    assertEq(vault.allowance(owner, receiver), amount);
-    assertEq(vault.withdrawAllowance(owner, receiver, receiver), amount);
+    assertEq(vault.allowance(owner, receiver), 0);
+    assertEq(vault.withdrawAllowance(owner, receiver, receiver), 0);
   }
 
-  function test_checkAllowanceDecreaseViaERC4626DecreaseAllowance(uint256 decreaseAmount_) public {
+  function testFail_checkAllowanceDecreaseViaERC4626Reverts(uint256 decreaseAmount_) public {
     vm.assume(decreaseAmount_ > 0 && decreaseAmount_ <= 1 ether);
 
-    uint256 difference = 1 ether - decreaseAmount_;
     vm.startPrank(owner);
     vault.approve(receiver, 1 ether);
     vault.decreaseAllowance(receiver, decreaseAmount_);
 
-    assertEq(vault.allowance(owner, receiver), difference);
-    assertEq(vault.withdrawAllowance(owner, receiver, receiver), difference);
+    assertEq(vault.allowance(owner, receiver), 1 ether);
+    assertEq(vault.withdrawAllowance(owner, receiver, receiver), 1 ether);
   }
 
   function testFail_operatorTriesWithdraw(
