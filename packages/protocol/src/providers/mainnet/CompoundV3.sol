@@ -13,12 +13,13 @@ pragma solidity 0.8.15;
  */
 
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IHarvestable} from "../../interfaces/IHarvestable.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ICompoundV3} from "../../interfaces/compoundV3/ICompoundV3.sol";
 import {ICompoundV3Rewards} from "../../interfaces/compoundV3/ICompoundV3Rewards.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
-contract CompoundV3 is ILendingProvider {
+contract CompoundV3 is ILendingProvider, IHarvestable {
   /// @dev Custom errors
   error CompoundV3__wrongMarket();
 
@@ -155,8 +156,14 @@ contract CompoundV3 is ILendingProvider {
     compoundV3Rewards = ICompoundV3Rewards(0x1B0e765F6224C21223AeA2af16c1C46E38885a40);
   }
 
-  /// @inheritdoc ILendingProvider
-  function harvest(bytes memory data) external returns (bool success) {
+  /// @inheritdoc IHarvestable
+  function harvest(
+    IVault.Strategy, /* strategy */
+    bytes memory data
+  )
+    external
+    returns (bool success)
+  {
     IVault vault = abi.decode(data, (IVault));
     (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
     _getRewards().claim(address(cMarketV3), address(vault), true);
@@ -164,16 +171,25 @@ contract CompoundV3 is ILendingProvider {
   }
 
   //TODO
-  function getHarvestToken(IVault vault) external view returns (address token) {
+  /// @inheritdoc IHarvestable
+  /// @dev compound reward amounts are scaled by up by 10
+  function previewHarvest(
+    IVault vault,
+    IVault.Strategy /* strategy */
+  )
+    external
+    view
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
     (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
     ICompoundV3Rewards.RewardConfig memory rewardConfig =
       _getRewards().rewardConfig(address(cMarketV3));
-    token = rewardConfig.token;
-  }
 
-  //TODO
-  /// @dev compound rewards are scaled by up by 10
-  function previewHarvest(IVault /* vault */ ) external pure returns (uint256 amount) {
-    return 0;
+    tokens = new address[](1);
+    tokens[0] = rewardConfig.token;
+
+    //TODO
+    amounts = new uint256[](1);
+    amounts[0] = 0;
   }
 }
