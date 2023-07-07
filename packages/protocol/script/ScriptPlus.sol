@@ -30,6 +30,8 @@ import {RebalancerManager} from "../src/RebalancerManager.sol";
 import {FlasherBalancer} from "../src/flashloans/FlasherBalancer.sol";
 
 contract ScriptPlus is ScriptUtilities, CoreRoles {
+  using SafeERC20 for IERC20;
+
   struct PriceFeed {
     string asset;
     address chainlink;
@@ -348,21 +350,33 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     address debt;
     string memory name;
     uint256 rating;
+    string[] memory providerNames;
+
     for (uint256 i; i < len; i++) {
       collateral = readAddrFromConfig(vaults[i].collateral);
       debt = readAddrFromConfig(vaults[i].debt);
       name = vaults[i].name;
       rating = vaults[i].rating;
+      providerNames = vaults[i].providers;
+
+      uint256 providersLen = providerNames.length;
+      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      for (uint256 j; j < providersLen; j++) {
+        providers[j] = ILendingProvider(getAddress(providerNames[j]));
+      }
 
       try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
         console.log(string.concat("Skip deploying: ", name));
       } catch {
         console.log(string.concat("Deploying: ", name, " ..."));
 
-        /*SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(factory), minCollateral);*/
-
-        address vault = chief.deployVault(address(factory), abi.encode(collateral, debt), rating);
-        saveAddress(name, vault);
+        if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
+          IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
+        } else {
+          address vault =
+            chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
+          saveAddress(name, vault);
+        }
       }
     }
   }
@@ -376,36 +390,17 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     string memory name;
     uint256 liqRatio;
     uint256 maxLtv;
-    string[] memory providerNames;
     for (uint256 i; i < len; i++) {
       name = vaults[i].name;
       liqRatio = vaults[i].liqRatio;
       maxLtv = vaults[i].maxLtv;
-      providerNames = vaults[i].providers;
 
-      uint256 providersLen = providerNames.length;
-      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
-      for (uint256 j; j < providersLen; j++) {
-        providers[j] = ILendingProvider(getAddress(providerNames[j]));
-      }
       vault = BorrowingVault(payable(getAddress(name)));
 
       if (address(vault.oracle()) == address(0)) {
         console.log(string.concat("Setting oracle for ", name, "..."));
         timelockTargets.push(address(vault));
         timelockDatas.push(abi.encodeWithSelector(vault.setOracle.selector, address(oracle)));
-        timelockValues.push(0);
-      }
-      if (vault.getProviders().length == 0) {
-        console.log(string.concat("Setting providers for ", name, "..."));
-        timelockTargets.push(address(vault));
-        timelockDatas.push(abi.encodeWithSelector(vault.setProviders.selector, providers));
-        timelockValues.push(0);
-      }
-      if (address(vault.activeProvider()) == address(0)) {
-        console.log(string.concat("Setting activeProvider for ", name, "..."));
-        timelockTargets.push(address(vault));
-        timelockDatas.push(abi.encodeWithSelector(vault.setActiveProvider.selector, providers[0]));
         timelockValues.push(0);
       }
       if (vault.maxLtv() != maxLtv || vault.liqRatio() != liqRatio) {
@@ -491,7 +486,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
 
         uint256 minCollateral = v.minAmount();
 
-        SafeERC20.safeIncreaseAllowance(IERC20(asset), address(v), minCollateral);
+        IERC20(asset).safeIncreaseAllowance(address(v), minCollateral);
         v.initializeVaultShares(minCollateral);
       } else {
         console.log(string.concat("Skip initializing ", name));
