@@ -20,7 +20,7 @@ import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC19
 import {BorrowingVaultUpgradeable as BVault} from "./BorrowingVaultUpgradeable.sol";
 import {Create2} from "openzeppelin-contracts/contracts/utils/Create2.sol";
 
-contract BorrowingVaultFactory2 is VaultDeployer {
+contract BorrowingVaultFactoryProxy is VaultDeployer {
   using SafeERC20 for IERC20;
 
   struct BVaultData {

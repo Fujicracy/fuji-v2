@@ -15,8 +15,8 @@ import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
-import {BorrowingVaultFactory2 as BorrowingVaultFactory} from
-  "../src/vaults/borrowing/BorrowingVaultFactory2.sol";
+import {BorrowingVaultFactoryProxy as BorrowingVaultFactory} from
+  "../src/vaults/borrowing/BorrowingVaultFactoryProxy.sol";
 import {BorrowingVaultUpgradeable as BorrowingVault} from
   "../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
