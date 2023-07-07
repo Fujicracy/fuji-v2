@@ -108,10 +108,8 @@ export const showPosition = async (
         vault.address.value
       }-${vault.chainId}`
     );
-  } else if (type === VaultType.BORROW) {
-    showBorrow(router, false);
   } else {
-    showLend(router, false);
+    showOperationPage(type, router, false);
   }
 };
 
