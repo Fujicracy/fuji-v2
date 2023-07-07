@@ -79,20 +79,8 @@ contract SimpleRouter is BaseRouter {
 
       beneficiary_ = _getBeneficiaryFromCalldata(newActions, newArgs);
     } else if (actions[0] == Action.DepositETH) {
-      /// @dev There is no beneficiary in depositETH, therefore we do a recurssion with i = 1
-      uint256 len = actions.length;
-
-      Action[] memory chopActions = new Action[](len -1);
-      bytes[] memory chopArgs = new bytes[](len -1);
-
-      for (uint256 i = 1; i < len;) {
-        chopActions[i - 1] = actions[i];
-        chopArgs[i - 1] = args[i];
-        unchecked {
-          ++i;
-        }
-      }
-      beneficiary_ = _getBeneficiaryFromCalldata(chopActions, chopArgs);
+      /// @dev DepositETH cannot be actions[0] in inner-flashloan actions.
+      revert BaseRouter__bundleInternal_notFirstAction();
     } else if (actions[0] == Action.XTransfer) {
       /// @dev SimpleRouter does not implement cross chain txs.
       revert SimpleRouter__noCrossTransfersImplemented();
@@ -101,7 +89,7 @@ contract SimpleRouter is BaseRouter {
       revert SimpleRouter__noCrossTransfersImplemented();
     } else if (actions[0] == Action.Swap) {
       /// @dev swap cannot be actions[0].
-      revert BaseRouter__bundleInternal_swapNotFirstAction();
+      revert BaseRouter__bundleInternal_notFirstAction();
     }
   }
 }

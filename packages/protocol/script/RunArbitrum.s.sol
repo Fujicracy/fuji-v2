@@ -25,6 +25,7 @@ contract RunArbitrum is ScriptPlus {
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory2(false, false);
+    setOrDeployYieldVaultFactory(false);
     setOrDeployAddrMapper(false);
     setOrDeployFlasherBalancer(false);
     setOrDeployRebalancer(false);
@@ -35,6 +36,10 @@ contract RunArbitrum is ScriptPlus {
       deployBorrowingVaults2();
       setBorrowingVaults2();
       initBorrowingVaults2();
+    }
+
+    if (chief.allowedVaultFactory(address(yieldFactory))) {
+      deployYieldVaults();
     }
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
