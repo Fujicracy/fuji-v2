@@ -26,6 +26,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
+import {IHarvestable} from "../interfaces/IHarvestable.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
@@ -54,6 +55,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__harvest_invalidProvider();
   error BaseVault__harvest_strategyNotImplemented();
   error BaseVault__harvest_notValidSwapper();
+  error BaseVault__harvest_noRewards();
+  error BaseVault__harvest_invalidRewards();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -978,53 +981,71 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   /// @inheritdoc IVault
   function harvest(
     Strategy strategy,
-    ILendingProvider provider,
+    IHarvestable provider,
     ISwapper swapper,
     bytes memory data
   )
     external
     hasRole(msg.sender, HARVESTER_ROLE)
   {
+    _harvestChecks(strategy, provider, swapper);
+
+    //collect rewards from provider
+    _harvest(strategy, provider, data);
+    (address[] memory tokens, uint256[] memory amounts) = provider.previewHarvest(this, strategy);
+
+    if (tokens.length == 0) {
+      revert BaseVault__harvest_noRewards();
+    }
+    if (tokens.length != amounts.length) {
+      revert BaseVault__harvest_invalidRewards();
+    }
+
+    for (uint256 i = 0; i < tokens.length; i++) {
+      //strategy 1 = convert rewards to collateral
+      if (strategy == Strategy.ConvertToCollateral) {
+        //check if reward token is asset
+        if (address(tokens[i]) != asset()) {
+          //swap for collateral
+          _swap(swapper, tokens[i], asset(), amounts[i]);
+        }
+      }
+
+      //strategy 3 = distribute rewards
+      if (strategy == Strategy.Distribute) {
+        return;
+      }
+    }
+  }
+
+  /**
+   * @dev Harvests rewards from `provider` and converts them to `asset`, `debtAsset` or distributes them depending on `strategy`.
+   * Requirements:
+   *
+   * @param strategy 1 = convert rewards to collateral, 2 = repay debt, 3 = distribute rewards
+   * @param provider address of provider to harvest from
+   * @param data bytes data to be used by the harvest function of the provider, specific to each provider way of harvesting
+   */
+  function _harvest(Strategy strategy, IHarvestable provider, bytes memory data) internal {
+    bytes memory callData = abi.encodeWithSelector(provider.harvest.selector, strategy, data);
+    address(provider).functionDelegateCall(
+      callData, string(abi.encodePacked("harvest", ": delegate call failed"))
+    );
+  }
+
+  function _harvestChecks(Strategy strategy, IHarvestable provider, ISwapper swapper) internal view {
     //check provider is valid
     if (!_isValidProvider(address(provider))) {
       revert BaseVault__harvest_invalidProvider();
     }
-
-    //strategy 2 = repay debt
-    /// @dev only implemented in BorrowingVault
+    /// @dev strategy 2 = repay debt, only implemented in BorrowingVault
     if (strategy == Strategy.RepayDebt) {
       revert BaseVault__harvest_strategyNotImplemented();
     }
 
-    //collect rewards from provider
-    _harvest(provider, data);
-
-    IERC20 token = IERC20(provider.getHarvestToken(this));
-    uint256 rewardAmount = provider.previewHarvest(this);
-
-    //strategy 1 = convert rewards to collateral
-    if (strategy == Strategy.ConvertToCollateral) {
-      //check if reward token is asset
-      if (address(token) != asset()) {
-        if (!chief.allowedSwapper(address(swapper))) {
-          revert BaseVault__harvest_notValidSwapper();
-        }
-        //swap for collateral
-        _swap(swapper, address(token), asset(), rewardAmount);
-      }
+    if (strategy == Strategy.ConvertToCollateral && !chief.allowedSwapper(address(swapper))) {
+      revert BaseVault__harvest_notValidSwapper();
     }
-
-    //strategy 3 = distribute rewards
-    if (strategy == Strategy.Distribute) {
-      return;
-    }
-  }
-
-  function _harvest(ILendingProvider provider, bytes memory data) internal {
-    address(provider).functionDelegateCall(
-      abi.encodeWithSelector(ILendingProvider.harvest.selector, data),
-      string(abi.encodePacked("harvest", ": delegate call failed"))
-    );
   }
 
   function _swap(ISwapper swapper, address assetIn, address assetOut, uint256 amountIn) internal {
