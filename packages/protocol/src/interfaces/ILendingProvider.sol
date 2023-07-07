@@ -124,24 +124,4 @@ interface ILendingProvider {
    * - Must not require Vault context.
    */
   function getBorrowRateFor(IVault vault) external view returns (uint256 rate);
-
-  /**
-   * @notice Collects rewards from the protocol. Returns false if there are no rewards to be collected.
-   *
-   * @param data bytes to be used to call the harvest function at the lending provider.
-   *
-   */
-  function harvest(bytes memory data) external returns (bool success);
-
-  /**
-   * @notice Returns the address of the `token` that is harvested from the protocol.
-   *
-   */
-  function getHarvestToken(IVault vault) external view returns (address token);
-
-  /**
-   * @notice Returns the amount of rewards expected to be harvested from the protocol.
-   *
-   */
-  function previewHarvest(IVault vault) external returns (uint256 amount);
 }
