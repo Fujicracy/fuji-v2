@@ -90,8 +90,7 @@ abstract contract BaseVaultUpgradeable is
     address asset_,
     address chief_,
     string memory name_,
-    string memory symbol_,
-    uint256 initAssets
+    string memory symbol_
   )
     internal
   {
@@ -105,7 +104,13 @@ abstract contract BaseVaultUpgradeable is
     __ERC20_init(name_, symbol_);
     __SystemAccessControl_init(chief_);
     __EIP712_initialize(name_, VERSION);
+  }
 
+  /**
+   * @dev This function should be called after setting active provider
+   * in the intialize function of children contract.
+   */
+  function __BaseVault_initializeShares(uint256 initAssets) internal {
     if (initAssets < minAmount) {
       revert BaseVault__initialize_lessThanMin();
     }
