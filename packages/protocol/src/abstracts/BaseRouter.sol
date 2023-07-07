@@ -9,9 +9,8 @@ pragma solidity 0.8.15;
  * @notice Abstract contract to be inherited by all routers.
  */
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {ERC20, IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IVault} from "../interfaces/IVault.sol";
@@ -24,10 +23,12 @@ import {IWETH9} from "../abstracts/WETH9.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 
 abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
+  using SafeERC20 for ERC20;
   /**
    * @dev Contains an address of an ERC-20 and the balance the router holds
    * at a given moment of the transaction (ref. `_tokensToCheck`).
    */
+
   struct Snapshot {
     address token;
     uint256 balance;
@@ -58,11 +59,10 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   event AllowCaller(address caller, bool allowed);
 
   /// @dev Custom Errors
-  error BaseRouter__bundleInternal_swapNotFirstAction();
+  error BaseRouter__bundleInternal_notFirstAction();
   error BaseRouter__bundleInternal_paramsMismatch();
   error BaseRouter__bundleInternal_flashloanInvalidRequestor();
   error BaseRouter__bundleInternal_noBalanceChange();
-  error BaseRouter__bundleInternal_insufficientETH();
   error BaseRouter__bundleInternal_notBeneficiary();
   error BaseRouter__checkVaultInput_notActiveVault();
   error BaseRouter__bundleInternal_notAllowedSwapper();
@@ -153,7 +153,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
   /// @inheritdoc IRouter
   function sweepToken(ERC20 token, address receiver) external onlyHouseKeeper {
-    SafeERC20.safeTransfer(token, receiver, token.balanceOf(address(this)));
+    token.safeTransfer(receiver, token.balanceOf(address(this)));
   }
 
   /// @inheritdoc IRouter
@@ -301,7 +301,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
         if (i == 0) {
           /// @dev swap cannot be actions[0].
-          revert BaseRouter__bundleInternal_swapNotFirstAction();
+          revert BaseRouter__bundleInternal_notFirstAction();
         }
 
         beneficiary = _handleSwapAction(args[i], beneficiary, tokensToCheck);
@@ -337,12 +337,10 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
       } else if (action == Action.DepositETH) {
         uint256 amount = abi.decode(args[i], (uint256));
 
-        if (amount != msg.value) {
-          revert BaseRouter__bundleInternal_insufficientETH();
-        }
+        ///@dev There is no check for msg.value as that is already done via `nativeBalance`
         _addTokenToList(address(WETH9), tokensToCheck);
 
-        WETH9.deposit{value: msg.value}();
+        WETH9.deposit{value: amount}();
       } else if (action == Action.WithdrawETH) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
         beneficiary = _checkBeneficiary(beneficiary, receiver);
@@ -584,7 +582,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    */
   function _safePullTokenFrom(address token, address sender, uint256 amount) internal {
     if (sender != address(this) && sender == msg.sender) {
-      SafeERC20.safeTransferFrom(ERC20(token), sender, address(this), amount);
+      ERC20(token).safeTransferFrom(sender, address(this), amount);
     }
   }
 
@@ -596,7 +594,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @param amount amount to be approved
    */
   function _safeApprove(address token, address to, uint256 amount) internal {
-    SafeERC20.safeIncreaseAllowance(ERC20(token), to, amount);
+    ERC20(token).safeIncreaseAllowance(to, amount);
   }
 
   /**
@@ -740,8 +738,14 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   /**
    * @dev Extracts the beneficiary from a set of actions and args.
    * Requirements:
-   * - Must be implemented in child contract, and added to `_crossTransfer` and
-   * `crossTansferWithCalldata` when applicable.
+   * - Must be implemented in child contracts, and added to `_crossTransfer` and
+   *  `crossTansferWithCalldata` as applicable.
+   * - Must revert if `actions[0]` == IRouter.Action.Swap
+   * - Must revert if `actions[0]` == IRouter.Action.DepositETH
+   *
+   * NOTE: This function is also implemented in Action.Flashloan of
+   * `_internalBundle(...)`, meaning that within a flashloan
+   * the Action.DepositETH cannot be the first action either.
    *
    * @param actions an array of actions that will be executed in a row
    * @param args an array of encoded inputs needed to execute each action

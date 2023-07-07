@@ -230,7 +230,7 @@ function CurrencyCard({
     >
       <div className={styles.cardLine}>
         <TextField
-          id="collateral-amount"
+          id={`${type}-amount`}
           type="number"
           inputProps={{ step: '0.1', lang: 'en-US' }}
           placeholder="0"
