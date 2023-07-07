@@ -79,8 +79,8 @@ function MarketFiltersHeader({
           src={`/assets/images/protocol-icons/networks/${chain.name}.svg`}
           height={18}
           width={18}
-          objectFit="cover"
           alt={chain.name}
+          style={{ objectFit: 'cover' }}
         />
       );
     });
