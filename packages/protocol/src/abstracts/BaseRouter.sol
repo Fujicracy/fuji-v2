@@ -9,9 +9,8 @@ pragma solidity 0.8.15;
  * @notice Abstract contract to be inherited by all routers.
  */
 
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {ERC20, IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IRouter} from "../interfaces/IRouter.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IVault} from "../interfaces/IVault.sol";
@@ -24,10 +23,12 @@ import {IWETH9} from "../abstracts/WETH9.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 
 abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
+  using SafeERC20 for ERC20;
   /**
    * @dev Contains an address of an ERC-20 and the balance the router holds
    * at a given moment of the transaction (ref. `_tokensToCheck`).
    */
+
   struct Snapshot {
     address token;
     uint256 balance;
@@ -152,7 +153,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
   /// @inheritdoc IRouter
   function sweepToken(ERC20 token, address receiver) external onlyHouseKeeper {
-    SafeERC20.safeTransfer(token, receiver, token.balanceOf(address(this)));
+    token.safeTransfer(receiver, token.balanceOf(address(this)));
   }
 
   /// @inheritdoc IRouter
@@ -581,7 +582,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    */
   function _safePullTokenFrom(address token, address sender, uint256 amount) internal {
     if (sender != address(this) && sender == msg.sender) {
-      SafeERC20.safeTransferFrom(ERC20(token), sender, address(this), amount);
+      ERC20(token).safeTransferFrom(sender, address(this), amount);
     }
   }
 
@@ -593,7 +594,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @param amount amount to be approved
    */
   function _safeApprove(address token, address to, uint256 amount) internal {
-    SafeERC20.safeIncreaseAllowance(ERC20(token), to, amount);
+    ERC20(token).safeIncreaseAllowance(to, amount);
   }
 
   /**

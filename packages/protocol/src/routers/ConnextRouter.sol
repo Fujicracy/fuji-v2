@@ -9,9 +9,9 @@ pragma solidity 0.8.15;
  * @notice A Router implementing Connext specific bridging logic.
  */
 
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
+import {XReceiveProxy} from "./XReceiveProxy.sol";
 import {ConnextHandler} from "./ConnextHandler.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
@@ -23,6 +23,8 @@ import {IFlasher} from "../interfaces/IFlasher.sol";
 import {LibBytes} from "../libraries/LibBytes.sol";
 
 contract ConnextRouter is BaseRouter, IXReceiver {
+  using SafeERC20 for IERC20;
+
   /**
    * @dev Emitted when a new destination router gets added.
    *
@@ -73,7 +75,6 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   /// @dev Custom Errors
   error ConnextRouter__setRouter_invalidInput();
-  error ConnextRouter__xReceive_notReceivedAssetBalance();
   error ConnextRouter__xReceive_notAllowedCaller();
   error ConnextRouter__xReceiver_noValueTransferUseXbundle();
   error ConnnextRouter__xBundleConnext_notSelfCalled();
@@ -82,6 +83,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   IConnext public immutable connext;
 
   ConnextHandler public immutable handler;
+  address public immutable xReceiveProxy;
 
   /**
    * @notice A mapping of a domain of another chain and a deployed router there.
@@ -98,8 +100,16 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     _;
   }
 
+  modifier onlyxReceiveProxy() {
+    if (msg.sender != xReceiveProxy) {
+      revert ConnextRouter__xReceive_notAllowedCaller();
+    }
+    _;
+  }
+
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
+    xReceiveProxy = address(new XReceiveProxy(address(this)));
     handler = new ConnextHandler(address(this));
     _allowCaller(msg.sender, true);
   }
@@ -137,32 +147,24 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes memory callData
   )
     external
-    nonReentrant
+    onlyxReceiveProxy
     returns (bytes memory)
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
-    uint256 balance;
+    Snapshot memory tokenToCheck_ = Snapshot(asset, IERC20(asset).balanceOf(address(this)));
+
+    IERC20(asset).safeTransferFrom(xReceiveProxy, address(this), amount);
+    /**
+     * @dev Due to the AMM nature of Connext, there could be some slippage
+     * incurred on the amount that this contract receives after bridging.
+     * There is also a routing fee of 0.05% of the bridged amount.
+     * The slippage can't be calculated upfront so that's why we need to
+     * replace `amount` in the encoded args for the first action if
+     * the action is Deposit, or Payback.
+     */
     uint256 beforeSlipped;
-    if (amount > 0) {
-      // Ensure that at this entry point expected `asset` `amount` is received.
-      balance = IERC20(asset).balanceOf(address(this));
-      if (balance < amount) {
-        revert ConnextRouter__xReceive_notReceivedAssetBalance();
-      }
-
-      /**
-       * @dev Due to the AMM nature of Connext, there could be some slippage
-       * incurred on the amount that this contract receives after bridging.
-       * There is also a routing fee of 0.05% of the bridged amount.
-       * The slippage can't be calculated upfront so that's why we need to
-       * replace `amount` in the encoded args for the first action if
-       * the action is Deposit, or Payback.
-       */
-      (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
-    }
-
-    Snapshot memory tokenToCheck_ = Snapshot(asset, (balance - amount));
+    (args[0], beforeSlipped) = _accountForSlippage(amount, actions[0], args[0]);
 
     /**
      * @dev Connext will keep the custody of the bridged amount if the call
@@ -172,10 +174,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     try this.xBundleConnext(actions, args, beforeSlipped, tokenToCheck_) {
       emit XReceived(transferId, originDomain, true, asset, amount, callData);
     } catch {
-      if (balance > 0) {
-        SafeERC20.safeTransfer(IERC20(asset), address(handler), balance);
-        handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
-      }
+      IERC20(asset).safeTransfer(address(handler), amount);
+      handler.recordFailed(transferId, amount, asset, originSender, originDomain, actions, args);
 
       emit XReceived(transferId, originDomain, false, asset, amount, callData);
     }
