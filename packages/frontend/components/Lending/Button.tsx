@@ -113,7 +113,7 @@ function LendingButton({
     return disabledButton(`Insufficient ${collateral.currency.symbol} balance`);
   } else if (
     mode === Mode.WITHDRAW &&
-    collateralAmount > Number(position?.collateral?.amount)
+    collateralAmount > Number(collateral?.amount)
   ) {
     return disabledButton(ActionButtonTitles.WITHDRAW_MAX);
   } else if (

@@ -303,6 +303,7 @@ function CurrencyCard({
               style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
               <Typography
