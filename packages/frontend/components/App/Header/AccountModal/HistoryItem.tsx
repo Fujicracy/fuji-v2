@@ -71,8 +71,10 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
 
   const title =
     type === VaultType.BORROW
-      ? capitalize(firstTitle + connector + secondTitle)
+      ? firstTitle + connector + secondTitle
       : firstTitle;
+
+  const capitalizedTitle = capitalize(title);
 
   return (
     <ListItemButton
@@ -86,7 +88,7 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
       <ListItem secondaryAction={listAction} sx={{ p: 0 }}>
         <ListItemText sx={{ m: 0 }}>
           <Typography sx={{ paddingRight: '1rem' }} variant="xsmall">
-            {title}
+            {capitalizedTitle}
           </Typography>
         </ListItemText>
       </ListItem>
