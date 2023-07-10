@@ -17,6 +17,8 @@ import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IVault} from "../../interfaces/IVault.sol";
+import {IChief} from "../../interfaces/IChief.sol";
 import {ERC1967Proxy} from "openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Create2Upgradeable} from
   "openzeppelin-contracts-upgradeable/contracts/utils/Create2Upgradeable.sol";
@@ -118,14 +120,13 @@ contract BorrowingVaultFactoryProxy is VaultDeployer {
       vdata.salt = keccak256(abi.encode(deployData, nonce, block.number));
 
       bytes memory initCall = abi.encodeWithSignature(
-        "initialize(address,address,address,string,string,address[],uint256)",
+        "initialize(address,address,address,string,string,address[])",
         vdata.asset,
         vdata.debtAsset,
         chief,
         vdata.name,
         vdata.symbol,
-        providers,
-        initAssets
+        providers
       );
 
       vdata.bytecode = abi.encodePacked(
@@ -150,6 +151,8 @@ contract BorrowingVaultFactoryProxy is VaultDeployer {
     emit DeployBorrowingVault(
       vault, vdata.asset, vdata.debtAsset, vdata.name, vdata.symbol, vdata.salt
     );
+
+    IVault(vault).deposit(initAssets, IChief(chief).timelock());
   }
 
   /**
