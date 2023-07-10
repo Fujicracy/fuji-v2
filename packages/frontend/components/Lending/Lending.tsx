@@ -35,7 +35,7 @@ function Lending() {
           xs={12}
           md={4.5}
           order={{ xs: 1, md: 2 }}
-          mt={{ xs: 0, md: '2.6rem' }}
+          mt={{ xs: 0, md: !isEditing ? '2.6rem' : 0 }}
         >
           <LendingForm isEditing={isEditing} positionData={positionData} />
         </Grid>
