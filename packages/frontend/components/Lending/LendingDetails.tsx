@@ -1,10 +1,11 @@
-import { Card, Grid, Skeleton, Stack, Typography } from '@mui/material';
+import { Card, Grid, Skeleton, Stack } from '@mui/material';
 import { AprResult, LendingVault, VaultType } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { bigToFloat, formatBalance } from '../../helpers/values';
 import { useLend } from '../../store/lend.store';
 import APYChart from '../Shared/Charts/APYChart';
+import ChartAPYHeader from '../Shared/Charts/ChartAPYHeader';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
 import InfoBlock from '../Shared/InfoBlock';
@@ -16,6 +17,7 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
   const [selectedPeriod, setSelectedPeriod] = useState(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [depositData, setDepositData] = useState<AprResult[]>([]);
+
   const vault = useLend((state) => state.activeVault);
   const activeProvider = useLend((state) => state.activeProvider);
   const availableVaults = useLend((state) => state.availableVaults);
@@ -101,23 +103,10 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
                 />
               </>
             ) : (
-              <>
-                <Typography
-                  variant="body2"
-                  fontSize="1.125rem"
-                  fontWeight={700}
-                  lineHeight="1.8rem"
-                >
-                  {'2.07%'}
-                </Typography>
-                <Typography
-                  variant="smallDark"
-                  fontSize="0.875rem"
-                  lineHeight="1.4rem"
-                >
-                  {'Mar 15, 2023'}
-                </Typography>
-              </>
+              <ChartAPYHeader
+                activeProvider={activeProvider}
+                type={VaultType.LEND}
+              />
             )}
           </Stack>
 
