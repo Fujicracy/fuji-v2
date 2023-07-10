@@ -368,11 +368,11 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
         console.log(string.concat("Skip deploying: ", name));
       } catch {
-        console.log(string.concat("Deploying: ", name, " ..."));
-
         if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
+          console.log(string.concat("Increasing allowance to deploy vault: ", name, " ..."));
           IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
         } else {
+          console.log(string.concat("Deploying: ", name, " ..."));
           address vault =
             chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
           saveAddress(name, vault);
@@ -395,21 +395,27 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       liqRatio = vaults[i].liqRatio;
       maxLtv = vaults[i].maxLtv;
 
-      vault = BorrowingVault(payable(getAddress(name)));
+      try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
+        console.log(string.concat("Needs to be deployed before setting: ", name));
+      } catch {
+        console.log(string.concat("Deploying: ", name, " ..."));
 
-      if (address(vault.oracle()) == address(0)) {
-        console.log(string.concat("Setting oracle for ", name, "..."));
-        timelockTargets.push(address(vault));
-        timelockDatas.push(abi.encodeWithSelector(vault.setOracle.selector, address(oracle)));
-        timelockValues.push(0);
+        vault = BorrowingVault(payable(getAddress(name)));
+
+        if (address(vault.oracle()) == address(0)) {
+          console.log(string.concat("Setting oracle for ", name, "..."));
+          timelockTargets.push(address(vault));
+          timelockDatas.push(abi.encodeWithSelector(vault.setOracle.selector, address(oracle)));
+          timelockValues.push(0);
+        }
+        if (vault.maxLtv() != maxLtv || vault.liqRatio() != liqRatio) {
+          console.log(string.concat("Setting ltv factors for ", name, "..."));
+          timelockTargets.push(address(vault));
+          timelockDatas.push(abi.encodeWithSelector(vault.setLtvFactors.selector, maxLtv, liqRatio));
+          timelockValues.push(0);
+        }
+        console.log("============");
       }
-      if (vault.maxLtv() != maxLtv || vault.liqRatio() != liqRatio) {
-        console.log(string.concat("Setting ltv factors for ", name, "..."));
-        timelockTargets.push(address(vault));
-        timelockDatas.push(abi.encodeWithSelector(vault.setLtvFactors.selector, maxLtv, liqRatio));
-        timelockValues.push(0);
-      }
-      console.log("============");
     }
 
     callBatchWithTimelock();

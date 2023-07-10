@@ -118,7 +118,7 @@ contract BorrowingVaultFactoryProxy is VaultDeployer {
       vdata.salt = keccak256(abi.encode(deployData, nonce, block.number));
 
       bytes memory initCall = abi.encodeWithSignature(
-        "initialize(address,address,address,string,string,ILendingProvider[],uint256)",
+        "initialize(address,address,address,string,string,address[],uint256)",
         vdata.asset,
         vdata.debtAsset,
         chief,
