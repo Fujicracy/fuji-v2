@@ -8,7 +8,6 @@ import {
   needsAllowance,
 } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
-import { LendingPosition } from '../../store/models/Position';
 import {
   ActionButtonProps,
   ActionButtonTitles,
@@ -18,14 +17,11 @@ import {
   RegularButton,
 } from '../Shared/ActionButton';
 
-type LendingButtonProps = Omit<ActionButtonProps, 'position'> & {
-  position?: LendingPosition;
-};
+type LendingButtonProps = ActionButtonProps;
 
 function LendingButton({
   address,
   collateral,
-  position,
   walletChainId,
   metaStatus,
   needsSignature,

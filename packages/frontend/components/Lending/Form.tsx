@@ -17,7 +17,6 @@ import { notify } from '../../helpers/notifications';
 import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useLend } from '../../store/lend.store';
-import { LendingPosition } from '../../store/models/Position';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
 import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
@@ -61,10 +60,6 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
   const updateAllowance = useLend((state) => state.updateAllowance);
   const updateCurrencyPrice = useLend((state) => state.updateCurrencyPrice);
   const signAndExecute = useLend((state) => state.signAndExecute);
-
-  const position = positionData
-    ? (positionData.position as LendingPosition)
-    : undefined;
 
   const [actionType, setActionType] = useState(ActionType.ADD);
   const [hasBalanceInVault, setHasBalanceInVault] = useState(false);
@@ -174,7 +169,10 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
     transactionMeta.status === FetchStatus.Ready &&
     hasBalanceInVault;
 
-  const maxAmount = collateral.balances[collateral.currency.symbol];
+  const maxAmount =
+    actionType === ActionType.ADD
+      ? collateral.balances[collateral.currency.symbol]
+      : collateral.amount;
 
   return (
     <>
@@ -201,7 +199,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
           <FormAssetBox
             index={0}
             type={AssetType.Collateral}
-            showMax={actionType === ActionType.ADD}
+            showMax
             maxAmount={maxAmount}
             assetChange={collateral}
             isEditing={isEditing}
@@ -230,7 +228,6 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
           <LendingButton
             address={address}
             collateral={collateral}
-            position={position}
             walletChainId={walletChain}
             metaStatus={metaStatus}
             needsSignature={needsSignature}
