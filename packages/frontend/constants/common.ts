@@ -24,21 +24,17 @@ export enum PATH {
   POSITION = '/my-positions/[pid]',
 }
 
-export enum SOCIAL_URL {
+export enum HELPER_URL {
   DISCORD = 'https://discord.com/invite/dnvJeEMeDJ',
   TWITTER = 'https://twitter.com/FujiFinance',
+  GUARDED_LAUNCH = 'https://beta.fuji.finance/my-positions',
 }
 
-type SocialLink = {
+export type HelperLink = {
   title: string;
-  url: SOCIAL_URL;
+  url: HELPER_URL;
+  isForGuardedLaunchUsers?: boolean;
 };
-
-export const SOCIAL_LINKS: SocialLink[] = [
-  { title: 'Help', url: SOCIAL_URL.DISCORD },
-  { title: 'Feedback', url: SOCIAL_URL.DISCORD },
-  { title: '@FujiFinance', url: SOCIAL_URL.TWITTER },
-];
 
 export const SENTRY_DSN =
   'https://f64501e2fca94d6c9434a00ed0aece54@o1151449.ingest.sentry.io/4504884437057536';

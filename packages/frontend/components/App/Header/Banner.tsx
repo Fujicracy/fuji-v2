@@ -1,12 +1,13 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Collapse, Link, Stack, Typography } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import React, { useState } from 'react';
 
 export type BannerConfig = {
   key: string;
   message: string;
   link?: { label: string; url: string };
+  isContrast?: boolean;
 };
 
 function Banner({
@@ -16,6 +17,7 @@ function Banner({
   banner: BannerConfig;
   onDismiss: (key: string) => void;
 }) {
+  const { palette } = useTheme();
   const [isVisible, setIsVisible] = useState(true);
 
   const onDismissClick = () => {
@@ -29,7 +31,11 @@ function Banner({
         p="0.475rem 4.5rem 0.475rem 1rem"
         alignItems="center"
         position="relative"
-        sx={{ backgroundColor: alpha('#FFFFFF', 0.1) }}
+        sx={{
+          backgroundColor: banner.isContrast
+            ? palette.primary.dark
+            : alpha('#FFFFFF', 0.1),
+        }}
       >
         <Typography variant="xsmall">
           {banner.message}
@@ -38,7 +44,14 @@ function Banner({
               href={banner.link?.url}
               target="_blank"
               rel="noreferrer"
-              sx={{ ml: '0.4rem', textDecoration: 'underline' }}
+              sx={{
+                ml: '0.4rem',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                '&:hover': {
+                  color: 'unset',
+                },
+              }}
             >
               {banner.link?.label}
             </Link>

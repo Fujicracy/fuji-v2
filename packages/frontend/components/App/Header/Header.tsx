@@ -23,7 +23,9 @@ import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
+import { HELPER_URL } from '../../../constants';
 import { dismissBanner, getBannerVisibility } from '../../../helpers/auth';
+import { fetchGuardedLaunchAddresses } from '../../../helpers/guardedLaunch';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { AuthStatus, useAuth } from '../../../store/auth.store';
@@ -45,10 +47,22 @@ export const BANNERS: BannerConfig[] = [
   },
 ];
 
+const GUARDED_LAUNCH_BANNERS: BannerConfig[] = [
+  {
+    key: 'betaPositions',
+    message:
+      'Fuji Finance has publicly launched V2 🎉. To migrate your position from guarded to live version please visit',
+    link: { label: HELPER_URL.GUARDED_LAUNCH, url: HELPER_URL.GUARDED_LAUNCH },
+    isContrast: true,
+  },
+];
+
 const Header = () => {
   const theme = useTheme();
   const router = useRouter();
   const [banners, setBanners] = useState<BannerConfig[]>([]);
+
+  const walletAddress = useAuth((state) => state.address);
 
   const { address, ens, status, balance, started, login } = useAuth(
     (state) => ({
@@ -67,12 +81,22 @@ const Header = () => {
   const currentPage = router.asPath;
 
   useEffect(() => {
-    const filteredBanners = BANNERS.filter((banner) =>
+    let filteredBanners = BANNERS.filter((banner) =>
       getBannerVisibility(banner.key)
     );
 
-    setBanners(filteredBanners);
-  }, []);
+    const guardedLaunchBanners = GUARDED_LAUNCH_BANNERS.filter((banner) =>
+      getBannerVisibility(banner.key)
+    );
+
+    fetchGuardedLaunchAddresses().then((addresses) => {
+      if (addresses.includes(walletAddress || '')) {
+        filteredBanners = filteredBanners.concat(guardedLaunchBanners);
+      }
+
+      setBanners(filteredBanners);
+    });
+  }, [walletAddress]);
 
   const isPageActive = useCallback(
     (path: string) => {
