@@ -157,27 +157,21 @@ contract CompoundV3 is ILendingProvider, IHarvestable {
   }
 
   /// @inheritdoc IHarvestable
-  function harvest(
-    IVault.Strategy, /* strategy */
-    bytes memory data
-  )
+  function harvest(bytes memory data)
     external
-    returns (bool success)
+    returns (address[] memory tokens, uint256[] memory amounts)
   {
     IVault vault = abi.decode(data, (IVault));
     (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
     _getRewards().claim(address(cMarketV3), address(vault), true);
-    success = true;
+    (tokens, amounts) = previewHarvest(vault);
   }
 
   //TODO
   /// @inheritdoc IHarvestable
   /// @dev compound reward amounts are scaled by up by 10
-  function previewHarvest(
-    IVault vault,
-    IVault.Strategy /* strategy */
-  )
-    external
+  function previewHarvest(IVault vault)
+    public
     view
     returns (address[] memory tokens, uint256[] memory amounts)
   {

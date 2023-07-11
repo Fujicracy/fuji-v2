@@ -109,26 +109,20 @@ contract MockProvider is ILendingProvider, IHarvestable {
   /// @inheritdoc IHarvestable
   //@dev mocking rewards for test purposes
   // will assume rewards are given in vault.asset and always 1e18
-  function harvest(
-    IVault.Strategy, /* strategy */
-    bytes memory data
-  )
+  function harvest(bytes memory data)
     external
-    returns (bool success)
+    returns (address[] memory tokens, uint256[] memory amounts)
   {
     IVault vault = abi.decode(data, (IVault));
     MockERC20 merc20 = MockERC20(vault.asset());
-    try merc20.mintRewards(address(vault), 1e18, providerName()) returns (bool result) {
-      success = result;
+    try merc20.mintRewards(address(vault), 1e18, providerName()) returns (bool /* result */ ) {
+      return previewHarvest(vault);
     } catch {}
   }
 
   /// @inheritdoc IHarvestable
-  function previewHarvest(
-    IVault vault,
-    IVault.Strategy /* strategy */
-  )
-    external
+  function previewHarvest(IVault vault)
+    public
     view
     returns (address[] memory tokens, uint256[] memory amounts)
   {
