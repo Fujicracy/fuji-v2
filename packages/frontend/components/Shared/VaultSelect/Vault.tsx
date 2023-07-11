@@ -149,26 +149,23 @@ function Vault({
           />
         </TableCell>
         {!isMobile && (
-          <>
-            <TableCell align="left">
-              <Stack direction="row" alignItems="center" gap="0.5rem">
-                <NetworkIcon
-                  network={chainName(data.vault.chainId)}
-                  width={18}
-                  height={18}
-                />
-                {chainName(data.vault.chainId)}
-              </Stack>
-            </TableCell>
-            <TableCell
-              align="right"
-              sx={{ display: { xs: 'none', lg: 'table-cell' } }}
-            >
-              <Typography variant="small" color={palette.success.main}>
-                {data.activeProvider.depositAprBase?.toFixed(2)}%
-              </Typography>
-            </TableCell>
-          </>
+          <TableCell align="left">
+            <Stack direction="row" alignItems="center" gap="0.5rem">
+              <NetworkIcon
+                network={chainName(data.vault.chainId)}
+                width={18}
+                height={18}
+              />
+              {chainName(data.vault.chainId)}
+            </Stack>
+          </TableCell>
+        )}
+        {(!isMobile || type === VaultType.LEND) && (
+          <TableCell align="right">
+            <Typography variant="small" color={palette.success.main}>
+              {data.activeProvider.depositAprBase?.toFixed(2)}%
+            </Typography>
+          </TableCell>
         )}
         {type === VaultType.BORROW && (
           <TableCell align="right">

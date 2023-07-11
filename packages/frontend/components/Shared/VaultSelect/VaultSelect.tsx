@@ -217,7 +217,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
                     width: 'fit-content',
                   },
                   'tr td:not(:first-of-type)': {
-                    width: '70px',
+                    // width: '70px',
                   },
                 }}
               >
@@ -242,16 +242,14 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
                       <TableCell align="left" width="20%">
                         Safety Rating
                       </TableCell>
-                      {!isMobile && (
-                        <>
-                          <TableCell align="left">Network</TableCell>
-                          <TableCell
-                            align="right"
-                            sx={{ display: { xs: 'none', lg: 'table-cell' } }}
-                          >
-                            Supply APY
-                          </TableCell>
-                        </>
+                      {!isMobile && <TableCell align="left">Network</TableCell>}
+                      {(!isMobile || type === VaultType.LEND) && (
+                        <TableCell
+                          align="right"
+                          width={isMobile ? '35%' : 'auto'}
+                        >
+                          Supply APY
+                        </TableCell>
                       )}
                       {type === VaultType.BORROW && (
                         <TableCell align="right" width="35%">
