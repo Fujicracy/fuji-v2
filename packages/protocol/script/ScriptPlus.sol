@@ -15,8 +15,7 @@ import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
-import {BorrowingVaultFactoryProxy as BorrowingVaultFactory} from
-  "../src/vaults/borrowing/BorrowingVaultFactoryProxy.sol";
+import {BorrowingVaultBeaconFactory} from "../src/vaults/borrowing/BorrowingVaultBeaconFactory.sol";
 import {BorrowingVaultUpgradeable as BorrowingVault} from
   "../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
 import {YieldVaultFactory} from "../src/vaults/yields/YieldVaultFactory.sol";
@@ -70,14 +69,14 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
   AddrMapper mapper;
   Chief chief;
   TimelockController timelock;
-  BorrowingVaultFactory factory;
+  BorrowingVaultBeaconFactory factory;
   YieldVaultFactory yieldFactory;
   FujiOracle oracle;
   ConnextRouter connextRouter;
   RebalancerManager rebalancer;
   FlasherBalancer flasherBalancer;
 
-  address masterImplementation;
+  address implementation;
   address deployer;
 
   address[] timelockTargets;
@@ -167,39 +166,20 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     }
   }
 
-  function setOrDeployBorrowingVaultFactory(
-    bool deployFactory,
-    bool deployMasterImplementation
-  )
-    internal
-  {
+  function setOrDeployBorrowingVaultFactory(bool deployFactory, bool deployImplementation) internal {
     if (deployFactory) {
-      factory = new BorrowingVaultFactory(address(chief));
-      saveAddress("BorrowingVaultFactory", address(factory));
+      if (deployImplementation) {
+        implementation = address(new BorrowingVault());
+        saveAddress("BorrowingVault-Impl", implementation);
+      } else {
+        implementation = getAddress("BorrowingVault-Impl");
+      }
+      factory = new BorrowingVaultBeaconFactory(address(chief), implementation);
+      saveAddress("BorrowingVaultBeaconFactory", address(factory));
     } else {
-      factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
+      factory = BorrowingVaultBeaconFactory(getAddress("BorrowingVaultBeaconFactory"));
     }
 
-    /**
-     * This boolean will deploy the master copy of BorrowingVault implementation
-     *
-     * NOTE: This master implementation is NOT associated with upgradeability of
-     * previously deployed proxies.
-     */
-    if (deployMasterImplementation) {
-      masterImplementation = address(new BorrowingVault());
-      saveAddress("BorrowingVault-Impl", masterImplementation);
-    } else {
-      masterImplementation = getAddress("BorrowingVault-Impl");
-    }
-
-    // This boolean will set a master copy of BorrowingVault implementation
-    if (factory.masterImplementation() != masterImplementation) {
-      console.log("Setting master implementation BorrowingVault ...");
-      bytes memory data1 =
-        abi.encodeWithSelector(factory.setMasterImplementation.selector, masterImplementation);
-      callWithTimelock(address(factory), data1);
-    }
     if (!chief.allowedVaultFactory(address(factory))) {
       bytes memory data2 =
         abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true);
@@ -373,8 +353,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
           IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
         } else {
           console.log(string.concat("Deploying: ", name, " ..."));
-          address vault =
-            chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
+          uint256 count = factory.vaultsCount(collateral);
+          chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
+          address vault = factory.allVaults(count);
           saveAddress(name, vault);
         }
       }

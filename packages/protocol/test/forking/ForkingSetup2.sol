@@ -7,8 +7,8 @@ import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {BorrowingVaultUpgradeable} from "../../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
-import {BorrowingVaultFactoryProxy as BorrowingVaultFactory} from
-  "../../src/vaults/borrowing/BorrowingVaultFactoryProxy.sol";
+import {BorrowingVaultBeaconFactory} from
+  "../../src/vaults/borrowing/BorrowingVaultBeaconFactory.sol";
 import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -77,8 +77,8 @@ contract ForkingSetup2 is CoreRoles, Test {
   Chief public chief;
   TimelockController public timelock;
   IFujiOracle oracle;
-  BorrowingVaultFactory factory;
-  address masterImplementation;
+  BorrowingVaultBeaconFactory factory;
+  address implementation;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -133,38 +133,19 @@ contract ForkingSetup2 is CoreRoles, Test {
     vm.label(address(oracle), "FujiOracle");
   }
 
-  function setOrDeployBorrowingVaultFactory(
-    bool deployFactory,
-    bool deployMasterImplementation
-  )
-    internal
-  {
+  function setOrDeployBorrowingVaultFactory(bool deployFactory, bool deployImplementation) internal {
     if (deployFactory) {
-      factory = new BorrowingVaultFactory(address(chief));
+      if (deployImplementation) {
+        implementation = address(new BorrowingVaultUpgradeable());
+      } else {
+        implementation = getAddress("BorrowingVault-Impl");
+      }
+      factory = new BorrowingVaultBeaconFactory(address(chief), implementation);
     } else {
-      factory = BorrowingVaultFactory(getAddress("BorrowingVaultFactory"));
+      factory = BorrowingVaultBeaconFactory(getAddress("BorrowingVaultBeaconFactory"));
     }
-    vm.label(address(factory), "BorrowingVaultFactory");
+    vm.label(address(factory), "BorrowingVaultBeaconFactory");
 
-    /**
-     * This boolean will deploy the master copy of BorrowingVault implementation
-     *
-     * NOTE: This master implementation is NOT associated with upgradeability of
-     * previously deployed proxies.
-     */
-    if (deployMasterImplementation) {
-      masterImplementation = address(new BorrowingVaultUpgradeable());
-    } else {
-      masterImplementation = getAddress("BorrowingVault-Impl");
-    }
-
-    // This boolean will set a master copy of BorrowingVault implementation
-    if (factory.masterImplementation() != masterImplementation) {
-      console.log("Setting master implementation BorrowingVault ...");
-      bytes memory data1 =
-        abi.encodeWithSelector(factory.setMasterImplementation.selector, masterImplementation);
-      _callWithTimelock(address(factory), data1);
-    }
     if (!chief.allowedVaultFactory(address(factory))) {
       bytes memory data2 =
         abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true);
@@ -172,13 +153,14 @@ contract ForkingSetup2 is CoreRoles, Test {
     }
   }
 
-  function deployBorrowingVaults() internal {
+  function deployBorrowingVaults() internal returns (address[] memory) {
     bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
     VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
 
     uint256 minCollateral = 1e6;
 
     uint256 len = vaults.length;
+    address[] memory deployed = new address[](len);
     address collateral;
     address debt;
     string memory name;
@@ -198,17 +180,16 @@ contract ForkingSetup2 is CoreRoles, Test {
         providers[j] = ILendingProvider(getAddress(providerNames[j]));
       }
 
-      try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
-        console.log(string.concat("Skip deploying: ", name));
-      } catch {
-        if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
-          console.log(string.concat("Increasing allowance to deploy vault: ", name, " ..."));
-          IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
-        }
-        deal(collateral, msg.sender, minCollateral);
-        chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
+      if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
+        console.log(string.concat("Increasing allowance to deploy vault: ", name, " ..."));
+        IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
       }
+      deal(collateral, msg.sender, minCollateral);
+      address v =
+        chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
+      deployed[i] = v;
     }
+    return deployed;
   }
 
   function getAddress(string memory contractName) internal view returns (address addr) {

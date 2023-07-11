@@ -28,7 +28,6 @@ contract RunGoerli is ScriptPlus {
     if (chief.allowedVaultFactory(address(factory))) {
       deployBorrowingVaults();
       /*setBorrowingVaults();*/
-      // initBorrowingVaults2();
     }
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
