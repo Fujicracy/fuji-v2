@@ -84,14 +84,26 @@ abstract contract BaseVaultUpgradeable is
   }
 
   /**
-   * TODO
+   * @notice Initialize the BaseVault params.
+   *
+   * @param asset_ this vault will handle as main asset (collateral)
+   * @param chief_ that deploys and controls this vault
+   * @param name_ string of the token-shares handled in this vault
+   * @param symbol_ string of the token-shares handled in this vault
+   *
+   * @dev Requirements:
+   * - Must be called by children contract initialize function
+   *
+   * NOTE: Initialization of shares to protect against inflation
+   * is done at {BorrowingVaultFactoryProxy}.
+   * Proxies cannot initialize shares from within factory via the
+   * Create2 library due to the delegate call required to provider.
    */
   function __BaseVault_initialize(
     address asset_,
     address chief_,
     string memory name_,
-    string memory symbol_,
-    uint256 initAssets
+    string memory symbol_
   )
     internal
   {
@@ -105,13 +117,6 @@ abstract contract BaseVaultUpgradeable is
     __ERC20_init(name_, symbol_);
     __SystemAccessControl_init(chief_);
     __EIP712_initialize(name_, VERSION);
-
-    if (initAssets < minAmount) {
-      revert BaseVault__initialize_lessThanMin();
-    }
-
-    address timelock = chief.timelock();
-    _deposit(msg.sender, timelock, initAssets, initAssets);
 
     emit VaultInitialized(msg.sender);
   }

@@ -3,47 +3,45 @@ pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
 import {ScriptPlus} from "./ScriptPlus.sol";
-import {AgaveGnosis} from "../src/providers/gnosis/AgaveGnosis.sol";
+import {AaveV3Goerli} from "../src/providers/goerli/AaveV3Goerli.sol";
 
-contract RunGnosis is ScriptPlus {
-  AgaveGnosis agave;
+contract RunGoerli is ScriptPlus {
+  AaveV3Goerli aaveV3;
 
   function setUp() public {
-    setUpOn("gnosis");
+    setUpOn("goerli");
   }
 
   function run() public {
     vm.startBroadcast(deployer);
 
     setOrDeployChief(false);
-    setOrDeployConnextRouter(false);
+    /*setOrDeployConnextRouter(false);*/
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
-    setOrDeployYieldVaultFactory(false);
     /*setOrDeployAddrMapper(false);*/
-    setOrDeployFlasherBalancer(false);
-    setOrDeployRebalancer(false);
+    /*setOrDeployFlasherBalancer(false);*/
+    /*setOrDeployRebalancer(false);*/
 
-    agave = AgaveGnosis(getAddress("Agave_Gnosis"));
-    /*agave = new AgaveGnosis();*/
-    /*saveAddress("Agave_Gnosis", address(agave));*/
+    _setLendingProviders();
 
     if (chief.allowedVaultFactory(address(factory))) {
       deployBorrowingVaults();
-      setBorrowingVaults();
-      // initBorrowingVaults2();
+      /*setBorrowingVaults();*/
     }
 
-    if (chief.allowedVaultFactory(address(yieldFactory))) {
-      deployYieldVaults();
-    }
-
-    /*setVaultNewRating("BorrowingVault-WETHUSDC", 55);*/
+    /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
     // If setting all routers at once, call after deploying all chians
     /*setRouters();*/
 
     vm.stopBroadcast();
+  }
+
+  function _setLendingProviders() internal {
+    aaveV3 = AaveV3Goerli(getAddress("Aave_V3_Goerli"));
+    /*aaveV3 = new AaveV3Goerli();*/
+    /*saveAddress("Aave_V3_Goerli", address(aaveV3));*/
   }
 }
