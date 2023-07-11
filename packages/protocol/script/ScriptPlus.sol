@@ -396,10 +396,6 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       maxLtv = vaults[i].maxLtv;
 
       try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
-        console.log(string.concat("Needs to be deployed before setting: ", name));
-      } catch {
-        console.log(string.concat("Deploying: ", name, " ..."));
-
         vault = BorrowingVault(payable(getAddress(name)));
 
         if (address(vault.oracle()) == address(0)) {
@@ -414,8 +410,10 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
           timelockDatas.push(abi.encodeWithSelector(vault.setLtvFactors.selector, maxLtv, liqRatio));
           timelockValues.push(0);
         }
-        console.log("============");
+      } catch {
+        console.log(string.concat("Needs to be deployed before setting: ", name));
       }
+      console.log("============");
     }
 
     callBatchWithTimelock();
