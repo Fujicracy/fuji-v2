@@ -34,7 +34,7 @@ contract RunPolygon is ScriptPlus {
 
     if (chief.allowedVaultFactory(address(factory))) {
       deployBorrowingVaults();
-      setBorrowingVaults();
+      /*setBorrowingVaults();*/
     }
 
     if (chief.allowedVaultFactory(address(yieldFactory))) {

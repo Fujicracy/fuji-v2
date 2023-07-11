@@ -86,22 +86,22 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.OPTIMISM]: [
     new BorrowingVault(
-      Address.from('0x92964c1EeE607358CCCe7e8F53E7624eB8356f15'),
+      Address.from('0xeaAfbf9b8aCEA243cf8a7aAa9a26497E98802cc9'),
       WETH9[ChainId.OPTIMISM],
       USDC[ChainId.OPTIMISM]
     ),
     new BorrowingVault(
-      Address.from('0xe83A6D0aaA8765C30740C8D374604e4660735373'),
+      Address.from('0x3e79537100bfc39893EdCa1311dF5f70F946B7d2'),
       WETH9[ChainId.OPTIMISM],
       USDC[ChainId.OPTIMISM]
     ),
     new BorrowingVault(
-      Address.from('0x0A9eFBC206401083D77508aCDDF2c407b7Aa7a61'),
+      Address.from('0x00cD7CbC64B8Ca27BaCE9ee23Ab87Cb3C6ECe01C'),
       WETH9[ChainId.OPTIMISM],
       DAI[ChainId.OPTIMISM]
     ),
     new BorrowingVault(
-      Address.from('0x848fD325D928d8Eb7925A0e5F7fc05DE840D8d67'),
+      Address.from('0xD7ef0e95Fc9cf815247d8110d4Cf102F59eDF871'),
       WETH9[ChainId.OPTIMISM],
       DAI[ChainId.OPTIMISM]
     ),
