@@ -5,6 +5,7 @@ import "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
+import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {BorrowingVaultUpgradeable} from "../../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
 import {BorrowingVaultBeaconFactory} from
@@ -13,11 +14,16 @@ import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IRouter} from "../../src/interfaces/IRouter.sol";
+import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
 import {Chief} from "../../src/Chief.sol";
+import {IWETH9} from "../../src/abstracts/WETH9.sol";
 import {IVault} from "../../src/interfaces/IVault.sol";
+import {IConnext} from "../../src/interfaces/connext/IConnext.sol";
 import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
 import {IFujiOracle} from "../../src/interfaces/IFujiOracle.sol";
+import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
 
 contract ForkingSetup2 is CoreRoles, Test {
   using SafeERC20 for IERC20;
@@ -75,6 +81,7 @@ contract ForkingSetup2 is CoreRoles, Test {
   address public INITIALIZER = vm.addr(0x111A13); // arbitrary address
 
   Chief public chief;
+  ConnextRouter connextRouter;
   TimelockController public timelock;
   IFujiOracle oracle;
   BorrowingVaultBeaconFactory factory;
@@ -110,6 +117,17 @@ contract ForkingSetup2 is CoreRoles, Test {
     vm.label(address(chief), "Chief");
     timelock = TimelockController(payable(chief.timelock()));
     vm.label(address(timelock), "Timelock");
+  }
+
+  function setOrDeployConnextRouter(bool deploy) internal {
+    if (deploy) {
+      address connext = readAddrFromConfig("ConnextCore");
+      address weth = readAddrFromConfig("WETH");
+
+      connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connext), Chief(chief));
+    } else {
+      connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
+    }
   }
 
   function setOrDeployFujiOracle(bool deploy) internal {
@@ -165,6 +183,8 @@ contract ForkingSetup2 is CoreRoles, Test {
     address debt;
     string memory name;
     uint256 rating;
+    uint256 liqRatio;
+    uint256 maxLtv;
     string[] memory providerNames;
 
     for (uint256 i; i < len; i++) {
@@ -172,6 +192,8 @@ contract ForkingSetup2 is CoreRoles, Test {
       debt = readAddrFromConfig(vaults[i].debt);
       name = vaults[i].name;
       rating = vaults[i].rating;
+      liqRatio = vaults[i].liqRatio;
+      maxLtv = vaults[i].maxLtv;
       providerNames = vaults[i].providers;
 
       uint256 providersLen = providerNames.length;
@@ -187,6 +209,14 @@ contract ForkingSetup2 is CoreRoles, Test {
       address v =
         chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
       deployed[i] = v;
+
+      _callWithTimelock(
+        v, abi.encodeWithSelector(BorrowingVaultUpgradeable.setOracle.selector, address(oracle))
+      );
+      _callWithTimelock(
+        v,
+        abi.encodeWithSelector(BorrowingVaultUpgradeable.setLtvFactors.selector, maxLtv, liqRatio)
+      );
     }
 
     return deployed;
@@ -228,5 +258,81 @@ contract ForkingSetup2 is CoreRoles, Test {
   function _grantRoleChief(bytes32 role, address account) internal {
     bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
     _callWithTimelock(address(chief), sendData);
+  }
+
+  function _getDepositAndBorrow(
+    address beneficiary,
+    uint256 beneficiaryPrivateKey,
+    uint256 amount,
+    uint256 borrowAmount,
+    address router,
+    address vault_
+  )
+    internal
+    returns (IRouter.Action[] memory, bytes[] memory)
+  {
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.Deposit;
+    actions[1] = IRouter.Action.PermitBorrow;
+    actions[2] = IRouter.Action.Borrow;
+
+    bytes[] memory args = new bytes[](3);
+    args[0] = abi.encode(vault_, amount, beneficiary, beneficiary);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault_, beneficiary, beneficiary, borrowAmount);
+    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = _buildPermitAsBytes(
+      beneficiary,
+      beneficiaryPrivateKey,
+      router,
+      beneficiary,
+      borrowAmount,
+      0,
+      vault_,
+      actionArgsHash
+    );
+
+    return (actions, args);
+  }
+
+  function _getPermitBorrowArgs(
+    LibSigUtils.Permit memory permit,
+    uint256 ownerPKey,
+    address vault_
+  )
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
+    bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
+    bytes32 digest =
+      LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
+    (v, r, s) = vm.sign(ownerPKey, digest);
+    deadline = permit.deadline;
+  }
+
+  function _buildPermitAsBytes(
+    address owner,
+    uint256 ownerPKey,
+    address operator,
+    address receiver,
+    uint256 amount,
+    uint256 plusNonce,
+    address vault_,
+    bytes32 actionArgsHash
+  )
+    internal
+    returns (bytes memory arg)
+  {
+    LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+      owner, operator, receiver, amount, plusNonce, vault_, actionArgsHash
+    );
+
+    (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+      _getPermitBorrowArgs(permit, ownerPKey, vault_);
+
+    arg = abi.encode(vault_, owner, receiver, amount, deadline, v, r, s);
   }
 }

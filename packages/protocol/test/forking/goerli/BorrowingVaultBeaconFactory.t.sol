@@ -9,6 +9,7 @@ import {ForkingSetup2} from "../ForkingSetup2.sol";
 import {VaultBeaconProxy} from "../../../src/vaults/VaultBeaconProxy.sol";
 import {AaveV3Goerli} from "../../../src/providers/goerli/AaveV3Goerli.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
+import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {BorrowingVaultUpgradeable} from
   "../../../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
@@ -16,6 +17,8 @@ import {BorrowingVaultBeaconFactory} from
   "../../../src/vaults/borrowing/BorrowingVaultBeaconFactory.sol";
 
 contract BorrowingVaultBeaconFactoryTests is Routines, ForkingSetup2 {
+  using SafeERC20 for IERC20;
+
   event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares);
 
   event Borrow(
@@ -46,6 +49,7 @@ contract BorrowingVaultBeaconFactoryTests is Routines, ForkingSetup2 {
 
     vm.startPrank(msg.sender);
     setOrDeployChief(true);
+    setOrDeployConnextRouter(true);
     setOrDeployFujiOracle(true);
     setOrDeployBorrowingVaultFactory(true, true);
     vaults = deployBorrowingVaults();
@@ -98,6 +102,22 @@ contract BorrowingVaultBeaconFactoryTests is Routines, ForkingSetup2 {
 
     for (uint256 i; i < len; i++) {
       address vault = vaults[i];
+      assertEq(IVault(vault).balanceOf(ALICE), DEPOSIT_AMOUNT);
+    }
+  }
+
+  function test_depositAndBorrow() public {
+    uint256 len = vaults.length;
+    for (uint256 i; i < len; i++) {
+      address vault = vaults[i];
+      address asset = IVault(vault).asset();
+      (IRouter.Action[] memory actions, bytes[] memory args) = _getDepositAndBorrow(
+        ALICE, ALICE_PK, DEPOSIT_AMOUNT, BORROW_AMOUNT, address(connextRouter), vault
+      );
+      deal(asset, ALICE, DEPOSIT_AMOUNT);
+      vm.startPrank(ALICE);
+      IERC20(asset).safeIncreaseAllowance(address(connextRouter), DEPOSIT_AMOUNT);
+      connextRouter.xBundle(actions, args);
       assertEq(IVault(vault).balanceOf(ALICE), DEPOSIT_AMOUNT);
     }
   }
