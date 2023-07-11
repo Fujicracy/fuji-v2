@@ -10,9 +10,11 @@ pragma solidity 0.8.15;
  */
 
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ILendingProvider} from "./ILendingProvider.sol";
 import {IHarvestable} from "./IHarvestable.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
+import {Strategy} from "../interfaces/IHarvestManager.sol";
 import {ISwapper} from "../interfaces/ISwapper.sol";
 
 interface IVault is IERC4626 {
@@ -496,26 +498,31 @@ interface IVault is IERC4626 {
      Harvest functions 
   ////////////////////*/
 
-  enum Strategy {
-    ConvertToCollateral,
-    RepayDebt,
-    Distribute
-  }
-
   /**
    * @notice Collects rewards from the protocol.
    *
-   * @param strategy enum of the strategy to apply after harvesting rewards.
    * @param provider lending provider to be harvested.
-   * @param swapper ISwapper to be used to swap rewards.
    * @param data bytes to be used to call the harvest function at the lending provider.
    *
    */
   function harvest(
     Strategy strategy,
     IHarvestable provider,
-    ISwapper swapper,
     bytes memory data
   )
-    external;
+    external
+    returns (address[] memory tokens, uint256[] memory amounts);
+
+  /**
+   * @dev Completes harvest logic at provider.
+   * Will execute a delegate call to the given provider.
+   *
+   * @param provider address of provider to complete harvest
+   * @param data bytes to be used by the provider on the given delegate call
+   *
+   * Requirements:
+   * - Must be called by a harvester.
+   * - Must encode data with selector
+   */
+  function completeHarvest(address provider, bytes memory data) external;
 }
