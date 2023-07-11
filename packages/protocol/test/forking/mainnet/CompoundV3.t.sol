@@ -177,7 +177,7 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
     ).getRewardOwed(market, address(yieldVault));
 
     (address[] memory tokens, uint256[] memory amounts) =
-      IHarvestable(address(compoundV3)).previewHarvest(yieldVault, IVault.Strategy.Distribute);
+      IHarvestable(address(compoundV3)).previewHarvest(yieldVault);
 
     //compoundV3 will only return on token as reward
     assertEq(rewardOwed.token, tokens[0]);
