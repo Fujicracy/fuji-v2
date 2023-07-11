@@ -48,9 +48,11 @@ function Banner({
                 ml: '0.4rem',
                 textDecoration: 'underline',
                 cursor: 'pointer',
-                '&:hover': {
-                  color: 'unset',
-                },
+                '&:hover': banner.isContrast
+                  ? {
+                      color: 'unset',
+                    }
+                  : {},
               }}
             >
               {banner.link?.label}
