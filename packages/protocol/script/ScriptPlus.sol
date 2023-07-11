@@ -84,6 +84,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
   uint256[] timelockValues;
   string[] chainNames;
 
+  address[] approvals;
+  mapping(address => uint256) approvalsByToken;
+
   constructor() {
     chainNames.push("polygon");
     chainNames.push("optimism");
@@ -349,8 +352,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
         console.log(string.concat("Skip deploying: ", name));
       } catch {
         if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
-          console.log(string.concat("Increasing allowance to deploy vault: ", name, " ..."));
-          IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
+          console.log(string.concat("Needs to increase allowance to deploy vault: ", name, " ..."));
+          if (approvalsByToken[collateral] == 0) approvals.push(collateral);
+          approvalsByToken[collateral] += minCollateral;
         } else {
           console.log(string.concat("Deploying: ", name, " ..."));
           uint256 count = factory.vaultsCount(collateral);
@@ -360,6 +364,16 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
         }
       }
     }
+
+    len = approvals.length;
+    for (uint256 i; i < len; i++) {
+      address token = approvals[i];
+      if (approvalsByToken[token] > 0) {
+        IERC20(collateral).safeIncreaseAllowance(address(factory), approvalsByToken[token]);
+        approvalsByToken[token] = 0;
+      }
+    }
+    delete approvals;
   }
 
   function setBorrowingVaults() internal {
