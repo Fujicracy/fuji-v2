@@ -53,6 +53,7 @@ type SelectCurrencyCardProps = {
   positionData: PositionData | undefined;
   isEditing: boolean;
   isFocusedByDefault: boolean;
+  vaultType?: VaultType;
 };
 
 function CurrencyCard({
@@ -70,10 +71,17 @@ function CurrencyCard({
   positionData,
   isEditing,
   isFocusedByDefault,
+  vaultType = VaultType.BORROW,
 }: SelectCurrencyCardProps) {
   const { palette } = useTheme();
 
-  const { currency, usdPrice, balances, selectableCurrencies } = assetChange
+  const {
+    currency,
+    usdPrice,
+    balances,
+    selectableCurrencies,
+    amount = 0,
+  } = assetChange
     ? assetChange
     : {
         currency: undefined,
@@ -101,7 +109,12 @@ function CurrencyCard({
     }
   }, [isFocusedByDefault, textInput]);
 
-  const balance = balances ? balances[currency.symbol] : 0;
+  const balance =
+    actionType === ActionType.REMOVE && amount
+      ? amount
+      : balances
+      ? balances[currency.symbol]
+      : 0;
 
   const isOpen = Boolean(anchorEl);
   const open = (event: MouseEvent<HTMLElement>) => {
@@ -129,7 +142,8 @@ function CurrencyCard({
       actionType === ActionType.REMOVE &&
       type === AssetType.Collateral &&
       positionData &&
-      debt
+      debt &&
+      vaultType === VaultType.BORROW
     ) {
       // `mode` has to be precalculated because we set it based on inputs,
       // the mode will be set after the end of this function.
@@ -321,7 +335,9 @@ function CurrencyCard({
               <Typography
                 ml=".25rem"
                 color={
-                  +value > balance ? palette.error.dark : palette.text.primary
+                  +value > (balance || 0)
+                    ? palette.error.dark
+                    : palette.text.primary
                 }
               >
                 <Balance balance={balance} dataCy="balance-amount" />

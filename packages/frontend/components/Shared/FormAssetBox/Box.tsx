@@ -90,6 +90,7 @@ function FormAssetBox({
       />
       <CurrencyCard
         type={type}
+        vaultType={vaultType}
         showMax={showMax}
         maxAmount={maxAmount}
         isEditing={isEditing}
