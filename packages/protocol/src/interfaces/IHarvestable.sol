@@ -2,6 +2,8 @@
 pragma solidity 0.8.15;
 
 import {IVault} from "./IVault.sol";
+import {Strategy} from "./IHarvestManager.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title IHarvestable
@@ -18,23 +20,26 @@ interface IHarvestable {
   /**
    * @notice Collects rewards from the protocol. Returns false if there are no rewards to be collected.
    *
-   * @param strategy to later be executed in the vault. Useful for the case we can execute the harvest in different tokens.
    * @param data bytes to be used to call the harvest function at the lending provider.
    *
+   * @return tokens and respective amounts of rewards collected.
+   *
+   * @dev Requirement:
+   * - Must return empty `tokens` and `amounts` if rewards can be claimed directly to a recipient.
+   * - Must encode recipient address for rewards in `data` if provider allows this logic.
+   *
    */
-  function harvest(IVault.Strategy strategy, bytes memory data) external returns (bool success);
+  function harvest(bytes memory data)
+    external
+    returns (address[] memory tokens, uint256[] memory amounts);
 
   /**
    * @notice Returns the tokens and respective amounts of rewards expected to be harvested from the protocol.
    *
    * @param vault IVault required by some specific providers with multi-markets.
-   * @param strategy to later be executed in the vault. Useful for the case we can execute the harvest in different tokens.
    *
    */
-  function previewHarvest(
-    IVault vault,
-    IVault.Strategy strategy
-  )
+  function previewHarvest(IVault vault)
     external
     view
     returns (address[] memory tokens, uint256[] memory amounts);
