@@ -7,7 +7,7 @@ pragma solidity 0.8.15;
  * @author Fujidao Labs
  *
  * @notice A factory contract through which new borrowing vaults are created.
- * This vault factory deploys (OZ implementation) BeaconProxy that
+ * This vault factory deploys (OZ implementation) VaultBeaconProxy that
  * point to `implementation` state variable as the target implementation of the proxy.
  */
 
@@ -15,7 +15,7 @@ import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {BeaconProxy} from "openzeppelin-contracts/contracts/proxy/beacon/BeaconProxy.sol";
+import {VaultBeaconProxy} from "../VaultBeaconProxy.sol";
 import {IBeacon} from "openzeppelin-contracts/contracts/proxy/beacon/IBeacon.sol";
 import {Create2Upgradeable} from
   "openzeppelin-contracts-upgradeable/contracts/utils/Create2Upgradeable.sol";
@@ -140,8 +140,9 @@ contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
         providers
       );
 
-      vdata.bytecode =
-        abi.encodePacked(type(BeaconProxy).creationCode, abi.encode(address(this), initCall));
+      vdata.bytecode = abi.encodePacked(
+        type(VaultBeaconProxy).creationCode, abi.encode(address(this), initCall, address(chief))
+      );
 
       // Predict address to safeIncreaseAllowance to future vault initialization of shares.
       futureVault = Create2Upgradeable.computeAddress(vdata.salt, keccak256(vdata.bytecode));

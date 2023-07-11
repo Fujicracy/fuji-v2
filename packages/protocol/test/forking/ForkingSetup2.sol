@@ -181,7 +181,6 @@ contract ForkingSetup2 is CoreRoles, Test {
       }
 
       if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
-        console.log(string.concat("Increasing allowance to deploy vault: ", name, " ..."));
         IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
       }
       deal(collateral, msg.sender, minCollateral);
@@ -189,6 +188,7 @@ contract ForkingSetup2 is CoreRoles, Test {
         chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
       deployed[i] = v;
     }
+
     return deployed;
   }
 
