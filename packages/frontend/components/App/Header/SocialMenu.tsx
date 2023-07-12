@@ -6,17 +6,35 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { SOCIAL_LINKS, SOCIAL_URL } from '../../../constants';
+import { HELPER_URL, HelperLink } from '../../../constants';
+import { fetchGuardedLaunchAddresses } from '../../../helpers/guardedLaunch';
+import { HELPER_LINKS } from '../../../helpers/navigation';
+import { useAuth } from '../../../store/auth.store';
 import { DiscordIcon } from '../../Shared/Icons';
 
 function SocialMenu() {
   const { palette } = useTheme();
+  const [links, setLinks] = useState<HelperLink[]>([]);
+  const walletAddress = useAuth((state) => state.address);
+
+  useEffect(() => {
+    fetchGuardedLaunchAddresses().then((addresses) => {
+      let filteredLinks = HELPER_LINKS.filter(
+        (link) => !link.isForGuardedLaunchUsers
+      );
+      if (addresses.includes(walletAddress?.toLowerCase() || '')) {
+        filteredLinks = HELPER_LINKS;
+      }
+
+      setLinks(filteredLinks);
+    });
+  }, [walletAddress]);
 
   return (
     <>
-      {SOCIAL_LINKS.map((link) => (
+      {links.map((link) => (
         <Link key={link.title} href={link.url} target="_blank" rel="noreferrer">
           <MenuItem>
             <ListItemText>
@@ -24,11 +42,11 @@ function SocialMenu() {
                 {link.title}
               </Typography>
             </ListItemText>
-            {link.url === SOCIAL_URL.DISCORD ? (
+            {link.url === HELPER_URL.DISCORD ? (
               <DiscordIcon size={14} color={palette.info.main} />
-            ) : (
+            ) : link.url === HELPER_URL.TWITTER ? (
               <TwitterIcon sx={{ fontSize: 14, color: palette.info.main }} />
-            )}
+            ) : null}
           </MenuItem>
         </Link>
       ))}
