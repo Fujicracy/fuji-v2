@@ -121,17 +121,20 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
   )
     internal
   {
+    address debtAsset = BorrowingVault(payable(address(vault))).debtAsset();
     //check provider total debt
     //should not swap more than debt?
     //should not swap if tokens[i] == debtAsset
     uint256 providerDebt =
       ILendingProvider(address(provider)).getBorrowBalance(address(vault), vault);
+    uint256 amountSwapped = 0;
     for (uint256 i = 0; i < tokens.length; i++) {
-      if (tokens[i] == address(vault)) {
+      if (tokens[i] == debtAsset) {
         continue;
       }
       //swap desired amount here
       //stop if totalSwapped >= providerDebt?
+      amountSwapped += _swap(swapper, tokens[i], debtAsset, amounts[i], address(this));
     }
 
     bytes memory data = abi.encodeWithSelector(
@@ -140,6 +143,9 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     vault.completeHarvest(address(provider), data);
 
     //should send remaining amount to treasury
+    if (amountSwapped > providerDebt) {
+      IERC20(debtAsset).safeTransfer(treasury, amountSwapped - providerDebt);
+    }
   }
 
   //TODO
