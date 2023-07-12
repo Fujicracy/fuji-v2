@@ -45,7 +45,7 @@ library LibDForceOptimism {
     uint256 storedBorrowBalance = iToken.borrowBalanceStored(user);
 
     // DForce rounds this calculation up (and Compound doesn't)
-    return ((storedBorrowBalance * borrowIndex) / borrowIndexPrior);
+    return ((storedBorrowBalance * borrowIndex).divWadUp(borrowIndexPrior)).divWadUp(1e36);
   }
 
   /**
