@@ -194,19 +194,63 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.borrow(borrowAmount, ALICE, ALICE);
   }
 
-  function test_softWithdrawMaxWithoutRepay( /*uint96 amount, uint96 borrowAmount*/ ) public {
-    // uint256 minAmount = vault.minAmount();
-    // vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
-    uint256 amount = 5 ether;
-    uint256 borrowAmount = 200e18;
-    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+  function test_withdrawMax(uint128 amount, uint128 moreThanAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(moreThanAmount > amount && amount >= minAmount);
+    do_deposit(amount, vault, ALICE);
 
     vm.prank(ALICE);
-    vault.withdraw(amount, ALICE, ALICE);
+    vault.withdraw(moreThanAmount, ALICE, ALICE);
 
-    // For dust amounts to payback it will always request to keep 1 asset-share.
-    assertGe(vault.balanceOf(ALICE), 1);
-    console.log("vault.getHealthFactor(ALICE)", vault.getHealthFactor(ALICE));
+    // Default borrowing vault behavior when passing a higher than `maxWithdraw` amount
+    // is to only withdraw max possible that user has deposited.
+    assertEq(IERC20(vault.asset()).balanceOf(ALICE), amount);
+  }
+
+  function test_redeemMax(uint128 amount, uint128 moreThanAmount) public {
+    uint256 minAmount = vault.minAmount();
+    vm.assume(moreThanAmount > amount && amount >= minAmount);
+    do_deposit(amount, vault, ALICE);
+
+    vm.prank(ALICE);
+    vault.redeem(moreThanAmount, ALICE, ALICE);
+
+    // Default borrowing vault behavior when passing a higher than `maxWithdraw` amount
+    // is to only withdraw max possible that user has deposited.
+    assertEq(IERC20(vault.asset()).balanceOf(ALICE), amount);
+  }
+
+  function test_withdrawMaxWithoutRepay(uint96 amount, uint96 borrowAmount) public {
+    // 1e14 is a reasonable ETH amount, and 1e18 is above 1 usd for DAI.
+    // This was done to consider test that are not handling dust amounts.
+    vm.assume(amount > 1e14 && borrowAmount > 1e18 && _utils_checkMaxLTV(amount, borrowAmount));
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    uint256 maxWithdrawable = vault.maxWithdraw(ALICE);
+
+    vm.prank(ALICE);
+    vault.withdraw(type(uint256).max, ALICE, ALICE);
+
+    // Assert user received exactly the maxWithdrawable amount
+    assertEq(IERC20(vault.asset()).balanceOf(ALICE), maxWithdrawable);
+  }
+
+  function test_redeemwMaxWithoutRepay(uint96 amount, uint96 borrowAmount) public {
+    // 1e14 is a reasonable ETH amount, and 1e18 is above 1 usd for DAI.
+    // This was done to consider test that are not handling dust amounts.
+    vm.assume(amount > 1e14 && borrowAmount > 1e18 && _utils_checkMaxLTV(amount, borrowAmount));
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    uint256 aliceShares = vault.balanceOf(ALICE);
+    uint256 maxRedeemable = vault.maxRedeem(ALICE);
+
+    vm.prank(ALICE);
+    vault.redeem(type(uint256).max, ALICE, ALICE);
+
+    // Assert user has remainder shares after maxRedeemable amount
+    assertEq(vault.balanceOf(ALICE), aliceShares - maxRedeemable);
   }
 
   function test_tryTransferWithoutRepay(uint96 amount, uint96 borrowAmount) public {
