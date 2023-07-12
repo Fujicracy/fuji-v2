@@ -302,7 +302,7 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   function payback(uint256 debt, address owner) public override returns (uint256) {
     uint256 shares = previewPayback(debt);
 
-    shares = _paybackChecks(owner, debt, shares);
+    (shares, debt) = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
 
     return shares;
@@ -312,7 +312,7 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   function burnDebt(uint256 shares, address owner) public override returns (uint256) {
     uint256 debt = previewBurnDebt(shares);
 
-    shares = _paybackChecks(owner, debt, shares);
+    (shares, debt) = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
 
     return debt;
@@ -580,15 +580,16 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   )
     private
     view
-    returns (uint256)
+    returns (uint256, uint256)
   {
     if (debt == 0 || shares == 0 || owner == address(0)) {
       revert BorrowingVault__payback_invalidInput();
     }
     if (shares > _debtShares[owner]) {
       shares = _debtShares[owner];
+      debt = convertToDebt(shares);
     }
-    return shares;
+    return (shares, debt);
   }
 
   /**
