@@ -56,7 +56,7 @@ const GUARDED_LAUNCH_BANNERS: BannerConfig[] = [
         <BannerLink
           link={{
             label: 'Galxe',
-            url: 'https://galxe.com/fujifinance/campaign/GCbDnUeZDy',
+            url: 'https://galxe.com/fujifinance/campaign/GCNsnUecGJ',
           }}
           isContrast
         />
