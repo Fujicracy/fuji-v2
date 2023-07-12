@@ -1,7 +1,7 @@
 {
   "name": "@x-fuji/frontend",
   "description": "Fuji V2 UI",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "CC-BY-NC-4.0",
   "engines": {
     "node": ">=18"
