@@ -287,33 +287,6 @@ abstract contract BaseVaultUpgradeable is
     return _convertToAssets(shares, MathUpgradeable.Rounding.Down);
   }
 
-  /**
-   * @notice Slippage protected `deposit()` per EIP5143.
-   *
-   * @param assets amount to be deposited
-   * @param receiver to whom `assets` amount will be credited
-   * @param minShares amount expected from this deposit action
-   *
-   * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
-   * Requirements:
-   * - Must mint at least `minShares` when calling `deposit()`.
-   */
-  function deposit(
-    uint256 assets,
-    address receiver,
-    uint256 minShares
-  )
-    public
-    virtual
-    returns (uint256)
-  {
-    uint256 receivedShares = deposit(assets, receiver);
-    if (receivedShares < minShares) {
-      revert BaseVault__deposit_slippageTooHigh();
-    }
-    return receivedShares;
-  }
-
   /// @inheritdoc IERC4626Upgradeable
   function deposit(uint256 assets, address receiver) public virtual override returns (uint256) {
     uint256 shares = previewDeposit(assets);
@@ -322,33 +295,6 @@ abstract contract BaseVaultUpgradeable is
     _deposit(msg.sender, receiver, assets, shares);
 
     return shares;
-  }
-
-  /**
-   * @notice Slippage protected `mint()` per EIP5143.
-   *
-   * @param shares amount to mint
-   * @param receiver to whom `shares` amount will be credited
-   * @param maxAssets amount that must be credited when calling mint
-   *
-   * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
-   * Requirements:
-   * - Must not pull more than `maxAssets` when calling `mint()`.
-   */
-  function mint(
-    uint256 shares,
-    address receiver,
-    uint256 maxAssets
-  )
-    public
-    virtual
-    returns (uint256)
-  {
-    uint256 pulledAssets = mint(shares, receiver);
-    if (pulledAssets > maxAssets) {
-      revert BaseVault__mint_slippageTooHigh();
-    }
-    return pulledAssets;
   }
 
   /// @inheritdoc IERC4626Upgradeable
@@ -373,22 +319,22 @@ abstract contract BaseVaultUpgradeable is
    * Requirements:
    * - Must not burn more than `maxShares` when calling `withdraw()`.
    */
-  function withdraw(
-    uint256 assets,
-    address receiver,
-    address owner,
-    uint256 maxShares
-  )
-    public
-    virtual
-    returns (uint256)
-  {
-    uint256 burnedShares = withdraw(assets, receiver, owner);
-    if (burnedShares > maxShares) {
-      revert BaseVault__withdraw_slippageTooHigh();
-    }
-    return burnedShares;
-  }
+  // function withdraw(
+  //   uint256 assets,
+  //   address receiver,
+  //   address owner,
+  //   uint256 maxShares
+  // )
+  //   public
+  //   virtual
+  //   returns (uint256)
+  // {
+  //   uint256 burnedShares = withdraw(assets, receiver, owner);
+  //   if (burnedShares > maxShares) {
+  //     revert BaseVault__withdraw_slippageTooHigh();
+  //   }
+  //   return burnedShares;
+  // }
 
   /// @inheritdoc IERC4626Upgradeable
   function withdraw(
@@ -417,22 +363,22 @@ abstract contract BaseVaultUpgradeable is
    * Requirements:
    * - Must  receive at least `minAssets` when calling `redeem()`.
    */
-  function redeem(
-    uint256 shares,
-    address receiver,
-    address owner,
-    uint256 minAssets
-  )
-    public
-    virtual
-    returns (uint256)
-  {
-    uint256 receivedAssets = redeem(shares, receiver, owner);
-    if (receivedAssets < minAssets) {
-      revert BaseVault__redeem_slippageTooHigh();
-    }
-    return receivedAssets;
-  }
+  // function redeem(
+  //   uint256 shares,
+  //   address receiver,
+  //   address owner,
+  //   uint256 minAssets
+  // )
+  //   public
+  //   virtual
+  //   returns (uint256)
+  // {
+  //   uint256 receivedAssets = redeem(shares, receiver, owner);
+  //   if (receivedAssets < minAssets) {
+  //     revert BaseVault__redeem_slippageTooHigh();
+  //   }
+  //   return receivedAssets;
+  // }
 
   /// @inheritdoc IERC4626Upgradeable
   function redeem(
