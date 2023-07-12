@@ -693,7 +693,6 @@ contract BorrowingVault is BaseVault {
     uint256 shares
   )
     private
-    view
     returns (uint256, uint256)
   {
     if (debt == 0 || shares == 0 || owner == address(0)) {
@@ -701,7 +700,10 @@ contract BorrowingVault is BaseVault {
     }
     if (shares > _debtShares[owner]) {
       shares = _debtShares[owner];
+      uint256 debt_ = debt;
       debt = convertToDebt(shares);
+      uint256 remainder = debt_ > debt ? debt_ - debt : 0;
+      if (remainder > 0) _debtAsset.safeTransfer(owner, remainder);
     }
     return (shares, debt);
   }
