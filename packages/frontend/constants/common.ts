@@ -27,7 +27,7 @@ export enum PATH {
 export enum HELPER_URL {
   DISCORD = 'https://discord.com/invite/dnvJeEMeDJ',
   TWITTER = 'https://twitter.com/FujiFinance',
-  GUARDED_LAUNCH = 'https://beta.fuji.finance/my-positions',
+  GUARDED_LAUNCH = 'https://guarded-v2.fuji.finance/',
 }
 
 export type HelperLink = {
