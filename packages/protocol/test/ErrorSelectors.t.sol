@@ -8,8 +8,17 @@ import {
   BorrowingVaultUpgradeable,
   BaseVaultUpgradeable
 } from "../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
+import {SystemAccessControl} from "../src/access/SystemAccessControl.sol";
 import {VaultPermissions} from "../src/vaults/VaultPermissions.sol";
+import {PausableVault} from "../src/abstracts/PausableVault.sol";
+import {
+  BorrowingVaultBeaconFactory,
+  VaultDeployer
+} from "../src/vaults/borrowing/BorrowingVaultBeaconFactory.sol";
+import {ChainlinkComputedFeed} from "../src/helpers/ChainlinkComputedFeed.sol";
 import {RebalancerManager} from "../src/RebalancerManager.sol";
+import {LiquidationManager} from "../src/LiquidationManager.sol";
+import {BaseFlasher} from "../src/abstracts/BaseFlasher.sol";
 
 contract ErrorSelectors is Test {
   function test_getBaseRouterErrorSelectors() public view {
@@ -237,6 +246,26 @@ contract ErrorSelectors is Test {
     );
   }
 
+  function test_getSystemAccessControlErrorSelectors() public view {
+    // error SystemAccessControl__hasRole_missingRole(address caller, bytes32 role);
+    console.log("SystemAccessControl.SystemAccessControl__hasRole_missingRole.selector");
+    console.logBytes4(SystemAccessControl.SystemAccessControl__hasRole_missingRole.selector);
+
+    // error SystemAccessControl__onlyTimelock_callerIsNotTimelock();
+    console.log(
+      "SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector"
+    );
+    console.logBytes4(
+      SystemAccessControl.SystemAccessControl__onlyTimelock_callerIsNotTimelock.selector
+    );
+
+    // error SystemAccessControl__onlyHouseKeeper_notHouseKeeper();
+    console.log("SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector");
+    console.logBytes4(
+      SystemAccessControl.SystemAccessControl__onlyHouseKeeper_notHouseKeeper.selector
+    );
+  }
+
   function test_VaultPermissionsErrorSelectors() public view {
     //   error VaultPermissions__zeroAddress();
     console.log("VaultPermissions.VaultPermissions__zeroAddress.selector");
@@ -261,6 +290,60 @@ contract ErrorSelectors is Test {
     // error VaultPermissions__allowanceBelowZero();
     console.log("VaultPermissions.VaultPermissions__allowanceBelowZero.selector");
     console.logBytes4(VaultPermissions.VaultPermissions__allowanceBelowZero.selector);
+  }
+
+  function test_getPausableVaultErrorSelectors() public view {
+    // error PausableVault__requiredNotPaused_actionPaused();
+    console.log("PausableVault.PausableVault__requiredNotPaused_actionPaused.selector");
+    console.logBytes4(PausableVault.PausableVault__requiredNotPaused_actionPaused.selector);
+
+    // error PausableVault__requiredPaused_actionNotPaused();
+    console.log("PausableVault.PausableVault__requiredPaused_actionNotPaused.selector");
+    console.logBytes4(PausableVault.PausableVault__requiredPaused_actionNotPaused.selector);
+  }
+
+  function test_getVaultDeployerErrorSelectors() public view {
+    // error VaultDeployer__onlyChief_notAuthorized();
+    console.log("VaultDeployer.VaultDeployer__onlyChief_notAuthorized.selector");
+    console.logBytes4(VaultDeployer.VaultDeployer__onlyChief_notAuthorized.selector);
+
+    // error VaultDeployer__onlyTimelock_notAuthorized();
+    console.log("VaultDeployer.VaultDeployer__onlyTimelock_notAuthorized.selector");
+    console.logBytes4(VaultDeployer.VaultDeployer__onlyTimelock_notAuthorized.selector);
+
+    // error VaultDeployer__zeroAddress();
+    console.log("VaultDeployer.VaultDeployer__zeroAddress.selector");
+    console.logBytes4(VaultDeployer.VaultDeployer__zeroAddress.selector);
+  }
+
+  function test_getChainlinkComputedFeedErrorSelectors() public view {
+    // error ChainlinkComputedFeed_invalidInput();
+    console.log("ChainlinkComputedFeed.ChainlinkComputedFeed_invalidInput.selector");
+    console.logBytes4(ChainlinkComputedFeed.ChainlinkComputedFeed_invalidInput.selector);
+
+    // error ChainlinkComputedFeed_fetchFeedAssetFailed();
+    console.log("ChainlinkComputedFeed.ChainlinkComputedFeed_fetchFeedAssetFailed.selector");
+    console.logBytes4(ChainlinkComputedFeed.ChainlinkComputedFeed_fetchFeedAssetFailed.selector);
+
+    // error ChainlinkComputedFeed_fetchFeedInterFailed();
+    console.log("ChainlinkComputedFeed.ChainlinkComputedFeed_fetchFeedInterFailed.selector");
+    console.logBytes4(ChainlinkComputedFeed.ChainlinkComputedFeed_fetchFeedInterFailed.selector);
+
+    // error ChainlinkComputedFeed_lessThanOrZeroAnswer();
+    console.log("ChainlinkComputedFeed.ChainlinkComputedFeed_lessThanOrZeroAnswer.selector");
+    console.logBytes4(ChainlinkComputedFeed.ChainlinkComputedFeed_lessThanOrZeroAnswer.selector);
+
+    // error ChainlinkComputedFeed_noRoundId();
+    console.log("ChainlinkComputedFeed.ChainlinkComputedFeed_noRoundId.selector");
+    console.logBytes4(ChainlinkComputedFeed.ChainlinkComputedFeed_noRoundId.selector);
+
+    // error ChainlinkComputedFeed_noValidUpdateAt();
+    console.log("ChainlinkComputedFeed.ChainlinkComputedFeed_noValidUpdateAt.selector");
+    console.logBytes4(ChainlinkComputedFeed.ChainlinkComputedFeed_noValidUpdateAt.selector);
+
+    // error ChainlinkComputedFeed_staleFeed();
+    console.log("ChainlinkComputedFeed.ChainlinkComputedFeed_staleFeed.selector");
+    console.logBytes4(ChainlinkComputedFeed.ChainlinkComputedFeed_staleFeed.selector);
   }
 
   function test_getRebalanceManagerErrorSelectors() public view {
@@ -309,5 +392,81 @@ contract ErrorSelectors is Test {
     // error RebalancerManager__zeroAddress();
     console.log("RebalancerManager.RebalancerManager__zeroAddress.selector");
     console.logBytes4(RebalancerManager.RebalancerManager__zeroAddress.selector);
+  }
+
+  function test_getLiquidationManagerErrorSelectors() public view {
+    // error LiquidationManager__allowExecutor_noAllowChange();
+    console.log("LiquidationManager.LiquidationManager__allowExecutor_noAllowChange.selector");
+    console.logBytes4(LiquidationManager.LiquidationManager__allowExecutor_noAllowChange.selector);
+
+    // error LiquidationManager__zeroAddress();
+    console.log("LiquidationManager.LiquidationManager__zeroAddress.selector");
+    console.logBytes4(LiquidationManager.LiquidationManager__zeroAddress.selector);
+
+    // error LiquidationManager__getFlashloan_flashloanFailed();
+    console.log("LiquidationManager.LiquidationManager__getFlashloan_flashloanFailed.selector");
+    console.logBytes4(LiquidationManager.LiquidationManager__getFlashloan_flashloanFailed.selector);
+
+    // error LiquidationManager__completeLiquidation_invalidEntryPoint();
+    console.log(
+      "LiquidationManager.LiquidationManager__completeLiquidation_invalidEntryPoint.selector"
+    );
+    console.logBytes4(
+      LiquidationManager.LiquidationManager__completeLiquidation_invalidEntryPoint.selector
+    );
+
+    // error LiquidationManager__getFlashloan_notEmptyEntryPoint();
+    console.log("LiquidationManager.LiquidationManager__getFlashloan_notEmptyEntryPoint.selector");
+    console.logBytes4(
+      LiquidationManager.LiquidationManager__getFlashloan_notEmptyEntryPoint.selector
+    );
+
+    // error LiquidationManager__liquidate_notValidExecutor();
+    console.log("LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector");
+    console.logBytes4(LiquidationManager.LiquidationManager__liquidate_notValidExecutor.selector);
+
+    // error LiquidationManager__liquidate_noUsersToLiquidate();
+    console.log("LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector");
+    console.logBytes4(LiquidationManager.LiquidationManager__liquidate_noUsersToLiquidate.selector);
+
+    // error LiquidationManager__liquidate_invalidNumberOfUsers();
+    console.log("LiquidationManager.LiquidationManager__liquidate_invalidNumberOfUsers.selector");
+    console.logBytes4(
+      LiquidationManager.LiquidationManager__liquidate_invalidNumberOfUsers.selector
+    );
+
+    // error LiquidationManager__liquidate_arrayMismatch();
+    console.log("LiquidationManager.LiquidationManager__liquidate_arrayMismatch.selector");
+    console.logBytes4(LiquidationManager.LiquidationManager__liquidate_arrayMismatch.selector);
+
+    // error LiquidationManager__liquidate_notValidFlasher();
+    console.log("LiquidationManager.LiquidationManager__liquidate_notValidFlasher.selector");
+    console.logBytes4(LiquidationManager.LiquidationManager__liquidate_notValidFlasher.selector);
+
+    // error LiquidationManager__liquidate_notValidSwapper();
+    console.log("LiquidationManager.LiquidationManager__liquidate_notValidSwapper.selector");
+    console.logBytes4(LiquidationManager.LiquidationManager__liquidate_notValidSwapper.selector);
+  }
+
+  function test_getBaseFlasherErrorSelectors() public view {
+    // error BaseFlasher__notAuthorized();
+    console.log("BaseFlasher.BaseFlasher__notAuthorized.selector");
+    console.logBytes4(BaseFlasher.BaseFlasher__notAuthorized.selector);
+
+    // error BaseFlasher__invalidEntryPoint();
+    console.log("BaseFlasher.BaseFlasher__invalidEntryPoint.selector");
+    console.logBytes4(BaseFlasher.BaseFlasher__invalidEntryPoint.selector);
+
+    // error BaseFlasher__invalidFlashloanType();
+    console.log("BaseFlasher.BaseFlasher__invalidFlashloanType.selector");
+    console.logBytes4(BaseFlasher.BaseFlasher__invalidFlashloanType.selector);
+
+    // error BaseFlasher__notEmptyEntryPoint();
+    console.log("BaseFlasher.BaseFlasher__notEmptyEntryPoint.selector");
+    console.logBytes4(BaseFlasher.BaseFlasher__notEmptyEntryPoint.selector);
+
+    // error BaseFlasher__lastActionMustBeSwap();
+    console.log("BaseFlasher.BaseFlasher__lastActionMustBeSwap.selector");
+    console.logBytes4(BaseFlasher.BaseFlasher__lastActionMustBeSwap.selector);
   }
 }
