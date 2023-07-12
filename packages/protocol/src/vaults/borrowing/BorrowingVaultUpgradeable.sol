@@ -302,8 +302,15 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   function payback(uint256 debt, address owner) public override returns (uint256) {
     uint256 shares = previewPayback(debt);
 
-    (shares, debt) = _paybackChecks(owner, debt, shares);
+    uint256 remainder;
+    // `shares` and `debt` are updated if passing more than max amount for `owner`'s debt.
+    (shares, debt, remainder) = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
+
+    if (remainder > 0) {
+      _debtAsset.safeTransferFrom(msg.sender, address(this), remainder);
+      _debtAsset.safeTransfer(owner, remainder);
+    }
 
     return shares;
   }
@@ -312,8 +319,15 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   function burnDebt(uint256 shares, address owner) public override returns (uint256) {
     uint256 debt = previewBurnDebt(shares);
 
-    (shares, debt) = _paybackChecks(owner, debt, shares);
+    uint256 remainder;
+    // `shares` and `debt` are updated if passing more than max amount for `owner`'s debt.
+    (shares, debt, remainder) = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
+
+    if (remainder > 0) {
+      _debtAsset.safeTransferFrom(msg.sender, address(this), remainder);
+      _debtAsset.safeTransfer(owner, remainder);
+    }
 
     return debt;
   }
@@ -565,7 +579,8 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
 
   /**
    * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault and returns maximum
-   * shares to payback if exceeding `owner` debtShares balance.
+   * shares, and debt to payback if exceeding `owner` debtShares balance. It also returns excess amount to
+   * be reimbursed to `owner`.
    * Requirements:
    * - Must revert for all conditions not passed.
    *
@@ -579,19 +594,20 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
     uint256 shares
   )
     private
-    returns (uint256, uint256)
+    view
+    returns (uint256, uint256, uint256)
   {
     if (debt == 0 || shares == 0 || owner == address(0)) {
       revert BorrowingVault__payback_invalidInput();
     }
+    uint256 remainder;
     if (shares > _debtShares[owner]) {
       shares = _debtShares[owner];
       uint256 debt_ = debt;
       debt = convertToDebt(shares);
-      uint256 remainder = debt_ > debt ? debt_ - debt : 0;
-      if (remainder > 0) _debtAsset.safeTransfer(owner, remainder);
+      remainder = debt_ > debt ? debt_ - debt : 0;
     }
-    return (shares, debt);
+    return (shares, debt, remainder);
   }
 
   /**
