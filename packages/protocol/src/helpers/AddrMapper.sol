@@ -25,7 +25,9 @@ contract AddrMapper is IAddrMapper, SystemAccessControl {
 
   mapping(string => bool) private _isProviderNameAdded;
 
-  constructor(address chief) SystemAccessControl(chief) {}
+  constructor(address chief_) {
+    __SystemAccessControl_init(chief_);
+  }
 
   /**
    * @notice Returns a list of all the providers who have a mapping.

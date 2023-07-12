@@ -32,13 +32,9 @@ contract FujiOracle is IFujiOracle, SystemAccessControl {
    * @param assets array of addresses
    * @param priceFeeds array of Chainlink contract addresses
    */
-  constructor(
-    address[] memory assets,
-    address[] memory priceFeeds,
-    address chief_
-  )
-    SystemAccessControl(chief_)
-  {
+  constructor(address[] memory assets, address[] memory priceFeeds, address chief_) {
+    __SystemAccessControl_init(chief_);
+
     if (assets.length != priceFeeds.length) {
       revert FujiOracle__lengthMismatch();
     }

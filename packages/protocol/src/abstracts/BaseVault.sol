@@ -60,7 +60,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Minor version when you add functionality in a backwards compatible manner.
    * Patch version when you make backwards compatible fixes.
    */
-  string public constant VERSION = string("0.0.1");
+  string public constant VERSION = string("0.2.0");
 
   bool public initialized;
 
@@ -92,12 +92,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     string memory symbol_
   )
     ERC20(name_, symbol_)
-    SystemAccessControl(chief_)
-    VaultPermissions(name_)
   {
     if (asset_ == address(0) || chief_ == address(0)) {
       revert BaseVault__constructor_invalidInput();
     }
+
+    __SystemAccessControl_init(chief_);
+    __EIP712_initialize(name_, VERSION);
+
     _asset = IERC20Metadata(asset_);
     _decimals = IERC20Metadata(asset_).decimals();
     minAmount = 1e6;
