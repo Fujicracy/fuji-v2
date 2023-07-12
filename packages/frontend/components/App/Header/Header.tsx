@@ -23,6 +23,7 @@ import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
+import { HELPER_URL } from '../../../constants';
 import { dismissBanner, getBannerVisibility } from '../../../helpers/auth';
 import { fetchGuardedLaunchAddresses } from '../../../helpers/guardedLaunch';
 import { topLevelPages } from '../../../helpers/navigation';
@@ -51,24 +52,25 @@ const GUARDED_LAUNCH_BANNERS: BannerConfig[] = [
     key: 'guardedLaunch',
     customMessage: (
       <Typography variant="xsmall">
-        We released the official Fuji V2 version 🎉. We are super grateful for
-        your participation in the guarded launch 🙌. Go and claim your NFT on{' '}
+        {`We have released Fuji's official V2 🎉. We are incredibly grateful for
+        your participation in the guarded launch. For your support, you can
+        claim your NFT on `}
         <BannerLink
           link={{
             label: 'Galxe',
-            url: 'https://galxe.com/fujifinance/campaign/GCNsnUecGJ',
+            url: HELPER_URL.GALXE_GUARDED_CAMPAIGN,
           }}
           isContrast
         />
-        . Btw you can now migrate from{' '}
+        {`. If you had a position in the guarded launch, you can migrate it from `}
         <BannerLink
           link={{
             label: 'the guarded',
-            url: 'https://guarded-v2.fuji.finance/',
+            url: HELPER_URL.GUARDED_LAUNCH,
           }}
           isContrast
-        />{' '}
-        to the official version.
+        />
+        {` to the official version.`}
       </Typography>
     ),
     isContrast: true,
@@ -108,7 +110,11 @@ const Header = () => {
     );
 
     fetchGuardedLaunchAddresses().then((addresses) => {
-      if (addresses.includes(walletAddress?.toLowerCase() || '')) {
+      if (
+        addresses.includes(walletAddress?.toLowerCase() || '') &&
+        window !== undefined &&
+        window.location.href !== HELPER_URL.GUARDED_LAUNCH
+      ) {
         filteredBanners = filteredBanners.concat(guardedLaunchBanners);
       }
 
