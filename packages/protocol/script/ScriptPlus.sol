@@ -18,6 +18,7 @@ import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
 import {BorrowingVaultBeaconFactory} from "../src/vaults/borrowing/BorrowingVaultBeaconFactory.sol";
 import {BorrowingVaultUpgradeable as BorrowingVault} from
   "../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
+import {VaultBeaconProxy} from "../src/vaults/VaultBeaconProxy.sol";
 import {YieldVaultFactory} from "../src/vaults/yields/YieldVaultFactory.sol";
 import {YieldVault} from "../src/vaults/yields/YieldVault.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
@@ -528,6 +529,58 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
         abi.encodeWithSelector(chief.allowFlasher.selector, address(flasherBalancer), true)
       );
       timelockValues.push(0);
+    }
+
+    callBatchWithTimelock();
+  }
+
+  /**
+   * UPGRADES ****************************
+   */
+
+  function upgradeBorrowingImpl(bool deploy) internal {
+    if (deploy) {
+      implementation = address(new BorrowingVault());
+      saveAddress("BorrowingVault-Impl", implementation);
+    } else {
+      implementation = getAddress("BorrowingVault-Impl");
+    }
+
+    if (factory.implementation() != implementation) {
+      bytes memory data = abi.encodeWithSelector(factory.upgradeTo.selector, implementation);
+      callWithTimelock(address(factory), data);
+    }
+  }
+
+  function upgradeBorrowingBeacon() internal {
+    bytes32 _BEACON_SLOT = 0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50;
+    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+    uint256 len = vaults.length;
+    string memory name;
+    address vault;
+    bytes32 storageSlot;
+    address beacon;
+    for (uint256 i; i < len; i++) {
+      name = vaults[i].name;
+      vault = getAddress(name);
+      storageSlot = vm.load(vault, _BEACON_SLOT);
+      beacon = abi.decode(abi.encode(storageSlot), (address));
+
+      if (beacon != address(factory)) {
+        console.log(string.concat("Setting new beacon for ", name, "..."));
+        timelockTargets.push(address(vault));
+        timelockDatas.push(
+          abi.encodeWithSelector(
+            VaultBeaconProxy(payable(vault)).upgradeBeaconAndCall.selector,
+            address(factory),
+            "",
+            false
+          )
+        );
+        timelockValues.push(0);
+      }
     }
 
     callBatchWithTimelock();

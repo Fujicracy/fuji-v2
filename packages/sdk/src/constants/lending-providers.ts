@@ -72,7 +72,7 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
-    '0xe07D8594cA4fa3f34c66FF49bE1b1352B2F8b64d': {
+    '0x4A8B5932bcc2075Af7a80169Ee143721387C1E17': {
       name: 'dForce',
       llamaKey: 'dforce',
     },
