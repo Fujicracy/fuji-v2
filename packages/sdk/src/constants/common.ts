@@ -4,6 +4,9 @@ import { BigNumber } from 'ethers';
 export const DEFAULT_SLIPPAGE = 50;
 export const TOKEN_CACHE_TIMEOUT = 1000 * 60 * 2; // 2 minutes
 
+// Versions
+export const SIGNER_DOMAIN_VERSION = '0.2.0';
+
 // Urls
 export const URLS = {
   // DefiLlama

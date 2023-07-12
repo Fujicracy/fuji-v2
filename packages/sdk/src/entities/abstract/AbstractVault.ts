@@ -11,6 +11,7 @@ import {
   CHAIN,
   CONNEXT_ROUTER_ADDRESS,
   FujiErrorCode,
+  SIGNER_DOMAIN_VERSION,
   URLS,
 } from '../../constants';
 import { LENDING_PROVIDERS } from '../../constants/lending-providers';
@@ -348,7 +349,7 @@ export abstract class AbstractVault {
     );
     const domain: TypedDataDomain = {
       name: this.name,
-      version: '1',
+      version: SIGNER_DOMAIN_VERSION,
       verifyingContract: this.address.value,
       salt,
     };
