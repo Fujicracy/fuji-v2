@@ -81,6 +81,10 @@ function TransactionModal({
 
     if (entry.status === HistoryEntryStatus.SUCCESS) {
       setGif('/assets/images/transactions/END.gif');
+      router.push({
+        pathname: PATH.MY_POSITIONS,
+        query: { tab: entry.type === VaultType.BORROW ? 'borrow' : 'lend' },
+      });
       return;
     }
 
@@ -88,7 +92,7 @@ function TransactionModal({
     setTimeout(() => {
       setGif('/assets/images/transactions/RIDE.gif');
     }, 4000);
-  }, [entry.status, isHistoricalTransaction]);
+  }, [entry.status, isHistoricalTransaction, entry.type, router]);
 
   useEffect(() => {
     const isCurrentPosition = isVaultTheCurrentPosition(

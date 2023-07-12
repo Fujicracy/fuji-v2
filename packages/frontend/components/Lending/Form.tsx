@@ -102,6 +102,11 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
     mode,
   ]);
 
+  const onConfirm = () => {
+    setIsConfirmationModalShown(false);
+    confirmationModalAction && confirmationModalAction();
+  };
+
   useEffect(() => {
     if (address) {
       updateBalances(AssetType.Collateral);
@@ -259,10 +264,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
         positionData={positionData}
         transactionMeta={transactionMeta}
         actionType={actionType}
-        action={() => {
-          setIsConfirmationModalShown(false);
-          confirmationModalAction && confirmationModalAction();
-        }}
+        action={onConfirm}
         type={VaultType.LEND}
       />
     </>
