@@ -47,12 +47,8 @@ contract WePiggyPolygonForkingTests is Routines, ForkingSetup {
       abi.encodeWithSelector(chief.setVaultStatus.selector, address(vault), true);
     _callWithTimelock(address(chief), executionCall);
 
-    uint256 minAmount = BorrowingVault(payable(address(vault))).minAmount();
-    initVaultDebtShares = minAmount;
-    initVaultShares =
-      _getMinCollateralAmount(BorrowingVault(payable(address(vault))), initVaultDebtShares);
-
-    _initalizeVault(address(vault), INITIALIZER, initVaultShares, initVaultDebtShares);
+    initVaultShares = 10 ether;
+    _initializeVault(address(vault), INITIALIZER, initVaultShares);
   }
 
   function test_depositAndBorrow() public {
@@ -79,7 +75,7 @@ contract WePiggyPolygonForkingTests is Routines, ForkingSetup {
     uint256 borrowBalance = vault.totalDebt();
 
     uint256 expecteDepositBal = DEPOSIT_AMOUNT + initVaultShares;
-    uint256 expecteBorrowBal = BORROW_AMOUNT + initVaultDebtShares;
+    uint256 expecteBorrowBal = BORROW_AMOUNT;
 
     //account for rounding issue
     assertApproxEqAbs(depositBalance, expecteDepositBal, expecteDepositBal / 1000);

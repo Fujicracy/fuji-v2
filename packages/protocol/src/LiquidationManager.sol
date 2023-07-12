@@ -31,8 +31,11 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   error LiquidationManager__liquidate_notValidExecutor();
   error LiquidationManager__liquidate_noUsersToLiquidate();
   error LiquidationManager__liquidate_invalidNumberOfUsers();
+  error LiquidationManager__liquidate_arrayMismatch();
   error LiquidationManager__liquidate_notValidFlasher();
   error LiquidationManager__liquidate_notValidSwapper();
+
+  uint256 private constant PRECISION_CONSTANT = 1e18;
 
   address public immutable treasury;
 
@@ -41,7 +44,8 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
 
   bytes32 private _entryPoint;
 
-  constructor(address chief_, address treasury_) SystemAccessControl(chief_) {
+  constructor(address chief_, address treasury_) {
+    __SystemAccessControl_init(chief_);
     treasury = treasury_;
   }
 
@@ -58,8 +62,23 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
   }
 
   /// @inheritdoc ILiquidationManager
+  /**
+   * @dev Example inputs using ethersJs:
+   *  > liqManagerContract.liquidate(
+   *      ['aliceAddress','bobAddress','charlieAddress'], // Liquidating alice, bob, and charlie.
+   *      [
+   *        ethers.utils.parseUnits("0.25", 18),  // Liquidating 25% of alice's debt.
+   *        ethers.utils.parseUnits("0.75", 18),  // Liquidating 75% of bob's debt.
+   *        0,        // Allow contract to determine max debt to liquidate for charlie (either 50% or 100%).
+   *      ]
+   *      someAmount, // `someAmount` can be in excess of the sum of debt from alice + bob + charlie.
+   *      flasher,    // Valid flasher address registered at the Chief contract.
+   *      swapper,    // Valid swapper address registered at the Chief contract.
+   *  )
+   */
   function liquidate(
     address[] calldata users,
+    uint256[] calldata liqCloseFactors,
     IVault vault,
     uint256 debtToCover,
     IFlasher flasher,
@@ -77,11 +96,15 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
       revert LiquidationManager__liquidate_notValidSwapper();
     }
 
-    if (users.length == 0 || users.length > 10) {
+    uint256 ulen = users.length;
+    if (ulen == 0 || ulen > 10) {
       revert LiquidationManager__liquidate_invalidNumberOfUsers();
     }
+    if (ulen != liqCloseFactors.length) {
+      revert LiquidationManager__liquidate_arrayMismatch();
+    }
 
-    _getFlashloan(users, vault, debtToCover, flasher, swapper);
+    _getFlashloan(users, liqCloseFactors, vault, debtToCover, flasher, swapper);
   }
 
   /**
@@ -100,13 +123,15 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * @dev Checks this address is the flashloan originator. This check applies to a
    * {BorrowingVault} only.
    *
-   * @param vault that holds user's position
    * @param users to be liquidated
+   * @param liqCloseFactors (optional) for each user, otherwise pass zero for each
+   * @param vault that holds user's position
    * @param debtAmount amount to liquidate
    * @param flasher contract address
    */
   function _checkReentry(
     address[] calldata users,
+    uint256[] calldata liqCloseFactors,
     IVault vault,
     uint256 debtAmount,
     IFlasher flasher,
@@ -116,7 +141,13 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     view
   {
     bytes memory requestorCalldata = abi.encodeWithSelector(
-      LiquidationManager.completeLiquidation.selector, users, vault, debtAmount, flasher, swapper
+      LiquidationManager.completeLiquidation.selector,
+      users,
+      liqCloseFactors,
+      vault,
+      debtAmount,
+      flasher,
+      swapper
     );
     bytes32 hashCheck = keccak256(abi.encode(requestorCalldata));
     if (_entryPoint != hashCheck) {
@@ -129,11 +160,13 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    *
    * @param vault that holds user's position
    * @param users to be liquidated
+   * @param liqCloseFactors (optional) for each user, otherwise pass zero for each
    * @param debtAmount amount to liquidate
    * @param flasher contract address
    */
   function _getFlashloan(
     address[] calldata users,
+    uint256[] calldata liqCloseFactors,
     IVault vault,
     uint256 debtAmount,
     IFlasher flasher,
@@ -142,7 +175,13 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     internal
   {
     bytes memory requestorCall = abi.encodeWithSelector(
-      LiquidationManager.completeLiquidation.selector, users, vault, debtAmount, flasher, swapper
+      LiquidationManager.completeLiquidation.selector,
+      users,
+      liqCloseFactors,
+      vault,
+      debtAmount,
+      flasher,
+      swapper
     );
 
     _checkAndSetEntryPoint(requestorCall);
@@ -156,10 +195,12 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    * @notice Callback function that completes execution logic of a liquidation
    * operation with a flashloan.
    *
-   * @param vault that holds user's position
    * @param users to be liquidated
+   * @param liqCloseFactors (optional) for each user, otherwise pass zero for each
+   * @param vault that holds user's position*
    * @param debtAmount amount to liquidate
    * @param flasher contract address
+   * @param swapper contract address
    *
    * @dev Requirements:
    * - Must check this address was the flashloan originator.
@@ -167,6 +208,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
    */
   function completeLiquidation(
     address[] calldata users,
+    uint256[] calldata liqCloseFactors,
     IVault vault,
     uint256 debtAmount,
     IFlasher flasher,
@@ -175,28 +217,20 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     external
     returns (bool success)
   {
-    _checkReentry(users, vault, debtAmount, flasher, swapper);
+    _checkReentry(users, liqCloseFactors, vault, debtAmount, flasher, swapper);
 
     IERC20 debtAsset = IERC20(vault.debtAsset());
     IERC20 collateralAsset = IERC20(vault.asset());
 
-    if (debtAsset.balanceOf(address(this)) != debtAmount) {
+    if (debtAsset.balanceOf(address(this)) < debtAmount) {
       revert LiquidationManager__getFlashloan_flashloanFailed();
     }
 
     // Approve amount to all liquidations
-    debtAsset.safeApprove(address(vault), debtAmount);
+    debtAsset.safeIncreaseAllowance(address(vault), debtAmount);
 
-    bool liquidatedUsers = false;
-
-    uint256 gainedShares = 0;
-
-    for (uint256 i = 0; i < users.length; i++) {
-      if (vault.getHealthFactor(users[i]) < 1e18) {
-        liquidatedUsers = true;
-        gainedShares += vault.liquidate(users[i], address(this));
-      }
-    }
+    (bool liquidatedUsers, uint256 gainedShares) =
+      _executeLiquidations(users, liqCloseFactors, vault);
 
     if (!liquidatedUsers) {
       revert LiquidationManager__liquidate_noUsersToLiquidate();
@@ -214,7 +248,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     uint256 amountIn =
       swapper.getAmountIn(address(collateralAsset), address(debtAsset), amountToSwap);
 
-    collateralAsset.safeApprove(address(swapper), amountIn);
+    collateralAsset.safeIncreaseAllowance(address(swapper), amountIn);
     swapper.swap(
       address(collateralAsset),
       address(debtAsset),
@@ -234,5 +268,30 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
     // Re-initialize the `_entryPoint`.
     _entryPoint = "";
     success = true;
+  }
+
+  /**
+   * @dev Internal function to loop and execute liquidations, returns true if a user was liquidated and the
+   * total gainedShares.
+   */
+  function _executeLiquidations(
+    address[] calldata users,
+    uint256[] calldata liqCloseFactors,
+    IVault vault
+  )
+    internal
+    returns (bool liquidatedUsers, uint256 gainedShares)
+  {
+    for (uint256 i = 0; i < users.length; i++) {
+      uint256 liqCloseFactor_ =
+        liqCloseFactors[i] == 0 ? vault.getLiquidationFactor(users[i]) : liqCloseFactors[i];
+      if (liqCloseFactor_ > 0) {
+        // Ensure liqCloseFactor is not greater than PRECISION_CONSTANT
+        liqCloseFactor_ =
+          liqCloseFactor_ > PRECISION_CONSTANT ? PRECISION_CONSTANT : liqCloseFactor_;
+        liquidatedUsers = true;
+        gainedShares += vault.liquidate(users[i], address(this), liqCloseFactor_);
+      }
+    }
   }
 }

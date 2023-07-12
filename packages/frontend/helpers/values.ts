@@ -112,4 +112,4 @@ export enum DateFormat {
 }
 
 export const formattedDate = (format: DateFormat, date?: string) =>
-  moment(date).format(format.toString());
+  moment(date).utc().format(format.toString());

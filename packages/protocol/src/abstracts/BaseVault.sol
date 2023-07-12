@@ -17,8 +17,7 @@ pragma solidity 0.8.15;
  * signed messages defined in {VaultPermissions}.
  * A rebalancing function is implemented to move vault's funds across providers.
  */
-import {ERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {ERC20, IERC20} from "openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -34,6 +33,7 @@ import {PausableVault} from "./PausableVault.sol";
 abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultPermissions, IVault {
   using Math for uint256;
   using Address for address;
+  using SafeERC20 for IERC20Metadata;
 
   /// @dev Custom Errors
   error BaseVault__constructor_invalidInput();
@@ -50,6 +50,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__mint_slippageTooHigh();
   error BaseVault__withdraw_slippageTooHigh();
   error BaseVault__redeem_slippageTooHigh();
+  error BaseVault__useIncreaseWithdrawAllowance();
+  error BaseVault__useDecreaseWithdrawAllowance();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -58,7 +60,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * Minor version when you add functionality in a backwards compatible manner.
    * Patch version when you make backwards compatible fixes.
    */
-  string public constant VERSION = string("0.0.1");
+  string public constant VERSION = string("0.2.0");
 
   bool public initialized;
 
@@ -90,12 +92,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     string memory symbol_
   )
     ERC20(name_, symbol_)
-    SystemAccessControl(chief_)
-    VaultPermissions(name_)
   {
     if (asset_ == address(0) || chief_ == address(0)) {
       revert BaseVault__constructor_invalidInput();
     }
+
+    __SystemAccessControl_init(chief_);
+    __EIP712_initialize(name_, VERSION);
+
     _asset = IERC20Metadata(asset_);
     _decimals = IERC20Metadata(asset_).decimals();
     minAmount = 1e6;
@@ -108,18 +112,30 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @notice Implement at children contract.
    *
    * @param assets amount to initialize asset shares
-   * @param debt amount to initialize debt shares
    *
    * Requirements:
    * - Must create shares and balance to avoid inflation attack.
-   * - Must have `assets` and `debt` be > `minAmount`.
+   * - Must have `assets` be > `minAmount`.
    * - Must account any created shares to the {Chief.timelock()}.
    * - Must pull assets from msg.sender
-   * - Must send debt if applicable to the {Chief.timelock()}.
    * - Must unpause all actions at the end.
    * - Must emit a VaultInitialized event.
    */
-  function initializeVaultShares(uint256 assets, uint256 debt) external virtual;
+  function initializeVaultShares(uint256 assets) public {
+    if (initialized) {
+      revert BaseVault__initializeVaultShares_alreadyInitialized();
+    }
+    if (assets < minAmount) {
+      revert BaseVault__initializeVaultShares_lessThanMin();
+    }
+    _unpauseForceAllActions();
+
+    address timelock = chief.timelock();
+    _deposit(msg.sender, timelock, assets, assets);
+
+    initialized = true;
+    emit VaultInitialized(msg.sender);
+  }
 
   /*////////////////////////////////////////////////////
       Asset management: allowance {IERC20} overrides 
@@ -145,8 +161,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     override(ERC20, IERC20)
     returns (uint256)
   {
-    address operator = receiver;
-    return convertToShares(withdrawAllowance(owner, operator, receiver));
+    /// @dev operator = receiver
+    return convertToShares(withdrawAllowance(owner, receiver, receiver));
   }
 
   /**
@@ -155,49 +171,31 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @param receiver to whom share allowance is being set
    * @param shares amount of allowance
    *
-   * @dev Recommend to use increase/decrease methods see OZ notes for {IERC20-approve}.
-   * Requirements:
+   * @dev Recommend to use increase/decrease WithdrawAllowance methods.
    * - Must be overriden to call {VaultPermissions-_setWithdrawAllowance}.
    * - Must convert `shares` into `assets` amount before calling internal functions.
    */
   function approve(address receiver, uint256 shares) public override(ERC20, IERC20) returns (bool) {
-    address owner = msg.sender;
-    address operator = receiver;
-    _setWithdrawAllowance(owner, operator, receiver, convertToAssets(shares));
+    /// @dev operator = receiver and owner = msg.sender
+    _setWithdrawAllowance(msg.sender, receiver, receiver, convertToAssets(shares));
+    emit Approval(msg.sender, receiver, shares);
     return true;
   }
 
   /**
-   * @notice Increase allowance of token-shares to `receiver` by `shares`.
-   *
-   * @param receiver to whom shares allowance is being increased
-   * @param shares amount to increase allowance
-   *
-   * @dev Requirements:
-   * - Must be overriden to call {VaultPermissions-increaseWithdrawAllowance}
-   * - Must convert `shares` to `assets` amount before calling internal functions.
-   *   VaultPermissions-increaseWithdrawAllowance.
+   * @notice This method in OZ erc20-implementation has been disabled in favor of
+   * {VaultPermissions-increaseWithdrawAllowance()}.
    */
-  function increaseAllowance(address receiver, uint256 shares) public override returns (bool) {
-    address operator = receiver;
-    increaseWithdrawAllowance(operator, receiver, convertToAssets(shares));
-    return true;
+  function increaseAllowance(address, uint256) public pure override returns (bool) {
+    revert BaseVault__useIncreaseWithdrawAllowance();
   }
 
   /**
-   * @notice Decrease allowance of token-shares to `receiver` by `shares`.
-   *
-   * @param receiver to whom shares allowance is decreased
-   * @param shares amount to decrease allowance
-   *
-   * @dev Requirements:
-   * - Must be overriden to call {VaultPermissions-decreaseWithdrawAllowance}.
-   * - Must convert `shares` to `assets` before calling internal functions.
+   * @notice This method in OZ erc20-implementation has been disabled in favor of
+   * {VaultPermissions-decreaseWithdrawAllowance()}.
    */
-  function decreaseAllowance(address receiver, uint256 shares) public override returns (bool) {
-    address operator = receiver;
-    decreaseWithdrawAllowance(operator, receiver, convertToAssets(shares));
-    return true;
+  function decreaseAllowance(address, uint256) public pure override returns (bool) {
+    revert BaseVault__useDecreaseWithdrawAllowance();
   }
 
   /**
@@ -268,20 +266,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /// @inheritdoc IERC4626
-  function maxWithdraw(address owner) public view override returns (uint256) {
-    if (paused(VaultActions.Withdraw)) {
-      return 0;
-    }
-    return _computeFreeAssets(owner);
-  }
+  function maxWithdraw(address owner) public view virtual override returns (uint256);
 
   /// @inheritdoc IERC4626
-  function maxRedeem(address owner) public view override returns (uint256) {
-    if (paused(VaultActions.Withdraw)) {
-      return 0;
-    }
-    return convertToShares(maxWithdraw(owner));
-  }
+  function maxRedeem(address owner) public view virtual override returns (uint256);
 
   /// @inheritdoc IERC4626
   function previewDeposit(uint256 assets) public view virtual override returns (uint256) {
@@ -537,7 +525,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     internal
     whenNotPaused(VaultActions.Deposit)
   {
-    SafeERC20.safeTransferFrom(IERC20(asset()), caller, address(this), assets);
+    _asset.safeTransferFrom(caller, address(this), assets);
     _executeProviderAction(assets, "deposit", activeProvider);
     _mint(receiver, shares);
 
@@ -587,7 +575,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   {
     _burn(owner, shares);
     _executeProviderAction(assets, "withdraw", activeProvider);
-    SafeERC20.safeTransfer(IERC20(asset()), receiver, assets);
+    _asset.safeTransfer(receiver, assets);
 
     emit Withdraw(caller, receiver, owner, assets, shares);
   }
@@ -805,7 +793,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    *
    * @param owner address to whom free assets is being checked
    */
-  function _computeFreeAssets(address owner) internal view virtual returns (uint256);
+  // function _computeFreeAssets(address owner) internal view virtual returns (uint256);
 
   /*//////////////////////////
       Fuji Vault functions

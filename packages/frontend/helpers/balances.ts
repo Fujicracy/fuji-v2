@@ -31,7 +31,14 @@ export const fetchBalances = async (
 
   const balances: Record<string, number> = {};
   rawBalances.forEach((b, i) => {
-    const value = parseFloat(formatUnits(b, currencies[i].decimals));
+    const decimals = currencies[i].decimals;
+    // TODO: TEMP FIX when user hits the max button:
+    // Substract a small amount if decimals are 18
+    // because parseFloat rounds up at the 15th digit.
+    // https://stackoverflow.com/questions/7988827/parse-float-has-a-rounding-limit-how-can-i-fix-this
+    const dust = (10 ** 5).toString();
+    const toSub = decimals === 18 && b.gt(dust) ? dust : '0';
+    const value = parseFloat(formatUnits(b.sub(toSub), currencies[i].decimals));
     balances[currencies[i].symbol] = value;
   });
   return new FujiResultSuccess(balances);

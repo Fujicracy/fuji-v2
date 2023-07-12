@@ -122,5 +122,14 @@
       "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
       "rating": 85
     }
+  ],
+  "yield-vaults": [
+    {
+      "asset": "WETH",
+      "name": "YieldVault-WETH-1",
+      "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 85
+    }
   ]
+
 }
