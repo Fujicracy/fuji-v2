@@ -337,7 +337,8 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
         revert VaultPermissions__insufficientWithdrawAllowance();
       }
       unchecked {
-        _setWithdrawAllowance(owner, operator, receiver, currentAllowance - amount);
+        // Enforce to never leave unused allowance, unless allowance set to type(uint256).max
+        _setWithdrawAllowance(owner, operator, receiver, 0);
       }
     }
   }
@@ -366,7 +367,8 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
         revert VaultPermissions__insufficientBorrowAllowance();
       }
       unchecked {
-        _setBorrowAllowance(owner, operator, receiver, currentAllowance - amount);
+        // Enforce to never leave unused allowance, unless allowance set to type(uint256).max
+        _setBorrowAllowance(owner, operator, receiver, 0);
       }
     }
   }

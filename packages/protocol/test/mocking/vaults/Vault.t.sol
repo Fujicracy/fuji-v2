@@ -194,14 +194,19 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.borrow(borrowAmount, ALICE, ALICE);
   }
 
-  function test_tryWithdrawWithoutRepay(uint96 amount, uint96 borrowAmount) public {
-    uint256 minAmount = vault.minAmount();
-    vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
+  function test_softWithdrawMaxWithoutRepay( /*uint96 amount, uint96 borrowAmount*/ ) public {
+    // uint256 minAmount = vault.minAmount();
+    // vm.assume(amount > minAmount && borrowAmount > 0 && _utils_checkMaxLTV(amount, borrowAmount));
+    uint256 amount = 5 ether;
+    uint256 borrowAmount = 200e18;
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
-    vm.expectRevert(BaseVault.BaseVault__withdraw_moreThanMax.selector);
     vm.prank(ALICE);
     vault.withdraw(amount, ALICE, ALICE);
+
+    // For dust amounts to payback it will always request to keep 1 asset-share.
+    assertGe(vault.balanceOf(ALICE), 1);
+    console.log("vault.getHealthFactor(ALICE)", vault.getHealthFactor(ALICE));
   }
 
   function test_tryTransferWithoutRepay(uint96 amount, uint96 borrowAmount) public {

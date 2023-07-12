@@ -43,7 +43,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__deposit_moreThanMax();
   error BaseVault__deposit_lessThanMin();
   error BaseVault__withdraw_invalidInput();
-  error BaseVault__withdraw_moreThanMax();
   error BaseVault__setter_invalidInput();
   error BaseVault__checkRebalanceFee_excessFee();
   error BaseVault__deposit_slippageTooHigh();
@@ -407,7 +406,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address caller = msg.sender;
     uint256 shares = previewWithdraw(assets);
 
-    _withdrawChecks(caller, receiver, owner, assets, shares);
+    (shares, assets) = _withdrawChecks(caller, receiver, owner, assets, shares);
     _withdraw(caller, receiver, owner, assets, shares);
 
     return shares;
@@ -455,7 +454,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     address caller = msg.sender;
     uint256 assets = previewRedeem(shares);
 
-    _withdrawChecks(caller, receiver, owner, assets, shares);
+    (shares, assets) = _withdrawChecks(caller, receiver, owner, assets, shares);
     _withdraw(caller, receiver, owner, assets, shares);
 
     return assets;
@@ -581,7 +580,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Runs common checks for all "withdraw" or "redeem" actions in this vault.
+   * @dev Runs common checks for all "withdraw" or "redeem" actions in this vault and returns maximum
+   * shares and assets to withdraw if passed amounts exceed `owner's` debtShares/debt balance.
    * Requirements:
    * - Must revert for all conditions not passed.
    *
@@ -599,16 +599,20 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint256 shares
   )
     private
+    returns (uint256, uint256)
   {
     if (assets == 0 || shares == 0 || receiver == address(0) || owner == address(0)) {
       revert BaseVault__withdraw_invalidInput();
     }
-    if (assets > maxWithdraw(owner)) {
-      revert BaseVault__withdraw_moreThanMax();
+    uint256 maxWithdraw_ = maxWithdraw(owner);
+    if (assets > maxWithdraw_) {
+      assets = maxWithdraw_;
+      shares = convertToShares(assets);
     }
     if (caller != owner) {
       _spendWithdrawAllowance(owner, caller, receiver, assets);
     }
+    return (shares, assets);
   }
 
   /*//////////////////////////////////////////////////
