@@ -23,7 +23,6 @@ import React from 'react';
 import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
-import { HELPER_URL } from '../../../constants';
 import { dismissBanner, getBannerVisibility } from '../../../helpers/auth';
 import { fetchGuardedLaunchAddresses } from '../../../helpers/guardedLaunch';
 import { topLevelPages } from '../../../helpers/navigation';
@@ -34,7 +33,7 @@ import { BurgerMenuIcon } from '../../Shared/Icons';
 import AccountModal from './AccountModal/AccountModal';
 import AddressAddon from './AddressAddon';
 import BalanceAddon from './BalanceAddon';
-import Banner, { BannerConfig } from './Banner';
+import Banner, { BannerConfig, BannerLink } from './Banner';
 import ChainSelect from './ChainSelect';
 import SocialMenu from './SocialMenu';
 import SocialMenuWrapper from './SocialMenuWrapper';
@@ -49,10 +48,29 @@ export const BANNERS: BannerConfig[] = [
 
 const GUARDED_LAUNCH_BANNERS: BannerConfig[] = [
   {
-    key: 'betaPositions',
-    message:
-      'We released the official Fuji V2 version 🎉. We are super grateful for your participation in the guarded launch 🙌. You can now migrate from the guarded to the official version, please visit:',
-    link: { label: HELPER_URL.GUARDED_LAUNCH, url: HELPER_URL.GUARDED_LAUNCH },
+    key: 'guardedLaunch',
+    customMessage: (
+      <Typography variant="xsmall">
+        We released the official Fuji V2 version 🎉. We are super grateful for
+        your participation in the guarded launch 🙌. Go and claim your NFT on{' '}
+        <BannerLink
+          link={{
+            label: 'Galxe',
+            url: 'https://galxe.com/fujifinance/campaign/GCbDnUeZDy',
+          }}
+          isContrast
+        />
+        . Btw you can now migrate from{' '}
+        <BannerLink
+          link={{
+            label: 'the guarded',
+            url: 'https://guarded-v2.fuji.finance/',
+          }}
+          isContrast
+        />{' '}
+        to the official version.
+      </Typography>
+    ),
     isContrast: true,
   },
 ];
