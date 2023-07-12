@@ -59,22 +59,22 @@ export const VAULT_LIST: ChainVaultList = {
   [ChainId.FANTOM]: [],
   [ChainId.ARBITRUM]: [
     new BorrowingVault(
-      Address.from('0x9201E10E4C269D6528d2d153f2145348A399f540'),
+      Address.from('0x78c5A2b6AD8CC824ad28DecCe82a3be9Ba12785B'),
       WETH9[ChainId.ARBITRUM],
       USDC[ChainId.ARBITRUM]
     ),
     new BorrowingVault(
-      Address.from('0x4181d63c414327682B1cb1d6265CA47d82C46e93'),
+      Address.from('0x3DDa51f1658519AC9DaB865Eb2900221CcD29421'),
       WETH9[ChainId.ARBITRUM],
       USDC[ChainId.ARBITRUM]
     ),
     new BorrowingVault(
-      Address.from('0xA68DD672f0D52277a740a5f6864Bd3A0a30462f8'),
+      Address.from('0xe671d60816Fce03B9d6204dce0B5CF31F4262947'),
       WETH9[ChainId.ARBITRUM],
       DAI[ChainId.ARBITRUM]
     ),
     new BorrowingVault(
-      Address.from('0xB9E7aCCb61031CA364C3232E986D9152b61006c2'),
+      Address.from('0xCbeEd94Ad7Bd3725103899450A528fE690E91d8e'),
       WETH9[ChainId.ARBITRUM],
       DAI[ChainId.ARBITRUM]
     ),
