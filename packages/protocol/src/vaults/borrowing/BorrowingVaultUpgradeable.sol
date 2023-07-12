@@ -6,31 +6,25 @@ pragma solidity 0.8.15;
  *
  * @author Fujidao Labs
  *
- * @notice Implementation vault that handles pooled collateralized debt positions.
- * User state is kept at vaults via token-shares compliant to ERC4626, including
- * extension for debt asset and their equivalent debtshares.
- * Debt shares are not transferable.
- * Slippage protected functions include `borrow()` and `payback()`,
- * thru an implementation similar to ERC5143.
- * Setter functions for maximum loan-to-value and liquidation ratio factors
- * are defined and controlled by timelock.
- * A primitive liquidation function is implemented along additional view
- * functions to determine user's health factor.
+ * @notice Upgradeable implementation of {BorrowingVault.sol}.
  */
 
 import {
-  IERC20,
-  IERC20Metadata
-} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {IVault} from "../../interfaces/IVault.sol";
+  IERC20Upgradeable as IERC20,
+  IERC20MetadataUpgradeable as IERC20Metadata
+} from
+  "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import {IVaultUpgradeable} from "../../interfaces/IVaultUpgradeable.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
-import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
-import {BaseVault} from "../../abstracts/BaseVault.sol";
+import {SafeERC20Upgradeable as SafeERC20} from
+  "openzeppelin-contracts-upgradeable/contracts/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import {MathUpgradeable as Math} from
+  "openzeppelin-contracts-upgradeable/contracts/utils/math/MathUpgradeable.sol";
+import {BaseVaultUpgradeable} from "../../abstracts/BaseVaultUpgradeable.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
 
-contract BorrowingVault2 is BaseVault {
+contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   using Math for uint256;
   using SafeERC20 for IERC20Metadata;
 
@@ -89,8 +83,8 @@ contract BorrowingVault2 is BaseVault {
   /// @notice Returns the penalty factor at which collateral is sold during liquidation: 90% below oracle price.
   uint256 public constant LIQUIDATION_PENALTY = 0.9e18;
 
-  IERC20Metadata internal immutable _debtAsset;
-  uint8 internal immutable _debtDecimals;
+  IERC20Metadata internal _debtAsset;
+  uint8 internal _debtDecimals;
 
   uint256 public debtSharesSupply;
 
@@ -109,25 +103,35 @@ contract BorrowingVault2 is BaseVault {
   uint256 public liqRatio;
 
   /**
-   * @notice Constructor of a new {BorrowingVault}.
+   * @notice Initialize a new {BorrowingVault}.
    *
    * @param asset_ this vault will handle as main asset (collateral)
    * @param debtAsset_ this vault will handle as debt asset
    * @param chief_ that deploys and controls this vault
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
+   * @param providers_ array that will initialize this vault
+   *
+   * @dev Requirements:
+   * - Must be initialized with a set of providers.
+   * - Must set first provider in `providers_` array as `activeProvider`.
    */
-  constructor(
+  function initialize(
     address asset_,
     address debtAsset_,
     address chief_,
     string memory name_,
-    string memory symbol_
+    string memory symbol_,
+    ILendingProvider[] memory providers_
   )
-    BaseVault(asset_, chief_, name_, symbol_)
+    public
+    initializer
   {
+    __BaseVault_initialize(asset_, chief_, name_, symbol_);
     _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = IERC20Metadata(debtAsset_).decimals();
+    _setProviders(providers_);
+    _setActiveProvider(providers_[0]);
   }
 
   receive() external payable {}
@@ -136,7 +140,7 @@ contract BorrowingVault2 is BaseVault {
       Asset management: overrides IERC4626
   //////////////////////////////////////////*/
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxWithdraw(address owner) public view override returns (uint256) {
     if (paused(VaultActions.Withdraw)) {
       return 0;
@@ -144,7 +148,7 @@ contract BorrowingVault2 is BaseVault {
     return _computeFreeAssets(owner);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function maxRedeem(address owner) public view override returns (uint256) {
     if (paused(VaultActions.Withdraw)) {
       return 0;
@@ -177,42 +181,42 @@ contract BorrowingVault2 is BaseVault {
     }
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function debtDecimals() public view override returns (uint8) {
     return _debtDecimals;
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function debtAsset() public view override returns (address) {
     return address(_debtAsset);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function balanceOfDebt(address owner) public view override returns (uint256 debt) {
     return convertToDebt(_debtShares[owner]);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function balanceOfDebtShares(address owner) external view override returns (uint256 debtShares) {
     return _debtShares[owner];
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function totalDebt() public view override returns (uint256) {
     return _checkProvidersBalance("getBorrowBalance");
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function convertDebtToShares(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function convertToDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Up);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxBorrow(address borrower) public view override returns (uint256) {
     if (paused(VaultActions.Borrow)) {
       return 0;
@@ -220,7 +224,7 @@ contract BorrowingVault2 is BaseVault {
     return _computeMaxBorrow(borrower);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxPayback(address borrower) public view override returns (uint256) {
     if (paused(VaultActions.Payback)) {
       return 0;
@@ -228,7 +232,7 @@ contract BorrowingVault2 is BaseVault {
     return previewBurnDebt(maxBurnDebt(borrower));
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxMintDebt(address borrower) public view override returns (uint256) {
     if (paused(VaultActions.Borrow)) {
       return 0;
@@ -236,7 +240,7 @@ contract BorrowingVault2 is BaseVault {
     return convertDebtToShares(maxBorrow(borrower));
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function maxBurnDebt(address borrower) public view override returns (uint256) {
     if (paused(VaultActions.Payback)) {
       return 0;
@@ -244,27 +248,27 @@ contract BorrowingVault2 is BaseVault {
     return _debtShares[borrower];
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewBorrow(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Up);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewMintDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Down);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewPayback(uint256 debt) public view override returns (uint256 shares) {
     return _convertDebtToShares(debt, Math.Rounding.Down);
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function previewBurnDebt(uint256 shares) public view override returns (uint256 debt) {
     return _convertToDebt(shares, Math.Rounding.Up);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function borrow(uint256 debt, address receiver, address owner) public override returns (uint256) {
     address caller = msg.sender;
 
@@ -275,7 +279,7 @@ contract BorrowingVault2 is BaseVault {
     return shares;
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function mintDebt(
     uint256 shares,
     address receiver,
@@ -294,22 +298,36 @@ contract BorrowingVault2 is BaseVault {
     return debt;
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function payback(uint256 debt, address owner) public override returns (uint256) {
     uint256 shares = previewPayback(debt);
 
-    shares = _paybackChecks(owner, debt, shares);
+    uint256 remainder;
+    // `shares` and `debt` are updated if passing more than max amount for `owner`'s debt.
+    (shares, debt, remainder) = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
+
+    if (remainder > 0) {
+      _debtAsset.safeTransferFrom(msg.sender, address(this), remainder);
+      _debtAsset.safeTransfer(owner, remainder);
+    }
 
     return shares;
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function burnDebt(uint256 shares, address owner) public override returns (uint256) {
     uint256 debt = previewBurnDebt(shares);
 
-    shares = _paybackChecks(owner, debt, shares);
+    uint256 remainder;
+    // `shares` and `debt` are updated if passing more than max amount for `owner`'s debt.
+    (shares, debt, remainder) = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
+
+    if (remainder > 0) {
+      _debtAsset.safeTransferFrom(msg.sender, address(this), remainder);
+      _debtAsset.safeTransfer(owner, remainder);
+    }
 
     return debt;
   }
@@ -318,7 +336,7 @@ contract BorrowingVault2 is BaseVault {
       Borrow allowances 
   ///////////////////////*/
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function borrowAllowance(
     address owner,
     address operator,
@@ -333,7 +351,7 @@ contract BorrowingVault2 is BaseVault {
     return VaultPermissions.borrowAllowance(owner, operator, receiver);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function increaseBorrowAllowance(
     address operator,
     address receiver,
@@ -347,7 +365,7 @@ contract BorrowingVault2 is BaseVault {
     return VaultPermissions.increaseBorrowAllowance(operator, receiver, byAmount);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function decreaseBorrowAllowance(
     address operator,
     address receiver,
@@ -361,7 +379,7 @@ contract BorrowingVault2 is BaseVault {
     return VaultPermissions.decreaseBorrowAllowance(operator, receiver, byAmount);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function permitBorrow(
     address owner,
     address receiver,
@@ -561,7 +579,8 @@ contract BorrowingVault2 is BaseVault {
 
   /**
    * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault and returns maximum
-   * shares to payback if exceeding `owner` debtShares balance.
+   * shares, and debt to payback if exceeding `owner` debtShares balance. It also returns excess amount to
+   * be reimbursed to `owner`.
    * Requirements:
    * - Must revert for all conditions not passed.
    *
@@ -576,15 +595,19 @@ contract BorrowingVault2 is BaseVault {
   )
     private
     view
-    returns (uint256)
+    returns (uint256, uint256, uint256)
   {
     if (debt == 0 || shares == 0 || owner == address(0)) {
       revert BorrowingVault__payback_invalidInput();
     }
+    uint256 remainder;
     if (shares > _debtShares[owner]) {
       shares = _debtShares[owner];
+      uint256 debt_ = debt;
+      debt = convertToDebt(shares);
+      remainder = debt_ > debt ? debt_ - debt : 0;
     }
-    return shares;
+    return (shares, debt, remainder);
   }
 
   /**
@@ -619,7 +642,7 @@ contract BorrowingVault2 is BaseVault {
       Rebalancing 
   /////////////////*/
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function rebalance(
     uint256 assets,
     uint256 debt,
@@ -635,8 +658,8 @@ contract BorrowingVault2 is BaseVault {
     if (!_isValidProvider(address(from)) || !_isValidProvider(address(to))) {
       revert BorrowingVault__rebalance_invalidProvider();
     }
-    _debtAsset.safeTransferFrom(msg.sender, address(this), debt);
     if (debt > 0) {
+      _debtAsset.safeTransferFrom(msg.sender, address(this), debt);
       _executeProviderAction(debt, "payback", from);
     }
     if (assets > 0) {
@@ -650,8 +673,8 @@ contract BorrowingVault2 is BaseVault {
     }
     if (debt > 0) {
       _executeProviderAction(debt + fee, "borrow", to);
+      _debtAsset.safeTransfer(msg.sender, debt + fee);
     }
-    _debtAsset.safeTransfer(msg.sender, debt + fee);
 
     if (setToAsActiveProvider) {
       _setActiveProvider(to);
@@ -665,7 +688,7 @@ contract BorrowingVault2 is BaseVault {
        Liquidation  
   ////////////////////*/
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function getHealthFactor(address owner) public view returns (uint256 healthFactor) {
     uint256 debtShares = _debtShares[owner];
     uint256 debt = convertToDebt(debtShares);
@@ -681,7 +704,7 @@ contract BorrowingVault2 is BaseVault {
     }
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function getLiquidationFactor(address owner) public view returns (uint256 liquidationFactor) {
     uint256 healthFactor = getHealthFactor(owner);
 
@@ -694,7 +717,7 @@ contract BorrowingVault2 is BaseVault {
     }
   }
 
-  /// @inheritdoc IVault
+  /// @inheritdoc IVaultUpgradeable
   function liquidate(
     address owner,
     address receiver,
@@ -799,7 +822,7 @@ contract BorrowingVault2 is BaseVault {
     emit LiqRatioChanged(liqRatio);
   }
 
-  /// @inheritdoc BaseVault
+  /// @inheritdoc BaseVaultUpgradeable
   function _setProviders(ILendingProvider[] memory providers) internal override {
     uint256 len = providers.length;
     for (uint256 i = 0; i < len;) {

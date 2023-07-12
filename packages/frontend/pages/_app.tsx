@@ -8,7 +8,6 @@ import { useRouter } from 'next/router';
 import Script from 'next/script';
 import { useEffect, useRef } from 'react';
 
-import { GuildAccess } from '../components/App/GuildAccess';
 import Header from '../components/App/Header/Header';
 import Notification from '../components/App/Notification';
 import DisclaimerModal from '../components/App/Onboarding/DisclaimerModal';
@@ -31,8 +30,6 @@ import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { theme } from '../styles/theme';
-
-const APP_ENV = process.env.NEXT_PUBLIC_APP_ENV;
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -162,7 +159,6 @@ function MyApp({ Component, pageProps }: AppProps) {
               isHistoricalTransaction={isHistoricalTransaction}
             />
           )}
-          {APP_ENV === 'production' && <GuildAccess />}
           <DisclaimerModal />
           <ExploreCarousel />
           <Notification />

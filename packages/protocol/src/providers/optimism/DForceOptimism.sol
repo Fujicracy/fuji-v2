@@ -20,7 +20,7 @@ import {IGenIToken} from "../../interfaces/dforce/IGenIToken.sol";
 import {IIERC20} from "../../interfaces/dforce/IIERC20.sol";
 import {IIETH} from "../../interfaces/dforce/IIETH.sol";
 import {IWETH9} from "../../abstracts/WETH9.sol";
-import {LibDForce} from "../../libraries/LibDForce.sol";
+import {LibDForceOptimism} from "../../libraries/LibDForceOptimism.sol";
 
 contract DForceOptimism is ILendingProvider {
   /**
@@ -214,7 +214,7 @@ contract DForceOptimism is ILendingProvider {
   {
     address asset = vault.asset();
     IGenIToken iToken = IGenIToken(_getiToken(asset));
-    balance = LibDForce.viewUnderlyingBalanceOf(iToken, user);
+    balance = LibDForceOptimism.viewUnderlyingBalanceOf(iToken, user);
   }
 
   /// @inheritdoc ILendingProvider
@@ -229,6 +229,6 @@ contract DForceOptimism is ILendingProvider {
   {
     address asset = vault.debtAsset();
     IGenIToken iToken = IGenIToken(_getiToken(asset));
-    balance = LibDForce.viewBorrowingBalanceOf(iToken, user);
+    balance = LibDForceOptimism.viewBorrowingBalanceOf(iToken, user);
   }
 }

@@ -9,7 +9,12 @@ import {
 } from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
 
-import { NAVIGATION_TASK_DELAY, PATH } from '../constants';
+import {
+  HELPER_URL,
+  HelperLink,
+  NAVIGATION_TASK_DELAY,
+  PATH,
+} from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { useLend } from '../store/lend.store';
@@ -154,3 +159,14 @@ const showOperationPage = (
     .changePageShouldReset(type, override, !override ? true : undefined);
   router.push(pathForVaultType(type));
 };
+
+export const HELPER_LINKS: HelperLink[] = [
+  { title: 'Help', url: HELPER_URL.DISCORD },
+  { title: 'Feedback', url: HELPER_URL.DISCORD },
+  { title: '@FujiFinance', url: HELPER_URL.TWITTER },
+  {
+    title: 'Guarded Launch',
+    url: HELPER_URL.GUARDED_LAUNCH,
+    isForGuardedLaunchUsers: true,
+  },
+];

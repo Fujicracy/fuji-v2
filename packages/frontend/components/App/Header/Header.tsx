@@ -24,6 +24,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
 import { dismissBanner, getBannerVisibility } from '../../../helpers/auth';
+import { fetchGuardedLaunchAddresses } from '../../../helpers/guardedLaunch';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { AuthStatus, useAuth } from '../../../store/auth.store';
@@ -32,7 +33,7 @@ import { BurgerMenuIcon } from '../../Shared/Icons';
 import AccountModal from './AccountModal/AccountModal';
 import AddressAddon from './AddressAddon';
 import BalanceAddon from './BalanceAddon';
-import Banner, { BannerConfig } from './Banner';
+import Banner, { BannerConfig, BannerLink } from './Banner';
 import ChainSelect from './ChainSelect';
 import SocialMenu from './SocialMenu';
 import SocialMenuWrapper from './SocialMenuWrapper';
@@ -45,10 +46,41 @@ const BANNERS: BannerConfig[] = [
   },
 ];
 
+const GUARDED_LAUNCH_BANNERS: BannerConfig[] = [
+  {
+    key: 'guardedLaunch',
+    customMessage: (
+      <Typography variant="xsmall">
+        We released the official Fuji V2 version 🎉. We are super grateful for
+        your participation in the guarded launch 🙌. Go and claim your NFT on{' '}
+        <BannerLink
+          link={{
+            label: 'Galxe',
+            url: 'https://galxe.com/fujifinance/campaign/GCNsnUecGJ',
+          }}
+          isContrast
+        />
+        . Btw you can now migrate from{' '}
+        <BannerLink
+          link={{
+            label: 'the guarded',
+            url: 'https://guarded-v2.fuji.finance/',
+          }}
+          isContrast
+        />{' '}
+        to the official version.
+      </Typography>
+    ),
+    isContrast: true,
+  },
+];
+
 const Header = () => {
   const theme = useTheme();
   const router = useRouter();
   const [banners, setBanners] = useState<BannerConfig[]>([]);
+
+  const walletAddress = useAuth((state) => state.address);
 
   const { address, ens, status, balance, started, login } = useAuth(
     (state) => ({
@@ -67,12 +99,22 @@ const Header = () => {
   const currentPage = router.asPath;
 
   useEffect(() => {
-    const filteredBanners = BANNERS.filter((banner) =>
+    let filteredBanners = BANNERS.filter((banner) =>
       getBannerVisibility(banner.key)
     );
 
-    setBanners(filteredBanners);
-  }, []);
+    const guardedLaunchBanners = GUARDED_LAUNCH_BANNERS.filter((banner) =>
+      getBannerVisibility(banner.key)
+    );
+
+    fetchGuardedLaunchAddresses().then((addresses) => {
+      if (addresses.includes(walletAddress?.toLowerCase() || '')) {
+        filteredBanners = filteredBanners.concat(guardedLaunchBanners);
+      }
+
+      setBanners(filteredBanners);
+    });
+  }, [walletAddress]);
 
   const isPageActive = useCallback(
     (path: string) => {

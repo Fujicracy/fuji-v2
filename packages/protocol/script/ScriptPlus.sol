@@ -15,9 +15,12 @@ import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
-import {BorrowingVaultFactory2} from "../src/vaults/borrowing/BorrowingVaultFactory2.sol";
-import {BorrowingVault} from "../src/vaults/borrowing/BorrowingVault.sol";
-import {BorrowingVault2} from "../src/vaults/borrowing/BorrowingVault2.sol";
+import {BorrowingVaultBeaconFactory} from "../src/vaults/borrowing/BorrowingVaultBeaconFactory.sol";
+import {BorrowingVaultUpgradeable as BorrowingVault} from
+  "../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
+import {VaultBeaconProxy} from "../src/vaults/VaultBeaconProxy.sol";
+import {YieldVaultFactory} from "../src/vaults/yields/YieldVaultFactory.sol";
+import {YieldVault} from "../src/vaults/yields/YieldVault.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {Chief} from "../src/Chief.sol";
@@ -27,6 +30,8 @@ import {RebalancerManager} from "../src/RebalancerManager.sol";
 import {FlasherBalancer} from "../src/flashloans/FlasherBalancer.sol";
 
 contract ScriptPlus is ScriptUtilities, CoreRoles {
+  using SafeERC20 for IERC20;
+
   struct PriceFeed {
     string asset;
     address chainlink;
@@ -55,15 +60,24 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     uint256 rating;
   }
 
+  struct YieldVaultConfig {
+    string asset;
+    string name;
+    string[] providers;
+    uint256 rating;
+  }
+
   AddrMapper mapper;
   Chief chief;
   TimelockController timelock;
-  BorrowingVaultFactory2 factory;
+  BorrowingVaultBeaconFactory factory;
+  YieldVaultFactory yieldFactory;
   FujiOracle oracle;
   ConnextRouter connextRouter;
   RebalancerManager rebalancer;
   FlasherBalancer flasherBalancer;
 
+  address implementation;
   address deployer;
 
   address[] timelockTargets;
@@ -71,11 +85,15 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
   uint256[] timelockValues;
   string[] chainNames;
 
+  address[] approvals;
+  mapping(address => uint256) approvalsByToken;
+
   constructor() {
     chainNames.push("polygon");
     chainNames.push("optimism");
     chainNames.push("arbitrum");
     chainNames.push("gnosis");
+    chainNames.push("goerli");
   }
 
   function setUpOn(string memory chain) internal {
@@ -152,24 +170,38 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     }
   }
 
-  function setOrDeployBorrowingVaultFactory2(bool deploy, bool setContractCode) internal {
-    if (deploy) {
-      factory = new BorrowingVaultFactory2(address(chief));
-      saveAddress("BorrowingVaultFactory2", address(factory));
+  function setOrDeployBorrowingVaultFactory(bool deployFactory, bool deployImplementation) internal {
+    if (deployFactory) {
+      if (deployImplementation) {
+        implementation = address(new BorrowingVault());
+        saveAddress("BorrowingVault-Impl", implementation);
+      } else {
+        implementation = getAddress("BorrowingVault-Impl");
+      }
+      factory = new BorrowingVaultBeaconFactory(address(chief), implementation);
+      saveAddress("BorrowingVaultBeaconFactory", address(factory));
     } else {
-      factory = BorrowingVaultFactory2(getAddress("BorrowingVaultFactory2"));
+      factory = BorrowingVaultBeaconFactory(getAddress("BorrowingVaultBeaconFactory"));
     }
 
-    if (setContractCode) {
-      console.log("Setting BorrowingVault2 contract code ...");
-      bytes memory data1 = abi.encodeWithSelector(
-        factory.setContractCode.selector, vm.getCode("BorrowingVault2.sol:BorrowingVault2")
-      );
-      callWithTimelock(address(factory), data1);
-    }
     if (!chief.allowedVaultFactory(address(factory))) {
       bytes memory data2 =
         abi.encodeWithSelector(chief.allowVaultFactory.selector, address(factory), true);
+      callWithTimelock(address(chief), data2);
+    }
+  }
+
+  function setOrDeployYieldVaultFactory(bool deploy) internal {
+    if (deploy) {
+      yieldFactory = new YieldVaultFactory(address(chief));
+      saveAddress("YieldVaultFactory", address(yieldFactory));
+    } else {
+      yieldFactory = YieldVaultFactory(getAddress("YieldVaultFactory"));
+    }
+
+    if (!chief.allowedVaultFactory(address(yieldFactory))) {
+      bytes memory data2 =
+        abi.encodeWithSelector(chief.allowVaultFactory.selector, address(yieldFactory), true);
       callWithTimelock(address(chief), data2);
     }
   }
@@ -256,112 +288,126 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     callBatchWithTimelock();
   }
 
+  // function deployBorrowingVaults() internal {
+  //   bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+  //   VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+  //   uint256 len = vaults.length;
+  //   address collateral;
+  //   address debt;
+  //   string memory name;
+  //   uint256 liqRatio;
+  //   uint256 maxLtv;
+  //   string[] memory providerNames;
+  //   uint256 rating;
+  //   for (uint256 i; i < len; i++) {
+  //     collateral = readAddrFromConfig(vaults[i].collateral);
+  //     debt = readAddrFromConfig(vaults[i].debt);
+  //     name = vaults[i].name;
+  //     liqRatio = vaults[i].liqRatio;
+  //     maxLtv = vaults[i].maxLtv;
+  //     providerNames = vaults[i].providers;
+  //     rating = vaults[i].rating;
+
+  //     uint256 providersLen = providerNames.length;
+  //     ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+  //     for (uint256 j; j < providersLen; j++) {
+  //       providers[j] = ILendingProvider(getAddress(providerNames[j]));
+  //     }
+  //     address vault = chief.deployVault(
+  //       address(factory),
+  //       abi.encode(collateral, debt, address(oracle), providers, maxLtv, liqRatio),
+  //       rating
+  //     );
+  //     saveAddress(name, vault);
+  //   }
+  // }
+
   function deployBorrowingVaults() internal {
     bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
     VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
 
+    uint256 minCollateral = 1e6;
+
     uint256 len = vaults.length;
     address collateral;
     address debt;
     string memory name;
-    uint256 liqRatio;
-    uint256 maxLtv;
-    string[] memory providerNames;
     uint256 rating;
+    string[] memory providerNames;
+
     for (uint256 i; i < len; i++) {
       collateral = readAddrFromConfig(vaults[i].collateral);
       debt = readAddrFromConfig(vaults[i].debt);
       name = vaults[i].name;
-      liqRatio = vaults[i].liqRatio;
-      maxLtv = vaults[i].maxLtv;
-      providerNames = vaults[i].providers;
       rating = vaults[i].rating;
+      providerNames = vaults[i].providers;
 
       uint256 providersLen = providerNames.length;
       ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
       for (uint256 j; j < providersLen; j++) {
         providers[j] = ILendingProvider(getAddress(providerNames[j]));
       }
-      address vault = chief.deployVault(
-        address(factory),
-        abi.encode(collateral, debt, address(oracle), providers, maxLtv, liqRatio),
-        rating
-      );
-      saveAddress(name, vault);
-    }
-  }
-
-  function deployBorrowingVaults2() internal {
-    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
-    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
-
-    uint256 len = vaults.length;
-    address collateral;
-    address debt;
-    string memory name;
-    uint256 rating;
-    for (uint256 i; i < len; i++) {
-      collateral = readAddrFromConfig(vaults[i].collateral);
-      debt = readAddrFromConfig(vaults[i].debt);
-      name = vaults[i].name;
-      rating = vaults[i].rating;
 
       try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
         console.log(string.concat("Skip deploying: ", name));
       } catch {
-        console.log(string.concat("Deploying: ", name, " ..."));
-        address vault = chief.deployVault(address(factory), abi.encode(collateral, debt), rating);
-        saveAddress(name, vault);
+        if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
+          console.log(string.concat("Needs to increase allowance to deploy vault: ", name, " ..."));
+          if (approvalsByToken[collateral] == 0) approvals.push(collateral);
+          approvalsByToken[collateral] += minCollateral;
+        } else {
+          console.log(string.concat("Deploying: ", name, " ..."));
+          uint256 count = factory.vaultsCount(collateral);
+          chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
+          address vault = factory.allVaults(count);
+          saveAddress(name, vault);
+        }
       }
     }
+
+    len = approvals.length;
+    for (uint256 i; i < len; i++) {
+      address token = approvals[i];
+      if (approvalsByToken[token] > 0) {
+        IERC20(collateral).safeIncreaseAllowance(address(factory), approvalsByToken[token]);
+        approvalsByToken[token] = 0;
+      }
+    }
+    delete approvals;
   }
 
-  function setBorrowingVaults2() internal {
+  function setBorrowingVaults() internal {
     bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
     VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
 
     uint256 len = vaults.length;
-    BorrowingVault2 vault;
+    BorrowingVault vault;
     string memory name;
     uint256 liqRatio;
     uint256 maxLtv;
-    string[] memory providerNames;
     for (uint256 i; i < len; i++) {
       name = vaults[i].name;
       liqRatio = vaults[i].liqRatio;
       maxLtv = vaults[i].maxLtv;
-      providerNames = vaults[i].providers;
 
-      uint256 providersLen = providerNames.length;
-      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
-      for (uint256 j; j < providersLen; j++) {
-        providers[j] = ILendingProvider(getAddress(providerNames[j]));
-      }
-      vault = BorrowingVault2(payable(getAddress(name)));
+      try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
+        vault = BorrowingVault(payable(getAddress(name)));
 
-      if (address(vault.oracle()) == address(0)) {
-        console.log(string.concat("Setting oracle for ", name, "..."));
-        timelockTargets.push(address(vault));
-        timelockDatas.push(abi.encodeWithSelector(vault.setOracle.selector, address(oracle)));
-        timelockValues.push(0);
-      }
-      if (vault.getProviders().length == 0) {
-        console.log(string.concat("Setting providers for ", name, "..."));
-        timelockTargets.push(address(vault));
-        timelockDatas.push(abi.encodeWithSelector(vault.setProviders.selector, providers));
-        timelockValues.push(0);
-      }
-      if (address(vault.activeProvider()) == address(0)) {
-        console.log(string.concat("Setting activeProvider for ", name, "..."));
-        timelockTargets.push(address(vault));
-        timelockDatas.push(abi.encodeWithSelector(vault.setActiveProvider.selector, providers[0]));
-        timelockValues.push(0);
-      }
-      if (vault.maxLtv() != maxLtv || vault.liqRatio() != liqRatio) {
-        console.log(string.concat("Setting ltv factors for ", name, "..."));
-        timelockTargets.push(address(vault));
-        timelockDatas.push(abi.encodeWithSelector(vault.setLtvFactors.selector, maxLtv, liqRatio));
-        timelockValues.push(0);
+        if (address(vault.oracle()) == address(0)) {
+          console.log(string.concat("Setting oracle for ", name, "..."));
+          timelockTargets.push(address(vault));
+          timelockDatas.push(abi.encodeWithSelector(vault.setOracle.selector, address(oracle)));
+          timelockValues.push(0);
+        }
+        if (vault.maxLtv() != maxLtv || vault.liqRatio() != liqRatio) {
+          console.log(string.concat("Setting ltv factors for ", name, "..."));
+          timelockTargets.push(address(vault));
+          timelockDatas.push(abi.encodeWithSelector(vault.setLtvFactors.selector, maxLtv, liqRatio));
+          timelockValues.push(0);
+        }
+      } catch {
+        console.log(string.concat("Needs to be deployed before setting: ", name));
       }
       console.log("============");
     }
@@ -369,39 +415,83 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     callBatchWithTimelock();
   }
 
-  function initBorrowingVaults2() internal {
-    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
-    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+  // function initBorrowingVaults2() internal {
+  //   bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+  //   VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+  //   uint256 len = vaults.length;
+  //   BorrowingVault vault;
+  //   address collateral;
+  //   address debt;
+  //   uint256 maxLtv;
+  //   string memory name;
+  //   for (uint256 i; i < len; i++) {
+  //     name = vaults[i].name;
+  //     maxLtv = vaults[i].maxLtv;
+
+  //     collateral = readAddrFromConfig(vaults[i].collateral);
+  //     debt = readAddrFromConfig(vaults[i].debt);
+
+  //     vault = BorrowingVault(payable(getAddress(name)));
+
+  //     if (!vault.initialized() && address(vault.oracle()) != address(0)) {
+  //       console.log(string.concat("Initializing: ", name, " ..."));
+
+  //       uint256 minCollateral = 0.0025 ether;
+
+  //       SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), minCollateral);
+  //       vault.initializeVaultShares(minCollateral);
+  //     } else {
+  //       console.log(string.concat("Skip initializing ", name));
+  //     }
+  //     console.log("============");
+  //   }
+
+  //   callBatchWithTimelock();
+  // }
+
+  function deployYieldVaults() internal {
+    bytes memory raw = vm.parseJson(configJson, ".yield-vaults");
+    YieldVaultConfig[] memory vaults = abi.decode(raw, (YieldVaultConfig[]));
 
     uint256 len = vaults.length;
-    BorrowingVault2 vault;
-    address collateral;
-    address debt;
-    uint256 maxLtv;
+    address asset;
     string memory name;
+    string[] memory providerNames;
+    uint256 rating;
     for (uint256 i; i < len; i++) {
+      asset = readAddrFromConfig(vaults[i].asset);
       name = vaults[i].name;
-      maxLtv = vaults[i].maxLtv;
+      providerNames = vaults[i].providers;
+      rating = vaults[i].rating;
 
-      collateral = readAddrFromConfig(vaults[i].collateral);
-      debt = readAddrFromConfig(vaults[i].debt);
+      uint256 providersLen = providerNames.length;
+      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      address vault;
+      for (uint256 j; j < providersLen; j++) {
+        providers[j] = ILendingProvider(getAddress(providerNames[j]));
+      }
+      try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
+        console.log(string.concat("Skip deploying: ", name));
+        vault = getAddress(name);
+      } catch {
+        console.log(string.concat("Deploying: ", name, " ..."));
+        vault = chief.deployVault(address(yieldFactory), abi.encode(asset, providers), rating);
+        saveAddress(name, vault);
+      }
 
-      vault = BorrowingVault2(payable(getAddress(name)));
-
-      if (!vault.initialized() && address(vault.oracle()) != address(0)) {
+      YieldVault v = YieldVault(payable(vault));
+      if (!v.initialized()) {
         console.log(string.concat("Initializing: ", name, " ..."));
 
-        uint256 minCollateral = 0.0025 ether;
+        uint256 minCollateral = v.minAmount();
 
-        SafeERC20.safeIncreaseAllowance(IERC20(collateral), address(vault), minCollateral);
-        vault.initializeVaultShares(minCollateral);
+        IERC20(asset).safeIncreaseAllowance(address(v), minCollateral);
+        v.initializeVaultShares(minCollateral);
       } else {
         console.log(string.concat("Skip initializing ", name));
       }
-      console.log("============");
     }
-
-    callBatchWithTimelock();
   }
 
   function setOrDeployFlasherBalancer(bool deploy) internal {
@@ -439,6 +529,58 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
         abi.encodeWithSelector(chief.allowFlasher.selector, address(flasherBalancer), true)
       );
       timelockValues.push(0);
+    }
+
+    callBatchWithTimelock();
+  }
+
+  /**
+   * UPGRADES ****************************
+   */
+
+  function upgradeBorrowingImpl(bool deploy) internal {
+    if (deploy) {
+      implementation = address(new BorrowingVault());
+      saveAddress("BorrowingVault-Impl", implementation);
+    } else {
+      implementation = getAddress("BorrowingVault-Impl");
+    }
+
+    if (factory.implementation() != implementation) {
+      bytes memory data = abi.encodeWithSelector(factory.upgradeTo.selector, implementation);
+      callWithTimelock(address(factory), data);
+    }
+  }
+
+  function upgradeBorrowingBeacon() internal {
+    bytes32 _BEACON_SLOT = 0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50;
+    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+    uint256 len = vaults.length;
+    string memory name;
+    address vault;
+    bytes32 storageSlot;
+    address beacon;
+    for (uint256 i; i < len; i++) {
+      name = vaults[i].name;
+      vault = getAddress(name);
+      storageSlot = vm.load(vault, _BEACON_SLOT);
+      beacon = abi.decode(abi.encode(storageSlot), (address));
+
+      if (beacon != address(factory)) {
+        console.log(string.concat("Setting new beacon for ", name, "..."));
+        timelockTargets.push(address(vault));
+        timelockDatas.push(
+          abi.encodeWithSelector(
+            VaultBeaconProxy(payable(vault)).upgradeBeaconAndCall.selector,
+            address(factory),
+            "",
+            false
+          )
+        );
+        timelockValues.push(0);
+      }
     }
 
     callBatchWithTimelock();

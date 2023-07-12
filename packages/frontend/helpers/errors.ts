@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { NOTIFICATION_MESSAGES, SENTRY_DSN, SOCIAL_URL } from '../constants';
+import { HELPER_URL, NOTIFICATION_MESSAGES, SENTRY_DSN } from '../constants';
 import {
   NotificationLink,
   NotificationLinkType,
@@ -53,7 +53,7 @@ export const handleTransactionError = (
 
   const link: NotificationLink | undefined =
     code === ErrorCode.OTHER
-      ? { url: SOCIAL_URL.DISCORD, type: NotificationLinkType.DISCORD }
+      ? { url: HELPER_URL.DISCORD, type: NotificationLinkType.DISCORD }
       : undefined;
 
   notify({

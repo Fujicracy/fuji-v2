@@ -397,8 +397,15 @@ contract BorrowingVault is BaseVault {
   function payback(uint256 debt, address owner) public override returns (uint256) {
     uint256 shares = previewPayback(debt);
 
-    shares = _paybackChecks(owner, debt, shares);
+    uint256 remainder;
+    // `shares` and `debt` are updated if passing more than max amount for `owner`'s debt.
+    (shares, debt, remainder) = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
+
+    if (remainder > 0) {
+      _debtAsset.safeTransferFrom(msg.sender, address(this), remainder);
+      _debtAsset.safeTransfer(owner, remainder);
+    }
 
     return shares;
   }
@@ -425,8 +432,15 @@ contract BorrowingVault is BaseVault {
   function burnDebt(uint256 shares, address owner) public override returns (uint256) {
     uint256 debt = previewBurnDebt(shares);
 
-    shares = _paybackChecks(owner, debt, shares);
+    uint256 remainder;
+    // `shares` and `debt` are updated if passing more than max amount for `owner`'s debt.
+    (shares, debt, remainder) = _paybackChecks(owner, debt, shares);
     _payback(msg.sender, owner, debt, shares);
+
+    if (remainder > 0) {
+      _debtAsset.safeTransferFrom(msg.sender, address(this), remainder);
+      _debtAsset.safeTransfer(owner, remainder);
+    }
 
     return debt;
   }
@@ -679,7 +693,8 @@ contract BorrowingVault is BaseVault {
 
   /**
    * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault and returns maximum
-   * shares to payback if exceeding `owner` debtShares balance.
+   * shares, and debt to payback if exceeding `owner` debtShares balance. It also returns excess amount to
+   * be reimbursed to `owner`.
    * Requirements:
    * - Must revert for all conditions not passed.
    *
@@ -694,15 +709,20 @@ contract BorrowingVault is BaseVault {
   )
     private
     view
-    returns (uint256)
+    returns (uint256, uint256, uint256)
   {
     if (debt == 0 || shares == 0 || owner == address(0)) {
       revert BorrowingVault__payback_invalidInput();
     }
+
+    uint256 remainder;
     if (shares > _debtShares[owner]) {
       shares = _debtShares[owner];
+      uint256 debt_ = debt;
+      debt = convertToDebt(shares);
+      remainder = debt_ > debt ? debt_ - debt : 0;
     }
-    return shares;
+    return (shares, debt, remainder);
   }
 
   /**
@@ -753,8 +773,8 @@ contract BorrowingVault is BaseVault {
     if (!_isValidProvider(address(from)) || !_isValidProvider(address(to))) {
       revert BorrowingVault__rebalance_invalidProvider();
     }
-    _debtAsset.safeTransferFrom(msg.sender, address(this), debt);
     if (debt > 0) {
+      _debtAsset.safeTransferFrom(msg.sender, address(this), debt);
       _executeProviderAction(debt, "payback", from);
     }
     if (assets > 0) {
@@ -768,8 +788,8 @@ contract BorrowingVault is BaseVault {
     }
     if (debt > 0) {
       _executeProviderAction(debt + fee, "borrow", to);
+      _debtAsset.safeTransfer(msg.sender, debt + fee);
     }
-    _debtAsset.safeTransfer(msg.sender, debt + fee);
 
     if (setToAsActiveProvider) {
       _setActiveProvider(to);
