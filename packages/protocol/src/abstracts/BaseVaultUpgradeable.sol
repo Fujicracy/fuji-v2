@@ -403,7 +403,16 @@ abstract contract BaseVaultUpgradeable is
     address caller = msg.sender;
     uint256 shares = previewWithdraw(assets);
 
-    (shares, assets) = _withdrawChecks(caller, receiver, owner, assets, shares);
+    // Multiplied by asset decimals to mantain precision.
+    // This local var helps save gas not having to call provider balances again.
+    uint256 savedAssetSharesRatio = assets.mulDiv(10 ** (decimals()), shares);
+
+    /**
+     * @dev If passed `assets` argument is greater than the max amount `owner` can withdraw
+     * the maximum amount withdrawable will be withdrawn and returned from `withdrawChecks(...)`.
+     */
+    (shares, assets) =
+      _withdrawChecks(caller, receiver, owner, assets, shares, savedAssetSharesRatio);
     _withdraw(caller, receiver, owner, assets, shares);
 
     return shares;
@@ -451,7 +460,12 @@ abstract contract BaseVaultUpgradeable is
     address caller = msg.sender;
     uint256 assets = previewRedeem(shares);
 
-    (shares, assets) = _withdrawChecks(caller, receiver, owner, assets, shares);
+    // Multiplied by asset decimals to mantain precision.
+    // This local var helps save gas not having to call provider balances again.
+    uint256 savedAssetSharesRatio = assets.mulDiv(10 ** (decimals()), shares);
+
+    (shares, assets) =
+      _withdrawChecks(caller, receiver, owner, assets, shares, savedAssetSharesRatio);
     _withdraw(caller, receiver, owner, assets, shares);
 
     return assets;
@@ -587,13 +601,15 @@ abstract contract BaseVaultUpgradeable is
    * @param owner of the withdrawn assets
    * @param assets being withdrawn
    * @param shares being burned for `owner`
+   * @param exchangeRatio between assets per share
    */
   function _withdrawChecks(
     address caller,
     address receiver,
     address owner,
     uint256 assets,
-    uint256 shares
+    uint256 shares,
+    uint256 exchangeRatio
   )
     private
     returns (uint256, uint256)
@@ -604,7 +620,7 @@ abstract contract BaseVaultUpgradeable is
     uint256 maxWithdraw_ = maxWithdraw(owner);
     if (assets > maxWithdraw_) {
       assets = maxWithdraw_;
-      shares = convertToShares(maxWithdraw_);
+      shares = assets.mulDiv(exchangeRatio, 10 ** (decimals()));
     }
     if (caller != owner) {
       _spendWithdrawAllowance(owner, caller, receiver, assets);
