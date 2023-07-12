@@ -14,6 +14,7 @@ pragma solidity 0.8.15;
 import {IERC20Metadata} from
   "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
+import {Strings} from "openzeppelin-contracts/contracts/utils/Strings.sol";
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {VaultBeaconProxy} from "../VaultBeaconProxy.sol";
 import {IBeacon} from "openzeppelin-contracts/contracts/proxy/beacon/IBeacon.sol";
@@ -26,6 +27,7 @@ import {IChief} from "../../interfaces/IChief.sol";
 
 contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
   using SafeERC20 for IERC20;
+  using Strings for uint256;
 
   struct BVaultData {
     address asset;
@@ -123,10 +125,12 @@ contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
 
       // Example of `name_`: "Fuji-V2 WETH-DAI BorrowingVault-1".
       vdata.name = string(
-        abi.encodePacked("Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault", "-", nonce)
+        abi.encodePacked(
+          "Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault", "-", nonce.toString()
+        )
       );
       // Example of `symbol_`: "fbvWETHDAI-1".
-      vdata.symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol, "-", nonce));
+      vdata.symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol, "-", nonce.toString()));
 
       vdata.salt = keccak256(abi.encode(deployData, nonce, block.number));
 
