@@ -109,12 +109,7 @@ function CurrencyCard({
     }
   }, [isFocusedByDefault, textInput]);
 
-  const balance =
-    actionType === ActionType.REMOVE && amount
-      ? amount
-      : balances
-      ? balances[currency.symbol]
-      : 0;
+  const balance = balances ? balances[currency.symbol] : 0;
 
   const isOpen = Boolean(anchorEl);
   const open = (event: MouseEvent<HTMLElement>) => {
@@ -335,9 +330,7 @@ function CurrencyCard({
               <Typography
                 ml=".25rem"
                 color={
-                  +value > (balance || 0)
-                    ? palette.error.dark
-                    : palette.text.primary
+                  +value > balance ? palette.error.dark : palette.text.primary
                 }
               >
                 <Balance balance={balance} dataCy="balance-amount" />
