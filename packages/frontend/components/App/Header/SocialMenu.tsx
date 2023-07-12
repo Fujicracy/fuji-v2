@@ -24,7 +24,7 @@ function SocialMenu() {
       let filteredLinks = HELPER_LINKS.filter(
         (link) => !link.isForGuardedLaunchUsers
       );
-      if (addresses.includes(walletAddress || '')) {
+      if (addresses.includes(walletAddress?.toLowerCase() || '')) {
         filteredLinks = HELPER_LINKS;
       }
 
