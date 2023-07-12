@@ -33,7 +33,7 @@ export const bigToFloat = (
 
 export const formatValue = (
   value: string | number | undefined,
-  params: Intl.NumberFormatOptions = {}
+  params: Intl.NumberFormatOptions = { maximumFractionDigits: 4 }
 ): string => {
   if (params.style === 'currency') {
     params.currency = 'USD';
