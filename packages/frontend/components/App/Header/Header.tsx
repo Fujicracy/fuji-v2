@@ -51,7 +51,7 @@ const GUARDED_LAUNCH_BANNERS: BannerConfig[] = [
   {
     key: 'betaPositions',
     message:
-      'Fuji Finance has publicly launched V2 🎉. To migrate your position from guarded to live version please visit',
+      'We released the official Fuji V2 version 🎉. We are super grateful for your participation in the guarded launch 🙌. You can now migrate from the guarded to the official version, please visit:',
     link: { label: HELPER_URL.GUARDED_LAUNCH, url: HELPER_URL.GUARDED_LAUNCH },
     isContrast: true,
   },
@@ -90,7 +90,7 @@ const Header = () => {
     );
 
     fetchGuardedLaunchAddresses().then((addresses) => {
-      if (addresses.includes(walletAddress || '')) {
+      if (addresses.includes(walletAddress?.toLowerCase() || '')) {
         filteredBanners = filteredBanners.concat(guardedLaunchBanners);
       }
 
