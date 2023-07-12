@@ -1026,8 +1026,9 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   )
     external
     hasRole(msg.sender, HARVESTER_ROLE)
+    returns (bytes memory returnData)
   {
-    (bytes memory returnData) = address(provider).functionDelegateCall(
+    returnData = address(provider).functionDelegateCall(
       data, string(abi.encodePacked("completeHarvest", ": delegate call failed"))
     );
   }

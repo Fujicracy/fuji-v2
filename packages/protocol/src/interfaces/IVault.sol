@@ -524,5 +524,10 @@ interface IVault is IERC4626 {
    * - Must be called by a harvester.
    * - Must encode data with selector
    */
-  function completeHarvest(address provider, bytes memory data) external;
+  function completeHarvest(
+    address provider,
+    bytes memory data
+  )
+    external
+    returns (bytes memory returnData);
 }
