@@ -27,6 +27,10 @@
     {
       "asset": "USDT",
       "chainlink": "0x68811D7DF835B1c33e6EEae8E7C141eF48d48cc7"
+    },
+    {
+      "asset": "WSTETH",
+      "chainlink": "0xaAb2AAfBFf7419Ff85181d3A846bA9045803dd67"
     }
   ],
   "simple-mappings": [],

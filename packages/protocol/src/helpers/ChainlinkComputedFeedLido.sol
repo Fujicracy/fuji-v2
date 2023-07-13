@@ -2,20 +2,28 @@
 pragma solidity 0.8.15;
 
 /**
- * @title ChainlinkComputedFeed
+ * @title ChainlinkComputedFeedLido
  *
  * @author Xocolatl.eth
  *
- * @notice Contract that combines two chainlink price feeds into
- * one resulting feed denominated in another currency asset.
+ * @notice Contract that combines reading stETH per wSTEH
+ * in Lido's WSTETH contract, and multiplies by
+ * chainlink steth/usd feed to ultimately get
+ * wsteth/usd price feed.
+ * This contract is highly inspired by Aave:
+ * https://etherscan.io/address/0x8B6851156023f4f5A66F68BEA80851c3D905Ac93#code
  *
- * @dev For example: [wsteth/eth]-feed and [eth/usd]-feed to return a [wsteth/usd]-feed.
- * Note: Ensure units work, this contract multiplies the feeds.
+ * This contract returns method `lastestRoundData(..)` that is not
+ * available in Aave's implementation but required by FujiOracle
  */
 
 import {IAggregatorV3} from "../interfaces/chainlink/IAggregatorV3.sol";
 
-contract ChainlinkComputedFeed {
+interface IWstETH {
+  function stEthPerToken() external view returns (uint256);
+}
+
+contract ChainlinkComputedFeedLido {
   struct ChainlinkResponse {
     uint80 roundId;
     int256 answer;
@@ -39,7 +47,7 @@ contract ChainlinkComputedFeed {
   uint8 private immutable _feedAssetDecimals;
   uint8 private immutable _feedInterAssetDecimals;
 
-  IAggregatorV3 public immutable feedAsset;
+  IWstETH public immutable feedAsset;
   IAggregatorV3 public immutable feedInterAsset;
 
   uint256 public immutable allowedTimeout;
@@ -58,7 +66,7 @@ contract ChainlinkComputedFeed {
       revert ChainlinkComputedFeed_invalidInput();
     }
 
-    feedAsset = IAggregatorV3(feedAsset_);
+    feedAsset = IWstETH(feedAsset_);
     feedInterAsset = IAggregatorV3(feedInterAsset_);
 
     _feedAssetDecimals = IAggregatorV3(feedAsset_).decimals();
@@ -100,14 +108,12 @@ contract ChainlinkComputedFeed {
   }
 
   function _computeLatestRoundData() private view returns (ChainlinkResponse memory clComputed) {
-    (ChainlinkResponse memory clFeed, ChainlinkResponse memory clInter) = _callandCheckFeeds();
+    (int256 feedAnswer, ChainlinkResponse memory clInter) = _callandCheckFeeds();
 
-    clComputed.answer = _computeAnswer(clFeed.answer, clInter.answer);
-    clComputed.roundId = clFeed.roundId > clInter.roundId ? clFeed.roundId : clInter.roundId;
-    clComputed.startedAt =
-      clFeed.startedAt < clInter.startedAt ? clFeed.startedAt : clInter.startedAt;
-    clComputed.updatedAt =
-      clFeed.updatedAt > clInter.updatedAt ? clFeed.updatedAt : clInter.updatedAt;
+    clComputed.answer = _computeAnswer(feedAnswer, clInter.answer);
+    clComputed.roundId = clInter.roundId;
+    clComputed.startedAt = clInter.startedAt;
+    clComputed.updatedAt = clInter.updatedAt;
     clComputed.answeredInRound = clComputed.roundId;
   }
 
@@ -127,28 +133,21 @@ contract ChainlinkComputedFeed {
   function _callandCheckFeeds()
     private
     view
-    returns (ChainlinkResponse memory clFeed, ChainlinkResponse memory clInter)
+    returns (int256 feedAnswer, ChainlinkResponse memory clInter)
   {
-    (clFeed.roundId, clFeed.answer, clFeed.startedAt, clFeed.updatedAt, clFeed.answeredInRound) =
-      feedAsset.latestRoundData();
+    feedAnswer = int256(feedAsset.stEthPerToken());
 
     (clInter.roundId, clInter.answer, clInter.startedAt, clInter.updatedAt, clInter.answeredInRound)
     = feedInterAsset.latestRoundData();
 
     // Perform checks to the returned chainlink responses
-    if (clFeed.answer <= 0 || clInter.answer <= 0) {
+    if (clInter.answer <= 0) {
       revert ChainlinkComputedFeed_lessThanOrZeroAnswer();
-    } else if (clFeed.roundId == 0 || clInter.roundId == 0) {
+    } else if (clInter.roundId == 0) {
       revert ChainlinkComputedFeed_noRoundId();
-    } else if (
-      clFeed.updatedAt > block.timestamp || clFeed.updatedAt == 0
-        || clInter.updatedAt > block.timestamp || clInter.updatedAt == 0
-    ) {
+    } else if (clInter.updatedAt > block.timestamp || clInter.updatedAt == 0) {
       revert ChainlinkComputedFeed_noValidUpdateAt();
-    } else if (
-      block.timestamp - clFeed.updatedAt > allowedTimeout
-        || block.timestamp - clInter.updatedAt > allowedTimeout
-    ) {
+    } else if (block.timestamp - clInter.updatedAt > allowedTimeout) {
       revert ChainlinkComputedFeed_staleFeed();
     }
   }
