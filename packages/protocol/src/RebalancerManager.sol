@@ -62,6 +62,13 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
       revert RebalancerManager__rebalanceVault_notValidExecutor();
     }
 
+    if (assets == type(uint256).max) {
+      assets = from.getDepositBalance(address(vault), vault);
+    }
+    if (debt == type(uint256).max) {
+      debt = from.getBorrowBalance(address(vault), vault);
+    }
+
     _checkAssetsAmount(vault, assets, from);
 
     if (vault.debtAsset() == address(0)) {
