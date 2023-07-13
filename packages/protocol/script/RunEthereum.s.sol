@@ -30,7 +30,7 @@ contract RunEthereum is ScriptPlus {
     setOrDeployChief(false);
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
-    setOrDeployBorrowingVaultFactory2(false, false);
+    setOrDeployBorrowingVaultFactory(false, false);
     setOrDeployAddrMapper(false);
     setOrDeployFlasherBalancer(false);
     setOrDeployRebalancer(false);
@@ -38,9 +38,8 @@ contract RunEthereum is ScriptPlus {
     _setLendingProviders();
 
     if (chief.allowedVaultFactory(address(factory))) {
-      deployBorrowingVaults2();
-      setBorrowingVaults2();
-      initBorrowingVaults2();
+      deployBorrowingVaults();
+      setBorrowingVaults();
     }
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
