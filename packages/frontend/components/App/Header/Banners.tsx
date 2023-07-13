@@ -4,7 +4,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import React, { ReactNode, useEffect, useState } from 'react';
 
 import { HELPER_URL } from '../../../constants';
-import { dismissBanner, getBannerVisibility } from '../../../helpers/auth';
+import { dismissBanner, getBannerVisibility } from '../../../helpers/banners';
 import { fetchGuardedLaunchAddresses } from '../../../helpers/guardedLaunch';
 import { useAuth } from '../../../store/auth.store';
 
