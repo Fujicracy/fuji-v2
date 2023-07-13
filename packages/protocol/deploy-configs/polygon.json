@@ -31,6 +31,10 @@
       "chainlink": "0x0a6513e40db6eb1b165753ad52e80663aea50545"
     },
     {
+      "asset": "WSTETH",
+      "chainlink": "0x6010bACe1F271DdF8114134562653Eaf9206D2f2"
+    },
+    {
       "asset": "MATICX",
       "chainlink": "0x5d37E4b374E6907de8Fc7fb33EE3b0af403C7403"
     }
