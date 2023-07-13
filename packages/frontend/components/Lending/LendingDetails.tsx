@@ -1,4 +1,5 @@
-import { Card, Grid, Skeleton, Stack } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import { Card, Grid, Skeleton, Stack, Tooltip } from '@mui/material';
 import { AprResult, LendingVault, VaultType } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -60,11 +61,15 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
           {availableVaults[0] && (
             <InfoBlock
               label={`Total Supplied (${activeProvider?.name})`}
-              value={`${
-                formatValue(activeProvider?.totalSupplyUsd, {
+              value={
+                `${formatValue(activeProvider?.totalSupplyUsd, {
                   style: 'currency',
-                }) || '-'
-              }`}
+                })}` || (
+                  <Tooltip title="Error loading data" arrow>
+                    <ErrorOutlineIcon />
+                  </Tooltip>
+                )
+              }
               loading={loading}
               contrast
             />

@@ -30,6 +30,7 @@ function InfoBlock({
           ? palette.secondary.contrastText
           : alpha('#FFFFFF', 0.03),
         borderRadius: '0.5rem',
+        height: '100%',
       }}
     >
       {loading ? (
