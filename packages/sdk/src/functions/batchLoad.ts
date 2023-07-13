@@ -102,7 +102,7 @@ const getDetailsCalls = (
 
 const getProvidersCalls = (v: AbstractVault): FujiResult<Call<Rate>[]> => {
   if (!v.allProviders) {
-    return new FujiResultError('BorrowingVault allProviders not set!');
+    return new FujiResultError('Vault allProviders not set!');
   }
 
   let rates;
@@ -263,6 +263,35 @@ const doBatchLoad = async (
   return new FujiResultSuccess(data);
 };
 
+export async function multiBatchLoad(
+  vaults: AbstractVault[],
+  account: Address | undefined
+): FujiResultPromise<VaultWithFinancials[]> {
+  try {
+    const results = await Promise.all(
+      vaults.map((vault) => batchLoad([vault], account, vault.chain))
+    );
+
+    // Use reduce to combine all results into a single array
+    const combinedResults: VaultWithFinancials[] = results.reduce(
+      (acc: VaultWithFinancials[], result) => {
+        if (result.success) {
+          return [...acc, ...result.data];
+        } else {
+          // Maybe we shouldn't just throw, instead skip and throw if there are no results
+          throw new Error(result.error.message);
+        }
+      },
+      []
+    );
+
+    return new FujiResultSuccess(combinedResults);
+  } catch (error) {
+    const message = FujiError.messageFromUnknownError(error);
+    return new FujiResultError(message);
+  }
+}
+
 export async function batchLoad(
   vaults: AbstractVault[],
   account: Address | undefined,
@@ -273,10 +302,13 @@ export async function batchLoad(
       chainId: chain.chainId,
     });
   }
-  // TODO: Check that type matches vaults?
-  if (vaults.find((v) => v.chainId !== chain.chainId)) {
+  if (
+    vaults.find(
+      (v) => v instanceof BorrowingVault && v.chainId !== chain.chainId
+    )
+  ) {
     return new FujiResultError(
-      'Vault from a different chain!',
+      'Borrowing vault from a different chain!',
       FujiErrorCode.SDK,
       {
         chainId: chain.chainId,

@@ -16,7 +16,7 @@ import {
   FujiResultPromise,
   VaultWithFinancials,
 } from '../types';
-import { batchLoad } from './batchLoad';
+import { batchLoad, multiBatchLoad } from './batchLoad';
 
 export function getAllVaults(
   type: VaultType,
@@ -81,7 +81,7 @@ export async function getVaultsFor(
       if (a.success && b.success) vaults.push(...a.data, ...b.data);
       else return a.success ? b : a;
     } else {
-      const r = await batchLoad(_vaults, account, collateral.chain);
+      const r = await multiBatchLoad(_vaults, account);
       if (r.success) vaults.push(...r.data);
       else return r;
     }
@@ -122,14 +122,14 @@ export function findVaultsByTokens(
   const collateralSym = collateral.symbol;
   const debtSym = debt?.symbol;
 
-  const chains = debt
-    ? [collateral.chainId, debt.chainId]
-    : [collateral.chainId];
-
   const data =
-    type === VaultType.BORROW
-      ? _borrowingVaultsForToken(chains, collateralSym, debtSym)
-      : _lendingVaultsForToken(chains, collateralSym);
+    type === VaultType.BORROW && debt
+      ? _borrowingVaultsForToken(
+          [collateral.chainId, debt.chainId],
+          collateralSym,
+          debtSym
+        )
+      : _lendingVaultsForToken(collateralSym);
   return new FujiResultSuccess(data);
 }
 
@@ -153,13 +153,10 @@ function _borrowingVaultsForToken(
     );
 }
 
-function _lendingVaultsForToken(
-  chains: ChainId[],
-  symbol: string
-): LendingVault[] {
-  return (_allVaults(VaultType.LEND) as LendingVault[])
-    .filter((v: LendingVault) => chains.includes(v.collateral.chainId))
-    .filter((v: LendingVault) => v.collateral.symbol === symbol);
+function _lendingVaultsForToken(symbol: string): LendingVault[] {
+  return (_allVaults(VaultType.LEND) as LendingVault[]).filter(
+    (v: LendingVault) => v.collateral.symbol === symbol
+  );
 }
 
 function _allVaults(type: VaultType): AbstractVault[] {
