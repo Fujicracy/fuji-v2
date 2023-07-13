@@ -85,7 +85,12 @@ function FormAssetBox({
         value={chainId}
         disabled={isExecuting}
         onChange={(chainId) => {
-          changeAssetChain(type, chainId, !isEditing, assetChange?.currency);
+          changeAssetChain(
+            type,
+            chainId,
+            vaultType === VaultType.BORROW && !isEditing,
+            assetChange?.currency
+          );
         }}
       />
       <CurrencyCard
