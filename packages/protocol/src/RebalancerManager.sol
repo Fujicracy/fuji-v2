@@ -65,9 +65,6 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     if (assets == type(uint256).max) {
       assets = from.getDepositBalance(address(vault), vault);
     }
-    if (debt == type(uint256).max) {
-      debt = from.getBorrowBalance(address(vault), vault);
-    }
 
     _checkAssetsAmount(vault, assets, from);
 
@@ -79,6 +76,10 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
       }
       vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
     } else {
+      if (debt == type(uint256).max) {
+        debt = from.getBorrowBalance(address(vault), vault);
+      }
+
       // BorrowingVault
       if (assets == 0 && debt == 0) {
         // Should at least move some assets or debt across providers.
