@@ -307,35 +307,6 @@ abstract contract BaseVaultUpgradeable is
     return assets;
   }
 
-  /**
-   * @notice Slippage protected `withdraw()` per EIP5143.
-   *
-   * @param assets amount that is being withdrawn
-   * @param receiver to whom `assets` amount will be transferred
-   * @param owner to whom `assets` amount will be debited
-   * @param maxShares amount that shall be burned when calling withdraw
-   *
-   * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
-   * Requirements:
-   * - Must not burn more than `maxShares` when calling `withdraw()`.
-   */
-  // function withdraw(
-  //   uint256 assets,
-  //   address receiver,
-  //   address owner,
-  //   uint256 maxShares
-  // )
-  //   public
-  //   virtual
-  //   returns (uint256)
-  // {
-  //   uint256 burnedShares = withdraw(assets, receiver, owner);
-  //   if (burnedShares > maxShares) {
-  //     revert BaseVault__withdraw_slippageTooHigh();
-  //   }
-  //   return burnedShares;
-  // }
-
   /// @inheritdoc IERC4626Upgradeable
   function withdraw(
     uint256 assets,
@@ -350,35 +321,6 @@ abstract contract BaseVaultUpgradeable is
     (, shares) = _withdrawInternal(assets, shares, msg.sender, receiver, owner);
     return shares;
   }
-
-  /**
-   * @notice Slippage protected `redeem()` per EIP5143.
-   *
-   * @param shares amount that will be redeemed
-   * @param receiver to whom asset equivalent of `shares` amount will be transferred
-   * @param owner of the shares
-   * @param minAssets amount that `receiver` must expect
-   *
-   * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
-   * Requirements:
-   * - Must  receive at least `minAssets` when calling `redeem()`.
-   */
-  // function redeem(
-  //   uint256 shares,
-  //   address receiver,
-  //   address owner,
-  //   uint256 minAssets
-  // )
-  //   public
-  //   virtual
-  //   returns (uint256)
-  // {
-  //   uint256 receivedAssets = redeem(shares, receiver, owner);
-  //   if (receivedAssets < minAssets) {
-  //     revert BaseVault__redeem_slippageTooHigh();
-  //   }
-  //   return receivedAssets;
-  // }
 
   /// @inheritdoc IERC4626Upgradeable
   function redeem(
