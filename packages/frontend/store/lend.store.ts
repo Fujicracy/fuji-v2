@@ -31,6 +31,7 @@ import {
   updateTransactionMeta,
 } from './types/actions';
 import { initialLendState, LendStore } from './types/lend';
+import { notify } from '../helpers/notifications';
 
 setAutoFreeze(false);
 
@@ -148,13 +149,27 @@ export const useLend = create<LendStore>()(
           return;
         }
 
-        const availableVaults = result.data;
+        let availableVaults = result.data;
 
         if (availableVaults.length === 0) {
           console.error('No available vault');
           set({ availableVaultsStatus: FetchStatus.Error });
           return;
         }
+
+        const llamaResult = await sdk.getLlamaFinancials(availableVaults);
+
+        if (!llamaResult.success) {
+          notify({
+            type: 'error',
+            message: llamaResult.error.message,
+          });
+        }
+
+        availableVaults =
+          llamaResult.success && llamaResult.data
+            ? llamaResult.data
+            : availableVaults;
 
         const activeVault =
           availableVaults.find((v) => v.vault.address.value === vaultAddress) ??

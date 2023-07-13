@@ -45,7 +45,7 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
       <Grid container spacing={2} mb={2}>
         <Grid item xs={12} sm={6}>
           <InfoBlock
-            label="My Deposits"
+            label={`My Deposits (${activeProvider?.name})`}
             value={`${formatBalance(
               bigToFloat(
                 availableVaults[0]?.vault?.collateral?.decimals,
@@ -59,7 +59,7 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
         <Grid item xs={12} sm={6}>
           {availableVaults[0] && (
             <InfoBlock
-              label="Total Supplied"
+              label={`Total Supplied (${activeProvider?.name})`}
               value={`${activeProvider?.totalSupplyUsd || '-'}`}
               loading={loading}
               contrast
