@@ -674,8 +674,7 @@ contract BorrowingVault is BaseVault {
        * maxAmount, this logic handles excess amount `remainder` by pulling from
        * `msg.sender and returning to the `owner` the `remainder`.
        */
-      _debtAsset.safeTransferFrom(caller, address(this), remainder);
-      _debtAsset.safeTransfer(owner, remainder);
+      _debtAsset.safeTransferFrom(caller, owner, remainder);
     }
   }
 
