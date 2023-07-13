@@ -205,19 +205,22 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     // Default borrowing vault behavior when passing a higher than `maxWithdraw` amount
     // is to only withdraw max possible that user has deposited.
     assertEq(IERC20(vault.asset()).balanceOf(ALICE), amount);
+    assertEq(vault.balanceOf(ALICE), 0);
   }
 
-  function test_redeemMax(uint128 amount, uint128 moreThanAmount) public {
+  function test_redeemMax(uint128 shares, uint128 moreThanShares) public {
     uint256 minAmount = vault.minAmount();
-    vm.assume(moreThanAmount > amount && amount >= minAmount);
-    do_deposit(amount, vault, ALICE);
+    vm.assume(moreThanShares > shares && shares >= minAmount);
+
+    do_mint(shares, vault, ALICE);
 
     vm.prank(ALICE);
-    vault.redeem(moreThanAmount, ALICE, ALICE);
+    vault.redeem(moreThanShares, ALICE, ALICE);
 
     // Default borrowing vault behavior when passing a higher than `maxWithdraw` amount
     // is to only withdraw max possible that user has deposited.
-    assertEq(IERC20(vault.asset()).balanceOf(ALICE), amount);
+    assertEq(IERC20(vault.asset()).balanceOf(ALICE), shares);
+    assertEq(vault.balanceOf(ALICE), 0);
   }
 
   function test_withdrawMaxWithoutRepay(uint96 amount, uint96 borrowAmount) public {
@@ -498,6 +501,48 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     vault.borrow(invalidBorrowAmount, ALICE, ALICE);
   }
 
+  function test_withdrawInvalidInput() public {
+    uint256 amount = 1 ether;
+    uint256 invalid = 0;
+
+    do_deposit(amount, vault, ALICE);
+
+    vm.startPrank(ALICE);
+    //invalid amount
+    vm.expectRevert(BaseVault.BaseVault__withdraw_invalidInput.selector);
+    vault.withdraw(invalid, ALICE, ALICE);
+
+    //invalid receiver
+    vm.expectRevert(BaseVault.BaseVault__withdraw_invalidInput.selector);
+    vault.withdraw(amount, address(0), ALICE);
+
+    //invalid owner
+    vm.expectRevert(BaseVault.BaseVault__withdraw_invalidInput.selector);
+    vault.withdraw(amount, ALICE, address(0));
+    vm.stopPrank();
+  }
+
+  function test_redeemInvalidInput() public {
+    uint256 amount = 1 ether;
+    uint256 invalid = 0;
+
+    do_deposit(amount, vault, ALICE);
+
+    vm.startPrank(ALICE);
+    //invalid amount
+    vm.expectRevert(BaseVault.BaseVault__withdraw_invalidInput.selector);
+    vault.redeem(invalid, ALICE, ALICE);
+
+    //invalid receiver
+    vm.expectRevert(BaseVault.BaseVault__withdraw_invalidInput.selector);
+    vault.redeem(amount, address(0), ALICE);
+
+    //invalid owner
+    vm.expectRevert(BaseVault.BaseVault__withdraw_invalidInput.selector);
+    vault.redeem(amount, ALICE, address(0));
+    vm.stopPrank();
+  }
+
   //error BorrowingVault__payback_invalidInput();
   function test_paybackInvalidInput() public {
     uint256 amount = 1 ether;
@@ -513,6 +558,24 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     //invalid owner
     vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
     vault.payback(borrowAmount, address(0));
+  }
+
+  function test_burnDebtInvalidInput() public {
+    uint256 amount = 1 ether;
+    uint256 borrowAmount = 1000e18;
+    uint256 invalidDebt = 0;
+
+    do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
+
+    vm.startPrank(ALICE);
+    //invalid debt
+    vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
+    vault.payback(invalidDebt, ALICE);
+
+    //invalid owner
+    vm.expectRevert(BorrowingVault.BorrowingVault__payback_invalidInput.selector);
+    vault.payback(borrowAmount, address(0));
+    vm.stopPrank();
   }
 
   function test_paybackMoreThanMax(uint256 amountPayback) public {
