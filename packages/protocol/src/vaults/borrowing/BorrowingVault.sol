@@ -660,7 +660,7 @@ contract BorrowingVault is BaseVault {
   {
     // This local var helps save gas not having to call provider balances again
     // and is multiplied by debtAsset decimals to mantain precision.
-    uint256 savedDebtSharesRatio = debt.mulDiv(10 ** _debtDecimals, shares);
+    uint256 savedDebtSharesRatio = shares > 0 ? debt.mulDiv(10 ** _debtDecimals, shares) : 0;
 
     uint256 remainder;
     // `debt`, `shares`are updated if passing more than max amount for `owner`'s debt.
@@ -736,11 +736,11 @@ contract BorrowingVault is BaseVault {
     }
     if (shares > _debtShares[owner]) {
       shares_ = _debtShares[owner];
-      debt_ = exchangeRatio.mulDiv(shares, 10 ** _debtDecimals);
+      debt_ = shares_.mulDiv(exchangeRatio, 10 ** _debtDecimals);
       remainder = debt > debt_ ? debt - debt_ : 0;
     } else {
-      debt_ = debt;
       shares_ = shares;
+      debt_ = shares_.mulDiv(exchangeRatio, 10 ** _debtDecimals);
     }
   }
 
