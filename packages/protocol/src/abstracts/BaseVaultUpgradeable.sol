@@ -448,7 +448,7 @@ abstract contract BaseVaultUpgradeable is
   {
     // This local var helps save gas not having to call provider balances again.
     // and it is multiplied by asset decimals to mantain precision.
-    uint256 savedAssetSharesRatio = assets.mulDiv(10 ** (decimals()), shares);
+    uint256 savedAssetSharesRatio = shares > 0 ? assets.mulDiv(10 ** (decimals()), shares) : 0;
 
     /**
      * @dev If passed `assets` argument is greater than the max amount `owner` can withdraw
@@ -522,10 +522,10 @@ abstract contract BaseVaultUpgradeable is
     uint256 maxWithdraw_ = maxWithdraw(owner);
     if (assets > maxWithdraw_) {
       assets_ = maxWithdraw_;
-      shares_ = assets.mulDiv(exchangeRatio, 10 ** (decimals()));
+      shares_ = assets_.mulDiv(10 ** (decimals()), exchangeRatio);
     } else {
       assets_ = assets;
-      shares_ = shares;
+      shares_ = assets_.mulDiv(10 ** (decimals()), exchangeRatio);
     }
     if (caller != owner) {
       _spendWithdrawAllowance(owner, caller, receiver, assets_);
