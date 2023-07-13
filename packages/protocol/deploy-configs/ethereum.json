@@ -130,5 +130,34 @@
       "name": "Compound_V3"
     }
   ],
-  "borrowing-vaults": []
+  "borrowing-vaults": [
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 780000000000000000,
+      "name": "BorrowingVault-WETHUSDC-1",
+      "providers": ["Compound_V2", "Aave_V3", "Aave_V2"],
+      "rating": 95
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 780000000000000000,
+      "name": "BorrowingVault-WETHUSDC-2",
+      "providers": ["Compound_V3", "Aave_V3"],
+      "rating": 90
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDC",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 780000000000000000,
+      "name": "BorrowingVault-WETHUSDC-3",
+      "providers": ["Morpho_Compound", "Morpho_Aave_V2"],
+      "rating": 85
+    }
+  ],
+  "yield-vaults": []
 }
