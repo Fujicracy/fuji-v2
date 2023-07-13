@@ -392,7 +392,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   // error RebalancerManager__checkAssetsAmount_invalidAmount();
   function test_checkAssetsAmountInvalidAmount(uint256 invalidAmount) public {
     uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
-    vm.assume(invalidAmount > assets);
+    vm.assume(invalidAmount > assets && invalidAmount != type(uint256).max);
 
     //rebalance with more amount than available should revert
     vm.expectRevert(RebalancerManager.RebalancerManager__checkAssetsAmount_invalidAmount.selector);
@@ -404,7 +404,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   function test_checkDebtAmountInvalidAmount(uint256 invalidAmount) public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
     uint256 debt = mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault)));
-    vm.assume(invalidAmount > debt); //ALICE, BOB, CHARLIE, DAVID
+    vm.assume(invalidAmount > debt && invalidAmount != type(uint256).max); //ALICE, BOB, CHARLIE, DAVID
 
     // Rebalance with more amount than available should revert
     vm.expectRevert(RebalancerManager.RebalancerManager__checkDebtAmount_invalidAmount.selector);
