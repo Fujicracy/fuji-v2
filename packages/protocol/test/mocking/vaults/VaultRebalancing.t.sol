@@ -315,6 +315,23 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), debt75);
   }
 
+  function test_rebalancerManagerUsingMax() public {
+    rebalancer.rebalanceVault(
+      bvault, type(uint256).max, type(uint256).max, mockProviderA, mockProviderB, flasher, true
+    );
+
+    assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
+    assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), 0);
+
+    assertEq(
+      mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))),
+      4 * DEPOSIT_AMOUNT + bvault.convertToAssets(initVaultShares)
+    );
+    assertEq(
+      mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), 4 * BORROW_AMOUNT
+    );
+  }
+
   //TODO add more test cases with RebalancerManager contract.
   function test_rebalanceBorrowingVaultWithRebalancer() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
