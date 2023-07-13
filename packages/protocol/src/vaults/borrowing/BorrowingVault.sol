@@ -658,13 +658,9 @@ contract BorrowingVault is BaseVault {
     internal
     returns (uint256 debt_, uint256 shares_)
   {
-    // This local var helps save gas not having to call provider balances again
-    // and is multiplied by debtAsset decimals to mantain precision.
-    uint256 savedDebtSharesRatio = shares > 0 ? debt.mulDiv(10 ** _debtDecimals, shares) : 0;
-
     uint256 remainder;
     // `debt`, `shares`are updated if passing more than max amount for `owner`'s debt.
-    (debt_, shares_, remainder) = _paybackChecks(owner, debt, shares, savedDebtSharesRatio);
+    (debt_, shares_, remainder) = _paybackChecks(owner, debt, shares);
 
     _payback(caller, owner, debt_, shares_);
 
@@ -718,28 +714,30 @@ contract BorrowingVault is BaseVault {
    * @param owner of the debt accountability
    * @param debt or borrowed amount of debt asset
    * @param shares of debt being burned
-   * @param exchangeRatio between debtAssets per debtShare
    */
   function _paybackChecks(
     address owner,
     uint256 debt,
-    uint256 shares,
-    uint256 exchangeRatio
+    uint256 shares
   )
     private
     view
     returns (uint256 debt_, uint256 shares_, uint256 remainder)
   {
-    if (owner == address(0) || debt == 0 || shares == 0 || exchangeRatio == 0) {
+    if (owner == address(0) || debt == 0 || shares == 0) {
       revert BorrowingVault__payback_invalidInput();
     }
+    // This local var helps save gas not having to call provider balances again
+    // and is multiplied by debtAsset decimals to mantain precision.
+    uint256 sharesExchangeRatio = debt.mulDiv(10 ** _debtDecimals, shares);
+
     if (shares > _debtShares[owner]) {
       shares_ = _debtShares[owner];
-      debt_ = shares_.mulDiv(exchangeRatio, 10 ** _debtDecimals);
+      debt_ = shares_.mulDiv(sharesExchangeRatio, 10 ** _debtDecimals);
       remainder = debt > debt_ ? debt - debt_ : 0;
     } else {
       shares_ = shares;
-      debt_ = shares_.mulDiv(exchangeRatio, 10 ** _debtDecimals);
+      debt_ = shares_.mulDiv(sharesExchangeRatio, 10 ** _debtDecimals);
     }
   }
 
