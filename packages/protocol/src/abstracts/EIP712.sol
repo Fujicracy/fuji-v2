@@ -41,16 +41,16 @@ abstract contract EIP712 {
    * the chain id that it corresponds to, in order to invalidate the cached
    * domain separator if the chain id changes.
    */
-  bytes32 private immutable _CACHED_DOMAIN_SEPARATOR;
-  uint256 private immutable _CACHED_CHAIN_ID;
-  address private immutable _CACHED_THIS;
+  bytes32 private _CACHED_DOMAIN_SEPARATOR;
+  uint256 private _CACHED_CHAIN_ID;
+  address private _CACHED_THIS;
 
-  bytes32 private immutable _HASHED_NAME;
-  bytes32 private immutable _HASHED_VERSION;
-  bytes32 private immutable _TYPE_HASH;
+  bytes32 private _HASHED_NAME;
+  bytes32 private _HASHED_VERSION;
+  bytes32 private _TYPE_HASH;
 
   /**
-   * @notice Constructor to initializes the domain separator and parameter caches.
+   * @notice initializes the domain separator and parameter caches.
    *
    * @param name_ of the signing domain, i.e. the name of the DApp or the protocol
    * @param version_ of the current major version of the signing domain
@@ -60,7 +60,7 @@ abstract contract EIP712 {
    * NOTE: These parameters cannot be changed except through a
    * xref:learn::upgrading-smart-contracts.adoc[smartcontract upgrade].
    */
-  constructor(string memory name_, string memory version_) {
+  function __EIP712_initialize(string memory name_, string memory version_) internal {
     bytes32 hashedName = keccak256(bytes(name_));
     bytes32 hashedVersion = keccak256(bytes(version_));
     bytes32 typeHash =

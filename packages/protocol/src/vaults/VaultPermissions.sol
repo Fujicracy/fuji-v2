@@ -49,18 +49,6 @@ contract VaultPermissions is IVaultPermissions, EIP712 {
   // solhint-disable-next-line var-name-mixedcase
   bytes32 private _PERMIT_TYPEHASH_DEPRECATED_SLOT;
 
-  /**
-   * @notice Constructor of a new {VaultPermissions}.
-   *
-   * @param name_ string used in {BaseVault}
-   *
-   * @dev Requirements:
-   * - Must initialize using the same `name` parameter
-   * - Must initialize the {EIP712} domain separator using the `name` parameter as used
-   *   in {BaseVault}. and setting `version` to "1".
-   */
-  constructor(string memory name_) EIP712(name_, "1") {}
-
   /// @inheritdoc IVaultPermissions
   function withdrawAllowance(
     address owner,

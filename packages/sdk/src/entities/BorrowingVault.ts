@@ -513,7 +513,7 @@ export class BorrowingVault {
     );
     const domain: TypedDataDomain = {
       name: this.name,
-      version: '1',
+      version: '0.2.0',
       verifyingContract: this.address.value,
       salt,
     };

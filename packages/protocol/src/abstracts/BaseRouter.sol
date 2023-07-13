@@ -100,9 +100,10 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
    * @notice Constructor of a new {BaseRouter}.
    *
    * @param weth wrapped native token of this chain
-   * @param chief contract
+   * @param chief_ contract
    */
-  constructor(IWETH9 weth, IChief chief) payable SystemAccessControl(address(chief)) {
+  constructor(IWETH9 weth, IChief chief_) payable {
+    __SystemAccessControl_init(address(chief_));
     WETH9 = weth;
     _flashloanEnterStatus = _NOT_ENTERED;
   }

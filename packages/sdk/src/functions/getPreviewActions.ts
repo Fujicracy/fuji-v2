@@ -299,7 +299,7 @@ function borrowOrWithdraw(
       ),
       _xTransfer(
         tokenOut.chainId,
-        vault.debt,
+        action === RouterAction.BORROW ? vault.debt : vault.collateral,
         amountOut,
         account,
         connextRouter,

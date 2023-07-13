@@ -19,7 +19,7 @@ contract SystemAccessControl is CoreRoles {
   error SystemAccessControl__onlyTimelock_callerIsNotTimelock();
   error SystemAccessControl__onlyHouseKeeper_notHouseKeeper();
 
-  IChief public immutable chief;
+  IChief public chief;
 
   /**
    * @dev Modifier that checks `caller` has `role`.
@@ -53,14 +53,14 @@ contract SystemAccessControl is CoreRoles {
   }
 
   /**
-   * @notice Abstract constructor of a new {SystemAccessControl}.
+   * @notice Init of a new {SystemAccessControl}.
    *
    * @param chief_ address
    *
    * @dev Requirements:
    * - Must pass non-zero {Chief} address, that could be checked at child contract.
    */
-  constructor(address chief_) {
+  function __SystemAccessControl_init(address chief_) internal {
     chief = IChief(chief_);
   }
 }
