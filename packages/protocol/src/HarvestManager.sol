@@ -106,7 +106,8 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
         totalAmount += amounts[i];
       }
     }
-    bytes memory data = abi.encodeWithSelector(vault.deposit.selector, totalAmount);
+    IERC20(collateralAsset).safeTransfer(address(vault), totalAmount);
+    bytes memory data = abi.encodeWithSelector(vault.deposit.selector, totalAmount, vault);
     vault.completeHarvest(address(provider), data);
   }
 
@@ -137,6 +138,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
       amountSwapped += _swap(swapper, tokens[i], debtAsset, amounts[i], address(this));
     }
 
+    IERC20(debtAsset).safeTransfer(address(vault), providerDebt);
     bytes memory data = abi.encodeWithSelector(
       ILendingProvider(address(provider)).payback.selector, providerDebt, vault
     );
