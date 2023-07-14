@@ -107,8 +107,8 @@ contract MockProvider is ILendingProvider, IHarvestable {
   }
 
   /// @inheritdoc IHarvestable
-  //@dev mocking rewards for test purposes
-  // will assume rewards are given in vault.asset and always 1e18
+  /// @dev mocking rewards for test purposes
+  /// will assume rewards are given in vault.asset and always 1e18
   function harvest(bytes memory data)
     external
     returns (address[] memory tokens, uint256[] memory amounts)
