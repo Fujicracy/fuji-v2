@@ -125,6 +125,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connext), Chief(chief));
       saveAddress("ConnextRouter", address(connextRouter));
       saveAddress("ConnextHandler", address(connextRouter.handler()));
+      saveAddress("XReceiveProxy", address(connextRouter.xReceiveProxy()));
     } else {
       connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
     }
