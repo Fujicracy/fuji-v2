@@ -5,7 +5,7 @@ import { formatUnits } from 'ethers/lib/utils';
 import React from 'react';
 
 import { chainName } from '../../../helpers/chains';
-import { toNotSoFixed } from '../../../helpers/values';
+import { formatValue } from '../../../helpers/values';
 import { CurrencyIcon, NetworkIcon } from '../../Shared/Icons';
 
 const routingSteps = [
@@ -80,12 +80,14 @@ function AssetBox({
         gap={0.75}
       >
         <Typography variant="h5">
-          {`${toNotSoFixed(
-            formatUnits(
-              step.amount ?? BigNumber.from('0'),
-              step.token?.decimals ?? 18
+          {`${formatValue(
+            parseFloat(
+              formatUnits(
+                step.amount ?? BigNumber.from('0'),
+                step.token?.decimals ?? 18
+              )
             ),
-            true
+            { maximumFractionDigits: 3 }
           )} ${step.token?.symbol}`}
         </Typography>
         <Stack flexDirection="row" alignItems="center">

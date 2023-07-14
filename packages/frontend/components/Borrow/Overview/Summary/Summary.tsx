@@ -52,7 +52,7 @@ function Summary({
         style: 'currency',
       }),
       footer: `${formatValue(debt.amount, {
-        maximumFractionDigits: 2,
+        maximumFractionDigits: 3,
       })} ${debt.currency.symbol}`,
       extra:
         editedPosition && debtInput && parseFloat(debtInput) !== 0
