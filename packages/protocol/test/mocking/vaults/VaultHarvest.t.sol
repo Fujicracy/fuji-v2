@@ -11,6 +11,8 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {IHarvestable} from "../../../src/interfaces/IHarvestable.sol";
+import {Strategy, HarvestManager} from "../../../src/HarvestManager.sol";
+import {IHarvestManager} from "../../../src/interfaces/IHarvestManager.sol";
 import {IFlasher} from "../../../src/interfaces/IFlasher.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
@@ -18,6 +20,7 @@ import {YieldVault} from "../../../src/vaults/yields/YieldVault.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {RebalancerManager} from "../../../src/RebalancerManager.sol";
 import {ISwapper} from "../../../src/interfaces/ISwapper.sol";
+import {MockSwapper} from "../../../src/mocks/MockSwapper.sol";
 
 contract MockProviderIdA is MockProvider {
   function providerName() public pure override returns (string memory) {
@@ -40,9 +43,14 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
 
   uint256 DavidPkey = 0xD;
   address DAVID = vm.addr(DavidPkey);
+  IHarvestManager harvestManager;
+
+  ISwapper swapper;
 
   uint256 HarvesterPkey = 0xABCD123;
   address HARVESTER = vm.addr(HarvesterPkey);
+  uint256 public constant TREASURY_PK = 0xF;
+  address public TREASURY = vm.addr(TREASURY_PK);
 
   uint256 public constant DEPOSIT_AMOUNT = 1 ether;
   uint256 public constant BORROW_AMOUNT = 1000e18;
@@ -83,8 +91,15 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
 
     _initializeVault(address(yvault), INITIALIZER, initVaultShares);
 
+    harvestManager = new HarvestManager(address(chief), TREASURY);
+    _grantRoleChief(HARVESTER_ROLE, address(harvestManager));
+
     bytes memory executionCall =
-      abi.encodeWithSelector(chief.grantRole.selector, HARVESTER_ROLE, HARVESTER);
+      abi.encodeWithSelector(harvestManager.allowExecutor.selector, HARVESTER, true);
+    _callWithTimelock(address(harvestManager), executionCall);
+
+    swapper = new MockSwapper(oracle);
+    executionCall = abi.encodeWithSelector(chief.allowSwapper.selector, address(swapper), true);
     _callWithTimelock(address(chief), executionCall);
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, ALICE);
@@ -98,17 +113,19 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
     do_deposit(DEPOSIT_AMOUNT, yvault, DAVID);
   }
 
-  //TODO
-  // function test_simpleHarvest() public {
-  //   bytes memory data = abi.encode(bvault);
-  //   vm.startPrank(HARVESTER);
-  //   bvault.harvest(
-  //     IVault.Strategy.Distribute, IHarvestable(address(mockProviderA)), ISwapper(address(0)), data
-  //   );
-  //   vm.stopPrank();
-  //
-  //   uint256 expectedRewards = 1e18;
-  //   MockERC20 rewardToken = MockERC20(bvault.asset());
-  //   assertEq(rewardToken.balanceOf(address(bvault)), expectedRewards);
-  // }
+  function test_harvestWithStrategy1() public {
+    uint256 balanceBefore = mockProviderA.getDepositBalance(address(bvault), bvault);
+
+    bytes memory data = abi.encode(bvault);
+    vm.startPrank(HARVESTER);
+    harvestManager.harvest(
+      bvault, Strategy.ConvertToCollateral, IHarvestable(address(mockProviderA)), swapper, data
+    );
+    vm.stopPrank();
+
+    uint256 expectedRewards = 1e18;
+    assertEq(
+      mockProviderA.getDepositBalance(address(bvault), bvault) - balanceBefore, expectedRewards
+    );
+  }
 }
