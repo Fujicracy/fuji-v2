@@ -16,6 +16,7 @@ import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { BorrowingVault } from '../entities/BorrowingVault';
 import { Chain } from '../entities/Chain';
 import { LendingVault } from '../entities/LendingVault';
+import { ChainId } from '../enums';
 import { FujiResult, FujiResultPromise, VaultWithFinancials } from '../types';
 import {
   Chief__factory,
@@ -268,23 +269,42 @@ export async function multiBatchLoad(
   account: Address | undefined
 ): FujiResultPromise<VaultWithFinancials[]> {
   try {
+    // Group vaults by chainId
+    const vaultsByChainId: Record<
+      ChainId,
+      { vaults: AbstractVault[]; chain: Chain }
+    > = Object.create(null);
+
+    for (const vault of vaults) {
+      const chainId = vault.chainId;
+      if (!vaultsByChainId[chainId]) {
+        vaultsByChainId[chainId] = { vaults: [], chain: vault.chain };
+      }
+      vaultsByChainId[chainId].vaults.push(vault);
+    }
+
+    // Make batchLoad calls for each group
     const results = await Promise.all(
-      vaults.map((vault) => batchLoad([vault], account, vault.chain))
+      Object.values(vaultsByChainId).map(({ vaults, chain }) =>
+        batchLoad(vaults, account, chain)
+      )
     );
 
-    // Use reduce to combine all results into a single array
+    // Combine all successful results into a single array
     const combinedResults: VaultWithFinancials[] = results.reduce(
       (acc: VaultWithFinancials[], result) => {
         if (result.success) {
           return [...acc, ...result.data];
         } else {
-          // Maybe we shouldn't just throw, instead skip and throw if there are no results
-          throw new Error(result.error.message);
+          // Ignore errors for the time being since we need to handle them
+          return acc;
         }
       },
       []
     );
-
+    if (combinedResults.length === 0) {
+      throw new Error('No results found!');
+    }
     return new FujiResultSuccess(combinedResults);
   } catch (error) {
     const message = FujiError.messageFromUnknownError(error);
