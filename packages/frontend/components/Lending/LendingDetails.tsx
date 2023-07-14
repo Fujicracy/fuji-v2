@@ -3,6 +3,7 @@ import { Card, Grid, Skeleton, Stack, Tooltip } from '@mui/material';
 import { AprResult, LendingVault, VaultType } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
+import { Period } from '../../helpers/charts';
 import { bigToFloat, formatBalance, formatValue } from '../../helpers/values';
 import { useLend } from '../../store/lend.store';
 import APYChart from '../Shared/Charts/APYChart';
@@ -15,7 +16,7 @@ import RiskBlock from './RiskBlock';
 import VaultStrategy from './VaultStrategy';
 
 function LendingDetails({ isEditing }: { isEditing: boolean }) {
-  const [selectedPeriod, setSelectedPeriod] = useState(1);
+  const [selectedPeriod, setSelectedPeriod] = useState(Period.WEEK);
   const [loading, setLoading] = useState<boolean>(false);
   const [depositData, setDepositData] = useState<AprResult[]>([]);
 
@@ -130,7 +131,9 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
               m: '-7rem 0 -6rem 0',
             }}
           />
-        ) : depositData.length > 0 ? (
+        ) : depositData &&
+          depositData.length > 0 &&
+          depositData.some((data) => data.aprStats.length > 0) ? (
           <>
             <APYChart data={depositData} tab={1} period={selectedPeriod} />
           </>

@@ -99,7 +99,9 @@ function Analytics() {
 
         {loading ? (
           loadingSkeleton
-        ) : currentData ? (
+        ) : currentData &&
+          currentData.length > 0 &&
+          currentData.some((data) => data.aprStats.length > 0) ? (
           <>
             <APYChart
               data={currentData}
