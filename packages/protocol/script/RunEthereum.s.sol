@@ -28,12 +28,12 @@ contract RunEthereum is ScriptPlus {
     vm.startBroadcast(deployer);
 
     setOrDeployChief(false);
-    setOrDeployConnextRouter(false);
+    /*setOrDeployConnextRouter(false);*/
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
     setOrDeployAddrMapper(false);
-    setOrDeployFlasherBalancer(false);
-    setOrDeployRebalancer(false);
+    /*setOrDeployFlasherBalancer(false);*/
+    /*setOrDeployRebalancer(false);*/
 
     _setLendingProviders();
 
@@ -60,7 +60,7 @@ contract RunEthereum is ScriptPlus {
     /*aaveV3 = new AaveV3();*/
     /*saveAddress("Aave_V3", address(aaveV3));*/
 
-    dforce = DForce(getAddress("DForce"));
+    /*dforce = DForce(getAddress("DForce"));*/
     /*dforce = new DForce();*/
     /*saveAddress("DForce", address(dforce));*/
 
