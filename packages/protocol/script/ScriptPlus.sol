@@ -419,6 +419,22 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     callBatchWithTimelock();
   }
 
+  function getConstructorArgs(string memory name) internal view {
+    IVault v = IVault(getAddress(name));
+    console.log(address(v));
+    bytes memory initCall = abi.encodeWithSignature(
+      "initialize(address,address,address,string,string,address[])",
+      v.asset(),
+      v.debtAsset(),
+      address(chief),
+      v.name(),
+      v.symbol(),
+      v.getProviders()
+    );
+    bytes memory constructorArgs = abi.encode(address(factory), initCall, address(chief));
+    console.logBytes(constructorArgs);
+  }
+
   // function initBorrowingVaults2() internal {
   //   bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
   //   VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
