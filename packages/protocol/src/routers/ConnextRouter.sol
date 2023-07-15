@@ -11,7 +11,7 @@ pragma solidity 0.8.15;
 
 import {IERC20, SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IConnext, IXReceiver} from "../interfaces/connext/IConnext.sol";
-import {XReceiveProxy} from "./XReceiveProxy.sol";
+import {ConnextReceiver} from "./ConnextReceiver.sol";
 import {ConnextHandler} from "./ConnextHandler.sol";
 import {BaseRouter} from "../abstracts/BaseRouter.sol";
 import {IWETH9} from "../abstracts/WETH9.sol";
@@ -26,12 +26,12 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   using SafeERC20 for IERC20;
 
   /**
-   * @dev Emitted when a new destination router gets added.
+   * @dev Emitted when a new destination ConnextReceiver gets added.
    *
-   * @param router the router on another chain
+   * @param router ConnextReceiver on another chain
    * @param domain the destination domain identifier according Connext nomenclature
    */
-  event NewRouterAdded(address indexed router, uint256 indexed domain);
+  event NewConnextReceiver(address indexed router, uint256 indexed domain);
 
   /**
    * @dev Emitted when Connext `xCall` is invoked.
@@ -84,7 +84,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   IConnext public immutable connext;
 
   ConnextHandler public immutable handler;
-  address public immutable xReceiveProxy;
+  address public immutable connextReceiver;
 
   /**
    * @notice A mapping of a domain of another chain and a deployed router there.
@@ -92,7 +92,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
    * @dev For the list of domains supported by Connext,
    * plz check: https://docs.connext.network/resources/deployments
    */
-  mapping(uint256 => address) public routerByDomain;
+  mapping(uint256 => address) public receiverByDomain;
 
   modifier onlySelf() {
     if (msg.sender != address(this)) {
@@ -101,8 +101,8 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     _;
   }
 
-  modifier onlyxReceiveProxy() {
-    if (msg.sender != xReceiveProxy) {
+  modifier onlyConnextReceiver() {
+    if (msg.sender != connextReceiver) {
       revert ConnextRouter__xReceive_notAllowedCaller();
     }
     _;
@@ -110,7 +110,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
   constructor(IWETH9 weth, IConnext connext_, IChief chief) BaseRouter(weth, chief) {
     connext = connext_;
-    xReceiveProxy = address(new XReceiveProxy(address(this)));
+    connextReceiver = address(new ConnextReceiver(address(this)));
     handler = new ConnextHandler(address(this));
     _allowCaller(msg.sender, true);
   }
@@ -148,14 +148,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     bytes memory callData
   )
     external
-    onlyxReceiveProxy
+    onlyConnextReceiver
     returns (bytes memory)
   {
     (Action[] memory actions, bytes[] memory args) = abi.decode(callData, (Action[], bytes[]));
 
     Snapshot memory tokenToCheck_ = Snapshot(asset, IERC20(asset).balanceOf(address(this)));
 
-    IERC20(asset).safeTransferFrom(xReceiveProxy, address(this), amount);
+    IERC20(asset).safeTransferFrom(connextReceiver, address(this), amount);
     /**
      * @dev Due to the AMM nature of Connext, there could be some slippage
      * incurred on the amount that this contract receives after bridging.
@@ -276,7 +276,9 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     _checkIfAddressZero(receiver);
     /// @dev In a simple _crossTransfer funds should not be left in destination `ConnextRouter.sol`
-    if (receiver == routerByDomain[destDomain]) revert ConnextRouter__crossTransfer_checkReceiver();
+    if (receiver == receiverByDomain[destDomain]) {
+      revert ConnextRouter__crossTransfer_checkReceiver();
+    }
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
     _safePullTokenFrom(asset, sender, amount);
@@ -336,7 +338,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
 
     beneficiary_ = _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(actions, args));
 
-    address to_ = routerByDomain[destDomain];
+    address to_ = receiverByDomain[destDomain];
     _checkIfAddressZero(to_);
 
     _safePullTokenFrom(asset, sender, amount);
@@ -361,7 +363,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     );
 
     emit XCalled(
-      transferId, msg.sender, routerByDomain[destDomain], destDomain, asset, amount, callData
+      transferId, msg.sender, receiverByDomain[destDomain], destDomain, asset, amount, callData
     );
 
     return beneficiary_;
@@ -429,21 +431,21 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   }
 
   /**
-   * @notice Registers an address of this contract deployed on another chain.
+   * @notice Registers an address of the ConnextReceiver deployed on another chain.
    *
    * @param domain unique identifier of a chain as defined in
    * https://docs.connext.network/resources/deployments
-   * @param router address of a router deployed on the chain defined by its domain
+   * @param receiver address of ConnextReceiver deployed on the chain defined by its domain
    *
-   * @dev The mapping domain -> router is used in `xReceive` to verify the origin sender.
+   * @dev The mapping domain -> receiver is used in `xReceive` to verify the origin sender.
    * Requirements:
    *  - Must be restricted to timelock.
-   *  - `router` must be a non-zero address.
+   *  - `receiver` must be a non-zero address.
    */
-  function setRouter(uint256 domain, address router) external onlyTimelock {
-    _checkIfAddressZero(router);
-    routerByDomain[domain] = router;
+  function setReceiver(uint256 domain, address receiver) external onlyTimelock {
+    _checkIfAddressZero(receiver);
+    receiverByDomain[domain] = receiver;
 
-    emit NewRouterAdded(router, domain);
+    emit NewConnextReceiver(receiver, domain);
   }
 }
