@@ -87,7 +87,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
   address public immutable connextReceiver;
 
   /**
-   * @notice A mapping of a domain of another chain and a deployed router there.
+   * @notice A mapping of a domain of another chain and a deployed ConnextReceiver there.
    *
    * @dev For the list of domains supported by Connext,
    * plz check: https://docs.connext.network/resources/deployments

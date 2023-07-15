@@ -94,7 +94,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     chainNames.push("optimism");
     chainNames.push("arbitrum");
     chainNames.push("gnosis");
-    chainNames.push("goerli");
+    /*chainNames.push("goerli");*/
   }
 
   function setUpOn(string memory chain) internal {
@@ -270,7 +270,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     }
   }
 
-  function setConnextRecievers() internal {
+  function setConnextReceivers() internal {
     uint256 len = chainNames.length;
 
     address current = address(connextRouter);

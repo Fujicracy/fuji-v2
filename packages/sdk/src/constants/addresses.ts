@@ -163,7 +163,9 @@ export const CHIEF_ADDRESS: AddressMap = {
 };
 
 export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(AddressZero),
+  [ChainId.ETHEREUM]: Address.from(
+    '0x12e5BD64CC72C5B2643c3D2C8A88dD05c361e513'
+  ),
   [ChainId.ARBITRUM]: Address.from(
     '0xCC1cF8f5f32ce55B6E798c8122d841e957077C59'
   ),
