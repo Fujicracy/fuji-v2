@@ -282,7 +282,10 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     address beneficiary_ = _checkBeneficiary(beneficiary, receiver);
 
     _safePullTokenFrom(asset, sender, amount);
-    _safeApprove(asset, address(connext), amount);
+    /// @dev Reassign if the encoded amount differs from the available balance (for ex. after soft withdraw or payback)
+    uint256 balance = IERC20(asset).balanceOf(address(this));
+    uint256 amount_ = balance < amount ? balance : amount;
+    _safeApprove(asset, address(connext), amount_);
 
     bytes32 transferId = connext.xcall(
       // _destination: Domain ID of the destination chain
@@ -295,7 +298,7 @@ contract ConnextRouter is BaseRouter, IXReceiver {
       // by calling Connext's forceUpdateSlippage function
       beneficiary_,
       // _amount: amount of tokens to transfer
-      amount,
+      amount_,
       // _slippage: can be anything between 0-10000 becaus
       // the maximum amount of slippage the user will accept in BPS, 30 == 0.3%
       slippage,
