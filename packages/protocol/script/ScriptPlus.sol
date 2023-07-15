@@ -125,7 +125,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connext), Chief(chief));
       saveAddress("ConnextRouter", address(connextRouter));
       saveAddress("ConnextHandler", address(connextRouter.handler()));
-      saveAddress("XReceiveProxy", address(connextRouter.xReceiveProxy()));
+      saveAddress("ConnextReceiver", address(connextRouter.connextReceiver()));
     } else {
       connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
     }
@@ -270,19 +270,21 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     }
   }
 
-  function setRouters() internal {
+  function setConnextRecievers() internal {
     uint256 len = chainNames.length;
 
     address current = address(connextRouter);
 
     uint32 domain;
-    address router;
+    address receiver;
     for (uint256 i; i < len; i++) {
       domain = getDomainByChainName(chainNames[i]);
-      router = getAddressAt("ConnextRouter", chainNames[i]);
-      if (connextRouter.routerByDomain(domain) != router && current != router) {
+      receiver = getAddressAt("ConnextReceiver", chainNames[i]);
+      if (connextRouter.receiverByDomain(domain) != receiver && current != receiver) {
         timelockTargets.push(current);
-        timelockDatas.push(abi.encodeWithSelector(connextRouter.setRouter.selector, domain, router));
+        timelockDatas.push(
+          abi.encodeWithSelector(connextRouter.setReceiver.selector, domain, receiver)
+        );
         timelockValues.push(0);
       }
     }
