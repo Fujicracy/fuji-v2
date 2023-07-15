@@ -37,6 +37,8 @@ contract RunGnosis is ScriptPlus {
       deployYieldVaults();
     }
 
+    /*upgradeBorrowingImpl(false);*/
+
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 55);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
