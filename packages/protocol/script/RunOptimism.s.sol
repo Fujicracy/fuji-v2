@@ -45,6 +45,8 @@ contract RunOptimism is ScriptPlus {
     // If setting all routers at once, call after deploying all chians
     /*setConnextReceivers();*/
 
+    /*upgradeBorrowingImpl(false);*/
+
     vm.stopBroadcast();
   }
 

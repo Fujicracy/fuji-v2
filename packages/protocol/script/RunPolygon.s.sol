@@ -47,6 +47,8 @@ contract RunPolygon is ScriptPlus {
     // If setting all routers at once, call after deploying all chains
     /*setConnextReceivers();*/
 
+    /*upgradeBorrowingImpl(false);*/
+
     vm.stopBroadcast();
   }
 
