@@ -28,7 +28,7 @@ contract RunEthereum is ScriptPlus {
     vm.startBroadcast(deployer);
 
     setOrDeployChief(false);
-    /*setOrDeployConnextRouter(false);*/
+    setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
     setOrDeployAddrMapper(false);
@@ -46,7 +46,7 @@ contract RunEthereum is ScriptPlus {
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
     // If setting all routers at once, call after deploying all chians
-    /*setRouters();*/
+    /*setConnextReceivers();*/
 
     vm.stopBroadcast();
   }
