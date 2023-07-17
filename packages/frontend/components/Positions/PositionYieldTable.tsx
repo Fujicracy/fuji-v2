@@ -23,7 +23,6 @@ import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { Position } from '../../store/models/Position';
 import { CurrencyWithNetworkIcon } from '../Shared/Icons';
-import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import EmptyState from './EmptyState';
 
 type PositionYieldTableProps = {
@@ -94,13 +93,12 @@ function PositionYieldTable({
                 </TableCell>
               )}
               <TableCell>
-                <Stack direction="row" alignItems="center" pt={1} pb={1}>
-                  <CurrencyTableItem
-                    currency={row.collateral.symbol}
-                    label={row.collateral.symbol}
-                    iconDimensions={32}
-                  />
-                </Stack>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  pt={1}
+                  pb={1}
+                ></Stack>
               </TableCell>
               {!isLend && row.debt && (
                 <TableCell align="right">

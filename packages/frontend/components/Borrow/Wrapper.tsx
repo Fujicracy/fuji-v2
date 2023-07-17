@@ -12,7 +12,7 @@ import React, { useEffect, useState } from 'react';
 import {
   PositionData,
   viewDynamicBorrowingPosition,
-  viewEditedPosition,
+  viewEditedBorrowingPosition,
 } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
@@ -67,8 +67,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
 
       editedPosition =
         matchPosition && baseDebt
-          ? viewEditedPosition(
-              VaultType.BORROW,
+          ? viewEditedBorrowingPosition(
               baseCollateral,
               baseDebt,
               matchPosition,

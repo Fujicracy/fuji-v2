@@ -4,7 +4,8 @@ import { AprResult, LendingVault, VaultType } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { Period } from '../../helpers/charts';
-import { bigToFloat, formatBalance, formatValue } from '../../helpers/values';
+import { PositionData } from '../../helpers/positions';
+import { formatValue } from '../../helpers/values';
 import { useLend } from '../../store/lend.store';
 import APYChart from '../Shared/Charts/APYChart';
 import ChartAPYHeader from '../Shared/Charts/ChartAPYHeader';
@@ -15,7 +16,12 @@ import VaultSelect from '../Shared/VaultSelect/VaultSelect';
 import RiskBlock from './RiskBlock';
 import VaultStrategy from './VaultStrategy';
 
-function LendingDetails({ isEditing }: { isEditing: boolean }) {
+type LendingDetailsProps = {
+  isEditing: boolean;
+  positionData?: PositionData;
+};
+
+function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
   const [selectedPeriod, setSelectedPeriod] = useState(Period.WEEK);
   const [loading, setLoading] = useState<boolean>(false);
   const [depositData, setDepositData] = useState<AprResult[]>([]);
@@ -40,6 +46,8 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
     }
   }, [depositData, vault]);
 
+  const { position } = positionData || {};
+
   return (
     <>
       {!isEditing && <VaultSelect type={VaultType.LEND} />}
@@ -47,13 +55,14 @@ function LendingDetails({ isEditing }: { isEditing: boolean }) {
       <Grid container spacing={2} mb={2}>
         <Grid item xs={12} sm={6}>
           <InfoBlock
-            label={`My Deposits (${activeProvider?.name})`}
-            value={`${formatBalance(
-              bigToFloat(
-                availableVaults[0]?.vault?.collateral?.decimals,
-                availableVaults[0]?.depositBalance
-              )
-            )} ${availableVaults[0]?.vault?.collateral?.symbol}`}
+            label={`My Deposits`}
+            value={
+              position
+                ? `${formatValue(position.collateral.amount, {
+                    maximumFractionDigits: 3,
+                  })} ${position.collateral.currency.wrapped.symbol}`
+                : 0
+            }
             loading={loading}
             contrast
           />

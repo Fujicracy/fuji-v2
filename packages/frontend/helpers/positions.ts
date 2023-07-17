@@ -214,34 +214,57 @@ export const getRows = (positions: Position[]): PositionRow[] => {
   }
 };
 
-/**
- * @returns The edited position according to intended changes in `collateral` or `debt`.
- *
- * @param collateral input changes as `AssetChange`
- * @param debt input changes as `AssetChange`
- * @param current
- * @param mode
- */
-export const viewEditedPosition = (
-  type: VaultType,
+export const viewEditedLendingPosition = (
+  collateral: AssetChange,
+  current: LendingPosition,
+  mode: Mode
+): LendingPosition => {
+  const future = JSON.parse(JSON.stringify(current));
+  const collateralInput = parseFloat(
+    collateral.input === '' ? '0' : collateral.input
+  );
+  if (mode === Mode.DEPOSIT) {
+    future.collateral.amount = current.collateral.amount + collateralInput;
+  } else if (mode === Mode.WITHDRAW) {
+    future.collateral.amount = current.collateral.amount - collateralInput;
+  }
+  return future;
+};
+
+export const viewEditedBorrowingPosition = (
   collateral: AssetChange,
   debt: AssetChange,
-  current: Position,
+  current: BorrowingPosition,
   mode: Mode
-): Position => {
-  if (type === VaultType.BORROW) {
-    return viewEditedBorrowingPosition(
-      collateral,
-      debt,
-      current as BorrowingPosition,
-      mode
-    );
-  }
-  return viewEditedLendingPosition(
-    collateral,
-    current as LendingPosition,
-    mode
+): BorrowingPosition => {
+  const future = JSON.parse(JSON.stringify(current));
+  const collateralInput = parseFloat(
+    collateral.input === '' ? '0' : collateral.input
   );
+  const debtInput = parseFloat(debt.input === '' ? '0' : debt.input);
+  if (mode === Mode.DEPOSIT) {
+    future.collateral.amount = current.collateral.amount + collateralInput;
+  } else if (mode === Mode.WITHDRAW) {
+    future.collateral.amount = current.collateral.amount - collateralInput;
+  } else if (mode === Mode.DEPOSIT_AND_BORROW) {
+    future.collateral.amount = current.collateral.amount + collateralInput;
+    future.debt.amount = current.debt.amount + debtInput;
+  } else if (mode === Mode.PAYBACK_AND_WITHDRAW) {
+    future.collateral.amount = current.collateral.amount - collateralInput;
+    future.debt.amount = current.debt.amount - debtInput;
+  } else if (mode === Mode.PAYBACK) {
+    future.debt.amount = current.debt.amount - debtInput;
+  } else if (mode === Mode.BORROW) {
+    future.debt.amount = current.debt.amount + debtInput;
+  }
+  const collatUsdValue = future.collateral.amount * future.collateral.usdPrice;
+  const debtUsdValue = future.debt.amount * future.debt.usdPrice;
+  future.ltv = (debtUsdValue / collatUsdValue) * 100;
+  future.liquidationPrice =
+    debtUsdValue / (future.ltvThreshold * future.collateral.amount);
+  future.liquidationDiff = future.collateral.usdPrice - future.liquidationPrice;
+  future.ltvThreshold = future.ltvThreshold * 100;
+  return future;
 };
 
 export const viewDynamicLendingPosition = (
@@ -396,57 +419,4 @@ const dynamicPositionMeta = (
     usdPrice: source.usdPrice,
     currency: source.currency,
   };
-};
-
-const viewEditedLendingPosition = (
-  collateral: AssetChange,
-  current: LendingPosition,
-  mode: Mode
-): LendingPosition => {
-  const future = JSON.parse(JSON.stringify(current));
-  const collateralInput = parseFloat(
-    collateral.input === '' ? '0' : collateral.input
-  );
-  if (mode === Mode.DEPOSIT) {
-    future.collateral.amount = current.collateral.amount + collateralInput;
-  } else if (mode === Mode.WITHDRAW) {
-    future.collateral.amount = current.collateral.amount - collateralInput;
-  }
-  return future;
-};
-
-const viewEditedBorrowingPosition = (
-  collateral: AssetChange,
-  debt: AssetChange,
-  current: BorrowingPosition,
-  mode: Mode
-): BorrowingPosition => {
-  const future = JSON.parse(JSON.stringify(current));
-  const collateralInput = parseFloat(
-    collateral.input === '' ? '0' : collateral.input
-  );
-  const debtInput = parseFloat(debt.input === '' ? '0' : debt.input);
-  if (mode === Mode.DEPOSIT) {
-    future.collateral.amount = current.collateral.amount + collateralInput;
-  } else if (mode === Mode.WITHDRAW) {
-    future.collateral.amount = current.collateral.amount - collateralInput;
-  } else if (mode === Mode.DEPOSIT_AND_BORROW) {
-    future.collateral.amount = current.collateral.amount + collateralInput;
-    future.debt.amount = current.debt.amount + debtInput;
-  } else if (mode === Mode.PAYBACK_AND_WITHDRAW) {
-    future.collateral.amount = current.collateral.amount - collateralInput;
-    future.debt.amount = current.debt.amount - debtInput;
-  } else if (mode === Mode.PAYBACK) {
-    future.debt.amount = current.debt.amount - debtInput;
-  } else if (mode === Mode.BORROW) {
-    future.debt.amount = current.debt.amount + debtInput;
-  }
-  const collatUsdValue = future.collateral.amount * future.collateral.usdPrice;
-  const debtUsdValue = future.debt.amount * future.debt.usdPrice;
-  future.ltv = (debtUsdValue / collatUsdValue) * 100;
-  future.liquidationPrice =
-    debtUsdValue / (future.ltvThreshold * future.collateral.amount);
-  future.liquidationDiff = future.collateral.usdPrice - future.liquidationPrice;
-  future.ltvThreshold = future.ltvThreshold * 100;
-  return future;
 };

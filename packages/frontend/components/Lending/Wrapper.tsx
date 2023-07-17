@@ -1,6 +1,17 @@
 import { Box, Container, Divider } from '@mui/material';
 import Head from 'next/head';
+import { useEffect, useState } from 'react';
 
+import {
+  PositionData,
+  viewDynamicLendingPosition,
+  viewEditedLendingPosition,
+} from '../../helpers/positions';
+import { useAuth } from '../../store/auth.store';
+import { useLend } from '../../store/lend.store';
+import { LendingPosition, Position } from '../../store/models/Position';
+import { useNavigation } from '../../store/navigation.store';
+import { usePositions } from '../../store/positions.store';
 import { FormType } from '../../store/types/state';
 import Footer from '../App/Footer';
 import Lending from './Lending';
@@ -13,8 +24,56 @@ type LendingWrapperProps = {
   };
 };
 
-function LendingWrapper({ formType }: LendingWrapperProps) {
+function LendingWrapper({ formType, query }: LendingWrapperProps) {
+  const address = useAuth((state) => state.address);
+  const positions = usePositions((state) => state.lendingPositions);
+  const baseCollateral = useLend((state) => state.collateral);
+  const mode = useLend((state) => state.mode);
+  const willLoadLend = useNavigation((state) => state.lendPage.willLoad);
   const isEditing = formType === FormType.Edit;
+
+  const [positionData, setPositionData] = useState<PositionData | undefined>(
+    undefined
+  );
+  const [loading, setLoading] = useState<boolean>(
+    isEditing && (!positions || positions.length === 0)
+  );
+
+  useEffect(() => {
+    let matchPosition: LendingPosition | undefined;
+    let editedPosition: Position | undefined;
+
+    if (address && positions.length > 0 && query) {
+      matchPosition = (positions as LendingPosition[]).find(
+        (position) =>
+          position.vault?.address.value === query.address &&
+          position.vault?.chainId.toString() === query.chain
+      );
+
+      editedPosition = matchPosition
+        ? viewEditedLendingPosition(baseCollateral, matchPosition, mode)
+        : undefined;
+    }
+
+    if (willLoadLend) return;
+
+    const newPositionData = viewDynamicLendingPosition(
+      isEditing,
+      matchPosition,
+      editedPosition as LendingPosition
+    );
+
+    setPositionData(newPositionData);
+  }, [
+    formType,
+    baseCollateral,
+    address,
+    positions,
+    mode,
+    isEditing,
+    willLoadLend,
+    query,
+  ]);
 
   return (
     <>
@@ -41,7 +100,7 @@ function LendingWrapper({ formType }: LendingWrapperProps) {
         }}
       >
         <Box sx={{ height: '45rem', width: '100%' }}>
-          <Lending />
+          <Lending positionData={positionData} />
         </Box>
       </Container>
 
