@@ -19,7 +19,9 @@ function Balance({ balance = 0, symbol, dataCy }: Props) {
 
   return (
     <span id="balance-amount" data-cy={dataCy}>
-      {balance > 0 && balance < DUST_AMOUNT ? '< 0.0001' : formattedBalance}{' '}
+      {balance > 0 && balance < DUST_AMOUNT
+        ? `< ${DUST_AMOUNT}`
+        : formattedBalance}{' '}
       {symbol}
     </span>
   );
