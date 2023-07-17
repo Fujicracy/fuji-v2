@@ -59,4 +59,15 @@ interface IHarvestManager {
     bytes memory data
   )
     external;
+
+  function completeHarvest(
+    IVault vault,
+    Strategy strategy,
+    IHarvestable provider,
+    ISwapper swapper,
+    address[] memory tokens,
+    uint256[] memory amounts
+  )
+    external
+    returns (bytes memory data);
 }
