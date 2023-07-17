@@ -135,7 +135,6 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
         totalAmount += amounts[i];
       }
     }
-    IERC20(collateralAsset).safeTransfer(address(vault), totalAmount);
     data = abi.encodeWithSelector(vault.deposit.selector, totalAmount, vault);
   }
 
