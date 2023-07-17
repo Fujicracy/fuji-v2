@@ -1,3 +1,4 @@
+import { DUST_AMOUNT } from '../../constants';
 import { toNotSoFixed } from '../../helpers/values';
 
 type Props = {
@@ -13,11 +14,13 @@ type Props = {
   dataCy?: string;
 };
 
-function Balance({ balance, symbol, dataCy }: Props) {
-  const formattedBalance = toNotSoFixed(balance, true); //formatBalance(balance)
+function Balance({ balance = 0, symbol, dataCy }: Props) {
+  const formattedBalance = toNotSoFixed(balance, true);
+
   return (
     <span id="balance-amount" data-cy={dataCy}>
-      {formattedBalance} {symbol}
+      {balance > 0 && balance < DUST_AMOUNT ? '< 0.0001' : formattedBalance}{' '}
+      {symbol}
     </span>
   );
 }
