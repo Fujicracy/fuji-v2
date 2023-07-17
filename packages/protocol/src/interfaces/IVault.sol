@@ -506,28 +506,12 @@ interface IVault is IERC4626 {
    *
    */
   function harvest(
+    IVault vault,
     Strategy strategy,
     IHarvestable provider,
+    ISwapper swapper,
     bytes memory data
   )
     external
     returns (address[] memory tokens, uint256[] memory amounts);
-
-  /**
-   * @dev Completes harvest logic at provider.
-   * Will execute a delegate call to the given provider.
-   *
-   * @param provider address of provider to complete harvest
-   * @param data bytes to be used by the provider on the given delegate call
-   *
-   * Requirements:
-   * - Must be called by a harvester.
-   * - Must encode data with selector
-   */
-  function completeHarvest(
-    address provider,
-    bytes memory data
-  )
-    external
-    returns (bytes memory returnData);
 }
