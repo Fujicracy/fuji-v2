@@ -31,11 +31,15 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
   error HarvestManager__zeroAddress();
   error HarvestManager__harvest_notValidExecutor();
   error HarvestManager__harvest_notValidSwapper();
+  error HarvestManager__harvest_harvestAlreadyInProgress();
+  error HarvestManager__harvest_vaultNotAllowed();
 
   address public immutable treasury;
 
   /// @dev addresses allowed to harvest via this manager.
   mapping(address => bool) public allowedExecutor;
+
+  address private currentVaultHarvest;
 
   constructor(address chief_, address treasury_) {
     __SystemAccessControl_init(chief_);
@@ -74,32 +78,57 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
       revert HarvestManager__harvest_notValidSwapper();
     }
 
-    (address[] memory tokens, uint256[] memory amounts) = vault.harvest(strategy, provider, data);
+    if (currentVaultHarvest != address(0)) {
+      revert HarvestManager__harvest_harvestAlreadyInProgress();
+    }
+
+    currentVaultHarvest = address(vault);
+
+    vault.harvest(vault, strategy, provider, swapper, data);
+  }
+
+  function completeHarvest(
+    IVault vault,
+    Strategy strategy,
+    IHarvestable provider,
+    ISwapper swapper,
+    address[] memory tokens,
+    uint256[] memory amounts
+  )
+    external
+    returns (bytes memory data)
+  {
+    if (msg.sender != currentVaultHarvest) {
+      revert HarvestManager__harvest_vaultNotAllowed();
+    }
 
     if (strategy == Strategy.ConvertToCollateral) {
-      return _convertToCollateral(provider, tokens, amounts, swapper, vault);
+      data = _convertToCollateral(tokens, amounts, swapper, vault);
     }
     if (strategy == Strategy.RepayDebt) {
-      return _repayDebt(provider, tokens, amounts, swapper, vault);
+      data = _repayDebt(provider, tokens, amounts, swapper, vault);
     }
     if (strategy == Strategy.Distribute) {
-      return _distribute(tokens, amounts, vault);
+      data = _distribute(tokens, amounts, vault);
     }
+
+    currentVaultHarvest = address(0);
   }
 
   function _convertToCollateral(
-    IHarvestable provider,
     address[] memory tokens,
     uint256[] memory amounts,
     ISwapper swapper,
     IVault vault
   )
     internal
+    returns (bytes memory data)
   {
     uint256 totalAmount = 0;
     address collateralAsset = vault.asset();
     for (uint256 i = 0; i < tokens.length; i++) {
       if (tokens[i] != collateralAsset) {
+        IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
         totalAmount +=
           _swap(swapper, address(tokens[i]), address(collateralAsset), amounts[i], address(vault));
       } else {
@@ -107,12 +136,9 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
       }
     }
     IERC20(collateralAsset).safeTransfer(address(vault), totalAmount);
-    bytes memory data = abi.encodeWithSelector(vault.deposit.selector, totalAmount, vault);
-    vault.completeHarvest(address(provider), data);
+    data = abi.encodeWithSelector(vault.deposit.selector, totalAmount, vault);
   }
 
-  //TODO
-  //should revert if its not borrowing vault->this is enforced in the first call to vault.harvest
   function _repayDebt(
     IHarvestable provider,
     address[] memory tokens,
@@ -121,6 +147,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     IVault vault
   )
     internal
+    returns (bytes memory data)
   {
     address debtAsset = BorrowingVault(payable(address(vault))).debtAsset();
     //check provider total debt
@@ -131,18 +158,19 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     uint256 amountSwapped = 0;
     for (uint256 i = 0; i < tokens.length; i++) {
       if (tokens[i] == debtAsset) {
+        IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
         continue;
       }
       //swap desired amount here
       //stop if totalSwapped >= providerDebt?
+      IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
       amountSwapped += _swap(swapper, tokens[i], debtAsset, amounts[i], address(this));
     }
 
     IERC20(debtAsset).safeTransfer(address(vault), providerDebt);
-    bytes memory data = abi.encodeWithSelector(
+    data = abi.encodeWithSelector(
       ILendingProvider(address(provider)).payback.selector, providerDebt, vault
     );
-    vault.completeHarvest(address(provider), data);
 
     //should send remaining amount to treasury
     if (amountSwapped > providerDebt) {
@@ -151,7 +179,14 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
   }
 
   //TODO
-  function _distribute(address[] memory tokens, uint256[] memory amounts, IVault vault) internal {}
+  function _distribute(
+    address[] memory tokens,
+    uint256[] memory amounts,
+    IVault vault
+  )
+    internal
+    returns (bytes memory data)
+  {}
 
   /**
    * @notice Swaps `assetIn` for `assetOut` using `swapper`.

@@ -25,6 +25,7 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
+import {IHarvestManager} from "../interfaces/IHarvestManager.sol";
 import {IHarvestable} from "../interfaces/IHarvestable.sol";
 import {Strategy} from "../interfaces/IHarvestManager.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
@@ -969,8 +970,10 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IVault
   function harvest(
+    IVault vault,
     Strategy strategy,
     IHarvestable provider,
+    ISwapper swapper,
     bytes memory data
   )
     external
@@ -995,8 +998,13 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
     for (uint256 i = 0; i < tokens.length; i++) {
       //transfer rewards to recipient
-      IERC20(tokens[i]).safeTransfer(msg.sender, amounts[i]);
+      IERC20(tokens[i]).safeIncreaseAllowance(msg.sender, amounts[i]);
     }
+
+    bytes memory callData = IHarvestManager(msg.sender).completeHarvest(
+      vault, strategy, provider, swapper, tokens, amounts
+    );
+    _completeHarvest(address(provider), callData);
   }
 
   /**
@@ -1019,13 +1027,11 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     (tokens, amounts) = abi.decode(returnData, (address[], uint256[]));
   }
 
-  /// @inheritdoc IVault
-  function completeHarvest(
+  function _completeHarvest(
     address provider,
     bytes memory data
   )
-    external
-    hasRole(msg.sender, HARVESTER_ROLE)
+    internal
     returns (bytes memory returnData)
   {
     returnData = address(provider).functionDelegateCall(
