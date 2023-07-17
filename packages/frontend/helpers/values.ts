@@ -99,6 +99,27 @@ export const toNotSoFixed = (
     .replace(/\.?0+$/, '');
 };
 
+export const formatAssetWithSymbol = ({
+  amount = BigNumber.from('0'),
+  symbol = '',
+  decimals = 18,
+  maximumFractionDigits = 4,
+}: {
+  amount?: BigNumberish | number;
+  symbol?: string;
+  decimals?: number;
+  maximumFractionDigits?: number;
+}) => {
+  const value =
+    typeof amount === 'number'
+      ? amount
+      : typeof amount === 'string'
+      ? parseFloat(amount)
+      : parseFloat(formatUnits(amount, decimals));
+
+  return `${formatValue(value, { maximumFractionDigits })} ${symbol}`;
+};
+
 export const camelize = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
