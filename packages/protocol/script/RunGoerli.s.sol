@@ -30,6 +30,8 @@ contract RunGoerli is ScriptPlus {
       /*setBorrowingVaults();*/
     }
 
+    /*upgradeBorrowingImpl(false);*/
+
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 

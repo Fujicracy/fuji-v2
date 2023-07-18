@@ -18,42 +18,95 @@ contract ScriptUtilities is Script {
     return vm.parseJsonAddress(configJson, string.concat(".", key));
   }
 
-  function saveAddress(string memory contractName, address addr) internal {
-    require(bytes(chainName).length != 0, "Set 'chainName' in setUp()");
-
-    string memory path = string.concat("deployments/", chainName, "/", contractName);
-
-    _saveAddress(path, addr);
+  function saveAddress(string memory contractLabel, address addr) internal {
+    string memory path = getContractLabelPathAt(contractLabel, chainName);
+    createAndSaveFile(path, vm.toString(addr));
   }
 
-  function _saveAddress(string memory path, address addr) internal {
-    try vm.removeFile(path) {}
-    catch {
-      console.log(string(abi.encodePacked("Creating a new record at ", path)));
-    }
-    vm.writeLine(path, vm.toString(addr));
-  }
-
-  function getAddress(string memory contractName) internal view returns (address addr) {
-    require(bytes(chainName).length != 0, "Set 'chainName' in setUp()");
-
-    addr = _getAddress(string.concat("deployments/", chainName, "/", contractName));
+  function getAddress(string memory contractLabel) internal view returns (address addr) {
+    string memory content = vm.readFile(getContractLabelPathAt(contractLabel, chainName));
+    addr = vm.parseAddress(content);
   }
 
   function getAddressAt(
-    string memory contractName,
+    string memory contractLabel,
     string memory _chainName
   )
     internal
     view
     returns (address addr)
   {
-    addr = _getAddress(string.concat("deployments/", _chainName, "/", contractName));
+    string memory content = vm.readFile(getContractLabelPathAt(contractLabel, _chainName));
+    addr = vm.parseAddress(content);
   }
 
-  function _getAddress(string memory path) internal view returns (address addr) {
-    string memory content = vm.readFile(path);
-    addr = vm.parseAddress(content);
+  function saveStorageLayout(string memory contractName) internal {
+    string memory path = getStorageLayoutPath(contractName);
+    saveStorageLayoutAt(contractName, path);
+  }
+
+  function saveStorageLayoutAt(string memory contractName, string memory path) internal {
+    bytes memory layout = getStorageLayout(contractName);
+    createAndSaveFile(path, string(layout));
+  }
+
+  function getStorageLayout(string memory contractName) internal returns (bytes memory layout) {
+    string[] memory script = new string[](4);
+    script[0] = "forge";
+    script[1] = "inspect";
+    script[2] = contractName;
+    script[3] = "storage-layout";
+
+    layout = vm.ffi(script);
+  }
+
+  function getStorageLayoutPath(string memory contractName)
+    internal
+    view
+    returns (string memory path)
+  {
+    require(bytes(chainName).length != 0, "Set 'chainName' in setUp()");
+    path = string.concat("deployments/", chainName, "/", contractName, ".storage-layout");
+  }
+
+  function getContractLabelPathAt(
+    string memory contractLabel,
+    string memory _chainName
+  )
+    internal
+    view
+    returns (string memory path)
+  {
+    require(bytes(chainName).length != 0, "Set 'chainName' in setUp()");
+    path = string.concat("deployments/", _chainName, "/", contractLabel);
+  }
+
+  function createAndSaveFile(string memory path, string memory content) internal {
+    try vm.removeFile(path) {}
+    catch {
+      console.log(string(abi.encodePacked("Creating a new record at ", path)));
+    }
+
+    vm.writeLine(path, content);
+  }
+
+  function tryLoadEnvBool(
+    bool defaultVal,
+    string memory varName
+  )
+    internal
+    virtual
+    returns (bool val)
+  {
+    val = defaultVal;
+
+    if (!val) {
+      try vm.envBool(varName) returns (bool val_) {
+        val = val_;
+      } catch {}
+    }
+
+    if (val) console.log("%s=true", varName);
   }
 
   function getPrivKey() internal view returns (uint256 key) {
