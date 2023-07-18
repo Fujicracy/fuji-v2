@@ -512,8 +512,8 @@ abstract contract BaseVaultUpgradeable is
 
     uint256 maxWithdraw_ = maxWithdraw(owner);
     if (assets > maxWithdraw_) {
-      shares_ = balanceOf(owner);
       assets_ = maxWithdraw_;
+      shares_ = assets_.mulDiv(shares, assets);
     } else {
       assets_ = assets;
       shares_ = shares;
