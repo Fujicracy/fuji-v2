@@ -25,6 +25,7 @@ import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import OperationHeader from '../Shared/OperationHeader/Header';
 import { SignTooltip } from '../Shared/Tooltips';
+import VaultWarning from '../Shared/VaultWarning';
 import WarningInfo from '../Shared/WarningInfo';
 import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
@@ -187,23 +188,7 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
   };
 
   const warningContent = useMemo(() => {
-    return (
-      <>
-        {`Based on your selection, we\'ve noticed that you have an open ${
-          vault?.collateral?.symbol
-        }/${vault?.debt?.symbol}
-        position on ${chainName(
-          vault?.chainId
-        )}. You may proceed to manage it. `}
-        {availableRoutes.length > 1 && (
-          <>
-            {
-              "If you're trying to open a similar position on another chain, please select a different route."
-            }
-          </>
-        )}
-      </>
-    );
+    return <VaultWarning availableRoutes={availableRoutes} vault={vault} />;
   }, [availableRoutes, vault]);
 
   const shouldWarningBeDisplayed =

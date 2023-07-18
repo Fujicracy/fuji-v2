@@ -23,6 +23,7 @@ import FormAssetBox from '../Shared/FormAssetBox/Box';
 import OperationHeader from '../Shared/OperationHeader/Header';
 import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { SignTooltip } from '../Shared/Tooltips';
+import VaultWarning from '../Shared/VaultWarning';
 import WarningInfo from '../Shared/WarningInfo';
 import LendingButton from './Button';
 
@@ -156,17 +157,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
   };
 
   const warningContent = useMemo(() => {
-    return (
-      <>
-        {`Based on your selection, we\'ve noticed that you have an open ${
-          vault?.collateral?.symbol
-        } lending position on ${chainName(
-          vault?.chainId
-        )}. You may proceed to manage it. `}
-        {availableRoutes.length > 1 &&
-          "If you're trying to open a similar position on another chain, please select a different route."}
-      </>
-    );
+    return <VaultWarning availableRoutes={availableRoutes} vault={vault} />;
   }, [availableRoutes, vault]);
 
   const shouldWarningBeDisplayed =
