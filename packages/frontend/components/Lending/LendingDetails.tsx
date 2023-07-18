@@ -63,27 +63,33 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
                   })} ${position.collateral.currency.wrapped.symbol}`
                 : 0
             }
+            tooltip={'Deposits to a selected vault'}
+            extra={'... after'}
             loading={loading}
             contrast
           />
         </Grid>
         <Grid item xs={12} sm={6}>
-          {availableVaults[0] && (
-            <InfoBlock
-              label={`Total Supplied (${activeProvider?.name})`}
-              value={
+          <InfoBlock
+            label={`Total Supplied (${activeProvider?.name})`}
+            value={
+              availableVaults[0] && activeProvider?.totalSupplyUsd ? (
                 `${formatValue(activeProvider?.totalSupplyUsd, {
                   style: 'currency',
-                })}` || (
-                  <Tooltip title="Error loading data" arrow>
-                    <ErrorOutlineIcon />
-                  </Tooltip>
-                )
-              }
-              loading={loading}
-              contrast
-            />
-          )}
+                })}`
+              ) : (
+                <Tooltip
+                  title="Error loading data"
+                  arrow
+                  sx={{ width: 20, height: 20 }}
+                >
+                  <ErrorOutlineIcon />
+                </Tooltip>
+              )
+            }
+            loading={loading}
+            contrast
+          />
         </Grid>
       </Grid>
 

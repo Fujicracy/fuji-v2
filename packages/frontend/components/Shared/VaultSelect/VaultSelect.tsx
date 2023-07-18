@@ -29,7 +29,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
   const [isUnFolded, setUnFolded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedRoute, setSelectedRoute] = useState(0);
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const [openedRouteHeight, setOpenedHeight] = useState<number>(0);

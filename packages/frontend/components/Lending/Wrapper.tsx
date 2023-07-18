@@ -1,6 +1,7 @@
-import { Box, Container, Divider } from '@mui/material';
+import { Box, CircularProgress, Container, Divider, Grid } from '@mui/material';
+import { LendingVault } from '@x-fuji/sdk';
 import Head from 'next/head';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   PositionData,
@@ -75,6 +76,17 @@ function LendingWrapper({ formType, query }: LendingWrapperProps) {
     query,
   ]);
 
+  useEffect(() => {
+    if (isEditing && loading && positionData) {
+      const vault = positionData.position.vault;
+      if (vault && vault instanceof LendingVault) {
+        const changeAll = useLend.getState().changeAll;
+        changeAll(vault, vault.collateral);
+        setLoading(false);
+      }
+    }
+  }, [isEditing, positionData, loading]);
+
   return (
     <>
       <Head>
@@ -99,9 +111,22 @@ function LendingWrapper({ formType, query }: LendingWrapperProps) {
           minHeight: '75vh',
         }}
       >
-        <Box sx={{ height: '45rem', width: '100%' }}>
-          <Lending positionData={positionData} />
-        </Box>
+        {loading ? (
+          <Grid
+            container
+            spacing={0}
+            direction="column"
+            alignItems="center"
+            justifyContent="center"
+            style={{ minHeight: '75vh' }}
+          >
+            <CircularProgress size={32} />
+          </Grid>
+        ) : (
+          <Box sx={{ height: '45rem', width: '100%' }}>
+            <Lending positionData={positionData} />
+          </Box>
+        )}
       </Container>
 
       <Footer />

@@ -2,6 +2,7 @@ import { Box, Skeleton, Stack, Typography, useMediaQuery } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import React, { ReactNode } from 'react';
 
+import ExtraInfoChip from './ExtraInfoChip';
 import InfoTooltip from './Tooltips/InfoTooltip';
 
 type InfoBlockProps = {
@@ -10,6 +11,7 @@ type InfoBlockProps = {
   loading: boolean;
   tooltip?: string;
   contrast?: boolean;
+  extra?: string;
 };
 
 function InfoBlock({
@@ -18,6 +20,7 @@ function InfoBlock({
   loading,
   tooltip,
   contrast,
+  extra,
 }: InfoBlockProps) {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
@@ -40,7 +43,7 @@ function InfoBlock({
           <Typography variant="smallDark" fontSize="0.75rem">
             {label}
           </Typography>
-          {tooltip && !isMobile && <InfoTooltip title={'test'} />}
+          {tooltip && !isMobile && <InfoTooltip title={tooltip} />}
         </Stack>
       )}
 
@@ -49,12 +52,12 @@ function InfoBlock({
       ) : (
         <Typography
           fontSize="1rem"
-          lineHeight="160%"
+          lineHeight="100%"
           fontWeight={400}
           component={'span'}
-          mt="0.5rem"
+          sx={{ display: 'inline-block', mt: 1 }}
         >
-          {value}
+          {value} <ExtraInfoChip text={extra} />
         </Typography>
       )}
     </Box>
