@@ -1,19 +1,22 @@
 import { Box, Divider, Stack, Typography } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 
 import { TabOption } from '../../../constants';
-import { ActionType } from '../../../helpers/assets';
+import { ActionType, AssetChange } from '../../../helpers/assets';
 import { wrappedSymbol } from '../../../helpers/currencies';
-import { useBorrow } from '../../../store/borrow.store';
-import { CurrencyIcon } from '../../Shared/Icons';
-import TabSwitch from '../../Shared/TabSwitch/TabSwitch';
+import { CurrencyIcon } from '../Icons';
+import TabSwitch from '../TabSwitch/TabSwitch';
 import HeaderInfo from './Info';
 
-type BorrowHeaderProps = {
+type OperationHeaderProps = {
+  type: VaultType;
   isEditing: boolean;
   actionType: ActionType;
   chainName: string;
   onActionTypeChange: (action: ActionType) => void;
   isCrossChainOperation: boolean;
+  collateral: AssetChange;
+  debt?: AssetChange;
 };
 
 const actionOptions: TabOption[] = [
@@ -21,16 +24,17 @@ const actionOptions: TabOption[] = [
   { value: ActionType.REMOVE, label: 'Withdraw / Payback' },
 ];
 
-function BorrowHeader({
+function OperationHeader({
+  type,
   isEditing,
   actionType,
   chainName,
   onActionTypeChange,
   isCrossChainOperation,
-}: BorrowHeaderProps) {
+  collateral,
+  debt,
+}: OperationHeaderProps) {
   const networkMessage = `Your position is currently on the ${chainName} Network`;
-  const collateral = useBorrow((state) => state.collateral);
-  const debt = useBorrow((state) => state.debt);
 
   return (
     <>
@@ -70,6 +74,7 @@ function BorrowHeader({
           </Stack>
 
           <HeaderInfo
+            isEditing={isEditing}
             isCrossChainOperation={isCrossChainOperation}
             chainName={chainName}
             tooltipMessage={networkMessage}
@@ -84,9 +89,10 @@ function BorrowHeader({
           height="40px"
         >
           <Typography variant="body2" height="40px" lineHeight="40px">
-            Borrow
+            {type === VaultType.BORROW ? 'Borrow' : 'Lend'}
           </Typography>
           <HeaderInfo
+            isEditing={isEditing}
             isCrossChainOperation={isCrossChainOperation}
             chainName={chainName}
             tooltipMessage="The network where you deposit to and borrow from"
@@ -106,4 +112,4 @@ function BorrowHeader({
   );
 }
 
-export default BorrowHeader;
+export default OperationHeader;

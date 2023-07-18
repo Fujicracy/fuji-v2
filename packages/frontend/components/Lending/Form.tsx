@@ -20,6 +20,7 @@ import { useLend } from '../../store/lend.store';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
 import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
+import OperationHeader from '../Shared/OperationHeader/Header';
 import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
@@ -185,10 +186,21 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
         <CardContent
           sx={{
             width: '100%',
-            p: `${!isEditing ? '1.5rem' : '0'} 2rem 1.5rem 2rem`,
+            p: '1.5rem 2rem 1.5rem 2rem',
             mb: '2rem',
           }}
         >
+          <OperationHeader
+            type={VaultType.LEND}
+            chainName={chainName(vault?.chainId)}
+            collateral={collateral}
+            isEditing={isEditing}
+            actionType={actionType}
+            onActionTypeChange={(type) => setActionType(type)}
+            isCrossChainOperation={
+              vault !== undefined && vault.chainId === collateral.chainId
+            }
+          />
           {isEditing && (
             <TabSwitch
               size="large"

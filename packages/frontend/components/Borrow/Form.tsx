@@ -23,11 +23,11 @@ import { BorrowingPosition } from '../../store/models/Position';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
 import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
+import OperationHeader from '../Shared/OperationHeader/Header';
 import { SignTooltip } from '../Shared/Tooltips';
 import WarningInfo from '../Shared/WarningInfo';
 import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
-import BorrowHeader from './Header/Header';
 
 type BorrowProps = {
   isEditing: boolean;
@@ -217,8 +217,11 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
     <>
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
         <CardContent sx={{ width: '100%', p: '1.5rem' }}>
-          <BorrowHeader
+          <OperationHeader
+            type={VaultType.BORROW}
             chainName={chainName(vault?.chainId)}
+            collateral={collateral}
+            debt={debt}
             isEditing={isEditing}
             actionType={actionType}
             onActionTypeChange={(type) => setActionType(type)}

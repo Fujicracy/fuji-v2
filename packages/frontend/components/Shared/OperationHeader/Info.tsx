@@ -1,10 +1,11 @@
 import { Box, Stack, Typography } from '@mui/material';
 
-import { NetworkIcon } from '../../Shared/Icons';
-import { TooltipWrapper } from '../../Shared/Tooltips';
+import { NetworkIcon } from '../Icons';
+import { TooltipWrapper } from '../Tooltips';
 import Slippage from './Slippage';
 
 type HeaderInfoProps = {
+  isEditing: boolean;
   isCrossChainOperation: boolean;
   chainName: string;
   tooltipMessage?: string;
@@ -12,6 +13,7 @@ type HeaderInfoProps = {
 };
 
 function HeaderInfo({
+  isEditing,
   isCrossChainOperation,
   chainName,
   tooltipMessage,
@@ -29,7 +31,7 @@ function HeaderInfo({
           <Slippage />
         </Box>
       )}
-      {chainName === '' ? (
+      {!isEditing || chainName === '' ? (
         <></>
       ) : tooltipMessage ? (
         <TooltipWrapper
