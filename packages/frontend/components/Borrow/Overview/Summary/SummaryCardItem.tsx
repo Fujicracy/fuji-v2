@@ -85,7 +85,7 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
           >
             {amount}
           </Typography>
-          <ExtraInfoChip text={extra && `${extra} after`} />
+          <ExtraInfoChip amount={amount} extra={extra} />
         </Stack>
         {footer && data && footer.includes('below current price') ? (
           <Typography

@@ -47,7 +47,6 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
   }, [depositData, vault]);
 
   const { position } = positionData || {};
-
   return (
     <>
       {!isEditing && <VaultSelect type={VaultType.LEND} />}
@@ -61,10 +60,11 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
                 ? `${formatValue(position.collateral.amount, {
                     maximumFractionDigits: 3,
                   })} ${position.collateral.currency.wrapped.symbol}`
-                : 0
+                : '0'
             }
             tooltip={'Deposits to a selected vault'}
-            extra={'... after'}
+            amount={position?.collateral.amount}
+            extra={positionData?.editedPosition?.collateral.amount}
             loading={loading}
             contrast
           />

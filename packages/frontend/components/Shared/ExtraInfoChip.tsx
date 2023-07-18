@@ -1,10 +1,23 @@
 import { Chip } from '@mui/material';
 import React from 'react';
 
-function ExtraInfoChip({ text }: { text?: string | number }) {
-  if (!text) return null;
+import { formatValue } from '../../helpers/values';
+
+type ExtraInfoChipProps = {
+  amount: string | number;
+  extra?: string | number;
+};
+
+function ExtraInfoChip({ amount, extra }: ExtraInfoChipProps) {
+  if (!extra || extra === amount) return null;
   return (
-    <Chip sx={{ marginLeft: '0.5rem' }} label={text} variant={'currency'} />
+    <Chip
+      sx={{ marginLeft: '0.5rem' }}
+      label={`${formatValue(extra, {
+        maximumFractionDigits: 3,
+      })} after`}
+      variant={'currency'}
+    />
   );
 }
 

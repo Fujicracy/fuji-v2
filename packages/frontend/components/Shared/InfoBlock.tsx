@@ -7,11 +7,12 @@ import InfoTooltip from './Tooltips/InfoTooltip';
 
 type InfoBlockProps = {
   label: string;
-  value: ReactNode;
+  value: string | ReactNode;
   loading: boolean;
   tooltip?: string;
   contrast?: boolean;
-  extra?: string;
+  extra?: string | number;
+  amount?: string | number;
 };
 
 function InfoBlock({
@@ -21,10 +22,11 @@ function InfoBlock({
   tooltip,
   contrast,
   extra,
+  amount,
 }: InfoBlockProps) {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
-
+  console.warn(extra);
   return (
     <Box
       sx={{
@@ -57,7 +59,8 @@ function InfoBlock({
           component={'span'}
           sx={{ display: 'inline-block', mt: 1 }}
         >
-          {value} <ExtraInfoChip text={extra} />
+          {value}
+          {amount && <ExtraInfoChip amount={amount} extra={extra} />}
         </Typography>
       )}
     </Box>
