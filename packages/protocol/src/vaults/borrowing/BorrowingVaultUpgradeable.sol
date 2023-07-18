@@ -110,6 +110,11 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
    * @param chief_ that deploys and controls this vault
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
+   * @param providers_ array that will initialize this vault
+   *
+   * @dev Requirements:
+   * - Must be initialized with a set of providers.
+   * - Must set first provider in `providers_` array as `activeProvider`.
    */
   function initialize(
     address asset_,
@@ -117,14 +122,16 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
     address chief_,
     string memory name_,
     string memory symbol_,
-    uint256 initAssets
+    ILendingProvider[] memory providers_
   )
     public
     initializer
   {
-    __BaseVault_initialize(asset_, chief_, name_, symbol_, initAssets);
+    __BaseVault_initialize(asset_, chief_, name_, symbol_);
     _debtAsset = IERC20Metadata(debtAsset_);
     _debtDecimals = IERC20Metadata(debtAsset_).decimals();
+    _setProviders(providers_);
+    _setActiveProvider(providers_[0]);
   }
 
   receive() external payable {}
@@ -292,23 +299,15 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   }
 
   /// @inheritdoc BaseVaultUpgradeable
-  function payback(uint256 debt, address owner) public override returns (uint256) {
-    uint256 shares = previewPayback(debt);
-
-    shares = _paybackChecks(owner, debt, shares);
-    _payback(msg.sender, owner, debt, shares);
-
-    return shares;
+  function payback(uint256 debt, address owner) public override returns (uint256 shares) {
+    shares = previewPayback(debt);
+    (shares,) = _paybackInternal(debt, shares, owner, msg.sender);
   }
 
   /// @inheritdoc BaseVaultUpgradeable
-  function burnDebt(uint256 shares, address owner) public override returns (uint256) {
-    uint256 debt = previewBurnDebt(shares);
-
-    shares = _paybackChecks(owner, debt, shares);
-    _payback(msg.sender, owner, debt, shares);
-
-    return debt;
+  function burnDebt(uint256 shares, address owner) public override returns (uint256 debt) {
+    debt = previewBurnDebt(shares);
+    (, debt) = _paybackInternal(debt, shares, owner, msg.sender);
   }
 
   /*///////////////////////
@@ -528,6 +527,40 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   }
 
   /**
+   * @dev Function to handle common flow for `payback(...)` and `burnDebt(...)`
+   * It returns the updated `debt` and `shares` values if applicable.
+   *
+   * @param debt or borrowed amount of debt asset
+   * @param shares amount of `debtShares`
+   * @param owner to whom `debtShares` will bet burned
+   * @param caller msg.sender
+   */
+  function _paybackInternal(
+    uint256 debt,
+    uint256 shares,
+    address owner,
+    address caller
+  )
+    internal
+    returns (uint256 debt_, uint256 shares_)
+  {
+    uint256 remainder;
+    // `debt`, `shares`are updated if passing more than max amount for `owner`'s debt.
+    (debt_, shares_, remainder) = _paybackChecks(owner, debt, shares);
+
+    _payback(caller, owner, debt_, shares_);
+
+    if (remainder > 0) {
+      /**
+       * @devSince the `_payback(...) only pulls (erc20) that is needed to payback
+       * maxAmount, this logic handles excess amount `remainder` by pulling from
+       * `msg.sender and returning to the `owner` the `remainder`.
+       */
+      _debtAsset.safeTransferFrom(caller, owner, remainder);
+    }
+  }
+
+  /**
    * @dev Perform payback action at provider. Payback/burnDebtShares common workflow.
    * Requirements:
    * - Must call `activeProvider` in `_executeProviderAction()`.
@@ -557,8 +590,10 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   }
 
   /**
-   * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault and returns maximum
-   * shares to payback if exceeding `owner` debtShares balance.
+   * @dev Runs common checks for all "payback" or "burnDebt" actions in this vault.
+   *  It returns maximum possible debt to payback, shares equivalent, and remainder.
+   * The `remainder` will be non-zero if the passed `shares` arg exceeds
+   * the debtShare balance of `owner`.
    * Requirements:
    * - Must revert for all conditions not passed.
    *
@@ -573,15 +608,23 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
   )
     private
     view
-    returns (uint256)
+    returns (uint256 debt_, uint256 shares_, uint256 remainder)
   {
-    if (debt == 0 || shares == 0 || owner == address(0)) {
+    if (owner == address(0) || debt == 0 || shares == 0) {
       revert BorrowingVault__payback_invalidInput();
     }
+    // This local var helps save gas not having to call provider balances again
+    // and is multiplied by debtAsset decimals to mantain precision.
+    uint256 shareExchangeRatio = debt.mulDiv(10 ** _debtDecimals, shares);
+
     if (shares > _debtShares[owner]) {
-      shares = _debtShares[owner];
+      shares_ = _debtShares[owner];
+      debt_ = shares_.mulDiv(shareExchangeRatio, 10 ** _debtDecimals);
+      remainder = debt > debt_ ? debt - debt_ : 0;
+    } else {
+      shares_ = shares;
+      debt_ = shares_.mulDiv(shareExchangeRatio, 10 ** _debtDecimals);
     }
-    return shares;
   }
 
   /**

@@ -41,6 +41,14 @@
       "providers": ["Agave_Gnosis"],
       "rating": 80
     }
+  ],
+  "yield-vaults": [
+    {
+      "asset": "WETH",
+      "name": "YieldVault-WETH-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
+    }
   ]
 }
 

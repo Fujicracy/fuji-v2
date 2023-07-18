@@ -35,7 +35,6 @@ contract YieldVaultUpgradeable is BaseVaultUpgradeable {
    * @param name_ string of the token-shares handled in this vault
    * @param symbol_ string of the token-shares handled in this vault
    * @param providers_ array that will initialize this vault
-   * @param initAssets amount to initialize asset shares
    *
    * @dev Requirements:
    * - Must be initialized with a set of providers.
@@ -46,13 +45,12 @@ contract YieldVaultUpgradeable is BaseVaultUpgradeable {
     address chief_,
     string memory name_,
     string memory symbol_,
-    ILendingProvider[] memory providers_,
-    uint256 initAssets
+    ILendingProvider[] memory providers_
   )
     public
     initializer
   {
-    __BaseVault_initialize(asset_, chief_, name_, symbol_, initAssets);
+    __BaseVault_initialize(asset_, chief_, name_, symbol_);
     _setProviders(providers_);
     _setActiveProvider(providers_[0]);
   }

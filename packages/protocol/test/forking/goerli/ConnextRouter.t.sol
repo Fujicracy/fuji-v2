@@ -557,7 +557,7 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     vm.startPrank(ALICE);
     SafeERC20.safeApprove(IERC20(collateralAsset), address(connextRouter), type(uint256).max);
 
-    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_swapNotFirstAction.selector);
+    vm.expectRevert(BaseRouter.BaseRouter__bundleInternal_notFirstAction.selector);
     connextRouter.xBundle(actions1, args1);
   }
 

@@ -48,7 +48,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   error BaseVault__deposit_moreThanMax();
   error BaseVault__deposit_lessThanMin();
   error BaseVault__withdraw_invalidInput();
-  error BaseVault__withdraw_moreThanMax();
   error BaseVault__setter_invalidInput();
   error BaseVault__checkRebalanceFee_excessFee();
   error BaseVault__deposit_slippageTooHigh();
@@ -384,6 +383,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
    * @param maxShares amount that shall be burned when calling withdraw
    *
    * @dev Refer to https://eips.ethereum.org/EIPS/eip-5143.
+   * If needed to withdraw the maximum amount it is recommended to use
+   * the non-EIP5143 method.
    * Requirements:
    * - Must not burn more than `maxShares` when calling `withdraw()`.
    */
@@ -414,12 +415,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     override
     returns (uint256)
   {
-    address caller = msg.sender;
     uint256 shares = previewWithdraw(assets);
-
-    _withdrawChecks(caller, receiver, owner, assets, shares);
-    _withdraw(caller, receiver, owner, assets, shares);
-
+    (, shares) = _withdrawInternal(assets, shares, msg.sender, receiver, owner);
     return shares;
   }
 
@@ -462,12 +459,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     override
     returns (uint256)
   {
-    address caller = msg.sender;
     uint256 assets = previewRedeem(shares);
-
-    _withdrawChecks(caller, receiver, owner, assets, shares);
-    _withdraw(caller, receiver, owner, assets, shares);
-
+    (assets,) = _withdrawInternal(assets, shares, msg.sender, receiver, owner);
     return assets;
   }
 
@@ -561,6 +554,34 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
+   * @dev Function to handle common flow for `withdraw(...)` and `reddem(...)`
+   * It returns the updated `assets_` and `shares_` values if applicable.
+   *
+   * @param assets amount transferred during this withraw
+   * @param shares amount burned to `owner` during this withdraw
+   * @param caller or {msg.sender}
+   * @param receiver to whom `assets` amount will be transferred to
+   * @param owner to whom `shares` will be burned
+   */
+  function _withdrawInternal(
+    uint256 assets,
+    uint256 shares,
+    address caller,
+    address receiver,
+    address owner
+  )
+    internal
+    returns (uint256 assets_, uint256 shares_)
+  {
+    /**
+     * @dev If passed `assets` argument is greater than the max amount `owner` can withdraw
+     * the maximum amount withdrawable will be withdrawn and returned from `withdrawChecks(...)`.
+     */
+    (assets_, shares_) = _withdrawChecks(caller, receiver, owner, assets, shares);
+    _withdraw(caller, receiver, owner, assets_, shares_);
+  }
+
+  /**
    * @dev Perform `_withdraw()` at provider {IERC4626-withdraw}.
    * Requirements:
    * - Must call `activeProvider` in `_executeProviderAction()`.
@@ -591,7 +612,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
   }
 
   /**
-   * @dev Runs common checks for all "withdraw" or "redeem" actions in this vault.
+   * @dev Runs common checks for all "withdraw" or "redeem" actions in this vault and returns maximum
+   * `assets_` and `shares_` to withdraw if passed amounts exceed `owner's` debtShares/debt balance.
    * Requirements:
    * - Must revert for all conditions not passed.
    *
@@ -609,15 +631,25 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     uint256 shares
   )
     private
+    returns (uint256 assets_, uint256 shares_)
   {
-    if (assets == 0 || shares == 0 || receiver == address(0) || owner == address(0)) {
+    if (receiver == address(0) || owner == address(0) || assets == 0 || shares == 0) {
       revert BaseVault__withdraw_invalidInput();
     }
-    if (assets > maxWithdraw(owner)) {
-      revert BaseVault__withdraw_moreThanMax();
+    // This local var helps save gas not having to call provider balances again.
+    // and it is multiplied by asset decimals to mantain precision.
+    uint256 sharesExchangeRatio = assets.mulDiv(10 ** (decimals()), shares);
+
+    uint256 maxWithdraw_ = maxWithdraw(owner);
+    if (assets > maxWithdraw_) {
+      assets_ = maxWithdraw_;
+      shares_ = assets_.mulDiv(10 ** (decimals()), sharesExchangeRatio);
+    } else {
+      assets_ = assets;
+      shares_ = assets_.mulDiv(10 ** (decimals()), sharesExchangeRatio);
     }
     if (caller != owner) {
-      _spendWithdrawAllowance(owner, caller, receiver, assets);
+      _spendWithdrawAllowance(owner, caller, receiver, assets_);
     }
   }
 

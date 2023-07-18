@@ -19,7 +19,7 @@ contract AaveV3Goerli is ILendingProvider {
    * @dev Returns the {IV3Pool} pool to interact with AaveV3
    */
   function _getPool() internal pure returns (IV3Pool) {
-    return IV3Pool(0x368EedF3f56ad10b9bC57eed4Dac65B26Bb667f6);
+    return IV3Pool(0x7b5C526B7F8dfdff278b4a3e045083FBA4028790);
   }
 
   /// @inheritdoc ILendingProvider
