@@ -10,14 +10,14 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
 
 import {
   HistoryEntry,
   HistoryEntryStatus,
+  HistoryRoutingStep,
   stepFromEntry,
 } from '../../../../helpers/history';
-import { toNotSoFixed } from '../../../../helpers/values';
+import { formatAssetWithSymbol } from '../../../../helpers/values';
 
 type HistoryItemProps = {
   entry: HistoryEntry;
@@ -53,20 +53,18 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
       />
     );
 
-  const firstTitle =
-    firstStep && firstStep.token
-      ? `${firstStep.step.toString()} ${toNotSoFixed(
-          formatUnits(firstStep.amount ?? 0, firstStep.token.decimals),
-          true
-        )} ${firstStep.token.symbol}`
+  const stepTitle = (step: HistoryRoutingStep) =>
+    step.token
+      ? `${step.step.toString()} ${formatAssetWithSymbol({
+          amount: step.amount,
+          decimals: step.token.decimals,
+          symbol: step.token.symbol,
+        })}`
       : '';
 
-  const secondTitle =
-    secondStep && secondStep.token
-      ? `${secondStep.step.toString()} ${toNotSoFixed(
-          formatUnits(secondStep.amount ?? 0, secondStep.token.decimals)
-        )} ${secondStep.token.symbol}`
-      : '';
+  const firstTitle = firstStep && stepTitle(firstStep);
+
+  const secondTitle = secondStep && stepTitle(secondStep);
 
   const connector = firstTitle && secondTitle ? ' and ' : '';
 

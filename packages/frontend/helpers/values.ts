@@ -33,7 +33,7 @@ export const bigToFloat = (
 
 export const formatValue = (
   value: string | number | undefined,
-  params: Intl.NumberFormatOptions = {}
+  params: Intl.NumberFormatOptions = { maximumFractionDigits: 4 }
 ): string => {
   if (params.style === 'currency') {
     params.currency = 'USD';
@@ -97,6 +97,27 @@ export const toNotSoFixed = (
   return value
     .toFixed(digitsAfterDecimal < 2 ? 2 : digitsAfterDecimal)
     .replace(/\.?0+$/, '');
+};
+
+export const formatAssetWithSymbol = ({
+  amount = BigNumber.from('0'),
+  symbol = '',
+  decimals = 18,
+  maximumFractionDigits = 4,
+}: {
+  amount?: BigNumberish | number;
+  symbol?: string;
+  decimals?: number;
+  maximumFractionDigits?: number;
+}) => {
+  const value =
+    typeof amount === 'number'
+      ? amount
+      : typeof amount === 'string'
+      ? parseFloat(amount)
+      : parseFloat(formatUnits(amount, decimals));
+
+  return `${formatValue(value, { maximumFractionDigits })} ${symbol}`;
 };
 
 export const camelize = (str: string) => {
