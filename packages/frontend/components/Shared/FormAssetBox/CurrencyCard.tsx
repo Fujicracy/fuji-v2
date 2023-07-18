@@ -75,13 +75,7 @@ function CurrencyCard({
 }: SelectCurrencyCardProps) {
   const { palette } = useTheme();
 
-  const {
-    currency,
-    usdPrice,
-    balances,
-    selectableCurrencies,
-    amount = 0,
-  } = assetChange
+  const { currency, usdPrice, balances, selectableCurrencies } = assetChange
     ? assetChange
     : {
         currency: undefined,
