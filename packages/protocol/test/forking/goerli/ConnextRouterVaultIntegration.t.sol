@@ -7,7 +7,11 @@ import {Routines} from "../../utils/Routines.sol";
 import {BorrowingVaultUpgradeable as BVault} from
   "../../../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
-import {AaveV3Goerli as SampleProvider} from "../../../src/providers/goerli/AaveV3Goerli.sol";
+import {
+  ILendingProvider,
+  IV3Pool,
+  AaveV3Goerli as SampleProvider
+} from "../../../src/providers/goerli/AaveV3Goerli.sol";
 import {
   ConnextRouter, ConnextHandler, XReceiveProxy
 } from "../../../src/routers/ConnextRouter.sol";
@@ -18,6 +22,8 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 bool constant DEBUG = true;
 
 contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
+  error xReceiveFailed_recordedTransfer();
+
   using Math for uint256;
 
   BVault public vault;
@@ -29,7 +35,7 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
   XReceiveProxy public xReceiveProxy;
 
   uint256 internal constant DEPOSIT_AMOUNT = 0.25 ether;
-  uint256 internal constant BORROW_AMOUNT = 2e6;
+  uint256 internal constant BORROW_AMOUNT = 998567;
 
   address collateralAsset;
   address debtAsset;
@@ -101,13 +107,21 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
   }
 
   function test_attemptMaxPaybackSDKOverestimate() public {
+    __doUnbalanceDebtToSharesRatio(address(vault));
+
     // Assume ALICE already has a position in this domain.
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(address(vault)), ALICE);
 
+    __closeBOB(address(vault));
+
     // Record Alice debt for future assertions.
     uint256 aliceDebtBefore = vault.balanceOfDebt(ALICE);
+    uint256 aliceDebtSharesBefore = vault.balanceOfDebtShares(ALICE);
     if (DEBUG) {
-      console.log("aliceDebtBefore", aliceDebtBefore);
+      console.log("Alice original debt", BORROW_AMOUNT);
+      console.log("debtShare-to-debt-ratio-alteration");
+      console.log("aliceDebtBeforeXCall", aliceDebtBefore);
+      console.log("aliceDebtSharesBeforeXCall", aliceDebtSharesBefore);
     }
 
     // From a seperate domain ALICE wants to make a max payback
@@ -125,9 +139,9 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
       // - [cfee] the connext 5 bps fee
       // - [slippage] potential connext slippage
       // Therefore: estimate = ira + cfee + slippage
-      feeAndSlippage = BORROW_AMOUNT.mulDiv(5, 1e4) + BORROW_AMOUNT.mulDiv(3, 1e3);
+      feeAndSlippage = aliceDebtBefore.mulDiv(5, 1e4) + aliceDebtBefore.mulDiv(3, 1e3);
       uint256 buffer = overEstimate + feeAndSlippage;
-      sdkAmount = BORROW_AMOUNT + buffer;
+      sdkAmount = aliceDebtBefore + buffer;
       args[0] = abi.encode(address(vault), sdkAmount, ALICE, address(connextRouter));
     }
 
@@ -146,9 +160,14 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
     // Call pretended from connextCore to xReceiveProxy from a seperate domain (eg. optimism goerli).
     // simulated to be the same address as ConnextRouter in this test.
     xReceiveProxy.xReceive(
-      "", finalReceived, debtAsset, address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+      "0x01", finalReceived, debtAsset, address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
     );
     vm.stopPrank();
+
+    // Handler should have no funds
+    if (IERC20(debtAsset).balanceOf(address(connextHandler)) > 0) {
+      revert xReceiveFailed_recordedTransfer();
+    }
 
     {
       // Assert Alice's debt is now zero by the amount in cross-tx.
@@ -159,7 +178,7 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
       assertEq(aliceDebtAfter, 0);
       assertEq(aliceDebSharestAfter, 0);
       // Assert Alice has receive any overestimate
-      assertEq(aliceUSDCBalanceAfter, aliceDebtBefore + overEstimate);
+      assertEq(aliceUSDCBalanceAfter, BORROW_AMOUNT + overEstimate);
 
       if (DEBUG) {
         console.log("aliceDebtAfter", aliceDebtAfter, "aliceDebSharestAfter", aliceDebSharestAfter);
@@ -184,13 +203,21 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
   }
 
   function test_attemptMaxPaybackSDKUnderestimate() public {
+    __doUnbalanceDebtToSharesRatio(address(vault));
+
     // Assume ALICE already has a position in this domain.
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(address(vault)), ALICE);
 
+    __closeBOB(address(vault));
+
     // Record Alice debt for future assertions.
     uint256 aliceDebtBefore = vault.balanceOfDebt(ALICE);
+    uint256 aliceDebtSharesBefore = vault.balanceOfDebtShares(ALICE);
     if (DEBUG) {
-      console.log("aliceDebtBefore", aliceDebtBefore);
+      console.log("Alice original debt", BORROW_AMOUNT);
+      console.log("debtShare-to-debt-ratio-alteration");
+      console.log("aliceDebtBeforeXCall", aliceDebtBefore);
+      console.log("aliceDebtSharesBeforeXCall", aliceDebtSharesBefore);
     }
 
     // From a seperate domain ALICE wants to make a max payback
@@ -208,8 +235,8 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
       // - [cfee] the connext 5 bps fee
       // - [slippage] potential connext slippage
       // Therefore: estimate = ira + cfee + slippage
-      feeAndSlippage = BORROW_AMOUNT.mulDiv(5, 1e4) + BORROW_AMOUNT.mulDiv(3, 1e3);
-      sdkAmount = BORROW_AMOUNT + feeAndSlippage - underEstimation;
+      feeAndSlippage = aliceDebtBefore.mulDiv(5, 1e4) + aliceDebtBefore.mulDiv(3, 1e3);
+      sdkAmount = aliceDebtBefore + feeAndSlippage - underEstimation;
       args[0] = abi.encode(address(vault), sdkAmount, ALICE, address(connextRouter));
     }
 
@@ -228,9 +255,14 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
     // Call pretended from connextCore to xReceiveProxy from a seperate domain (eg. optimism goerli).
     // simulated to be the same address as ConnextRouter in this test.
     xReceiveProxy.xReceive(
-      "", finalReceived, debtAsset, address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
+      "0x01", finalReceived, debtAsset, address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
     );
     vm.stopPrank();
+
+    // Handler should have no funds
+    if (IERC20(debtAsset).balanceOf(address(connextHandler)) > 0) {
+      revert xReceiveFailed_recordedTransfer();
+    }
 
     {
       // Assert Alice's debt is now zero by the amount in cross-tx.
@@ -239,9 +271,10 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
       uint256 aliceUSDCBalanceAfter = IERC20(debtAsset).balanceOf(ALICE);
 
       assertGt(aliceDebtAfter, 0);
+      assertGt(aliceDebtAfter, 0);
       assertGt(aliceDebSharestAfter, 0);
       // Assert Alice has NOT receive any overestimate
-      assertEq(aliceUSDCBalanceAfter, aliceDebtBefore);
+      assertEq(aliceUSDCBalanceAfter, BORROW_AMOUNT);
 
       if (DEBUG) {
         console.log("aliceDebtAfter", aliceDebtAfter, "aliceDebSharestAfter", aliceDebSharestAfter);
@@ -263,5 +296,30 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
         console.log("vaultDebtBalanceAtProvider", vaultDebtBalanceAtProvider);
       }
     }
+  }
+
+  function __doUnbalanceDebtToSharesRatio(address vault_) internal {
+    ILendingProvider activeProvider_ = BVault(payable(vault_)).activeProvider();
+
+    do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, IVault(address(vault)), BOB);
+
+    uint256 debtBalance = activeProvider_.getBorrowBalance(vault_, IVault(vault_));
+    address debtAsset_ = IVault(vault_).debtAsset();
+
+    uint256 amountToAdjust = debtBalance / 2;
+
+    deal(debtAsset_, address(this), amountToAdjust);
+    IV3Pool aave = IV3Pool(activeProvider_.approvedOperator(address(0), address(0), address(0)));
+
+    IERC20(debtAsset_).approve(address(aave), amountToAdjust);
+    aave.repay(debtAsset_, amountToAdjust, 2, vault_);
+  }
+
+  function __closeBOB(address vault_) internal {
+    uint256 maxPayback = IVault(vault_).maxPayback(BOB);
+    address debtAsset_ = IVault(vault_).debtAsset();
+    deal(debtAsset_, address(this), maxPayback);
+    IERC20(debtAsset_).approve(vault_, maxPayback);
+    IVault(vault_).payback(maxPayback, BOB);
   }
 }
