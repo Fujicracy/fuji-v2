@@ -1,4 +1,4 @@
-import { Box, Card, CardContent } from '@mui/material';
+import { Card, CardContent } from '@mui/material';
 import { Address, VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -18,12 +18,10 @@ import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useLend } from '../../store/lend.store';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
-import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import OperationHeader from '../Shared/OperationHeader/Header';
-import { SignTooltip } from '../Shared/Tooltips';
+import OperationInfo from '../Shared/OperationInfo';
 import VaultWarning from '../Shared/VaultWarning';
-import WarningInfo from '../Shared/WarningInfo';
 import LendingButton from './Button';
 
 type LendingProps = {
@@ -84,14 +82,14 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
     );
 
     const startChainId = transactionMeta.steps[0]?.chainId;
-    return (
+    const value =
       collateralAmount &&
       !collateralAllowance &&
       availableVaultStatus === FetchStatus.Ready &&
       !(!isEditing && hasBalanceInVault) &&
       startChainId === walletChain &&
-      needsSignature
-    );
+      needsSignature;
+    return value === true;
   }, [
     availableVaultStatus,
     needsSignature,
@@ -208,18 +206,12 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
             changeAssetCurrency={changeAssetCurrency}
             vaultType={VaultType.LEND}
           />
-
-          <Box m="1rem 0">
-            <Fees />
-          </Box>
-
-          {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
-
-          {shouldWarningBeDisplayed && (
-            <Box mb={2}>
-              <WarningInfo text={warningContent} />
-            </Box>
-          )}
+          <OperationInfo
+            shouldShowFees
+            shouldSignTooltipBeShown={shouldSignTooltipBeShown}
+            shouldWarningBeDisplayed={shouldWarningBeDisplayed}
+            warningContent={warningContent}
+          />
           <LendingButton
             address={address}
             collateral={collateral}

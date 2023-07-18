@@ -1,4 +1,4 @@
-import { Box, Card, CardContent } from '@mui/material';
+import { Card, CardContent } from '@mui/material';
 import { VaultType } from '@x-fuji/sdk';
 import { debounce } from 'debounce';
 import { useRouter } from 'next/router';
@@ -21,12 +21,10 @@ import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { BorrowingPosition } from '../../store/models/Position';
 import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
-import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import OperationHeader from '../Shared/OperationHeader/Header';
-import { SignTooltip } from '../Shared/Tooltips';
+import OperationInfo from '../Shared/OperationInfo';
 import VaultWarning from '../Shared/VaultWarning';
-import WarningInfo from '../Shared/WarningInfo';
 import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
 
@@ -102,14 +100,14 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
     );
 
     const startChainId = transactionMeta.steps[0]?.chainId;
-    return (
+    const value =
       (collateralAmount || debtAmount) &&
       !(collateralAllowance || debtNeedsAllowance) &&
       availableVaultStatus === FetchStatus.Ready &&
       !(!isEditing && hasBalanceInVault) &&
       startChainId === walletChainId &&
-      needsSignature
-    );
+      needsSignature;
+    return value === true;
   }, [
     availableVaultStatus,
     needsSignature,
@@ -192,11 +190,11 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
   }, [availableRoutes, vault]);
 
   const shouldWarningBeDisplayed =
-    !isEditing &&
-    debt &&
-    availableVaultStatus === FetchStatus.Ready &&
-    transactionMeta.status === FetchStatus.Ready &&
-    hasBalanceInVault;
+    (!isEditing &&
+      debt &&
+      availableVaultStatus === FetchStatus.Ready &&
+      transactionMeta.status === FetchStatus.Ready &&
+      hasBalanceInVault) === true;
 
   return (
     <>
@@ -252,17 +250,12 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
               />
             );
           })}
-
-          <Box m="1rem 0">{debt && <Fees />}</Box>
-
-          {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
-
-          {shouldWarningBeDisplayed && (
-            <Box mb={2}>
-              <WarningInfo text={warningContent} />
-            </Box>
-          )}
-
+          <OperationInfo
+            shouldShowFees={debt !== undefined}
+            shouldSignTooltipBeShown={shouldSignTooltipBeShown}
+            shouldWarningBeDisplayed={shouldWarningBeDisplayed}
+            warningContent={warningContent}
+          />
           <BorrowButton
             address={address}
             collateral={collateral}
