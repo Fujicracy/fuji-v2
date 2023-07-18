@@ -10,7 +10,6 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { RoutingStep, VaultType } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
 
 import {
   HistoryEntry,
@@ -18,7 +17,7 @@ import {
   HistoryRoutingStep,
   stepFromEntry,
 } from '../../../../helpers/history';
-import { toNotSoFixed } from '../../../../helpers/values';
+import { formatAssetWithSymbol } from '../../../../helpers/values';
 
 type HistoryItemProps = {
   entry: HistoryEntry;
@@ -56,16 +55,18 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
       />
     );
 
-  const titleForStep = (step?: HistoryRoutingStep) =>
-    step && step.token
-      ? `${step.step.toString()} ${toNotSoFixed(
-          formatUnits(step.amount ?? 0, step.token.decimals),
-          true
-        )} ${step.token.symbol}`
+  const stepTitle = (step: HistoryRoutingStep) =>
+    step.token
+      ? `${step.step.toString()} ${formatAssetWithSymbol({
+          amount: step.amount,
+          decimals: step.token.decimals,
+          symbol: step.token.symbol,
+        })}`
       : '';
 
-  const firstTitle = titleForStep(firstStep);
-  const secondTitle = titleForStep(secondStep);
+  const firstTitle = firstStep && stepTitle(firstStep);
+
+  const secondTitle = secondStep && stepTitle(secondStep);
 
   const connector = firstTitle && secondTitle ? ' and ' : '';
 
@@ -74,7 +75,7 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
       ? firstTitle + connector + secondTitle
       : firstTitle;
 
-  const capitalizedTitle = capitalize(title);
+  const capitalizedTitle = capitalize(title ?? '');
 
   return (
     <ListItemButton

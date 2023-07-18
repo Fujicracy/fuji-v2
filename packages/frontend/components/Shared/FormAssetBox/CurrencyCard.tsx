@@ -28,8 +28,8 @@ import {
 } from '../../../helpers/currencies';
 import { PositionData } from '../../../helpers/positions';
 import {
+  formatAssetWithSymbol,
   formatValue,
-  toNotSoFixed,
   validAmount,
 } from '../../../helpers/values';
 import { useBorrow } from '../../../store/borrow.store';
@@ -367,7 +367,10 @@ function CurrencyCard({
                     cursor: 'pointer',
                   }}
                 >
-                  {toNotSoFixed(recommended(), true)} {debt?.currency.symbol}
+                  {formatAssetWithSymbol({
+                    amount: recommended(),
+                    symbol: debt?.currency.symbol,
+                  })}
                 </Typography>
               </Typography>
             )}

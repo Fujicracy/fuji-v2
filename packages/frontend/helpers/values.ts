@@ -8,11 +8,36 @@ export const validAmount = (
   decimals: number
 ): string => {
   const value = typeof amount === 'number' ? amount.toString() : amount;
-  if (value.indexOf('.') === -1) return value.replace('-', '');
 
-  const arr = value.split('.');
-  const fraction = arr[1].substring(0, decimals);
-  return arr[0].replace('-', '') + '.' + fraction;
+  let cleanedValue = '';
+  let isAfterE = false;
+
+  for (let i = 0; i < value.length; i++) {
+    if (value[i] === '-') {
+      if (isAfterE) {
+        cleanedValue += '-';
+      }
+    } else if (value[i] === 'e') {
+      cleanedValue += 'e';
+      isAfterE = true;
+    } else {
+      cleanedValue += value[i];
+      isAfterE = false;
+    }
+  }
+
+  if (cleanedValue.indexOf('.') === -1) return cleanedValue;
+
+  const parts = cleanedValue.split('.');
+  const integerPart = parts[0].replace(/-/g, '');
+  const decimalPart = parts[1];
+
+  let formattedDecimalPart = '';
+  if (decimalPart) {
+    formattedDecimalPart = `.${decimalPart.substring(0, decimals)}`;
+  }
+
+  return `${integerPart}${formattedDecimalPart}`;
 };
 
 export const validBigNumberAmount = (
@@ -97,6 +122,27 @@ export const toNotSoFixed = (
   return value
     .toFixed(digitsAfterDecimal < 2 ? 2 : digitsAfterDecimal)
     .replace(/\.?0+$/, '');
+};
+
+export const formatAssetWithSymbol = ({
+  amount = BigNumber.from('0'),
+  symbol = '',
+  decimals = 18,
+  maximumFractionDigits = 4,
+}: {
+  amount?: BigNumberish | number;
+  symbol?: string;
+  decimals?: number;
+  maximumFractionDigits?: number;
+}) => {
+  const value =
+    typeof amount === 'number'
+      ? amount
+      : typeof amount === 'string'
+      ? parseFloat(amount)
+      : parseFloat(formatUnits(amount, decimals));
+
+  return `${formatValue(value, { maximumFractionDigits })} ${symbol}`;
 };
 
 export const camelize = (str: string) => {

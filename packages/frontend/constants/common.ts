@@ -28,6 +28,7 @@ export enum HELPER_URL {
   DISCORD = 'https://discord.com/invite/dnvJeEMeDJ',
   TWITTER = 'https://twitter.com/FujiFinance',
   GUARDED_LAUNCH = 'https://guarded-v2.fuji.finance/',
+  GALXE_GUARDED_CAMPAIGN = 'https://galxe.com/fujifinance/campaign/GCbDnUeZDy',
 }
 
 export type HelperLink = {

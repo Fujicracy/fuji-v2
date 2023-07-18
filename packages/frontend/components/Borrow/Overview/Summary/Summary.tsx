@@ -1,7 +1,7 @@
 import { Grid } from '@mui/material';
 import { VaultType } from '@x-fuji/sdk';
 
-import { formatValue } from '../../../../helpers/values';
+import { formatAssetWithSymbol, formatValue } from '../../../../helpers/values';
 import { AssetMeta, Position } from '../../../../store/models/Position';
 import SummaryCardItem, { SummaryCardItemInfo } from './SummaryCardItem';
 
@@ -32,9 +32,10 @@ function Summary({
   const info: SummaryCardItemInfo[] = [
     {
       title: 'Collateral Provided',
-      amount: `${formatValue(collateral.amount, {
-        maximumFractionDigits: 3,
-      })} ${collateral.currency.wrapped.symbol}`,
+      amount: formatAssetWithSymbol({
+        amount: collateral.amount,
+        symbol: collateral.currency.wrapped.symbol,
+      }),
       footer: formatValue(collateral.amount * collateral.usdPrice, {
         style: 'currency',
       }),
@@ -52,9 +53,10 @@ function Summary({
       amount: formatValue(debt.amount * debt.usdPrice, {
         style: 'currency',
       }),
-      footer: `${formatValue(debt.amount, {
-        maximumFractionDigits: 2,
-      })} ${debt.currency.symbol}`,
+      footer: formatAssetWithSymbol({
+        amount: debt.amount,
+        symbol: debt.currency.symbol,
+      }),
       extra:
         editedPosition?.type === VaultType.BORROW &&
         debtInput &&

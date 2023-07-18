@@ -7,6 +7,9 @@
   text-transform: uppercase;
   border-radius: 0.5rem;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .maxBtn:hover {
