@@ -26,7 +26,6 @@ function InfoBlock({
 }: InfoBlockProps) {
   const { breakpoints, palette } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('sm'));
-  console.warn(extra);
   return (
     <Box
       sx={{
