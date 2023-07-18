@@ -17,8 +17,8 @@ import { notify } from '../../helpers/notifications';
 import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useLend } from '../../store/lend.store';
-import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
+import OperationContainer from '../Shared/OperationContainer';
 import OperationHeader from '../Shared/OperationHeader/Header';
 import OperationInfo from '../Shared/OperationInfo';
 import VaultWarning from '../Shared/VaultWarning';
@@ -169,7 +169,16 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
       : collateral.amount;
 
   return (
-    <>
+    <OperationContainer
+      positionData={positionData}
+      transactionMeta={transactionMeta}
+      actionType={actionType}
+      handler={() => {
+        if (confirmationModalAction) {
+          confirmationModalAction();
+        }
+      }}
+    >
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
         <CardContent
           sx={{
@@ -240,16 +249,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
           />
         </CardContent>
       </Card>
-      <ConfirmTransactionModal
-        open={isConfirmationModalShown}
-        onClose={() => setIsConfirmationModalShown(false)}
-        positionData={positionData}
-        transactionMeta={transactionMeta}
-        actionType={actionType}
-        action={onConfirm}
-        type={VaultType.LEND}
-      />
-    </>
+    </OperationContainer>
   );
 }
 

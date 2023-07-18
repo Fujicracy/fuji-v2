@@ -20,8 +20,8 @@ import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { BorrowingPosition } from '../../store/models/Position';
-import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransactionModal';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
+import OperationContainer from '../Shared/OperationContainer';
 import OperationHeader from '../Shared/OperationHeader/Header';
 import OperationInfo from '../Shared/OperationInfo';
 import VaultWarning from '../Shared/VaultWarning';
@@ -197,7 +197,16 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
       hasBalanceInVault) === true;
 
   return (
-    <>
+    <OperationContainer
+      positionData={positionData}
+      transactionMeta={transactionMeta}
+      actionType={actionType}
+      handler={() => {
+        if (confirmationModalAction) {
+          confirmationModalAction();
+        }
+      }}
+    >
       <Card sx={{ maxWidth: '500px', margin: 'auto' }}>
         <CardContent sx={{ width: '100%', p: '1.5rem' }}>
           <OperationHeader
@@ -295,18 +304,7 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
           <ConnextFooter />
         </CardContent>
       </Card>
-      <ConfirmTransactionModal
-        open={isConfirmationModalShown}
-        onClose={() => setIsConfirmationModalShown(false)}
-        positionData={positionData}
-        transactionMeta={transactionMeta}
-        actionType={actionType}
-        action={() => {
-          setIsConfirmationModalShown(false);
-          confirmationModalAction && confirmationModalAction();
-        }}
-      />
-    </>
+    </OperationContainer>
   );
 }
 
