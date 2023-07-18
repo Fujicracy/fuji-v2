@@ -59,8 +59,9 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
               position
                 ? `${formatValue(position.collateral.amount, {
                     maximumFractionDigits: 3,
+                    minimumFractionDigits: 2,
                   })} ${position.collateral.currency.wrapped.symbol}`
-                : '0'
+                : '0.00'
             }
             tooltip={'Deposits to a selected vault'}
             amount={position?.collateral.amount}

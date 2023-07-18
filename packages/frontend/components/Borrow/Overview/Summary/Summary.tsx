@@ -35,6 +35,8 @@ function Summary({
       amount: formatAssetWithSymbol({
         amount: collateral.amount,
         symbol: collateral.currency.wrapped.symbol,
+        maximumFractionDigits: 3,
+        minimumFractionDigits: 2,
       }),
       footer: formatValue(collateral.amount * collateral.usdPrice, {
         style: 'currency',
