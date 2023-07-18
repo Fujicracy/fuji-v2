@@ -7,8 +7,8 @@ import {
   AssetChange,
   AssetType,
   LtvMeta,
-} from '../../../helpers/assets';
-import { PositionData } from '../../../helpers/positions';
+} from '../../../../helpers/assets';
+import { PositionData } from '../../../../helpers/positions';
 import ChainSelect from './ChainSelect';
 import CurrencyCard from './CurrencyCard';
 

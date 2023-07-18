@@ -12,19 +12,19 @@ import { VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 
-import { AssetType } from '../../../helpers/assets';
-import { chainName } from '../../../helpers/chains';
-import { AprData, aprData } from '../../../helpers/markets';
-import { RouteMeta } from '../../../helpers/routes';
-import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
-import { vaultFromEntity } from '../../../helpers/vaults';
-import { useMarkets } from '../../../store/markets.store';
-import AprValue from '../AprValue';
-import BestLabel from '../BestLabel';
-import { NetworkIcon } from '../Icons';
-import RoutesSteps from '../RoutesSteps';
-import IntegratedProviders from '../Table/IntegratedProviders';
-import SafetyRating from '../Table/SafetyRating';
+import { AssetType } from '../../../../helpers/assets';
+import { chainName } from '../../../../helpers/chains';
+import { AprData, aprData } from '../../../../helpers/markets';
+import { RouteMeta } from '../../../../helpers/routes';
+import { stringifiedBridgeFeeSum } from '../../../../helpers/transactions';
+import { vaultFromEntity } from '../../../../helpers/vaults';
+import { useMarkets } from '../../../../store/markets.store';
+import AprValue from '../../AprValue';
+import BestLabel from '../../BestLabel';
+import { NetworkIcon } from '../../Icons';
+import RoutesSteps from '../../RoutesSteps';
+import IntegratedProviders from '../../Table/IntegratedProviders';
+import SafetyRating from '../../Table/SafetyRating';
 
 type VaultProps = {
   type: VaultType;

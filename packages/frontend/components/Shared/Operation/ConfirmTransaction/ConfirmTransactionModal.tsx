@@ -10,17 +10,17 @@ import {
   ltvMeta,
   recommendedLTV,
   remainingBorrowLimit,
-} from '../../../helpers/assets';
-import { PositionData } from '../../../helpers/positions';
-import { isCrossChainTransaction } from '../../../helpers/routes';
+} from '../../../../helpers/assets';
+import { PositionData } from '../../../../helpers/positions';
+import { isCrossChainTransaction } from '../../../../helpers/routes';
 import {
   stringifiedBridgeFeeSum,
   TransactionMeta,
-} from '../../../helpers/transactions';
-import { formatValue } from '../../../helpers/values';
-import { useAuth } from '../../../store/auth.store';
-import ModalHeader from '../ModalHeader';
-import WarningInfo from '../WarningInfo';
+} from '../../../../helpers/transactions';
+import { formatValue } from '../../../../helpers/values';
+import { useAuth } from '../../../../store/auth.store';
+import ModalHeader from '../../ModalHeader';
+import WarningInfo from '../../WarningInfo';
 import InfoRow from './InfoRow';
 import RouteBox from './RouteBox';
 

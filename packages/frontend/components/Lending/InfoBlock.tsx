@@ -2,8 +2,8 @@ import { Box, Skeleton, Stack, Typography, useMediaQuery } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import React, { ReactNode } from 'react';
 
-import ExtraInfoChip from './ExtraInfoChip';
-import InfoTooltip from './Tooltips/InfoTooltip';
+import ExtraInfoChip from '../Shared/Operation/ExtraInfoChip';
+import InfoTooltip from '../Shared/Tooltips/InfoTooltip';
 
 type InfoBlockProps = {
   label: string;

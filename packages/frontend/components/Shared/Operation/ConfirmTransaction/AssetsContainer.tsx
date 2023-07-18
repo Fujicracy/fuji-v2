@@ -2,9 +2,9 @@ import { Stack, Typography } from '@mui/material';
 import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
 import React from 'react';
 
-import { chainName } from '../../../helpers/chains';
-import { formatAssetWithSymbol } from '../../../helpers/values';
-import { CurrencyIcon, NetworkIcon } from '../../Shared/Icons';
+import { chainName } from '../../../../helpers/chains';
+import { formatAssetWithSymbol } from '../../../../helpers/values';
+import { CurrencyIcon, NetworkIcon } from '../../Icons';
 
 const routingSteps = [
   RoutingStep.DEPOSIT,

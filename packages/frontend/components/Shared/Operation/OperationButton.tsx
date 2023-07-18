@@ -7,11 +7,11 @@ import {
   AssetType,
   FetchStatus,
   Mode,
-} from '../../helpers/assets';
-import { TransactionMeta } from '../../helpers/transactions';
-import { Position } from '../../store/models/Position';
+} from '../../../helpers/assets';
+import { TransactionMeta } from '../../../helpers/transactions';
+import { Position } from '../../../store/models/Position';
 
-export enum ActionButtonTitles {
+export enum OperationButtonTitles {
   APPROVE = 'Approve',
   CONNECT = 'Connect wallet',
   DEPOSIT = 'Deposit',
@@ -22,7 +22,7 @@ export enum ActionButtonTitles {
   WITHDRAW_MAX = 'Withdraw more than allowed',
 }
 
-export type ActionButtonProps = {
+export type OperationButtonProps = {
   collateral: AssetChange;
   metaStatus: FetchStatus;
   needsSignature: boolean;

@@ -14,8 +14,8 @@ import { DEFAULT_SLIPPAGE } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useState } from 'react';
 
-import { useAuth } from '../../../store/auth.store';
-import { colorTheme } from '../../../styles/theme';
+import { useAuth } from '../../../../store/auth.store';
+import { colorTheme } from '../../../../styles/theme';
 
 const slippageDefaultOptions: {
   value: number;

@@ -1,7 +1,7 @@
 import { AbstractVault } from '@x-fuji/sdk';
 
-import { chainName } from '../../helpers/chains';
-import { RouteMeta } from '../../helpers/routes';
+import { chainName } from '../../../helpers/chains';
+import { RouteMeta } from '../../../helpers/routes';
 
 type VaultWarningProps = {
   availableRoutes: RouteMeta[];

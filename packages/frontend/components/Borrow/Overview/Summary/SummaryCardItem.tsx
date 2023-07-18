@@ -3,7 +3,7 @@ import { Stack } from '@mui/system';
 import React from 'react';
 
 import { belowPriceColor } from '../../../../helpers/positions';
-import ExtraInfoChip from '../../../Shared/ExtraInfoChip';
+import ExtraInfoChip from '../../../Shared/Operation/ExtraInfoChip';
 
 export type SummaryCardItemInfo = {
   title: string;

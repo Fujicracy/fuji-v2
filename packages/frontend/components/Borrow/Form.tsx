@@ -20,11 +20,11 @@ import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { BorrowingPosition } from '../../store/models/Position';
-import FormAssetBox from '../Shared/FormAssetBox/Box';
-import OperationContainer from '../Shared/OperationContainer';
-import OperationHeader from '../Shared/OperationHeader/Header';
-import OperationInfo from '../Shared/OperationInfo';
-import VaultWarning from '../Shared/VaultWarning';
+import FormAssetBox from '../Shared/Operation/FormAssetBox/Box';
+import OperationHeader from '../Shared/Operation/Header/Header';
+import OperationContainer from '../Shared/Operation/OperationContainer';
+import OperationInfo from '../Shared/Operation/OperationInfo';
+import VaultWarning from '../Shared/Operation/VaultWarning';
 import BorrowButton from './Button';
 import ConnextFooter from './ConnextFooter';
 
@@ -198,6 +198,8 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
 
   return (
     <OperationContainer
+      isConfirmationModalShown={isConfirmationModalShown}
+      setIsConfirmationModalShown={setIsConfirmationModalShown}
       positionData={positionData}
       transactionMeta={transactionMeta}
       actionType={actionType}

@@ -11,8 +11,8 @@ import APYChart from '../Shared/Charts/APYChart';
 import ChartAPYHeader from '../Shared/Charts/ChartAPYHeader';
 import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
-import InfoBlock from '../Shared/InfoBlock';
-import VaultSelect from '../Shared/VaultSelect/VaultSelect';
+import VaultSelect from '../Shared/Operation/VaultSelect/VaultSelect';
+import InfoBlock from './InfoBlock';
 import RiskBlock from './RiskBlock';
 import VaultStrategy from './VaultStrategy';
 

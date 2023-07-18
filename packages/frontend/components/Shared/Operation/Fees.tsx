@@ -13,9 +13,9 @@ import {
 } from '@mui/material';
 import { ReactNode, useState } from 'react';
 
-import { FetchStatus } from '../../helpers/assets';
-import { stringifiedBridgeFeeSum } from '../../helpers/transactions';
-import { useBorrow } from '../../store/borrow.store';
+import { FetchStatus } from '../../../helpers/assets';
+import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
+import { useBorrow } from '../../../store/borrow.store';
 
 function ErrorComponent() {
   return (

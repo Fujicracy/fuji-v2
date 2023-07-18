@@ -2,9 +2,9 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Fade, Grid, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { Chain, ChainId } from '@x-fuji/sdk';
 
-import { AssetType } from '../../../helpers/assets';
-import { chains } from '../../../helpers/chains';
-import { NetworkIcon } from '../Icons';
+import { AssetType } from '../../../../helpers/assets';
+import { chains } from '../../../../helpers/chains';
+import { NetworkIcon } from '../../Icons';
 
 type ChainSelectProps = {
   label: string;

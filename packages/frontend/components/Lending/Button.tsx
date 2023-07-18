@@ -9,15 +9,15 @@ import {
 } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import {
-  ActionButtonProps,
-  ActionButtonTitles,
   DisabledButton,
   LoadingButton,
   loadingTitle,
+  OperationButtonProps,
+  OperationButtonTitles,
   RegularButton,
-} from '../Shared/ActionButton';
+} from '../Shared/Operation/OperationButton';
 
-type LendingButtonProps = ActionButtonProps;
+type LendingButtonProps = OperationButtonProps;
 
 function LendingButton({
   address,
@@ -60,7 +60,7 @@ function LendingButton({
 
   if (!address) {
     return regularButton(
-      ActionButtonTitles.CONNECT,
+      OperationButtonTitles.CONNECT,
       onLoginClick,
       'lend-login'
     );
@@ -68,10 +68,10 @@ function LendingButton({
   const collateralAmount = parseFloat(collateral.input);
   const collateralBalance = collateral.balances[collateral.currency.symbol];
 
-  const actionTitle = `${needsSignature ? ActionButtonTitles.SIGN : ''}${
+  const actionTitle = `${needsSignature ? OperationButtonTitles.SIGN : ''}${
     mode === Mode.DEPOSIT
-      ? ActionButtonTitles.DEPOSIT
-      : ActionButtonTitles.WITHDRAW
+      ? OperationButtonTitles.DEPOSIT
+      : OperationButtonTitles.WITHDRAW
   }`;
 
   const loadingButtonTitle = loadingTitle(
@@ -86,14 +86,14 @@ function LendingButton({
   if (collateral.allowance.status === AllowanceStatus.Approving) {
     return loadingButton(false, true);
   } else if (availableVaultStatus === FetchStatus.Error) {
-    return disabledButton(ActionButtonTitles.ERROR);
+    return disabledButton(OperationButtonTitles.ERROR);
   } else if (
     !isEditing &&
     hasBalanceInVault &&
     availableVaultStatus === FetchStatus.Ready &&
     transactionMeta.status === FetchStatus.Ready
   ) {
-    return regularButton(ActionButtonTitles.MANAGE, () => {
+    return regularButton(OperationButtonTitles.MANAGE, () => {
       onRedirectClick(false);
     });
   } else if (firstStep && firstStep?.chainId !== walletChainId) {
@@ -111,11 +111,11 @@ function LendingButton({
     mode === Mode.WITHDRAW &&
     collateralAmount > Number(collateral?.amount)
   ) {
-    return disabledButton(ActionButtonTitles.WITHDRAW_MAX);
+    return disabledButton(OperationButtonTitles.WITHDRAW_MAX);
   } else if (
     needsAllowance(mode, AssetType.Collateral, collateral, collateralAmount)
   ) {
-    return regularButton(ActionButtonTitles.APPROVE, () =>
+    return regularButton(OperationButtonTitles.APPROVE, () =>
       onApproveClick(AssetType.Collateral)
     );
   } else {

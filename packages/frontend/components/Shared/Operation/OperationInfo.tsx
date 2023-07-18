@@ -1,8 +1,8 @@
 import { Box } from '@mui/material';
 
+import { SignTooltip } from '../Tooltips';
+import WarningInfo from '../WarningInfo';
 import Fees from './Fees';
-import { SignTooltip } from './Tooltips';
-import WarningInfo from './WarningInfo';
 
 type OperationInfoProps = {
   shouldShowFees: boolean;

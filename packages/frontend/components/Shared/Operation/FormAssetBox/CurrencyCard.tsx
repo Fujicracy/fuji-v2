@@ -20,22 +20,22 @@ import {
   Mode,
   recommendedLTV,
   withdrawMaxAmount,
-} from '../../../helpers/assets';
+} from '../../../../helpers/assets';
 import {
   isNativeAndWrappedPair,
   isNativeOrWrapped,
   nativeAndWrappedPair,
-} from '../../../helpers/currencies';
-import { PositionData } from '../../../helpers/positions';
+} from '../../../../helpers/currencies';
+import { PositionData } from '../../../../helpers/positions';
 import {
   formatAssetWithSymbol,
   formatValue,
   validAmount,
-} from '../../../helpers/values';
-import { useBorrow } from '../../../store/borrow.store';
-import styles from '../../../styles/components/Borrow.module.css';
-import Balance from '../Balance';
-import { CurrencyIcon } from '../Icons';
+} from '../../../../helpers/values';
+import { useBorrow } from '../../../../store/borrow.store';
+import styles from '../../../../styles/components/Borrow.module.css';
+import Balance from '../../Balance';
+import { CurrencyIcon } from '../../Icons';
 import CurrencyItem from './CurrencyItem';
 
 type SelectCurrencyCardProps = {

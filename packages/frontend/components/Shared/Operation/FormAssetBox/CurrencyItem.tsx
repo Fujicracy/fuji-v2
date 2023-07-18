@@ -9,8 +9,8 @@ import {
 import { Currency } from '@x-fuji/sdk';
 import { ReactElement } from 'react';
 
-import Balance from '../Balance';
-import { CurrencyIcon } from '../Icons';
+import Balance from '../../Balance';
+import { CurrencyIcon } from '../../Icons';
 
 type CurrencyItem = {
   currency?: Currency;

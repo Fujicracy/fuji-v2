@@ -1,7 +1,7 @@
 import { Chip } from '@mui/material';
 import React from 'react';
 
-import { formatValue } from '../../helpers/values';
+import { formatValue } from '../../../helpers/values';
 
 type ExtraInfoChipProps = {
   amount: string | number;

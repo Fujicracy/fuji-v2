@@ -19,9 +19,9 @@ import { useTheme } from '@mui/material/styles';
 import { VaultType } from '@x-fuji/sdk';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { useBorrow } from '../../../store/borrow.store';
-import { useLend } from '../../../store/lend.store';
-import { useNavigation } from '../../../store/navigation.store';
+import { useBorrow } from '../../../../store/borrow.store';
+import { useLend } from '../../../../store/lend.store';
+import { useNavigation } from '../../../../store/navigation.store';
 import Vault from './Vault';
 
 function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {

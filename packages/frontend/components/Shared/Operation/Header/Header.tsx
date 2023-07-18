@@ -1,11 +1,11 @@
 import { Box, Divider, Stack, Typography } from '@mui/material';
 import { VaultType } from '@x-fuji/sdk';
 
-import { TabOption } from '../../../constants';
-import { ActionType, AssetChange } from '../../../helpers/assets';
-import { wrappedSymbol } from '../../../helpers/currencies';
-import { CurrencyIcon } from '../Icons';
-import TabSwitch from '../TabSwitch/TabSwitch';
+import { TabOption } from '../../../../constants';
+import { ActionType, AssetChange } from '../../../../helpers/assets';
+import { wrappedSymbol } from '../../../../helpers/currencies';
+import { CurrencyIcon } from '../../Icons';
+import TabSwitch from '../../TabSwitch/TabSwitch';
 import HeaderInfo from './Info';
 
 type OperationHeaderProps = {

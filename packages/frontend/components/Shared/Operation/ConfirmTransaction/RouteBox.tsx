@@ -4,7 +4,7 @@ import { RoutingStepDetails } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React from 'react';
 
-import RoutesSteps from '../../Shared/RoutesSteps';
+import RoutesSteps from '../../RoutesSteps';
 import AssetsContainer from './AssetsContainer';
 
 function RouteBox({

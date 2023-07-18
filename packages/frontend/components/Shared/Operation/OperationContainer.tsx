@@ -1,12 +1,12 @@
-import { useState } from 'react';
-
-import { ActionType } from '../../helpers/assets';
-import { PositionData } from '../../helpers/positions';
-import { TransactionMeta } from '../../helpers/transactions';
+import { ActionType } from '../../../helpers/assets';
+import { PositionData } from '../../../helpers/positions';
+import { TransactionMeta } from '../../../helpers/transactions';
 import ConfirmTransactionModal from './ConfirmTransaction/ConfirmTransactionModal';
 
 type OperationContainerProps = {
   children: React.ReactNode;
+  isConfirmationModalShown: boolean;
+  setIsConfirmationModalShown: (value: boolean) => void;
   positionData: PositionData | undefined;
   transactionMeta: TransactionMeta;
   actionType: ActionType;
@@ -15,14 +15,13 @@ type OperationContainerProps = {
 
 function OperationContainer({
   children,
+  isConfirmationModalShown,
+  setIsConfirmationModalShown,
   positionData,
   transactionMeta,
   actionType,
   handler,
 }: OperationContainerProps) {
-  const [isConfirmationModalShown, setIsConfirmationModalShown] =
-    useState(false);
-
   return (
     <>
       {children}

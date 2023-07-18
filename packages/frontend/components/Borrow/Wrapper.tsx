@@ -22,7 +22,7 @@ import { usePositions } from '../../store/positions.store';
 import { FormType } from '../../store/types/state';
 import Footer from '../App/Footer';
 import BackToList from '../Shared/BackToList';
-import VaultSelect from '../Shared/VaultSelect/VaultSelect';
+import VaultSelect from '../Shared/Operation/VaultSelect/VaultSelect';
 import BorrowForm from './Form';
 import Overview from './Overview/Overview';
 

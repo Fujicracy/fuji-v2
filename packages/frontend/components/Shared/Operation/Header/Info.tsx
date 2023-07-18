@@ -1,7 +1,7 @@
 import { Box, Stack, Typography } from '@mui/material';
 
-import { NetworkIcon } from '../Icons';
-import { TooltipWrapper } from '../Tooltips';
+import { NetworkIcon } from '../../Icons';
+import { TooltipWrapper } from '../../Tooltips';
 import Slippage from './Slippage';
 
 type HeaderInfoProps = {
