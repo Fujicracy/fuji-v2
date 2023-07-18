@@ -21,7 +21,6 @@ import ConfirmTransactionModal from '../Shared/ConfirmTransaction/ConfirmTransac
 import Fees from '../Shared/Fees';
 import FormAssetBox from '../Shared/FormAssetBox/Box';
 import OperationHeader from '../Shared/OperationHeader/Header';
-import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { SignTooltip } from '../Shared/Tooltips';
 import VaultWarning from '../Shared/VaultWarning';
 import WarningInfo from '../Shared/WarningInfo';
@@ -192,18 +191,6 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
               vault !== undefined && vault.chainId === collateral.chainId
             }
           />
-          {isEditing && (
-            <TabSwitch
-              size="large"
-              options={[
-                { value: ActionType.ADD, label: 'Deposit' },
-                { value: ActionType.REMOVE, label: 'Withdraw' },
-              ]}
-              selected={actionType}
-              onChange={(type) => setActionType(type)}
-            />
-          )}
-
           <FormAssetBox
             index={0}
             type={AssetType.Collateral}

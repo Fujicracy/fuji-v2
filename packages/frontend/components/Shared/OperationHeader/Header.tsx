@@ -19,11 +19,6 @@ type OperationHeaderProps = {
   debt?: AssetChange;
 };
 
-const actionOptions: TabOption[] = [
-  { value: ActionType.ADD, label: 'Deposit / Borrow' },
-  { value: ActionType.REMOVE, label: 'Withdraw / Payback' },
-];
-
 function OperationHeader({
   type,
   isEditing,
@@ -34,6 +29,16 @@ function OperationHeader({
   collateral,
   debt,
 }: OperationHeaderProps) {
+  const actionOptions: TabOption[] = [
+    {
+      value: ActionType.ADD,
+      label: type === VaultType.BORROW ? 'Deposit / Borrow' : 'Deposit',
+    },
+    {
+      value: ActionType.REMOVE,
+      label: type === VaultType.BORROW ? 'Withdraw / Payback' : 'Withdraw',
+    },
+  ];
   const networkMessage = `Your position is currently on the ${chainName} Network`;
 
   return (
