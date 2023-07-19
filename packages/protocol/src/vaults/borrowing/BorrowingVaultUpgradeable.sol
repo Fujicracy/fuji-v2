@@ -866,6 +866,10 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
     emit ProvidersChanged(providers);
   }
 
+  /*/////////////////////
+     Harvest functions 
+  ////////////////////*/
+
   /// @inheritdoc IVaultUpgradeable
   function harvest(
     Strategy strategy,

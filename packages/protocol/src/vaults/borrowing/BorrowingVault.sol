@@ -989,6 +989,10 @@ contract BorrowingVault is BaseVault {
     emit ProvidersChanged(providers);
   }
 
+  /*/////////////////////
+     Harvest functions 
+  ////////////////////*/
+
   /// @inheritdoc IVault
   function harvest(
     Strategy strategy,

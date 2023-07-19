@@ -60,6 +60,16 @@ interface IHarvestManager {
   )
     external;
 
+  /**
+   * @notice Implementes the strategy after harvesting rewards.
+   *
+   * @param vault that harvested rewards.
+   * @param strategy enum of the strategy to apply.
+   * @param provider lending that harvested.
+   * @param swapper ISwapper to be used to swap rewards.
+   * @param data bytes to be used by vault after implementing the strategy.
+   *
+   */
   function completeHarvest(
     address vault,
     Strategy strategy,

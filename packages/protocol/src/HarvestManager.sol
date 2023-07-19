@@ -117,6 +117,18 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     currentVaultHarvest = address(0);
   }
 
+  /**
+   * @notice Implements the ConvertToCollateral strategy by swapping the reward tokens by the vault's collateralAsset.
+   *
+   * @param tokens the reward tokens.
+   * @param amounts the amounts of reward tokens.
+   * @param swapper the swapper to use.
+   * @param vault the vault that has harvested the rewards.
+   *
+   * @return data the encoded data to be used in the vault's completeHarvest function.
+   *
+   * @dev In this case, the return data is a call to the deposit function
+   */
   function _convertToCollateral(
     address[] memory tokens,
     uint256[] memory amounts,
@@ -140,6 +152,20 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     data = abi.encodeWithSelector(vault.deposit.selector, totalAmount, vault);
   }
 
+  /**
+   * @notice Implements the RepayDebt strategy by swapping the reward tokens by the vault's debtAsset and repaying the debt.
+   *
+   * @param provider the lending provider.
+   * @param tokens the reward tokens.
+   * @param amounts the amounts of reward tokens.
+   * @param swapper the swapper to use.
+   * @param vault the vault that has harvested the rewards.
+   *
+   * @return data the encoded data to be used in the vault's completeHarvest function.
+   *
+   * @dev In this case, the return data is a call to the payback function.
+   * If the reward amounts are more than enought to payback the vault's total debt, the excess is sent to the treasury.
+   */
   function _repayDebt(
     IHarvestable provider,
     address[] memory tokens,

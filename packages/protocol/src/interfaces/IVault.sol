@@ -501,7 +501,9 @@ interface IVault is IERC4626 {
   /**
    * @notice Collects rewards from the protocol.
    *
+   * @param strategy enum of the strategy to apply after harvesting rewards.
    * @param provider lending provider to be harvested.
+   * @param swapper swapper to be used to swap rewards.
    * @param data bytes to be used to call the harvest function at the lending provider.
    *
    */
