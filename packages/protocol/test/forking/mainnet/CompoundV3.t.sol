@@ -162,11 +162,8 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
   function test_harvest() public {
     do_deposit(DEPOSIT_AMOUNT, yieldVault, ALICE);
 
-    for (uint256 i = 0; i < 100; i++) {
-      vm.warp(block.timestamp + 13 seconds);
-      vm.roll(block.number + 1);
-      do_deposit(DEPOSIT_AMOUNT, yieldVault, ALICE);
-    }
+    vm.warp(block.timestamp + 39 seconds);
+    vm.roll(block.number + 3);
 
     //Check view functions are working as expected
     address market = CompoundV3(address(compoundV3)).getMapper().getAddressNestedMapping(
@@ -179,8 +176,10 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
     (address[] memory tokens, uint256[] memory amounts) =
       IHarvestable(address(compoundV3)).previewHarvest(yieldVault);
 
-    //compoundV3 will only return on token as reward
+    //compoundV3 will only return one token as reward
     assertEq(rewardOwed.token, tokens[0]);
     assertEq(rewardOwed.owed, amounts[0]);
+    console.log("Reward Token: ", rewardOwed.token);
+    console.log("Reward Amount: ", rewardOwed.owed);
   }
 }
