@@ -160,6 +160,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     for (uint256 i = 0; i < tokens.length; i++) {
       if (tokens[i] == debtAsset) {
         IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
+        amountSwapped += amounts[i];
         continue;
       }
       //swap desired amount here
@@ -168,15 +169,17 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
       amountSwapped += _swap(swapper, tokens[i], debtAsset, amounts[i], address(this));
     }
 
-    IERC20(debtAsset).safeTransfer(address(vault), providerDebt);
-    data = abi.encodeWithSelector(
-      ILendingProvider(address(provider)).payback.selector, providerDebt, vault
-    );
+    uint256 amountToTransfer = amountSwapped;
 
-    //should send remaining amount to treasury
     if (amountSwapped > providerDebt) {
+      amountToTransfer = providerDebt;
       IERC20(debtAsset).safeTransfer(treasury, amountSwapped - providerDebt);
     }
+
+    IERC20(debtAsset).safeTransfer(address(vault), amountToTransfer);
+    data = abi.encodeWithSelector(
+      ILendingProvider(address(provider)).payback.selector, amountToTransfer, vault
+    );
   }
 
   //TODO
