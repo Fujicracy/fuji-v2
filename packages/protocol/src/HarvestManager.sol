@@ -151,26 +151,19 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     returns (bytes memory data)
   {
     address debtAsset = BorrowingVault(payable(address(vault))).debtAsset();
-    //check provider total debt
-    //should not swap more than debt?
-    //should not swap if tokens[i] == debtAsset
     uint256 providerDebt =
       ILendingProvider(address(provider)).getBorrowBalance(address(vault), vault);
     uint256 amountSwapped = 0;
     for (uint256 i = 0; i < tokens.length; i++) {
-      if (tokens[i] == debtAsset) {
-        IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
-        amountSwapped += amounts[i];
-        continue;
-      }
-      //swap desired amount here
-      //stop if totalSwapped >= providerDebt?
       IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
-      amountSwapped += _swap(swapper, tokens[i], debtAsset, amounts[i], address(this));
+      if (tokens[i] == debtAsset) {
+        amountSwapped += amounts[i];
+      } else {
+        amountSwapped += _swap(swapper, tokens[i], debtAsset, amounts[i], address(this));
+      }
     }
 
     uint256 amountToTransfer = amountSwapped;
-
     if (amountSwapped > providerDebt) {
       amountToTransfer = providerDebt;
       IERC20(debtAsset).safeTransfer(treasury, amountSwapped - providerDebt);
