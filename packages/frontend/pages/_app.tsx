@@ -1,11 +1,12 @@
 import '../styles/globals.css';
 
+import { ChainvineWidget } from '@chainvine/widget';
 import { ThemeProvider } from '@mui/material';
 import { Web3OnboardProvider } from '@web3-onboard/react';
 import { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import Header from '../components/App/Header/Header';
 import Notification from '../components/App/Notification';
@@ -20,6 +21,7 @@ import {
 } from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl, navigationalTaskDelay } from '../helpers/navigation';
+import { campaignId, storeReferrer } from '../helpers/referrals';
 import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
@@ -55,6 +57,13 @@ function MyApp({ Component, pageProps }: AppProps) {
   const prevAddressRef = useRef<string | undefined>(undefined);
 
   const startedRef = useRef(false);
+
+  const [isReferralModalOpen, setIsReferralModalOpen] =
+    useState<boolean>(false);
+
+  useEffect(() => {
+    storeReferrer();
+  });
 
   useEffect(() => {
     if (!startedRef.current) {
@@ -154,6 +163,12 @@ function MyApp({ Component, pageProps }: AppProps) {
           <DisclaimerModal />
           <ExploreCarousel />
           <Notification />
+          <ChainvineWidget
+            isOpen={isReferralModalOpen}
+            userWalletAddress={address}
+            campaignId={campaignId}
+            onClose={() => setIsReferralModalOpen(false)}
+          />
         </ThemeProvider>
       </Web3OnboardProvider>
     </>

@@ -9,6 +9,7 @@ import { getOnboardStatus, web3onboard } from '../helpers/auth';
 import { chainIdToHex, hexToChainId } from '../helpers/chains';
 import { stringifyError } from '../helpers/errors';
 import { notify } from '../helpers/notifications';
+import { syncAddressWithCampaign } from '../helpers/referrals';
 import { storeOptions } from '../helpers/stores';
 
 export const onboard = web3onboard;
@@ -94,6 +95,7 @@ export const useAuth = create<AuthStore>()(
 
         const json = JSON.stringify(wallets.map(({ label }) => label));
         localStorage.setItem('connectedWallets', json);
+        syncAddressWithCampaign(address);
       },
 
       login: async (options) => {
