@@ -25,9 +25,8 @@ import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
-import {IHarvestManager} from "../interfaces/IHarvestManager.sol";
+import {IHarvestManager, Strategy} from "../interfaces/IHarvestManager.sol";
 import {IHarvestable} from "../interfaces/IHarvestable.sol";
-import {Strategy} from "../interfaces/IHarvestManager.sol";
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
 import {SystemAccessControl} from "../access/SystemAccessControl.sol";
@@ -1008,6 +1007,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     bytes memory data
   )
     external
+    virtual
     hasRole(msg.sender, HARVESTER_ROLE)
     returns (address[] memory tokens, uint256[] memory amounts)
   {

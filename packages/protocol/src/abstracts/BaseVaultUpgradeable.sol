@@ -890,6 +890,7 @@ abstract contract BaseVaultUpgradeable is
     bytes memory data
   )
     external
+    virtual
     hasRole(msg.sender, HARVESTER_ROLE)
     returns (address[] memory tokens, uint256[] memory amounts)
   {
