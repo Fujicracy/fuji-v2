@@ -1,9 +1,8 @@
 .maxBtn {
-  background: rgba(236, 38, 104, 0.2);
-  /* #EC2668 with opacity */
-  color: #ec2668;
+  background: #2d2f35;
+  color: #e8e8e8;
   height: 1.25rem;
-  padding: 0.07rem 0.25rem;
+  padding: 0.15rem 0.3rem;
   text-transform: uppercase;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -13,9 +12,7 @@
 }
 
 .maxBtn:hover {
-  background: rgba(236, 38, 104, 0.3);
-  text-shadow: #ec2668 0rem 0rem 0.125rem;
-  color: #ec2668;
+  background: #3b404a;
 }
 
 .cardLine {

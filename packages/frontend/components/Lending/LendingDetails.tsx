@@ -104,13 +104,10 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
         <Stack
           flexDirection="row"
           justifyContent="space-between"
+          alignItems="center"
           sx={{ width: '100%' }}
         >
-          <Stack
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="start"
-          >
+          <Stack flexDirection="column" justifyContent="center" mt={3} mb={2}>
             {loading ? (
               <>
                 <Skeleton

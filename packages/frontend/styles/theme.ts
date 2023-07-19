@@ -684,6 +684,7 @@ const theme = createTheme(colorTheme, {
           paddingTop: 0,
           paddingBottom: 0,
           whiteSpace: 'nowrap',
+          borderColor: '#2A2E35',
         },
       },
     },

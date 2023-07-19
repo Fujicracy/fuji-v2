@@ -59,7 +59,7 @@ function InfoBlock({
           sx={{ display: 'inline-block', mt: 1 }}
         >
           {value}
-          {amount && <ExtraInfoChip amount={amount} extra={extra} />}
+          {amount ? <ExtraInfoChip amount={amount} extra={extra} /> : null}
         </Typography>
       )}
     </Box>

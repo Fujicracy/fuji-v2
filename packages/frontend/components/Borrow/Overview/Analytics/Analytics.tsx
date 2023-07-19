@@ -67,53 +67,58 @@ function Analytics() {
   );
 
   return (
-    <Card
-      sx={{
-        flexDirection: 'column',
-        alignItems: 'center',
-        p: '1.5rem',
-        width: '100%',
-        overflow: 'visible',
-        mt: '2rem',
-      }}
-    >
-      <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
-        <Typography variant="body2">Analytics</Typography>
+    <>
+      <Typography variant="body2" mt={4} mb={2}>
+        Analytics
+      </Typography>
 
-        <Stack flexDirection="row" justifyContent="space-between">
-          <TabSwitch
-            options={chartOptions}
-            selected={selectedTab}
-            onChange={setSelectedTab}
-            width="13.6rem"
-          />
-          <PeriodOptions onChange={onPeriodChange} isDayExcluded={true} />
-        </Stack>
-
-        <ChartAPYHeader
-          activeProvider={activeProvider}
-          type={
-            selectedTab === ChartTab.BORROW ? VaultType.BORROW : VaultType.LEND
-          }
-        />
-
-        {loading ? (
-          loadingSkeleton
-        ) : currentData &&
-          currentData.length > 0 &&
-          currentData.some((data) => data.aprStats.length > 0) ? (
-          <>
-            <APYChart
-              data={currentData}
-              tab={selectedTab}
-              period={selectedPeriod}
+      <Card
+        sx={{
+          flexDirection: 'column',
+          alignItems: 'center',
+          p: '1.5rem',
+          width: '100%',
+          overflow: 'visible',
+        }}
+      >
+        <CardContent sx={{ width: '100%', padding: 0, gap: '1rem' }}>
+          <Stack flexDirection="row" justifyContent="space-between" mb={3}>
+            <TabSwitch
+              options={chartOptions}
+              selected={selectedTab}
+              onChange={setSelectedTab}
+              width="13.6rem"
             />
-          </>
-        ) : (
-          <EmptyChartState />
-        )}
-      </CardContent>
-    </Card>
+            <PeriodOptions onChange={onPeriodChange} isDayExcluded={true} />
+          </Stack>
+
+          <ChartAPYHeader
+            activeProvider={activeProvider}
+            type={
+              selectedTab === ChartTab.BORROW
+                ? VaultType.BORROW
+                : VaultType.LEND
+            }
+          />
+
+          {loading ? (
+            loadingSkeleton
+          ) : currentData &&
+            currentData.length > 0 &&
+            currentData.some((data) => data.aprStats.length > 0) ? (
+            <>
+              <APYChart
+                data={currentData}
+                tab={selectedTab}
+                period={selectedPeriod}
+              />
+            </>
+          ) : (
+            <EmptyChartState />
+          )}
+        </CardContent>
+      </Card>
+    </>
   );
 }
 

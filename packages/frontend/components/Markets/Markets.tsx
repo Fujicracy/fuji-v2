@@ -68,17 +68,15 @@ function Markets() {
           onChange={(tab) => setCurrentTab(tab)}
           defaultTab={currentTab}
         />
+        <MarketFiltersHeader filters={filters} setFilters={setFilters} />
       </Grid>
 
-      <Box>
-        <MarketFiltersHeader filters={filters} setFilters={setFilters} />
-        <MarketsTable
-          filters={filters}
-          rows={tableData.rows}
-          vaults={tableData.vaults}
-          type={tableData.type}
-        />
-      </Box>
+      <MarketsTable
+        filters={filters}
+        rows={tableData.rows}
+        vaults={tableData.vaults}
+        type={tableData.type}
+      />
     </Box>
   );
 }

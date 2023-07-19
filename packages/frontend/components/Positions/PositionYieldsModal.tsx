@@ -119,7 +119,7 @@ function PositionYieldsModal({ open, onClose }: PositionYieldsModalProps) {
         </Grid>
 
         <Stack
-          alignItems="end"
+          alignItems="center"
           direction="row"
           justifyContent="space-between"
           sx={{

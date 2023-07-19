@@ -30,7 +30,7 @@ function Chip({ selected, label, onClick, size }: TabChipProps) {
       <Typography
         color={palette.text.primary}
         fontSize={size === 'large' ? '1rem' : '0.875rem'}
-        lineHeight="160%"
+        lineHeight="100%"
         textAlign="center"
         sx={{
           ['@media screen and (max-width: 980px)']: {
