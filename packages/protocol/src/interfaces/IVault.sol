@@ -506,7 +506,6 @@ interface IVault is IERC4626 {
    *
    */
   function harvest(
-    IVault vault,
     Strategy strategy,
     IHarvestable provider,
     ISwapper swapper,
