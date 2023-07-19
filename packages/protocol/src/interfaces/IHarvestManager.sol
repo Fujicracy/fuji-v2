@@ -61,7 +61,7 @@ interface IHarvestManager {
     external;
 
   function completeHarvest(
-    IVault vault,
+    address vault,
     Strategy strategy,
     IHarvestable provider,
     ISwapper swapper,

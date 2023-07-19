@@ -84,11 +84,11 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
 
     currentVaultHarvest = address(vault);
 
-    vault.harvest(vault, strategy, provider, swapper, data);
+    vault.harvest(strategy, provider, swapper, data);
   }
 
   function completeHarvest(
-    IVault vault,
+    address vault,
     Strategy strategy,
     IHarvestable provider,
     ISwapper swapper,
@@ -102,14 +102,16 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
       revert HarvestManager__harvest_vaultNotAllowed();
     }
 
+    IVault vault_ = IVault(vault);
+
     if (strategy == Strategy.ConvertToCollateral) {
-      data = _convertToCollateral(tokens, amounts, swapper, vault);
+      data = _convertToCollateral(tokens, amounts, swapper, vault_);
     }
     if (strategy == Strategy.RepayDebt) {
-      data = _repayDebt(provider, tokens, amounts, swapper, vault);
+      data = _repayDebt(provider, tokens, amounts, swapper, vault_);
     }
     if (strategy == Strategy.Distribute) {
-      data = _distribute(tokens, amounts, vault);
+      data = _distribute(tokens, amounts, vault_);
     }
 
     currentVaultHarvest = address(0);
