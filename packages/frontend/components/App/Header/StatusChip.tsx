@@ -34,14 +34,13 @@ function StatusChip() {
     setAnchorEl(event.currentTarget);
   };
 
-  // TODO: change icons
   const statusIcon = loading ? (
     <CircularProgress size={20} />
   ) : positionsAtRisk.length > 0 ? (
     <ErrorIcon />
   ) : (
     <Image
-      src={'/assets/images/notifications/success.svg'}
+      src={'/assets/images/shared/success-outlined.svg'}
       alt={'success icon'}
       width={20}
       height={20}
@@ -77,8 +76,8 @@ function StatusChip() {
           'aria-labelledby': 'basic-button',
           disablePadding: true,
         }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         sx={{ mt: 1 }}
         PaperProps={{
           sx: { background: palette.secondary.contrastText, padding: '0.5rem' },
@@ -114,12 +113,13 @@ const ErrorIcon = () => (
     alt={'error icon'}
     width={20}
     height={20}
+    style={{ background: 'transparent' }}
   />
 );
 
 const ListItem = ({ position }: { position: BorrowingPosition }) => {
   return (
-    <Stack direction="row" alignItems="flex-start" gap={2}>
+    <Stack direction="row" alignItems="flex-start" gap={1}>
       <ErrorIcon />
       <Stack direction="column">
         <Typography variant="small">
