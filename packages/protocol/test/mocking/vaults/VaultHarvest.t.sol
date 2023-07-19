@@ -242,6 +242,7 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
     do_deposit(DEPOSIT_AMOUNT, yvault, DAVID);
   }
 
+  // test with provider that returns rewards in collateralAsset -> no need to swap
   function test_harvestWithStrategy1() public {
     uint256 balanceBefore = mockProviderA.getDepositBalance(address(bvault), bvault);
 
@@ -258,6 +259,7 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
     );
   }
 
+  // test with provider that returns rewards in debtAsset
   function test_harvestWithStrategy1AndSwap() public {
     uint256 balanceBefore =
       mockProviderRewardsInDebtAsset.getDepositBalance(address(bvault2), bvault2);
@@ -281,5 +283,74 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
       mockProviderRewardsInDebtAsset.getDepositBalance(address(bvault2), bvault2) - balanceBefore;
 
     assertEq(rewardsInVault, expectedRewards);
+  }
+
+  // test with provider that returns rewards in debtAsset -> no need to swap
+  function test_harvestWithStrategy2() public {
+    uint256 borrowBalanceBefore =
+      mockProviderRewardsInDebtAsset.getBorrowBalance(address(bvault2), bvault2);
+
+    bytes memory data = abi.encode(bvault2);
+    vm.startPrank(HARVESTER);
+    harvestManager.harvest(
+      bvault2,
+      Strategy.RepayDebt,
+      IHarvestable(address(mockProviderRewardsInDebtAsset)),
+      swapper,
+      data
+    );
+    vm.stopPrank();
+
+    uint256 expectedRewardsInDebtAsset = 1e18;
+    uint256 expectedBorrowBalance = 0;
+    uint256 expectedTreasuryBalance = 0;
+
+    if (borrowBalanceBefore >= expectedRewardsInDebtAsset) {
+      expectedBorrowBalance = borrowBalanceBefore - expectedRewardsInDebtAsset;
+      expectedTreasuryBalance = 0;
+    } else {
+      expectedBorrowBalance = 0;
+      expectedTreasuryBalance = expectedRewardsInDebtAsset - borrowBalanceBefore;
+    }
+
+    //assert debt in vault
+    assertEq(
+      mockProviderRewardsInDebtAsset.getBorrowBalance(address(bvault2), bvault2),
+      expectedBorrowBalance
+    );
+    //assert treasury detbAsset balance
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), expectedTreasuryBalance);
+  }
+
+  //test with provider that returns rewards in collateralAsset
+  function test_harvestWithStrategy2AndSwap() public {
+    uint256 borrowBalanceBefore = mockProviderA.getBorrowBalance(address(bvault), bvault);
+
+    bytes memory data = abi.encode(bvault);
+    vm.startPrank(HARVESTER);
+    harvestManager.harvest(
+      bvault, Strategy.RepayDebt, IHarvestable(address(mockProviderA)), swapper, data
+    );
+    vm.stopPrank();
+
+    uint256 expectedRewardsInCollateralAsset = 1e18;
+    uint256 expectedRewardsInDebtAsset = expectedRewardsInCollateralAsset
+      * oracle.getPriceOf(debtAsset, collateralAsset, debtDecimals) / (10 ** assetDecimals);
+
+    uint256 expectedBorrowBalance = 0;
+    uint256 expectedTreasuryBalance = 0;
+
+    if (borrowBalanceBefore >= expectedRewardsInDebtAsset) {
+      expectedBorrowBalance = borrowBalanceBefore - expectedRewardsInDebtAsset;
+      expectedTreasuryBalance = 0;
+    } else {
+      expectedBorrowBalance = 0;
+      expectedTreasuryBalance = expectedRewardsInDebtAsset - borrowBalanceBefore;
+    }
+
+    //assert debt in vault
+    assertEq(mockProviderA.getBorrowBalance(address(bvault), bvault), expectedBorrowBalance);
+    //assert treasury detbAsset balance
+    assertEq(IERC20(debtAsset).balanceOf(TREASURY), expectedTreasuryBalance);
   }
 }
