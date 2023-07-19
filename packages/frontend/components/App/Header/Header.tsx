@@ -30,17 +30,18 @@ import styles from '../../../styles/components/Header.module.css';
 import { BurgerMenuIcon } from '../../Shared/Icons';
 import AccountModal from './AccountModal/AccountModal';
 import AddressAddon from './AddressAddon';
-import BalanceAddon from './BalanceAddon';
 import Banners from './Banners';
 import ChainSelect from './ChainSelect';
 import SocialMenu from './SocialMenu';
 import SocialMenuWrapper from './SocialMenuWrapper';
+import StatusChip from './StatusChip';
+import WalletAddress from './WalletAddress';
 
 const Header = () => {
   const theme = useTheme();
   const router = useRouter();
 
-  const { address, ens, status, balance, started, login } = useAuth(
+  const { address, ens, status, started, login } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,
@@ -297,11 +298,13 @@ const Header = () => {
             {status === AuthStatus.Connected && address && (
               <>
                 <Grid item>
+                  <StatusChip />
+                </Grid>
+                <Grid item>
                   <ChainSelect />
                 </Grid>
                 <Grid item>
-                  <BalanceAddon
-                    balance={balance}
+                  <WalletAddress
                     address={address}
                     ens={ens}
                     onClick={(e) => handleOpenAccountModal(true, e)}

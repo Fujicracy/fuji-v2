@@ -18,6 +18,7 @@ import React from 'react';
 import { chainName, chains, isSupported } from '../../../helpers/chains';
 import { useAuth } from '../../../store/auth.store';
 import { NetworkIcon } from '../../Shared/Icons';
+import { TooltipWrapper } from '../../Shared/Tooltips';
 
 function ChainSelect() {
   const theme = useTheme();
@@ -44,22 +45,23 @@ function ChainSelect() {
   return (
     <>
       {networkName && isSupported(chainId) ? (
-        <Chip
-          data-cy="network-button"
-          label={
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <ListItem
-                chainName={networkName}
-                selected={false}
-                onMobile={onMobile}
-              />
-              {!onMobile && (
-                <KeyboardArrowDownIcon sx={{ ml: '0px !important' }} />
-              )}
-            </Stack>
-          }
-          onClick={openMenu}
-        />
+        <TooltipWrapper title={networkName} placement="bottom">
+          <Chip
+            data-cy="network-button"
+            label={
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <ListItem
+                  chainName={networkName}
+                  selected={false}
+                  onMobile={onMobile}
+                  isOnlyIcon
+                />
+              </Stack>
+            }
+            onClick={openMenu}
+            sx={{ '.MuiChip-label': { padding: '0 0.5rem' } }}
+          />
+        </TooltipWrapper>
       ) : (
         <Chip
           data-cy="header-unsupported-network"
@@ -109,10 +111,15 @@ type ListItemProps = {
   chainName: string;
   selected: boolean;
   onMobile: boolean;
+  isOnlyIcon?: boolean;
 };
 
-const ListItem = (props: ListItemProps) => {
-  const { chainName, selected, onMobile } = props;
+const ListItem = ({
+  chainName,
+  selected,
+  onMobile,
+  isOnlyIcon,
+}: ListItemProps) => {
   const { palette } = useTheme();
 
   return (
@@ -120,7 +127,7 @@ const ListItem = (props: ListItemProps) => {
       <ListItemIcon sx={{ minWidth: 'inherit' }}>
         <NetworkIcon network={chainName} height={20} width={20} />
       </ListItemIcon>
-      {!onMobile && (
+      {!onMobile && !isOnlyIcon && (
         <ListItemText
           data-cy="header-network"
           sx={{
