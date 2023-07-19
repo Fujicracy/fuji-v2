@@ -11,7 +11,7 @@ import {
 } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 
-import { DUST_AMOUNT } from '../constants';
+import { DUST_AMOUNT, LTV_RISK_THRESHOLD } from '../constants';
 import { useBorrow } from '../store/borrow.store';
 import { useLend } from '../store/lend.store';
 import {
@@ -377,6 +377,14 @@ export const vaultFromPosition = (
       ? pos.vault?.address.value === address && pos.vault?.chainId === chainId
       : pos.vault?.address.value === address
   )?.vault;
+};
+
+export const borrowingPositionsAtRisk = (
+  positions: BorrowingPosition[]
+): BorrowingPosition[] => {
+  return positions.filter((pos) => {
+    return pos.ltvMax - pos.ltv < LTV_RISK_THRESHOLD;
+  });
 };
 
 export const liquidationColor = (

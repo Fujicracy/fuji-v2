@@ -6,6 +6,7 @@ import { AssetType } from '../helpers/assets';
 import { shouldShowStoreNotification } from '../helpers/navigation';
 import { showOnchainErrorNotification } from '../helpers/notifications';
 import {
+  borrowingPositionsAtRisk,
   getAccrual,
   getCurrentAvailableBorrowingPower,
   getPositionsWithBalance,
@@ -16,6 +17,7 @@ import { useAuth } from './auth.store';
 import { BorrowingPosition, Position } from './models/Position';
 
 type PositionsState = {
+  positionsAtRisk: BorrowingPosition[];
   borrowPositions: BorrowingPosition[];
   lendingPositions: Position[];
   totalDepositsUSD?: number;
@@ -31,6 +33,7 @@ type PositionsActions = {
 };
 
 const initialState: PositionsState = {
+  positionsAtRisk: [],
   borrowPositions: [],
   lendingPositions: [],
   loading: false,
@@ -110,8 +113,11 @@ export const usePositions = create<PositionsStore>()(
         const availableBorrowPowerUSD =
           getCurrentAvailableBorrowingPower(borrowPositions);
 
+        const positionsAtRisk = borrowingPositionsAtRisk(borrowPositions);
+
         set(() => {
           return {
+            positionsAtRisk,
             borrowPositions,
             lendingPositions,
             totalDepositsUSD,
