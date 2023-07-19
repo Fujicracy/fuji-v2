@@ -12,6 +12,9 @@ pragma solidity 0.8.15;
 import {IERC4626Upgradeable} from
   "openzeppelin-contracts-upgradeable/contracts/interfaces/IERC4626Upgradeable.sol";
 import {ILendingProvider} from "./ILendingProvider.sol";
+import {IHarvestable} from "./IHarvestable.sol";
+import {Strategy} from "./IHarvestManager.sol";
+import {ISwapper} from "./ISwapper.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
 
 interface IVaultUpgradeable is IERC4626Upgradeable {
@@ -490,4 +493,24 @@ interface IVaultUpgradeable is IERC4626Upgradeable {
    * @param amount to be as minimum.
    */
   function setMinAmount(uint256 amount) external;
+
+  /*/////////////////////
+     Harvest functions 
+  ////////////////////*/
+
+  /**
+   * @notice Collects rewards from the protocol.
+   *
+   * @param provider lending provider to be harvested.
+   * @param data bytes to be used to call the harvest function at the lending provider.
+   *
+   */
+  function harvest(
+    Strategy strategy,
+    IHarvestable provider,
+    ISwapper swapper,
+    bytes memory data
+  )
+    external
+    returns (address[] memory tokens, uint256[] memory amounts);
 }
