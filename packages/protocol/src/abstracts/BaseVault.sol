@@ -1002,7 +1002,6 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
 
   /// @inheritdoc IVault
   function harvest(
-    IVault vault,
     Strategy strategy,
     IHarvestable provider,
     ISwapper swapper,
@@ -1034,7 +1033,7 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     }
 
     bytes memory callData = IHarvestManager(msg.sender).completeHarvest(
-      vault, strategy, provider, swapper, tokens, amounts
+      address(this), strategy, provider, swapper, tokens, amounts
     );
     _completeHarvest(address(provider), callData);
   }
