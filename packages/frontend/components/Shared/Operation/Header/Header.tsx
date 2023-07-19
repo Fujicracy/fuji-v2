@@ -106,12 +106,14 @@ function OperationHeader({
       )}
       <Divider sx={{ m: '0.5rem 0' }} />
       {isEditing && (
-        <TabSwitch
-          size="large"
-          options={actionOptions}
-          selected={actionType}
-          onChange={onActionTypeChange}
-        />
+        <Box mt={3} mb={3}>
+          <TabSwitch
+            size="large"
+            options={actionOptions}
+            selected={actionType}
+            onChange={onActionTypeChange}
+          />
+        </Box>
       )}
     </>
   );
