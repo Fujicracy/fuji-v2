@@ -13,7 +13,6 @@ function ExtraInfoChip({ amount, extra }: ExtraInfoChipProps) {
   const value = formatValue(extra, {
     maximumFractionDigits: 3,
   });
-  console.warn(value);
   return (
     <Chip
       sx={{ marginLeft: '0.5rem' }}

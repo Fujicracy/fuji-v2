@@ -16,7 +16,6 @@ type LendingProps = {
 function Lending({ positionData }: LendingProps) {
   const formType = useLend((state) => state.formType);
   const isEditing = formType === FormType.Edit;
-  console.warn(isEditing);
   return (
     <Container>
       <BackToList type={VaultType.LEND} isEditing={isEditing} />
