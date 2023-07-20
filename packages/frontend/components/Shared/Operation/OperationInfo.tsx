@@ -1,10 +1,12 @@
 import { Box } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 
 import { SignTooltip } from '../Tooltips';
 import WarningInfo from '../WarningInfo';
 import Fees from './Fees';
 
 type OperationInfoProps = {
+  type: VaultType;
   shouldShowFees: boolean;
   shouldSignTooltipBeShown: boolean;
   shouldWarningBeDisplayed: boolean;
@@ -12,6 +14,7 @@ type OperationInfoProps = {
 };
 
 function OperationInfo({
+  type,
   shouldShowFees,
   shouldSignTooltipBeShown,
   shouldWarningBeDisplayed,
@@ -19,7 +22,7 @@ function OperationInfo({
 }: OperationInfoProps) {
   return (
     <>
-      <Box m="1rem 0">{shouldShowFees && <Fees />}</Box>
+      <Box m="1rem 0">{shouldShowFees && <Fees type={type} />}</Box>
       {shouldSignTooltipBeShown ? <SignTooltip /> : <></>}
       {shouldWarningBeDisplayed && (
         <Box mb={2}>

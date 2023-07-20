@@ -215,6 +215,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
             vaultType={VaultType.LEND}
           />
           <OperationInfo
+            type={VaultType.LEND}
             shouldShowFees
             shouldSignTooltipBeShown={shouldSignTooltipBeShown}
             shouldWarningBeDisplayed={shouldWarningBeDisplayed}

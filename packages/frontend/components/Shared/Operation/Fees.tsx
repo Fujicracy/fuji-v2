@@ -11,11 +11,13 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { ReactNode, useState } from 'react';
 
 import { FetchStatus } from '../../../helpers/assets';
 import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
 import { useBorrow } from '../../../store/borrow.store';
+import { useLend } from '../../../store/lend.store';
 
 function ErrorComponent() {
   return (
@@ -25,15 +27,26 @@ function ErrorComponent() {
   );
 }
 
-function Fees() {
-  const transactionMeta = useBorrow((state) => state.transactionMeta);
-  const collateral = useBorrow((state) => state.collateral);
+type FeesProps = {
+  type: VaultType;
+};
+
+function Fees({ type }: FeesProps) {
+  const useStore = type === VaultType.BORROW ? useBorrow : useLend;
+
+  const transactionMeta = useStore().transactionMeta;
+  const collateral = useStore().collateral;
+  const vault = useStore().activeVault;
   const debt = useBorrow((state) => state.debt);
+
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
   const show =
     showTransactionDetails && transactionMeta.status === FetchStatus.Ready;
 
-  const crossChainTx = debt && collateral.chainId !== debt.chainId;
+  const isCrossChainTx =
+    type === VaultType.BORROW
+      ? debt && collateral.chainId !== debt.chainId
+      : vault && vault.chainId !== collateral.chainId;
 
   const handleClick = () => {
     if (transactionMeta.status === FetchStatus.Ready) {
@@ -90,7 +103,7 @@ function Fees() {
       </Stack>
 
       <Collapse in={show} sx={{ width: '100%' }}>
-        {crossChainTx && (
+        {isCrossChainTx && (
           <Fee
             label="Bridge Fee"
             value={`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)}`}
@@ -101,14 +114,14 @@ function Fees() {
             }
           />
         )}
-        {crossChainTx && (
+        {isCrossChainTx && (
           <Fee label="Relayer Fee" value={'Sponsored by Fuji'} sponsored />
         )}
         <Fee
           label="Est. processing time"
           value={`~${transactionMeta.estimateTime / 60} minutes`}
         />
-        {crossChainTx && (
+        {isCrossChainTx && (
           <Fee
             label="Est. slippage"
             value={`~${transactionMeta.estimateSlippage} %`}
