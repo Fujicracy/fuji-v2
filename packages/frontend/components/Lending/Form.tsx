@@ -17,6 +17,7 @@ import { notify } from '../../helpers/notifications';
 import { PositionData } from '../../helpers/positions';
 import { useAuth } from '../../store/auth.store';
 import { useLend } from '../../store/lend.store';
+import ConnextFooter from '../Borrow/ConnextFooter';
 import FormAssetBox from '../Shared/Operation/FormAssetBox/Box';
 import OperationHeader from '../Shared/Operation/Header/Header';
 import OperationContainer from '../Shared/Operation/OperationContainer';
@@ -193,7 +194,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
             actionType={actionType}
             onActionTypeChange={(type) => setActionType(type)}
             isCrossChainOperation={
-              vault !== undefined && vault.chainId === collateral.chainId
+              vault !== undefined && vault.chainId !== collateral.chainId
             }
           />
           <FormAssetBox
@@ -245,6 +246,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
             onClick={signAndExecute}
             withConfirmation={proceedWithConfirmation}
           />
+          <ConnextFooter mb="0rem" />
         </CardContent>
       </Card>
     </OperationContainer>

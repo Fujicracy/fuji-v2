@@ -10,12 +10,14 @@ type ExtraInfoChipProps = {
 
 function ExtraInfoChip({ amount, extra }: ExtraInfoChipProps) {
   if (!extra || extra === amount) return null;
+  const value = formatValue(extra, {
+    maximumFractionDigits: 3,
+  });
+  console.warn(value);
   return (
     <Chip
       sx={{ marginLeft: '0.5rem' }}
-      label={`${formatValue(extra, {
-        maximumFractionDigits: 3,
-      })} after`}
+      label={`${value === '-0' ? '0' : value} after`}
       variant={'currency'}
     />
   );

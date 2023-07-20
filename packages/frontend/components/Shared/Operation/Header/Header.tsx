@@ -41,43 +41,59 @@ function OperationHeader({
   ];
   const networkMessage = `Your position is currently on the ${chainName} Network`;
 
+  const borrowingHeader = (debt: AssetChange) => {
+    return (
+      <Stack direction="row" justifyContent="start" alignItems="center">
+        <Box sx={{ position: 'relative' }}>
+          <CurrencyIcon currency={debt.currency} height={40} width={40} />
+          <CurrencyIcon
+            currency={collateral.currency}
+            height={16}
+            width={16}
+            sx={{
+              position: 'absolute',
+              right: 0,
+              transform: 'translateY(-100%)',
+            }}
+          />
+        </Box>
+        <Box ml="0.75rem">
+          <Typography variant="h5" fontSize="1.25rem" lineHeight="150%">
+            Debt: {debt.currency.symbol}
+          </Typography>
+          <Typography variant="small" fontSize="0.875rem" lineHeight="22.4px">
+            Collateral: {wrappedSymbol(collateral.currency)}
+          </Typography>
+        </Box>
+      </Stack>
+    );
+  };
+
+  const lendingHeader = () => {
+    return (
+      <Stack direction="row" justifyContent="start" alignItems="center">
+        <Box sx={{ position: 'relative' }}>
+          <CurrencyIcon currency={collateral.currency} height={40} width={40} />
+        </Box>
+        <Box ml="0.75rem">
+          <Typography variant="h5" fontSize="1.25rem" lineHeight="150%">
+            Supply: {collateral.currency.symbol}
+          </Typography>
+        </Box>
+      </Stack>
+    );
+  };
+
   return (
     <>
-      {isEditing && debt ? (
+      {isEditing ? (
         <Stack
           direction="row"
           justifyContent="space-between"
           alignItems="center"
-          height="40px"
+          height="60px"
         >
-          <Stack direction="row" justifyContent="start" alignItems="center">
-            <Box sx={{ position: 'relative' }}>
-              <CurrencyIcon currency={debt.currency} height={40} width={40} />
-              <CurrencyIcon
-                currency={collateral.currency}
-                height={16}
-                width={16}
-                sx={{
-                  position: 'absolute',
-                  right: 0,
-                  transform: 'translateY(-100%)',
-                }}
-              />
-            </Box>
-            <Box ml="0.75rem">
-              <Typography variant="h5" fontSize="1.25rem" lineHeight="150%">
-                Debt: {debt.currency.symbol}
-              </Typography>
-              <Typography
-                variant="small"
-                fontSize="0.875rem"
-                lineHeight="22.4px"
-              >
-                Collateral: {wrappedSymbol(collateral.currency)}
-              </Typography>
-            </Box>
-          </Stack>
-
+          {debt ? borrowingHeader(debt) : lendingHeader()}
           <HeaderInfo
             isEditing={isEditing}
             isCrossChainOperation={isCrossChainOperation}

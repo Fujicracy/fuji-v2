@@ -19,6 +19,7 @@ function HeaderInfo({
   tooltipMessage,
   defaultOpen = false,
 }: HeaderInfoProps) {
+  console.warn(isCrossChainOperation);
   return (
     <Stack
       direction="row"
