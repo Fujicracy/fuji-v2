@@ -238,16 +238,8 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         vault.deposit(amount, receiver);
       } else if (action == Action.Withdraw) {
         // WITHDRAW
-        (IVault vault, uint256 amount, address receiver, address owner) =
-          abi.decode(args[i], (IVault, uint256, address, address));
-
-        _checkVaultInput(address(vault));
-
-        beneficiary = _checkBeneficiary(beneficiary, owner);
-        _addTokenToList(vault.asset(), tokensToCheck);
-        _addTokenToList(address(vault), tokensToCheck);
-
-        vault.withdraw(amount, receiver, owner);
+        beneficiary =
+          _handleWithdrawAction(args[i], actions[i + 1], args[i + 1], beneficiary, tokensToCheck);
       } else if (action == Action.Borrow) {
         // BORROW
         (IVault vault, uint256 amount, address receiver, address owner) =
@@ -275,6 +267,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         vault.payback(amount, receiver);
       } else if (action == Action.PermitWithdraw) {
         // PERMIT WITHDRAW
+        // TODO Need to handle case in where withdraw action replaced argument.
         if (actionArgsHash == ZERO_BYTES32) {
           actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
         }
@@ -284,6 +277,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         beneficiary = _checkBeneficiary(beneficiary, owner_);
       } else if (action == Action.PermitBorrow) {
         // PERMIT BORROW
+        // TODO Need to handle case in where withdraw action replaced argument.
         if (actionArgsHash == ZERO_BYTES32) {
           actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
         }
@@ -359,6 +353,66 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     }
     _checkNoBalanceChange(tokensToCheck, nativeBalance);
   }
+
+  /**
+   * @dev Decodes and replaces "amount" argument in args with `updateAmount`
+   * in actions in where it is required to replace it.
+   */
+  function _replaceAmountArgInAction(
+    Action action,
+    bytes memory args,
+    uint256 updateAmount
+  )
+    internal
+    pure
+    returns (bytes memory newArgs, uint256 previousAmount)
+  {
+    if (
+      action == Action.Deposit || action == Action.Withdraw || action == Action.Borrow
+        || action == Action.Payback
+    ) {
+      (IVault vault, uint256 amount, address addr1, address addr2) =
+        abi.decode(args, (IVault, uint256, address, address));
+      previousAmount = amount;
+      newArgs = abi.encode(vault, updateAmount, addr1, addr2);
+    } else if (action == Action.XTransfer || action == Action.XTransferWithCall) {
+      (newArgs, previousAmount) = _replaceAmountInCrossAction(action, args, updateAmount);
+    } else if (action == Action.Swap) {
+      (
+        ISwapper swapper,
+        address assetIn,
+        address assetOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        address receiver,
+        address sweeper,
+        uint256 minSweepOut
+      ) =
+        abi.decode(args, (ISwapper, address, address, uint256, uint256, address, address, uint256));
+      previousAmount = amountIn;
+      newArgs = abi.encode(
+        swapper, assetIn, assetOut, updateAmount, amountOut, receiver, sweeper, minSweepOut
+      );
+    } else if (action == Action.WithdrawETH) {
+      (uint256 amount, address receiver) = abi.decode(args, (uint256, address));
+      previousAmount = amount;
+      newArgs = abi.encode(updateAmount, receiver);
+    }
+  }
+
+  /**
+   * @dev Similar to `_replaceAmountArgInAction(...)` but asbtracted to inmplement
+   * specific bridge logic.
+   */
+  function _replaceAmountInCrossAction(
+    Action action,
+    bytes memory args,
+    uint256 updateAmount
+  )
+    internal
+    pure
+    virtual
+    returns (bytes memory newArgs, uint256 previousAmount);
 
   /**
    * @dev Handles both permit actions logic flow.
@@ -508,6 +562,66 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   }
 
   /**
+   * @dev Handles withdraw actions logic flow.
+   * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
+   * Requirements:
+   * - Must check vault is a valid.
+   * - Must add handled token to the `_tokensToCheck` list
+   * - Must check if returned withdraw amount matched the next amount in actions.
+   * - Must check and return "beneficiary".
+   *
+   * @param arg of the ongoing action
+   * @param nextAction in the `bundleInternal(...)`
+   * @param nextArgs in the `bundleInternal(...)`
+   * @param beneficiary_ passed through `_bundleInternal()`
+   * @param tokensToCheck_ passed through `_bundleInternal()`
+   */
+  function _handleWithdrawAction(
+    bytes memory arg,
+    Action nextAction,
+    bytes memory nextArgs,
+    address beneficiary_,
+    Snapshot[] memory tokensToCheck_
+  )
+    private
+    returns (address)
+  {
+    (IVault vault, uint256 amount, address receiver, address owner) =
+      abi.decode(arg, (IVault, uint256, address, address));
+
+    _checkVaultInput(address(vault));
+
+    beneficiary_ = _checkBeneficiary(beneficiary_, owner);
+    address asset = vault.asset();
+    _addTokenToList(asset, tokensToCheck_);
+    _addTokenToList(address(vault), tokensToCheck_);
+
+    if (
+      (
+        nextAction == Action.Deposit || nextAction == Action.Swap || nextAction == Action.XTransfer
+          || nextAction == Action.XTransferWithCall || nextAction == Action.WithdrawETH
+      ) && receiver == address(this)
+    ) {
+      // Sandwhich the withrawal with bal requests to know if max-soft-withdrawal took place.
+      uint256 prevBal = IERC20(asset).balanceOf(address(this));
+      vault.withdraw(amount, receiver, owner);
+      uint256 afterBal = IERC20(asset).balanceOf(address(this));
+
+      uint256 updateAmount = (afterBal - prevBal);
+
+      if (amount > updateAmount) {
+        // If the withdraw `amount` encoded was > than the `owner`'s "maxWithdraw", the
+        // difference in "(afterBal - prevBal)" must be less than amount.
+        (nextArgs,) = _replaceAmountArgInAction(nextAction, nextArgs, updateAmount);
+      }
+    } else {
+      vault.withdraw(amount, receiver, owner);
+    }
+
+    return beneficiary_;
+  }
+
+  /**
    * @dev Handles swap actions logic flow.
    * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
    * Requirements:
@@ -525,7 +639,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     address beneficiary_,
     Snapshot[] memory tokensToCheck_
   )
-    internal
+    private
     returns (address)
   {
     (
