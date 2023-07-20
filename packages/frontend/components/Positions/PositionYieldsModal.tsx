@@ -48,6 +48,10 @@ function PositionYieldsModal({ open, onClose }: PositionYieldsModalProps) {
     ) {
       onClose();
     }
+
+    return () => {
+      setCurrentTab(0);
+    };
   }, [account, borrowPositions, lendingPositions, onClose]);
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { Card, Grid, Skeleton, Stack, Tooltip } from '@mui/material';
+import { Box, Card, Grid, Skeleton, Stack, Tooltip } from '@mui/material';
 import { AprResult, LendingVault, VaultType } from '@x-fuji/sdk';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -13,7 +13,6 @@ import EmptyChartState from '../Shared/Charts/EmptyState';
 import PeriodOptions from '../Shared/Filters/PeriodOptions';
 import VaultSelect from '../Shared/Operation/VaultSelect/VaultSelect';
 import InfoBlock from './InfoBlock';
-import RiskBlock from './RiskBlock';
 import VaultStrategy from './VaultStrategy';
 
 type LendingDetailsProps = {
@@ -98,7 +97,7 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          p: '0 1.5rem',
+          p: '0 1.5rem 1.5rem 1.5rem',
         }}
       >
         <Stack
@@ -155,9 +154,11 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
         )}
       </Card>
 
-      <VaultStrategy />
+      <Box mb={3}>
+        <VaultStrategy />
+      </Box>
 
-      <RiskBlock />
+      {/*<RiskBlock />*/}
     </>
   );
 }
