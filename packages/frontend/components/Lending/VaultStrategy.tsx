@@ -42,7 +42,7 @@ function VaultStrategy() {
             overflow: 'hidden',
           }}
         >
-          <Typography variant="xsmall">Current Active Provider:</Typography>
+          <Typography variant="xsmall">Underlying money markets</Typography>
           <Stack
             direction="row"
             alignItems="center"
@@ -77,19 +77,17 @@ function VaultStrategy() {
                     ml: '1.5rem',
                   },
                   '& div': {
-                    width: 31.75,
-                    height: 31.75,
+                    width: 32,
+                    height: 32,
                   },
-                  '& img': {
-                    mt: '-0.15px',
-                  },
+                  overflow: 'hidden',
                 }}
               >
                 <TooltipWrapper title={provider?.name} placement={'top'}>
                   <ProviderIcon
                     provider={provider?.name}
-                    width={31.75}
-                    height={31.75}
+                    width={32}
+                    height={32}
                   />
                 </TooltipWrapper>
               </Box>
@@ -125,7 +123,7 @@ function VaultStrategy() {
           </Typography>
           <Typography variant="body">
             {
-              'Users who are "lenders only" that have deposited funds into a vault. The vault aim to maximise the returns on their assets by seeking the highest yields available from a aggregated list of lending protocols.'
+              'The vault aims to maximize the returns on its assets by seeking the highest yields available from the list of aggregated lending protocols. This strategy is best for users who are "Lenders-only". Whenever they need to borrow against their provided assets, they can switch from a lending to a borrowing vault (the migration tool will be available soon).'
             }
           </Typography>
           <Box
@@ -136,9 +134,11 @@ function VaultStrategy() {
               borderRadius: '6px',
             }}
           >
-            {
-              "💡️ It's important to note that each vault aggregates its own set of lending/borrowing protocols. The protocols illustrated above may vary from one vault to another."
-            }
+            <Typography variant="body">
+              {
+                "💡️ It's important to note that each vault aggregates its own set of lending/borrowing protocols. The protocols illustrated above may vary from one vault to another."
+              }
+            </Typography>
           </Box>
         </Stack>
       </Card>
