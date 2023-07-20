@@ -626,17 +626,14 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     if (receiver == address(0) || owner == address(0) || assets == 0 || shares == 0) {
       revert BaseVault__withdraw_invalidInput();
     }
-    // This local var helps save gas not having to call provider balances again.
-    // and it is multiplied by asset decimals to mantain precision.
-    uint256 sharesExchangeRatio = assets.mulDiv(10 ** (decimals()), shares);
 
     uint256 maxWithdraw_ = maxWithdraw(owner);
     if (assets > maxWithdraw_) {
       assets_ = maxWithdraw_;
-      shares_ = assets_.mulDiv(10 ** (decimals()), sharesExchangeRatio);
+      shares_ = assets_.mulDiv(shares, assets);
     } else {
       assets_ = assets;
-      shares_ = assets_.mulDiv(10 ** (decimals()), sharesExchangeRatio);
+      shares_ = shares;
     }
     if (caller != owner) {
       _spendWithdrawAllowance(owner, caller, receiver, assets_);

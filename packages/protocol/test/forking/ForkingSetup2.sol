@@ -87,6 +87,8 @@ contract ForkingSetup2 is CoreRoles, Test {
   BorrowingVaultBeaconFactory factory;
   address implementation;
 
+  address connextCore;
+
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
 
@@ -121,10 +123,10 @@ contract ForkingSetup2 is CoreRoles, Test {
 
   function setOrDeployConnextRouter(bool deploy) internal {
     if (deploy) {
-      address connext = readAddrFromConfig("ConnextCore");
+      connextCore = readAddrFromConfig("ConnextCore");
       address weth = readAddrFromConfig("WETH");
 
-      connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connext), Chief(chief));
+      connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connextCore), Chief(chief));
     } else {
       connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
     }
