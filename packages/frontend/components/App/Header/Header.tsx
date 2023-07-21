@@ -41,7 +41,7 @@ const Header = () => {
   const theme = useTheme();
   const router = useRouter();
 
-  const { address, ens, status, started, login } = useAuth(
+  const { address, ens, status, started, login, balance } = useAuth(
     (state) => ({
       status: state.status,
       address: state.address,
@@ -324,6 +324,7 @@ const Header = () => {
           anchorEl={accountModalEl}
           closeAccountModal={() => handleOpenAccountModal(false, undefined)}
           address={address}
+          balance={balance}
         />
       )}
       {started && <AddressAddon />}

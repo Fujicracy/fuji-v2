@@ -14,12 +14,14 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { Balances } from '@web3-onboard/core/dist/types';
 import { useState } from 'react';
 
 import { addressUrl } from '../../../../helpers/chains';
 import { HistoryEntry, HistoryEntryStatus } from '../../../../helpers/history';
 import { useAuth } from '../../../../store/auth.store';
 import { useHistory } from '../../../../store/history.store';
+import Balance from '../../../Shared/Balance';
 import HistoryItem from './HistoryItem';
 
 type AccountModalProps = {
@@ -27,6 +29,7 @@ type AccountModalProps = {
   anchorEl?: HTMLElement | null;
   address: string;
   closeAccountModal: () => void;
+  balance?: Balances;
 };
 
 function AccountModal({
@@ -34,6 +37,7 @@ function AccountModal({
   anchorEl,
   address,
   closeAccountModal,
+  balance,
 }: AccountModalProps) {
   const { palette } = useTheme();
 
@@ -56,6 +60,10 @@ function AccountModal({
 
   const formattedAddress =
     address.substring(0, 8) + '...' + address.substring(address.length - 4);
+  const [bal] = balance ? Object.values<string>(balance) : [''];
+  const [token] = balance ? Object.keys(balance) : [''];
+
+  const formattedBalance = <Balance balance={+bal} symbol={token} />;
 
   const copy = () => {
     navigator.clipboard.writeText(address);
@@ -119,6 +127,11 @@ function AccountModal({
             <CircleIcon sx={{ fontSize: '20px' }} />
             <Typography variant="body">{formattedAddress}</Typography>
           </Stack>
+
+          <Box mb={1.5} p="0 1.25rem">
+            {/*TODO: add actual design*/}
+            <Typography variant="small">Balance: {formattedBalance}</Typography>
+          </Box>
 
           <Stack direction="row" alignItems="center" gap="1.125rem" ml="1.4rem">
             <Stack
