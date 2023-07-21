@@ -21,7 +21,7 @@ import {
 } from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
 import { isTopLevelUrl, navigationalTaskDelay } from '../helpers/navigation';
-import { campaignId, storeReferrer } from '../helpers/referrals';
+import { campaignId, storeReferrer, widgetConfig } from '../helpers/referrals';
 import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
@@ -63,6 +63,9 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     storeReferrer();
+    setTimeout(() => {
+      setIsReferralModalOpen(true);
+    }, 2000);
   });
 
   useEffect(() => {
@@ -164,6 +167,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           <ExploreCarousel />
           <Notification />
           <ChainvineWidget
+            config={widgetConfig}
             isOpen={isReferralModalOpen}
             userWalletAddress={address}
             campaignId={campaignId}

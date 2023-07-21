@@ -9,7 +9,7 @@
   "scripts": {
     "predev": "yarn workspace @x-fuji/sdk dev",
     "prebuild": "yarn workspace @x-fuji/sdk prepare",
-    "dev": "next dev",
+    "dev": "next dev -p 3009",
     "build": "next build",
     "start": "next start",
     "test": "env-cmd synpress run",
