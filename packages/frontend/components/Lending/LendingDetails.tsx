@@ -71,7 +71,9 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
         </Grid>
         <Grid item xs={12} sm={6}>
           <InfoBlock
-            label={`Total Supplied (${activeProvider?.name})`}
+            label={`Total Supplied${
+              activeProvider?.name ? ` (${activeProvider?.name})` : ''
+            }`}
             value={
               availableVaults[0] && activeProvider?.totalSupplyUsd ? (
                 `${formatValue(activeProvider?.totalSupplyUsd, {
