@@ -1,4 +1,3 @@
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import {
@@ -19,14 +18,6 @@ import { stringifiedBridgeFeeSum } from '../../../helpers/transactions';
 import { useBorrow } from '../../../store/borrow.store';
 import { useLend } from '../../../store/lend.store';
 
-function ErrorComponent() {
-  return (
-    <Tooltip title="Error loading data" arrow>
-      <ErrorOutlineIcon />
-    </Tooltip>
-  );
-}
-
 type FeesProps = {
   type: VaultType;
 };
@@ -35,8 +26,8 @@ function Fees({ type }: FeesProps) {
   const useStore = type === VaultType.BORROW ? useBorrow : useLend;
 
   const transactionMeta = useStore().transactionMeta;
-  const collateral = useStore().collateral;
   const vault = useStore().activeVault;
+  const collateral = useStore().collateral;
   const debt = useBorrow((state) => state.debt);
 
   const [showTransactionDetails, setShowTransactionDetails] = useState(false);
@@ -47,6 +38,13 @@ function Fees({ type }: FeesProps) {
     type === VaultType.BORROW
       ? debt && collateral.chainId !== debt.chainId
       : vault && vault.chainId !== collateral.chainId;
+
+  const hasInput = (input?: string) => (input && Number(input) > 0) === true;
+
+  const showCrossChainFees =
+    type === VaultType.BORROW
+      ? hasInput(collateral.input) && hasInput(debt?.input)
+      : hasInput(collateral.input);
 
   const handleClick = () => {
     if (transactionMeta.status === FetchStatus.Ready) {
@@ -109,6 +107,7 @@ function Fees({ type }: FeesProps) {
             value={`~$${stringifiedBridgeFeeSum(transactionMeta.bridgeFees)}`}
             tooltip={bridgeTooltip()}
             error={
+              !showCrossChainFees ||
               !transactionMeta.bridgeFees ||
               transactionMeta.bridgeFees?.every((fee) => fee.amount === 0)
             }
@@ -125,7 +124,7 @@ function Fees({ type }: FeesProps) {
           <Fee
             label="Est. slippage"
             value={`~${transactionMeta.estimateSlippage} %`}
-            error={!transactionMeta.estimateSlippage}
+            error={!showCrossChainFees || !transactionMeta.estimateSlippage}
           />
         )}
       </Collapse>
@@ -145,9 +144,7 @@ type FeeProps = {
 
 const Fee = ({ label, value, sponsored, tooltip, error }: FeeProps) => {
   const { palette } = useTheme();
-  const valueComponent = error ? (
-    <ErrorComponent />
-  ) : sponsored ? (
+  const valueComponent = sponsored ? (
     <Stack
       direction="row"
       alignItems="center"
@@ -167,7 +164,7 @@ const Fee = ({ label, value, sponsored, tooltip, error }: FeeProps) => {
       </Typography>
     </Stack>
   ) : (
-    <Typography variant="small">{value}</Typography>
+    <Typography variant="small">{error ? '-' : value}</Typography>
   );
 
   return (
