@@ -1,9 +1,12 @@
+import { VaultType } from '@x-fuji/sdk';
+
 import { ActionType } from '../../../helpers/assets';
 import { PositionData } from '../../../helpers/positions';
 import { TransactionMeta } from '../../../helpers/transactions';
 import ConfirmTransactionModal from './ConfirmTransaction/ConfirmTransactionModal';
 
 type OperationContainerProps = {
+  type: VaultType;
   children: React.ReactNode;
   isConfirmationModalShown: boolean;
   setIsConfirmationModalShown: (value: boolean) => void;
@@ -14,6 +17,7 @@ type OperationContainerProps = {
 };
 
 function OperationContainer({
+  type,
   children,
   isConfirmationModalShown,
   setIsConfirmationModalShown,
@@ -26,6 +30,7 @@ function OperationContainer({
     <>
       {children}
       <ConfirmTransactionModal
+        type={type}
         open={isConfirmationModalShown}
         onClose={() => setIsConfirmationModalShown(false)}
         positionData={positionData}

@@ -6,6 +6,7 @@ import { devtools } from 'zustand/middleware';
 
 import { TRANSACTION_META_DEBOUNCE_INTERVAL } from '../constants';
 import { AssetType, FetchStatus, Mode } from '../helpers/assets';
+import { notify } from '../helpers/notifications';
 import { storeOptions } from '../helpers/stores';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
@@ -31,7 +32,6 @@ import {
   updateTransactionMeta,
 } from './types/actions';
 import { initialLendState, LendStore } from './types/lend';
-import { notify } from '../helpers/notifications';
 
 setAutoFreeze(false);
 
