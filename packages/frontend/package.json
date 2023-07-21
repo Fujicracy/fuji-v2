@@ -8,7 +8,6 @@
   },
   "scripts": {
     "predev": "yarn workspace @x-fuji/sdk dev",
-    "prebuild": "yarn workspace @x-fuji/sdk prepare",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
