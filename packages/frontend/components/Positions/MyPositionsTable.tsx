@@ -250,8 +250,10 @@ function MyPositionsBorrowTableHeader({ isLend }: { isLend: boolean }) {
       <TableRow sx={{ height: '2.625rem' }}>
         <TableCell>Network</TableCell>
         {!isLend && <TableCell>Borrow Amount</TableCell>}
-        <TableCell>{isLend ? 'Lend' : 'Collateral'} Amount</TableCell>
-        <TableCell align="right">{isLend ? 'Supply' : 'Borrow'} APR</TableCell>
+        <TableCell>{isLend ? 'Supplied' : 'Collateral'} Amount</TableCell>
+        <TableCell align="right">
+          {isLend ? 'Supply APY' : 'Borrow APR'}
+        </TableCell>
         <TableCell align="right">
           <Stack direction="row" alignItems="center" justifyContent="right">
             <RebalanceTooltip />

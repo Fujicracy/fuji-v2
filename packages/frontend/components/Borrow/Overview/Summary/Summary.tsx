@@ -81,9 +81,14 @@ function Summary({
       extra:
         editedPosition?.type === VaultType.BORROW &&
         (Number(collateralInput) !== 0 || Number(debtInput) !== 0)
-          ? formatValue(editedPosition.liquidationPrice, {
-              style: 'currency',
-            })
+          ? formatValue(
+              editedPosition.liquidationPrice > collateral.usdPrice
+                ? collateral.usdPrice
+                : editedPosition.liquidationPrice,
+              {
+                style: 'currency',
+              }
+            )
           : undefined,
       data: {
         amount: liquidationDiff,

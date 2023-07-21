@@ -17,7 +17,7 @@ function ProviderIcon(props: Props) {
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>();
 
   if (error) {
-    return renderIconError(props, palette);
+    return renderIconError(props);
   }
   return renderIcon(
     props,

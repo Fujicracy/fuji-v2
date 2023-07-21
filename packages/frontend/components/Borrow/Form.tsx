@@ -262,6 +262,7 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
             );
           })}
           <OperationInfo
+            type={VaultType.BORROW}
             shouldShowFees={debt !== undefined}
             shouldSignTooltipBeShown={shouldSignTooltipBeShown}
             shouldWarningBeDisplayed={shouldWarningBeDisplayed}

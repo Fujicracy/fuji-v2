@@ -299,7 +299,7 @@ function CurrencyCard({
       <div className={styles.cardLine} style={{ marginTop: '1rem' }}>
         {showMax ? (
           <>
-            <Typography variant="small" sx={{ width: '11rem' }}>
+            <Typography variant="small" sx={{ width: '8rem' }}>
               ~{usdValue}
             </Typography>
             <div
