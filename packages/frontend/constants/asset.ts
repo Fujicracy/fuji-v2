@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 
 export const DEFAULT_LTV_MAX = 75;
 export const DEFAULT_LTV_THRESHOLD = 100;
-export const LTV_RISK_THRESHOLD = 20; // TODO: Testing purposes
+export const LTV_RISK_THRESHOLD = 10;
 export const LTV_RECOMMENDED_DECREASE = 20;
 export const MINIMUM_DEBT_AMOUNT = 1;
 

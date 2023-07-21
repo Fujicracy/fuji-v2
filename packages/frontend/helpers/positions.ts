@@ -383,7 +383,7 @@ export const borrowingPositionsAtRisk = (
   positions: BorrowingPosition[]
 ): BorrowingPosition[] => {
   return positions.filter((pos) => {
-    return pos.ltvMax - pos.ltv < LTV_RISK_THRESHOLD;
+    return (pos.ltvMax - pos.ltv) * 100 < LTV_RISK_THRESHOLD;
   });
 };
 

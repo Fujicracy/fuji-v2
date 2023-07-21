@@ -11,7 +11,7 @@ import {
 import { VaultType } from '@x-fuji/sdk';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { showPosition } from '../../../helpers/navigation';
 import { useAuth } from '../../../store/auth.store';
@@ -25,11 +25,14 @@ function StatusChip() {
   const isOpen = Boolean(anchorEl);
 
   const walletChainId = useAuth((state) => state.chainId);
-  const loading = usePositions((state) => state.loading);
-  const positionsAtRisk = usePositions((state) => state.positionsAtRisk);
+  const { loading, positionsAtRisk, borrowPositions } = usePositions();
+
+  useEffect(() => {
+    setAnchorEl(null);
+  }, [loading]);
 
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (loading || !positionsAtRisk || positionsAtRisk.length === 0) return;
+    if (loading) return;
 
     setAnchorEl(event.currentTarget);
   };
@@ -83,25 +86,33 @@ function StatusChip() {
           sx: { background: palette.secondary.contrastText, padding: '0.5rem' },
         }}
       >
-        {positionsAtRisk.map((position, index) => (
-          <MenuItem
-            data-cy="liquidation-risk-menu-item"
-            key={index}
-            onClick={() => {
-              setAnchorEl(null);
-              showPosition(
-                VaultType.BORROW,
-                router,
-                false,
-                position.vault,
-                walletChainId
-              );
-            }}
-            sx={{ borderRadius: 1.5, padding: '0.5rem 0.75rem' }}
-          >
-            <ListItem position={position} />
-          </MenuItem>
-        ))}
+        {positionsAtRisk && positionsAtRisk.length > 0 ? (
+          positionsAtRisk.map((position, index) => (
+            <MenuItem
+              data-cy="liquidation-risk-menu-item"
+              key={index}
+              onClick={() => {
+                setAnchorEl(null);
+                showPosition(
+                  VaultType.BORROW,
+                  router,
+                  false,
+                  position.vault,
+                  walletChainId
+                );
+              }}
+              sx={{ borderRadius: 1.5, padding: '0.5rem 0.75rem' }}
+            >
+              <ListItem position={position} />
+            </MenuItem>
+          ))
+        ) : (
+          <Typography variant="small" p="0.5rem 0.75rem">
+            {borrowPositions.length > 0
+              ? 'All your borrow positions are healthy'
+              : 'You have no position at risk'}
+          </Typography>
+        )}
       </Menu>
     </>
   );
