@@ -613,17 +613,14 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
     if (owner == address(0) || debt == 0 || shares == 0) {
       revert BorrowingVault__payback_invalidInput();
     }
-    // This local var helps save gas not having to call provider balances again
-    // and is multiplied by debtAsset decimals to mantain precision.
-    uint256 shareExchangeRatio = debt.mulDiv(10 ** _debtDecimals, shares);
 
     if (shares > _debtShares[owner]) {
       shares_ = _debtShares[owner];
-      debt_ = shares_.mulDiv(shareExchangeRatio, 10 ** _debtDecimals);
+      debt_ = shares_.mulDiv(debt, shares, Math.Rounding.Up);
       remainder = debt > debt_ ? debt - debt_ : 0;
     } else {
       shares_ = shares;
-      debt_ = shares_.mulDiv(shareExchangeRatio, 10 ** _debtDecimals);
+      debt_ = debt;
     }
   }
 
