@@ -1,4 +1,3 @@
-import { Box, Palette } from '@mui/material';
 import Image, { ImageProps } from 'next/image';
 import { SyntheticEvent } from 'react';
 
@@ -6,18 +5,11 @@ export interface Icon extends Omit<ImageProps, 'src' | 'alt'> {
   sx?: object;
 }
 
-export function renderIconError(props: Icon, palette: Palette) {
+export function renderIconError(props: Icon) {
   const { ...rest } = props;
 
   return (
-    <Box
-      {...rest}
-      sx={{
-        ...props.sx,
-        background: palette.secondary.main,
-        borderRadius: '100%',
-      }}
-    ></Box>
+    <Image {...rest} src={'/assets/images/shared/noIcon.svg'} alt={`no icon`} />
   );
 }
 

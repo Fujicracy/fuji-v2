@@ -67,7 +67,7 @@ function VaultStrategy() {
                   height: 33,
                   p: 0,
                   borderRadius: '50%',
-                  border: `2px solid ${
+                  border: `1px solid ${
                     provider.active ? 'white' : 'transparent'
                   }`,
                   filter: provider.active
@@ -77,8 +77,8 @@ function VaultStrategy() {
                     ml: '1.5rem',
                   },
                   '& div': {
-                    width: 32,
-                    height: 32,
+                    width: 33,
+                    height: 33,
                   },
                   overflow: 'hidden',
                 }}
@@ -86,8 +86,8 @@ function VaultStrategy() {
                 <TooltipWrapper title={provider?.name} placement={'top'}>
                   <ProviderIcon
                     provider={provider?.name}
-                    width={32}
-                    height={32}
+                    width={33}
+                    height={33}
                   />
                 </TooltipWrapper>
               </Box>

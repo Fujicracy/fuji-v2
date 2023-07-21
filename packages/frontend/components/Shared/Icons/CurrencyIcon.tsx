@@ -17,7 +17,7 @@ function CurrencyIcon(props: Props) {
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>();
 
   if (error) {
-    return renderIconError(props, palette);
+    return renderIconError(props);
   }
 
   return renderIcon(props, path, symbol, (e) => setError(e));

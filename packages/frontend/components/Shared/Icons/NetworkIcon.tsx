@@ -28,7 +28,7 @@ function NetworkIcon(props: Props) {
   }, [error, network]);
 
   if (error) {
-    return renderIconError(props, palette);
+    return renderIconError(props);
   }
 
   if (path && name) {
