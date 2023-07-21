@@ -16,7 +16,11 @@ import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IHarvestable} from "../../interfaces/IHarvestable.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ICompoundV3} from "../../interfaces/compoundV3/ICompoundV3.sol";
-import {ICompoundV3Rewards} from "../../interfaces/compoundV3/ICompoundV3Rewards.sol";
+import {
+  ICompoundV3Rewards,
+  RewardOwed,
+  RewardConfig
+} from "../../interfaces/compoundV3/ICompoundV3Rewards.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
 
 contract CompoundV3 is ILendingProvider, IHarvestable {
@@ -163,8 +167,15 @@ contract CompoundV3 is ILendingProvider, IHarvestable {
   {
     IVault vault = abi.decode(data, (IVault));
     (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
+
+    RewardOwed memory rewardOwed = _getRewards().getRewardOwed(address(cMarketV3), address(vault));
+    tokens = new address[](1);
+    tokens[0] = rewardOwed.token;
+
+    amounts = new uint256[](1);
+    amounts[0] = rewardOwed.owed;
+
     _getRewards().claim(address(cMarketV3), address(vault), true);
-    (tokens, amounts) = previewHarvest(vault);
   }
 
   //TODO
@@ -176,8 +187,7 @@ contract CompoundV3 is ILendingProvider, IHarvestable {
     returns (address[] memory tokens, uint256[] memory amounts)
   {
     (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
-    ICompoundV3Rewards.RewardConfig memory rewardConfig =
-      _getRewards().rewardConfig(address(cMarketV3));
+    RewardConfig memory rewardConfig = _getRewards().rewardConfig(address(cMarketV3));
 
     tokens = new address[](1);
     tokens[0] = rewardConfig.token;
