@@ -16,7 +16,9 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Chief} from "../../../src/Chief.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
-import {ICompoundV3Rewards} from "../../../src/interfaces/compoundV3/ICompoundV3Rewards.sol";
+import {
+  ICompoundV3Rewards, RewardOwed
+} from "../../../src/interfaces/compoundV3/ICompoundV3Rewards.sol";
 
 contract CompoundV3ForkingTests is Routines, ForkingSetup {
   ILendingProvider public compoundV3;
@@ -169,9 +171,8 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
     address market = CompoundV3(address(compoundV3)).getMapper().getAddressNestedMapping(
       compoundV3.providerName(), debtAsset, address(0)
     );
-    ICompoundV3Rewards.RewardOwed memory rewardOwed = ICompoundV3Rewards(
-      0x1B0e765F6224C21223AeA2af16c1C46E38885a40
-    ).getRewardOwed(market, address(yieldVault));
+    RewardOwed memory rewardOwed = ICompoundV3Rewards(0x1B0e765F6224C21223AeA2af16c1C46E38885a40)
+      .getRewardOwed(market, address(yieldVault));
 
     (address[] memory tokens, uint256[] memory amounts) =
       IHarvestable(address(compoundV3)).previewHarvest(yieldVault);
