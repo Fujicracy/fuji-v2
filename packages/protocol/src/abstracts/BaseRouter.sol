@@ -256,7 +256,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
           // If Withdraw is last action just withdraw
           vault.withdraw(amount, receiver, owner);
         } else {
-          _handleWithdrawWithFurtherActions(args[i], actions[i + 1], args[i + 1]);
+          args[i + 1] = _handleWithdrawWithFurtherActions(args[i], actions[i + 1], args[i + 1]);
         }
       } else if (action == Action.Borrow) {
         // BORROW
@@ -598,6 +598,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     bytes memory nextArgs
   )
     private
+    returns (bytes memory updatedArgs)
   {
     (IVault vault, uint256 amount, address receiver, address owner) =
       abi.decode(arg, (IVault, uint256, address, address));
@@ -619,7 +620,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
       if (amount > updateAmount) {
         // If the withdraw `amount` encoded was > than the `owner`'s "maxWithdraw", the
         // difference in "(afterBal - prevBal)" must be less than amount.
-        (nextArgs,) = _replaceAmountArgInAction(nextAction, nextArgs, updateAmount);
+        (updatedArgs,) = _replaceAmountArgInAction(nextAction, nextArgs, updateAmount);
         // Since nextArgs is in memory and memory persist within internal calls the expected value
         // is updated.
       }
