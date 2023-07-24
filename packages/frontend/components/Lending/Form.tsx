@@ -171,7 +171,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
 
   return (
     <OperationContainer
-      type={VaultType.BORROW}
+      type={VaultType.LEND}
       isConfirmationModalShown={isConfirmationModalShown}
       setIsConfirmationModalShown={setIsConfirmationModalShown}
       positionData={positionData}
