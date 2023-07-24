@@ -171,6 +171,8 @@ function MyApp({ Component, pageProps }: AppProps) {
             isOpen={isReferralModalOpen}
             userWalletAddress={address}
             campaignId={campaignId}
+            theme="Dark"
+            themeConfig={{ inherit: true }}
             onClose={() => setIsReferralModalOpen(false)}
           />
         </ThemeProvider>
