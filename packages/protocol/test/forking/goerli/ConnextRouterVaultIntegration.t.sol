@@ -12,9 +12,9 @@ import {
   IV3Pool,
   AaveV3Goerli as SampleProvider
 } from "../../../src/providers/goerli/AaveV3Goerli.sol";
-import {
-  ConnextRouter, ConnextHandler, XReceiveProxy
-} from "../../../src/routers/ConnextRouter.sol";
+import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
+import {ConnextHandler} from "../../../src/routers/ConnextHandler.sol";
+import {ConnextReceiver} from "../../../src/routers/ConnextReceiver.sol";
 import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
@@ -32,7 +32,7 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
   SampleProvider sprovider;
 
   ConnextHandler public connextHandler;
-  XReceiveProxy public xReceiveProxy;
+  ConnextReceiver public connextReceiver;
 
   uint256 internal constant DEPOSIT_AMOUNT = 0.25 ether;
   uint256 internal constant BORROW_AMOUNT = 998567;
@@ -61,13 +61,13 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
     debtAsset = vault.debtAsset();
 
     connextHandler = connextRouter.handler();
-    xReceiveProxy = XReceiveProxy(connextRouter.xReceiveProxy());
+    connextReceiver = ConnextReceiver(connextRouter.connextReceiver());
 
     vm.startPrank(address(timelock));
     // Assume the same address of xreceive in all domains.
-    connextRouter.setRouter(GOERLI_DOMAIN, address(xReceiveProxy));
-    connextRouter.setRouter(OPTIMISM_GOERLI_DOMAIN, address(xReceiveProxy));
-    connextRouter.setRouter(MUMBAI_DOMAIN, address(xReceiveProxy));
+    connextRouter.setReceiver(GOERLI_DOMAIN, address(connextReceiver));
+    connextRouter.setReceiver(OPTIMISM_GOERLI_DOMAIN, address(connextReceiver));
+    connextRouter.setReceiver(MUMBAI_DOMAIN, address(connextReceiver));
     vm.stopPrank();
   }
 
@@ -98,11 +98,11 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
 
   function test_basicConnextRouterInitialized() public {
     address chief_ = address(connextRouter.chief());
-    address receiver_ = connextRouter.xReceiveProxy();
+    address receiver_ = connextRouter.connextReceiver();
     address handler_ = address(connextRouter.handler());
 
     assertEq(chief_, address(chief));
-    assertEq(receiver_, address(xReceiveProxy));
+    assertEq(receiver_, address(connextReceiver));
     assertEq(handler_, address(connextHandler));
   }
 
@@ -153,13 +153,13 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
     uint256 finalReceived;
     {
       finalReceived = sdkAmount - feeAndSlippage;
-      deal(debtAsset, address(xReceiveProxy), finalReceived);
+      deal(debtAsset, address(connextReceiver), finalReceived);
     }
 
     vm.startPrank(connextCore);
-    // Call pretended from connextCore to xReceiveProxy from a seperate domain (eg. optimism goerli).
+    // Call pretended from connextCore to connextReceiver from a seperate domain (eg. optimism goerli).
     // simulated to be the same address as ConnextRouter in this test.
-    xReceiveProxy.xReceive(
+    connextReceiver.xReceive(
       "0x01", finalReceived, debtAsset, address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
     );
     vm.stopPrank();
@@ -248,13 +248,13 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
     uint256 finalReceived;
     {
       finalReceived = sdkAmount - feeAndSlippage;
-      deal(debtAsset, address(xReceiveProxy), finalReceived);
+      deal(debtAsset, address(connextReceiver), finalReceived);
     }
 
     vm.startPrank(connextCore);
-    // Call pretended from connextCore to xReceiveProxy from a seperate domain (eg. optimism goerli).
+    // Call pretended from connextCore to connextReceiver from a seperate domain (eg. optimism goerli).
     // simulated to be the same address as ConnextRouter in this test.
-    xReceiveProxy.xReceive(
+    connextReceiver.xReceive(
       "0x01", finalReceived, debtAsset, address(connextRouter), OPTIMISM_GOERLI_DOMAIN, callData
     );
     vm.stopPrank();
