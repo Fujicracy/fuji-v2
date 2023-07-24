@@ -1,6 +1,6 @@
 import { BorrowingVault, Currency } from '@x-fuji/sdk';
 
-import { DEFAULT_LTV_MAX, DEFAULT_LTV_THRESHOLD } from '../../constants';
+import { Ltv } from '../../constants';
 import {
   AssetChange,
   LiquidationMeta,
@@ -38,8 +38,8 @@ export const initialBorrowState: BorrowState = {
   debt: undefined,
   ltv: {
     ltv: 0,
-    ltvMax: DEFAULT_LTV_MAX,
-    ltvThreshold: DEFAULT_LTV_THRESHOLD,
+    ltvMax: Ltv.MAX,
+    ltvThreshold: Ltv.THRESHOLD,
   },
   liquidationMeta: {
     liquidationPrice: 0,

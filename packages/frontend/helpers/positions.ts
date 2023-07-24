@@ -11,7 +11,7 @@ import {
 } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 
-import { DUST_AMOUNT, LTV_RISK_THRESHOLD } from '../constants';
+import { DUST_AMOUNT, Ltv } from '../constants';
 import { useBorrow } from '../store/borrow.store';
 import { useLend } from '../store/lend.store';
 import {
@@ -383,7 +383,7 @@ export const borrowingPositionsAtRisk = (
   positions: BorrowingPosition[]
 ): BorrowingPosition[] => {
   return positions.filter((pos) => {
-    return (pos.ltvMax - pos.ltv) * 100 < LTV_RISK_THRESHOLD;
+    return (pos.ltvMax - pos.ltv) * 100 < Ltv.RISK;
   });
 };
 
