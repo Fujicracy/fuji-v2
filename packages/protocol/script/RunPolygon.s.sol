@@ -15,7 +15,7 @@ contract RunPolygon is ScriptPlus {
   CompoundV3Polygon compound;
 
   function setUp() public {
-    setUpOn("polygon");
+    setUpOn();
   }
 
   function run() public {

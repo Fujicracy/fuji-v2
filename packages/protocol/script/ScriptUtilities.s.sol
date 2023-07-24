@@ -11,6 +11,12 @@ contract ScriptUtilities is Script {
   uint32 public constant POLYGON_DOMAIN = 1886350457;
   uint32 public constant GNOSIS_DOMAIN = 6778479;
 
+  uint32 public constant ETHEREUM_CHAIN_ID = 1;
+  uint32 public constant OPTIMISM_CHAIN_ID = 10;
+  uint32 public constant ARBITRUM_CHAIN_ID = 42161;
+  uint32 public constant POLYGON_CHAIN_ID = 137;
+  uint32 public constant GNOSIS_CHAIN_ID = 100;
+
   string chainName;
   string configJson;
 
@@ -88,6 +94,14 @@ contract ScriptUtilities is Script {
     }
 
     vm.writeLine(path, content);
+  }
+
+  function tryLoadEnvString(string memory varName) internal virtual returns (string memory val) {
+    try vm.envString(varName) returns (string memory val_) {
+      val = val_;
+    } catch {
+      console.log(string.concat("Cannot set ", varName));
+    }
   }
 
   function tryLoadEnvBool(

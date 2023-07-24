@@ -21,7 +21,7 @@ contract RunEthereum is ScriptPlus {
   MorphoCompound morphoCompound;
 
   function setUp() public {
-    setUpOn("ethereum");
+    setUpOn();
   }
 
   function run() public {

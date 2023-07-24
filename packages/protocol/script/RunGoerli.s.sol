@@ -9,7 +9,7 @@ contract RunGoerli is ScriptPlus {
   AaveV3Goerli aaveV3;
 
   function setUp() public {
-    setUpOn("goerli");
+    setUpOn();
   }
 
   function run() public {

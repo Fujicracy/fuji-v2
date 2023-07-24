@@ -9,7 +9,7 @@ contract RunGnosis is ScriptPlus {
   AgaveGnosis agave;
 
   function setUp() public {
-    setUpOn("gnosis");
+    setUpOn();
   }
 
   function run() public {

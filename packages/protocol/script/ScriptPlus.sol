@@ -68,6 +68,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
   }
 
   bool UPGRADE_SAFETY_CHECK_BYPASS; // bypass all upgrade safety checks
+  string ETHERSCAN_API_KEY;
 
   AddrMapper mapper;
   Chief chief;
@@ -99,8 +100,23 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     /*chainNames.push("goerli");*/
   }
 
-  function setUpOn(string memory chain) internal {
-    chainName = chain;
+  function setUpOn() internal {
+    if (block.chainid == ETHEREUM_CHAIN_ID) {
+      chainName = "ethereum";
+      ETHERSCAN_API_KEY = tryLoadEnvString("ETHERSCAN_KEY");
+    } else if (block.chainid == OPTIMISM_CHAIN_ID) {
+      chainName = "optimism";
+      ETHERSCAN_API_KEY = tryLoadEnvString("OPTIMISM_ETHERSCAN_KEY");
+    } else if (block.chainid == GNOSIS_CHAIN_ID) {
+      chainName = "gnosis";
+      ETHERSCAN_API_KEY = tryLoadEnvString("GNOSIS_ETHERSCAN_KEY");
+    } else if (block.chainid == POLYGON_CHAIN_ID) {
+      chainName = "polygon";
+      ETHERSCAN_API_KEY = tryLoadEnvString("POLYGON_ETHERSCAN_KEY");
+    } else if (block.chainid == ARBITRUM_CHAIN_ID) {
+      chainName = "arbitrum";
+      ETHERSCAN_API_KEY = tryLoadEnvString("ARBITRUM_ETHERSCAN_KEY");
+    }
 
     string memory path = string.concat("deploy-configs/", chainName, ".json");
     configJson = vm.readFile(path);
@@ -438,6 +454,28 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     );
     bytes memory constructorArgs = abi.encode(address(factory), initCall, address(chief));
     console.logBytes(constructorArgs);
+  }
+
+  function verifyContract(string memory contractName, bytes memory constructorArgs) internal {
+    string[] memory script = new string[](12);
+
+    string memory contractAddr = vm.toString(getAddress(contractName));
+
+    script[0] = "forge";
+    script[1] = "verify-contract";
+    script[2] = "--chain-id";
+    script[3] = vm.toString(block.chainid);
+    script[4] = "--num-of-optimizations";
+    script[5] = "200";
+    script[6] = "--constructor-args";
+    script[7] = vm.toString(constructorArgs);
+    script[8] = contractAddr;
+    script[9] = contractName;
+    script[10] = "--etherscan-api-key";
+    script[11] = ETHERSCAN_API_KEY;
+
+    vm.ffi(script);
+    console.log(string.concat("Run verification for ", contractName, " at ", contractAddr));
   }
 
   // function initBorrowingVaults2() internal {

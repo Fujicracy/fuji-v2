@@ -15,7 +15,7 @@ contract RunArbitrum is ScriptPlus {
   CompoundV3Arbitrum compound;
 
   function setUp() public {
-    setUpOn("arbitrum");
+    setUpOn();
   }
 
   function run() public {
