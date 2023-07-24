@@ -116,6 +116,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     } else if (block.chainid == ARBITRUM_CHAIN_ID) {
       chainName = "arbitrum";
       ETHERSCAN_API_KEY = tryLoadEnvString("ARBITRUM_ETHERSCAN_KEY");
+    } else if (block.chainid == GOERLI_CHAIN_ID) {
+      chainName = "goerli";
+      ETHERSCAN_API_KEY = tryLoadEnvString("ETHERSCAN_KEY");
     }
 
     string memory path = string.concat("deploy-configs/", chainName, ".json");

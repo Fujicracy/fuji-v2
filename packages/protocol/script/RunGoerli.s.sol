@@ -16,7 +16,7 @@ contract RunGoerli is ScriptPlus {
     vm.startBroadcast(deployer);
 
     setOrDeployChief(false);
-    /*setOrDeployConnextRouter(false);*/
+    setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
     /*setOrDeployAddrMapper(false);*/
