@@ -603,6 +603,8 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     (IVault vault, uint256 amount, address receiver, address owner) =
       abi.decode(arg, (IVault, uint256, address, address));
 
+    // Default to return same args
+    updatedArgs = nextArgs;
     if (
       (
         nextAction == Action.Deposit || nextAction == Action.Swap || nextAction == Action.XTransfer
@@ -621,12 +623,9 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         // If the withdraw `amount` encoded was > than the `owner`'s "maxWithdraw", the
         // difference in "(afterBal - prevBal)" must be less than amount.
         (updatedArgs,) = _replaceAmountArgInAction(nextAction, nextArgs, updateAmount);
-        // Since nextArgs is in memory and memory persist within internal calls the expected value
-        // is updated.
       }
-    } else {
-      vault.withdraw(amount, receiver, owner);
     }
+    vault.withdraw(amount, receiver, owner);
   }
 
   /**
