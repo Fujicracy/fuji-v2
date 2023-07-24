@@ -172,7 +172,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             userWalletAddress={address}
             campaignId={campaignId}
             theme="Dark"
-            themeConfig={{ inherit: true }}
+            themeConfig={{ inherit: true, token: { colorPrimary: '#F6145E' } }}
             onClose={() => setIsReferralModalOpen(false)}
           />
         </ThemeProvider>
