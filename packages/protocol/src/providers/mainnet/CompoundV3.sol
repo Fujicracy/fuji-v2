@@ -22,8 +22,11 @@ import {
   RewardConfig
 } from "../../interfaces/compoundV3/ICompoundV3Rewards.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
 contract CompoundV3 is ILendingProvider, IHarvestable {
+  using Math for uint256;
+
   /// @dev Custom errors
   error CompoundV3__wrongMarket();
 
@@ -173,7 +176,7 @@ contract CompoundV3 is ILendingProvider, IHarvestable {
     tokens[0] = rewardOwed.token;
 
     amounts = new uint256[](1);
-    amounts[0] = rewardOwed.owed;
+    amounts[0] = rewardOwed.owed.mulDiv(1, 10);
 
     _getRewards().claim(address(cMarketV3), address(vault), true);
   }
