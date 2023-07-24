@@ -143,8 +143,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     for (uint256 i = 0; i < tokens.length; i++) {
       if (tokens[i] != collateralAsset) {
         IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
-        totalAmount +=
-          _swap(swapper, address(tokens[i]), address(collateralAsset), amounts[i], address(vault));
+        totalAmount += _swap(swapper, tokens[i], collateralAsset, amounts[i], address(vault));
       } else {
         totalAmount += amounts[i];
       }
@@ -235,6 +234,6 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     amountOut = swapper.getAmountOut(assetIn, assetOut, amountIn);
 
     IERC20(assetIn).safeIncreaseAllowance(address(swapper), amountIn);
-    swapper.swap(address(assetIn), assetOut, amountIn, amountOut, address(receiver), treasury, 0);
+    swapper.swap(assetIn, assetOut, amountIn, amountOut, receiver, treasury, 0);
   }
 }
