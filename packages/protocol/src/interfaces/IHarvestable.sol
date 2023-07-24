@@ -39,8 +39,9 @@ interface IHarvestable {
    * @param vault IVault required by some specific providers with multi-markets.
    *
    */
-  function previewHarvest(IVault vault)
-    external
-    view
-    returns (address[] memory tokens, uint256[] memory amounts);
+  //TODO
+  // function previewHarvest(IVault vault)
+  //   external
+  //   view
+  //   returns (address[] memory tokens, uint256[] memory amounts);
 }

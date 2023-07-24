@@ -178,8 +178,7 @@ contract CompoundV3 is ILendingProvider, IHarvestable {
     _getRewards().claim(address(cMarketV3), address(vault), true);
   }
 
-  //TODO
-  /// @inheritdoc IHarvestable
+  ////TODO/ @inheritdoc IHarvestable
   /// @dev compound reward amounts are scaled by up by 10
   function previewHarvest(IVault vault)
     public
