@@ -51,7 +51,9 @@ function HeaderInfo({
             </Box>
           }
         >
-          <NetworkIcon network={chainName} height={18} width={18} />
+          <Box width={18} height={18}>
+            <NetworkIcon network={chainName} height={18} width={18} />
+          </Box>
         </TooltipWrapper>
       ) : (
         <NetworkIcon network={chainName} height={18} width={18} />
