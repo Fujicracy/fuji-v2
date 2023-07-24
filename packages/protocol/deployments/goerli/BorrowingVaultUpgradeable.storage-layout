@@ -73,23 +73,23 @@
       "type": "t_array(t_uint256)45_storage"
     },
     {
-      "astId": 51239,
+      "astId": 50626,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "chief",
       "offset": 0,
       "slot": "101",
-      "type": "t_contract(IChief)52711"
+      "type": "t_contract(IChief)51761"
     },
     {
-      "astId": 50759,
+      "astId": 50146,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_actionsPaused",
       "offset": 0,
       "slot": "102",
-      "type": "t_mapping(t_enum(VaultActions)52928,t_bool)"
+      "type": "t_mapping(t_enum(VaultActions)51978,t_bool)"
     },
     {
-      "astId": 50589,
+      "astId": 49976,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_CACHED_DOMAIN_SEPARATOR",
       "offset": 0,
@@ -97,7 +97,7 @@
       "type": "t_bytes32"
     },
     {
-      "astId": 50591,
+      "astId": 49978,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_CACHED_CHAIN_ID",
       "offset": 0,
@@ -105,7 +105,7 @@
       "type": "t_uint256"
     },
     {
-      "astId": 50593,
+      "astId": 49980,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_CACHED_THIS",
       "offset": 0,
@@ -113,7 +113,7 @@
       "type": "t_address"
     },
     {
-      "astId": 50595,
+      "astId": 49982,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_HASHED_NAME",
       "offset": 0,
@@ -121,7 +121,7 @@
       "type": "t_bytes32"
     },
     {
-      "astId": 50597,
+      "astId": 49984,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_HASHED_VERSION",
       "offset": 0,
@@ -129,7 +129,7 @@
       "type": "t_bytes32"
     },
     {
-      "astId": 50599,
+      "astId": 49986,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_TYPE_HASH",
       "offset": 0,
@@ -137,7 +137,7 @@
       "type": "t_bytes32"
     },
     {
-      "astId": 76996,
+      "astId": 63461,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_withdrawAllowance",
       "offset": 0,
@@ -145,7 +145,7 @@
       "type": "t_mapping(t_address,t_mapping(t_address,t_mapping(t_address,t_uint256)))"
     },
     {
-      "astId": 77004,
+      "astId": 63469,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_borrowAllowance",
       "offset": 0,
@@ -153,7 +153,7 @@
       "type": "t_mapping(t_address,t_mapping(t_address,t_mapping(t_address,t_uint256)))"
     },
     {
-      "astId": 77009,
+      "astId": 63474,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_nonces",
       "offset": 0,
@@ -161,7 +161,7 @@
       "type": "t_mapping(t_address,t_struct(Counter)35634_storage)"
     },
     {
-      "astId": 77022,
+      "astId": 63487,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_PERMIT_TYPEHASH_DEPRECATED_SLOT",
       "offset": 0,
@@ -169,7 +169,7 @@
       "type": "t_bytes32"
     },
     {
-      "astId": 49097,
+      "astId": 48508,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_asset",
       "offset": 0,
@@ -177,7 +177,7 @@
       "type": "t_contract(IERC20MetadataUpgradeable)30418"
     },
     {
-      "astId": 49099,
+      "astId": 48510,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_decimals",
       "offset": 20,
@@ -185,23 +185,23 @@
       "type": "t_uint8"
     },
     {
-      "astId": 49103,
+      "astId": 48514,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_providers",
       "offset": 0,
       "slot": "114",
-      "type": "t_array(t_contract(ILendingProvider)52875)dyn_storage"
+      "type": "t_array(t_contract(ILendingProvider)51925)dyn_storage"
     },
     {
-      "astId": 49106,
+      "astId": 48517,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "activeProvider",
       "offset": 0,
       "slot": "115",
-      "type": "t_contract(ILendingProvider)52875"
+      "type": "t_contract(ILendingProvider)51925"
     },
     {
-      "astId": 49108,
+      "astId": 48519,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "minAmount",
       "offset": 0,
@@ -209,7 +209,7 @@
       "type": "t_uint256"
     },
     {
-      "astId": 80623,
+      "astId": 66761,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_debtAsset",
       "offset": 0,
@@ -217,7 +217,7 @@
       "type": "t_contract(IERC20MetadataUpgradeable)30418"
     },
     {
-      "astId": 80625,
+      "astId": 66763,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_debtDecimals",
       "offset": 20,
@@ -225,7 +225,7 @@
       "type": "t_uint8"
     },
     {
-      "astId": 80627,
+      "astId": 66765,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "debtSharesSupply",
       "offset": 0,
@@ -233,7 +233,7 @@
       "type": "t_uint256"
     },
     {
-      "astId": 80631,
+      "astId": 66769,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "_debtShares",
       "offset": 0,
@@ -241,15 +241,15 @@
       "type": "t_mapping(t_address,t_uint256)"
     },
     {
-      "astId": 80634,
+      "astId": 66772,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "oracle",
       "offset": 0,
       "slot": "120",
-      "type": "t_contract(IFujiOracle)52768"
+      "type": "t_contract(IFujiOracle)51818"
     },
     {
-      "astId": 80637,
+      "astId": 66775,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "maxLtv",
       "offset": 0,
@@ -257,7 +257,7 @@
       "type": "t_uint256"
     },
     {
-      "astId": 80640,
+      "astId": 66778,
       "contract": "src/vaults/borrowing/BorrowingVaultUpgradeable.sol:BorrowingVaultUpgradeable",
       "label": "liqRatio",
       "offset": 0,
@@ -271,11 +271,11 @@
       "label": "address",
       "numberOfBytes": "20"
     },
-    "t_array(t_contract(ILendingProvider)52875)dyn_storage": {
+    "t_array(t_contract(ILendingProvider)51925)dyn_storage": {
       "encoding": "dynamic_array",
       "label": "contract ILendingProvider[]",
       "numberOfBytes": "32",
-      "base": "t_contract(ILendingProvider)52875"
+      "base": "t_contract(ILendingProvider)51925"
     },
     "t_array(t_uint256)45_storage": {
       "encoding": "inplace",
@@ -299,7 +299,7 @@
       "label": "bytes32",
       "numberOfBytes": "32"
     },
-    "t_contract(IChief)52711": {
+    "t_contract(IChief)51761": {
       "encoding": "inplace",
       "label": "contract IChief",
       "numberOfBytes": "20"
@@ -309,17 +309,17 @@
       "label": "contract IERC20MetadataUpgradeable",
       "numberOfBytes": "20"
     },
-    "t_contract(IFujiOracle)52768": {
+    "t_contract(IFujiOracle)51818": {
       "encoding": "inplace",
       "label": "contract IFujiOracle",
       "numberOfBytes": "20"
     },
-    "t_contract(ILendingProvider)52875": {
+    "t_contract(ILendingProvider)51925": {
       "encoding": "inplace",
       "label": "contract ILendingProvider",
       "numberOfBytes": "20"
     },
-    "t_enum(VaultActions)52928": {
+    "t_enum(VaultActions)51978": {
       "encoding": "inplace",
       "label": "enum IPausableVault.VaultActions",
       "numberOfBytes": "1"
@@ -352,9 +352,9 @@
       "numberOfBytes": "32",
       "value": "t_uint256"
     },
-    "t_mapping(t_enum(VaultActions)52928,t_bool)": {
+    "t_mapping(t_enum(VaultActions)51978,t_bool)": {
       "encoding": "mapping",
-      "key": "t_enum(VaultActions)52928",
+      "key": "t_enum(VaultActions)51978",
       "label": "mapping(enum IPausableVault.VaultActions => bool)",
       "numberOfBytes": "32",
       "value": "t_bool"
