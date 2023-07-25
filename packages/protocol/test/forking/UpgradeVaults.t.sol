@@ -14,7 +14,7 @@ import {BorrowingVaultUpgradeable} from "../../src/vaults/borrowing/BorrowingVau
 import {BorrowingVaultBeaconFactory} from
   "../../src/vaults/borrowing/BorrowingVaultBeaconFactory.sol";
 
-contract BorrowingVaultBeaconFactoryTests is Routines, ForkingSetup2 {
+contract UpgradeVaultsTests is Routines, ForkingSetup2 {
   using SafeERC20 for IERC20;
 
   bytes32 internal constant _BEACON_SLOT =
