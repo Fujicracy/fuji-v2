@@ -27,7 +27,6 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
   using Math for uint256;
 
   BVault public vault;
-  address[] public vaults;
 
   SampleProvider sprovider;
 
@@ -41,21 +40,18 @@ contract ConnextRouterVaultIntegrations is Routines, ForkingSetup2 {
   address debtAsset;
 
   function setUp() public {
-    setUpFork("goerli");
+    setUpNamedFork("goerli");
 
     sprovider = SampleProvider(getAddress("Aave_V3_Goerli"));
     vm.label(address(sprovider), "SampleProvider");
 
-    vm.startPrank(msg.sender);
-    setOrDeployChief(true);
-    setOrDeployConnextRouter(true);
-    setOrDeployFujiOracle(true);
-    setOrDeployBorrowingVaultFactory(true, true);
-    vaults = deployBorrowingVaults();
-    vm.stopPrank();
-    /*setBorrowingVaults();*/
+    setOrDeployChief(false);
+    setOrDeployConnextRouter(false);
+    setOrDeployFujiOracle(false);
+    setOrDeployBorrowingVaultFactory(false, false);
+    setOrDeployBorrowingVaults(false);
 
-    vault = BVault(payable(vaults[0]));
+    vault = BVault(payable(allVaults[0].addr));
 
     collateralAsset = vault.asset();
     debtAsset = vault.debtAsset();
