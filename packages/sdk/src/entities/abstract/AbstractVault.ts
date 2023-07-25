@@ -182,13 +182,22 @@ export abstract class AbstractVault {
         Boolean(LENDING_PROVIDERS[this.chainId][address]?.name)
       )
       .map((addr: string, i: number) => {
-        return {
-          name: LENDING_PROVIDERS[this.chainId][addr]?.name,
-          llamaKey: LENDING_PROVIDERS[this.chainId][addr]?.llamaKey,
-          depositAprBase: rateToFloat(rates[i]),
-          borrowAprBase:
-            rates.length > 0 ? rateToFloat(rates[i + splitIndex]) : undefined,
-        };
+        if (this.type === VaultType.BORROW) {
+          return {
+            name: LENDING_PROVIDERS[this.chainId][addr]?.name,
+            llamaKey: LENDING_PROVIDERS[this.chainId][addr]?.llamaKey,
+            depositAprBase: rateToFloat(rates[i]),
+            borrowAprBase:
+              rates.length > 0 ? rateToFloat(rates[i + splitIndex]) : undefined,
+          };
+        } else {
+          return {
+            name: LENDING_PROVIDERS[this.chainId][addr]?.name,
+            llamaKey: LENDING_PROVIDERS[this.chainId][addr]?.llamaKey,
+            depositAprBase: rateToFloat(rates[i]),
+            borrowAprBase: undefined,
+          };
+        }
       });
   }
 

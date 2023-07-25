@@ -334,22 +334,28 @@ describe('Sdk', () => {
 
   describe('#getTxDetails', () => {
     jest.setTimeout(20000);
+    const collateral = WETH9[ChainId.MATIC];
+    const debt = USDC[ChainId.MATIC];
+    const vault = sdk
+      .getAllBorrowingVaults()
+      .find(
+        (v) =>
+          v.chainId === ChainId.MATIC &&
+          v.collateral.equals(collateral) &&
+          v.debt.equals(debt)
+      ) as BorrowingVault;
+
+    const owner = new Wallet(JUNK_KEY);
 
     it('returns a NON cross-chain calldata for TrasactionRequest', async () => {
-      const vault = VAULT_LIST[ChainId.MATIC]
-        .find((v) => v instanceof BorrowingVault)
-        ?.setConnection(config) as BorrowingVault;
-
-      const owner = new Wallet(JUNK_KEY);
-
       const preview = await sdk.previews.get({
         name: PreviewName.DEPOSIT_AND_BORROW,
         vault,
         srcChainId: ChainId.MATIC,
         amountIn: parseUnits('1'),
         amountOut: parseUnits('1', 6),
-        tokenIn: WETH9[ChainId.MATIC],
-        tokenOut: USDC[ChainId.MATIC],
+        tokenIn: collateral,
+        tokenOut: debt,
         account: Address.from(owner.address),
       });
 
@@ -374,21 +380,13 @@ describe('Sdk', () => {
     });
 
     it('returns a cross-chain calldata for TrasactionRequest (deposit+borrow on chain A and transfer to chain B)', async () => {
-      const vault = new BorrowingVault(
-        Address.from('0x653D89d7548EB859f86Ab9011f7B960d52910Abf'),
-        USDC[ChainId.MATIC],
-        WETH9[ChainId.MATIC]
-      ).setConnection(config);
-
-      const owner = new Wallet(JUNK_KEY);
-
       const preview = await sdk.previews.get({
         name: PreviewName.DEPOSIT_AND_BORROW,
         vault,
         srcChainId: ChainId.OPTIMISM,
         amountOut: parseUnits('1'),
         amountIn: parseUnits('1', 6),
-        tokenOut: WETH9[ChainId.MATIC],
+        tokenOut: collateral,
         tokenIn: USDC[ChainId.OPTIMISM],
         account: Address.from(owner.address),
       });
@@ -418,8 +416,6 @@ describe('Sdk', () => {
       const vault = VAULT_LIST[ChainId.OPTIMISM]
         .find((v) => v instanceof BorrowingVault)
         ?.setConnection(config) as BorrowingVault;
-
-      const owner = new Wallet(JUNK_KEY);
 
       const preview = await sdk.previews.get({
         name: PreviewName.DEPOSIT_AND_BORROW,
