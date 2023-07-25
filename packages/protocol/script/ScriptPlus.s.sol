@@ -343,45 +343,45 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     uint256 rating;
     string[] memory providerNames;
 
-    // for (uint256 i; i < len; i++) {
-    //   collateral = readAddrFromConfig(vaults[i].collateral);
-    //   debt = readAddrFromConfig(vaults[i].debt);
-    //   name = vaults[i].name;
-    //   rating = vaults[i].rating;
-    //   providerNames = vaults[i].providers;
+    for (uint256 i; i < len; i++) {
+      collateral = readAddrFromConfig(vaults[i].collateral);
+      debt = readAddrFromConfig(vaults[i].debt);
+      name = vaults[i].name;
+      rating = vaults[i].rating;
+      providerNames = vaults[i].providers;
 
-    //   uint256 providersLen = providerNames.length;
-    //   ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
-    //   for (uint256 j; j < providersLen; j++) {
-    //     providers[j] = ILendingProvider(getAddress(providerNames[j]));
-    //   }
+      uint256 providersLen = providerNames.length;
+      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      for (uint256 j; j < providersLen; j++) {
+        providers[j] = ILendingProvider(getAddress(providerNames[j]));
+      }
 
-    //   try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
-    //     console.log(string.concat("Skip deploying: ", name));
-    //   } catch {
-    //     if (IERC20(collateral).allowance(msg.sender, address(factory)) < MIN_INITIALIZE) {
-    //       console.log(string.concat("Needs to increase allowance to deploy vault: ", name, " ..."));
-    //       if (approvalsByToken[collateral] == 0) approvals.push(collateral);
-    //       approvalsByToken[collateral] += MIN_INITIALIZE;
-    //     } else {
-    //       console.log(string.concat("Deploying: ", name, " ..."));
-    //       uint256 count = factory.vaultsCount(collateral);
-    //       chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
-    //       address vault = factory.allVaults(count);
-    //       saveAddress(name, vault);
-    //     }
-    //   }
-    // }
+      try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
+        console.log(string.concat("Skip deploying: ", name));
+      } catch {
+        if (IERC20(collateral).allowance(msg.sender, address(factory)) < MIN_INITIALIZE) {
+          console.log(string.concat("Needs to increase allowance to deploy vault: ", name, " ..."));
+          if (approvalsByToken[collateral] == 0) approvals.push(collateral);
+          approvalsByToken[collateral] += MIN_INITIALIZE;
+        } else {
+          console.log(string.concat("Deploying: ", name, " ..."));
+          uint256 count = factory.vaultsCount(collateral);
+          chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
+          address vault = factory.allVaults(count);
+          saveAddress(name, vault);
+        }
+      }
+    }
 
-    // len = approvals.length;
-    // for (uint256 i; i < len; i++) {
-    //   address token = approvals[i];
-    //   if (approvalsByToken[token] > 0) {
-    //     IERC20(collateral).safeIncreaseAllowance(address(factory), approvalsByToken[token]);
-    //     approvalsByToken[token] = 0;
-    //   }
-    // }
-    // delete approvals;
+    len = approvals.length;
+    for (uint256 i; i < len; i++) {
+      address token = approvals[i];
+      if (approvalsByToken[token] > 0) {
+        IERC20(collateral).safeIncreaseAllowance(address(factory), approvalsByToken[token]);
+        approvalsByToken[token] = 0;
+      }
+    }
+    delete approvals;
   }
 
   function setBorrowingVaults() internal {
