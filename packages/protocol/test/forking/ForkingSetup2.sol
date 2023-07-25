@@ -229,6 +229,7 @@ contract ForkingSetup2 is CoreRoles, Test {
         address v =
           chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
         allVaults.push(Vault(name, v));
+        vm.label(v, name);
 
         _callWithTimelock(
           v, abi.encodeWithSelector(BorrowingVaultUpgradeable.setOracle.selector, address(oracle))
@@ -238,7 +239,9 @@ contract ForkingSetup2 is CoreRoles, Test {
           abi.encodeWithSelector(BorrowingVaultUpgradeable.setLtvFactors.selector, maxLtv, liqRatio)
         );
       } else {
-        allVaults.push(Vault(name, getAddress(name)));
+        address addr = getAddress(name);
+        allVaults.push(Vault(name, addr));
+        vm.label(addr, name);
       }
     }
   }
