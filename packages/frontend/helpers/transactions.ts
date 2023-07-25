@@ -20,7 +20,7 @@ import {
   isValidStep,
 } from './history';
 import { BridgeFee } from './routing';
-import { camelize, toNotSoFixed } from './values';
+import { camelize, formatAssetWithSymbol, toNotSoFixed } from './values';
 
 export type TransactionMeta = {
   status: FetchStatus;
@@ -148,10 +148,11 @@ export const transactionSteps = (
       const singleAmount = `${amount} ${step.token?.symbol}`;
       const amountLabel =
         step.step === RoutingStep.X_TRANSFER
-          ? `${singleAmount} -> ${toNotSoFixed(
-              formatUnits(step.bridgeResultAmount ?? 0, step.token?.decimals),
-              true
-            )} ${step.token?.symbol}`
+          ? `${singleAmount} -> ${formatAssetWithSymbol({
+              amount: step.bridgeResultAmount,
+              decimals: step.token?.decimals,
+              symbol: step.token?.symbol,
+            })}`
           : singleAmount;
 
       return {

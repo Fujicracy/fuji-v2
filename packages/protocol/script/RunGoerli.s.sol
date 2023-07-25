@@ -2,21 +2,21 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV3Goerli} from "../src/providers/goerli/AaveV3Goerli.sol";
 
 contract RunGoerli is ScriptPlus {
   AaveV3Goerli aaveV3;
 
   function setUp() public {
-    setUpOn("goerli");
+    setUpOn();
   }
 
   function run() public {
     vm.startBroadcast(deployer);
 
     setOrDeployChief(false);
-    /*setOrDeployConnextRouter(false);*/
+    setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
     /*setOrDeployAddrMapper(false);*/
@@ -29,6 +29,8 @@ contract RunGoerli is ScriptPlus {
       deployBorrowingVaults();
       /*setBorrowingVaults();*/
     }
+
+    /*upgradeBorrowingImpl(false);*/
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/

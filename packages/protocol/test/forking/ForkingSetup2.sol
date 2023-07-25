@@ -5,6 +5,7 @@ import "forge-std/console.sol";
 import {Test} from "forge-std/Test.sol";
 import {TimelockController} from
   "openzeppelin-contracts/contracts/governance/TimelockController.sol";
+import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {LibSigUtils} from "../../src/libraries/LibSigUtils.sol";
 import {BorrowingVault} from "../../src/vaults/borrowing/BorrowingVault.sol";
 import {BorrowingVaultUpgradeable} from "../../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
@@ -27,6 +28,7 @@ import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
 
 contract ForkingSetup2 is CoreRoles, Test {
   using SafeERC20 for IERC20;
+  using Address for address;
 
   struct PriceFeed {
     string asset;
@@ -44,6 +46,11 @@ contract ForkingSetup2 is CoreRoles, Test {
     string asset;
     address market;
     string name;
+  }
+
+  struct Vault {
+    string name;
+    address addr;
   }
 
   struct VaultConfig {
@@ -80,12 +87,16 @@ contract ForkingSetup2 is CoreRoles, Test {
   address public CHARLIE = vm.addr(CHARLIE_PK);
   address public INITIALIZER = vm.addr(0x111A13); // arbitrary address
 
-  Chief public chief;
+  Chief chief;
   ConnextRouter connextRouter;
-  TimelockController public timelock;
+  TimelockController timelock;
   IFujiOracle oracle;
   BorrowingVaultBeaconFactory factory;
   address implementation;
+
+  Vault[] allVaults;
+
+  address connextCore;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
@@ -100,7 +111,15 @@ contract ForkingSetup2 is CoreRoles, Test {
     vm.label(INITIALIZER, "initializer");
   }
 
-  function setUpFork(string memory chain) public {
+  function setUpFork() public {
+    chainName = vm.envString("CHAIN_NAME");
+    vm.createSelectFork(chainName);
+
+    string memory path = string.concat("deploy-configs/", chainName, ".json");
+    configJson = vm.readFile(path);
+  }
+
+  function setUpNamedFork(string memory chain) public {
     chainName = chain;
     vm.createSelectFork(chainName);
 
@@ -121,10 +140,10 @@ contract ForkingSetup2 is CoreRoles, Test {
 
   function setOrDeployConnextRouter(bool deploy) internal {
     if (deploy) {
-      address connext = readAddrFromConfig("ConnextCore");
+      connextCore = readAddrFromConfig("ConnextCore");
       address weth = readAddrFromConfig("WETH");
 
-      connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connext), Chief(chief));
+      connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connextCore), Chief(chief));
     } else {
       connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
     }
@@ -156,11 +175,12 @@ contract ForkingSetup2 is CoreRoles, Test {
       if (deployImplementation) {
         implementation = address(new BorrowingVaultUpgradeable());
       } else {
-        implementation = getAddress("BorrowingVault-Impl");
+        implementation = getAddress("BorrowingVaultUpgradeable");
       }
       factory = new BorrowingVaultBeaconFactory(address(chief), implementation);
     } else {
       factory = BorrowingVaultBeaconFactory(getAddress("BorrowingVaultBeaconFactory"));
+      implementation = getAddress("BorrowingVaultUpgradeable");
     }
     vm.label(address(factory), "BorrowingVaultBeaconFactory");
 
@@ -171,14 +191,13 @@ contract ForkingSetup2 is CoreRoles, Test {
     }
   }
 
-  function deployBorrowingVaults() internal returns (address[] memory) {
+  function setOrDeployBorrowingVaults(bool deploy) internal {
     bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
     VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
 
     uint256 minCollateral = 1e6;
 
     uint256 len = vaults.length;
-    address[] memory deployed = new address[](len);
     address collateral;
     address debt;
     string memory name;
@@ -196,30 +215,32 @@ contract ForkingSetup2 is CoreRoles, Test {
       maxLtv = vaults[i].maxLtv;
       providerNames = vaults[i].providers;
 
-      uint256 providersLen = providerNames.length;
-      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
-      for (uint256 j; j < providersLen; j++) {
-        providers[j] = ILendingProvider(getAddress(providerNames[j]));
-      }
+      if (deploy) {
+        uint256 providersLen = providerNames.length;
+        ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+        for (uint256 j; j < providersLen; j++) {
+          providers[j] = ILendingProvider(getAddress(providerNames[j]));
+        }
 
-      if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
-        IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
-      }
-      deal(collateral, msg.sender, minCollateral);
-      address v =
-        chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
-      deployed[i] = v;
+        if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
+          IERC20(collateral).safeIncreaseAllowance(address(factory), minCollateral);
+        }
+        deal(collateral, msg.sender, minCollateral);
+        address v =
+          chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
+        allVaults.push(Vault(name, v));
 
-      _callWithTimelock(
-        v, abi.encodeWithSelector(BorrowingVaultUpgradeable.setOracle.selector, address(oracle))
-      );
-      _callWithTimelock(
-        v,
-        abi.encodeWithSelector(BorrowingVaultUpgradeable.setLtvFactors.selector, maxLtv, liqRatio)
-      );
+        _callWithTimelock(
+          v, abi.encodeWithSelector(BorrowingVaultUpgradeable.setOracle.selector, address(oracle))
+        );
+        _callWithTimelock(
+          v,
+          abi.encodeWithSelector(BorrowingVaultUpgradeable.setLtvFactors.selector, maxLtv, liqRatio)
+        );
+      } else {
+        allVaults.push(Vault(name, getAddress(name)));
+      }
     }
-
-    return deployed;
   }
 
   function getAddress(string memory contractName) internal view returns (address addr) {
@@ -249,24 +270,21 @@ contract ForkingSetup2 is CoreRoles, Test {
   }
 
   function _callWithTimelock(address target, bytes memory callData) internal {
-    timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);
-    vm.warp(block.timestamp + 2 days);
-    timelock.execute(target, 0, callData, 0x00, 0x00);
-    rewind(2 days);
+    vm.prank(address(timelock));
+    target.functionCall(callData);
+    /*timelock.schedule(target, 0, callData, 0x00, 0x00, 1.5 days);*/
+    /*vm.warp(block.timestamp + 2 days);*/
+    /*timelock.execute(target, 0, callData, 0x00, 0x00);*/
+    /*rewind(2 days);*/
   }
 
-  function _grantRoleChief(bytes32 role, address account) internal {
-    bytes memory sendData = abi.encodeWithSelector(chief.grantRole.selector, role, account);
-    _callWithTimelock(address(chief), sendData);
-  }
-
-  function _getDepositAndBorrow(
+  function getDepositAndBorrow(
     address beneficiary,
     uint256 beneficiaryPrivateKey,
-    uint256 amount,
+    uint256 depositAmount,
     uint256 borrowAmount,
     address router,
-    address vault_
+    address vault
   )
     internal
     returns (IRouter.Action[] memory, bytes[] memory)
@@ -277,62 +295,107 @@ contract ForkingSetup2 is CoreRoles, Test {
     actions[2] = IRouter.Action.Borrow;
 
     bytes[] memory args = new bytes[](3);
-    args[0] = abi.encode(vault_, amount, beneficiary, beneficiary);
-    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault_, beneficiary, beneficiary, borrowAmount);
-    args[2] = abi.encode(vault_, borrowAmount, beneficiary, beneficiary);
+    args[0] = abi.encode(vault, depositAmount, beneficiary, beneficiary);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault, beneficiary, beneficiary, borrowAmount);
+    args[2] = abi.encode(vault, borrowAmount, beneficiary, beneficiary);
 
     bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
 
     // Replace permit action arguments, now with the signature values.
     args[1] = _buildPermitAsBytes(
+      "BORROW",
       beneficiary,
       beneficiaryPrivateKey,
       router,
       beneficiary,
       borrowAmount,
       0,
-      vault_,
+      vault,
       actionArgsHash
     );
 
     return (actions, args);
   }
 
-  function _getPermitBorrowArgs(
-    LibSigUtils.Permit memory permit,
-    uint256 ownerPKey,
-    address vault_
+  function getPaybackAndWithdraw(
+    address beneficiary,
+    uint256 beneficiaryPrivateKey,
+    uint256 paybackAmount,
+    uint256 withdrawAmount,
+    address router,
+    address vault
   )
     internal
-    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+    returns (IRouter.Action[] memory, bytes[] memory)
   {
-    bytes32 structHash = LibSigUtils.getStructHashBorrow(permit);
-    bytes32 digest =
-      LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault_).DOMAIN_SEPARATOR(), structHash);
-    (v, r, s) = vm.sign(ownerPKey, digest);
-    deadline = permit.deadline;
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.Payback;
+    actions[1] = IRouter.Action.PermitWithdraw;
+    actions[2] = IRouter.Action.Withdraw;
+
+    bytes[] memory args = new bytes[](3);
+    args[0] = abi.encode(vault, paybackAmount, beneficiary, beneficiary);
+    args[1] = LibSigUtils.getZeroPermitEncodedArgs(vault, beneficiary, beneficiary, withdrawAmount);
+    args[2] = abi.encode(vault, withdrawAmount, beneficiary, beneficiary);
+
+    bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+    // Replace permit action arguments, now with the signature values.
+    args[1] = _buildPermitAsBytes(
+      "WITHDRAW",
+      beneficiary,
+      beneficiaryPrivateKey,
+      router,
+      beneficiary,
+      withdrawAmount,
+      0,
+      vault,
+      actionArgsHash
+    );
+
+    return (actions, args);
   }
 
   function _buildPermitAsBytes(
+    string memory action,
     address owner,
     uint256 ownerPKey,
     address operator,
     address receiver,
     uint256 amount,
     uint256 plusNonce,
-    address vault_,
+    address vault,
     bytes32 actionArgsHash
   )
     internal
     returns (bytes memory arg)
   {
     LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
-      owner, operator, receiver, amount, plusNonce, vault_, actionArgsHash
+      owner, operator, receiver, amount, plusNonce, vault, actionArgsHash
     );
 
     (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
-      _getPermitBorrowArgs(permit, ownerPKey, vault_);
+      _getPermitArgs(action, permit, ownerPKey, vault);
 
-    arg = abi.encode(vault_, owner, receiver, amount, deadline, v, r, s);
+    arg = abi.encode(vault, owner, receiver, amount, deadline, v, r, s);
+  }
+
+  function _getPermitArgs(
+    string memory action,
+    LibSigUtils.Permit memory permit,
+    uint256 ownerPKey,
+    address vault
+  )
+    internal
+    returns (uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+  {
+    bytes32 structHash = keccak256(abi.encodePacked(action))
+      == keccak256(abi.encodePacked("BORROW"))
+      ? LibSigUtils.getStructHashBorrow(permit)
+      : LibSigUtils.getStructHashWithdraw(permit);
+    bytes32 digest =
+      LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault).DOMAIN_SEPARATOR(), structHash);
+    (v, r, s) = vm.sign(ownerPKey, digest);
+    deadline = permit.deadline;
   }
 }
