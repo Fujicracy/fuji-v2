@@ -40,7 +40,7 @@ contract YieldVaultBeaconFactory is IBeacon, VaultDeployer {
   error YieldVaultFactory__setImplementation_notContract();
 
   /**
-   * @dev Emit when a new BorrowingVault is deployed.
+   * @dev Emit when a new YieldVault is deployed.
    *
    * @param vault address
    * @param asset of this vault
@@ -113,10 +113,10 @@ contract YieldVaultBeaconFactory is IBeacon, VaultDeployer {
 
       string memory assetSymbol = IERC20Metadata(asset).symbol();
 
-      // Example of `name_`: "Fuji-V2 WETH BorrowingVault-1".
+      // Example of `name_`: "Fuji-V2 WETH YieldVault-1".
       vdata.name =
         string(abi.encodePacked("Fuji-V2 ", assetSymbol, " YieldVault", "-", nonce.toString()));
-      // Example of `symbol_`: "fyvDAI-1".
+      // Example of `symbol_`: "fyvWETH-1".
       vdata.symbol = string(abi.encodePacked("fyv", assetSymbol, "-", nonce.toString()));
 
       vdata.salt = keccak256(abi.encode(deployData, nonce, block.number));
