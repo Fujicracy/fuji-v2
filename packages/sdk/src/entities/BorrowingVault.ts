@@ -110,21 +110,30 @@ export class BorrowingVault extends AbstractVault {
       this.safetyRating &&
       this.name !== '' &&
       this.activeProvider &&
-      this.allProviders
+      this.allProviders &&
+      this.version
     )
       return;
 
     const chief = Chief__factory.multicall(CHIEF_ADDRESS[this.chainId].value);
 
-    const [maxLtv, liqRatio, safetyRating, name, activeProvider, allProviders] =
-      await this.multicallRpcProvider.all([
-        this.multicallContract.maxLtv(),
-        this.multicallContract.liqRatio(),
-        chief.vaultSafetyRating(this.address.value),
-        this.multicallContract.name(),
-        this.multicallContract.activeProvider(),
-        this.multicallContract.getProviders(),
-      ]);
+    const [
+      maxLtv,
+      liqRatio,
+      safetyRating,
+      name,
+      activeProvider,
+      allProviders,
+      version,
+    ] = await this.multicallRpcProvider.all([
+      this.multicallContract.maxLtv(),
+      this.multicallContract.liqRatio(),
+      chief.vaultSafetyRating(this.address.value),
+      this.multicallContract.name(),
+      this.multicallContract.activeProvider(),
+      this.multicallContract.getProviders(),
+      this.multicallContract.VERSION(),
+    ]);
 
     this.setPreLoads(
       maxLtv,
@@ -132,7 +141,8 @@ export class BorrowingVault extends AbstractVault {
       safetyRating,
       name,
       activeProvider,
-      allProviders
+      allProviders,
+      version
     );
   }
 
@@ -180,12 +190,19 @@ export class BorrowingVault extends AbstractVault {
     safetyRating: BigNumber,
     name: string,
     activeProvider: string,
-    allProviders: string[]
+    allProviders: string[],
+    version: string
   ) {
     this.maxLtv = maxLtv;
     this.liqRatio = liqRatio;
 
-    this._setPreLoads(safetyRating, name, activeProvider, allProviders);
+    this._setPreLoads(
+      safetyRating,
+      name,
+      activeProvider,
+      allProviders,
+      version
+    );
   }
 
   /**

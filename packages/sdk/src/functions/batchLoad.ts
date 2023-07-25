@@ -27,7 +27,7 @@ import { ChiefMulticall } from '../types/contracts/src/Chief';
 import { FujiOracleMulticall } from '../types/contracts/src/FujiOracle';
 
 // number of details calls per vault
-const N_CALLS = 10;
+const N_CALLS = 11;
 
 type Detail = BigNumber | string | string[];
 type Rate = BigNumber;
@@ -76,6 +76,7 @@ const getDetailsCalls = (
         v.collateral.decimals
       ),
       oracle.getPriceOf(AddressZero, v.debt.address.value, v.debt.decimals),
+      v.multicallContract.VERSION() as Call<string>,
     ]);
   } else {
     // pass an empty call for methods that don't exist on LendingVault
@@ -97,6 +98,7 @@ const getDetailsCalls = (
         v.collateral.decimals
       ),
       empty,
+      v.multicallContract.VERSION() as Call<string>,
     ]);
   }
 };
@@ -178,6 +180,7 @@ const setVaultsPreLoads = (
     const activeProvider = detailsBatchResults[N_CALLS * i + 3] as string;
     const allProviders = detailsBatchResults[N_CALLS * i + 4] as string[];
     const safetyRating = detailsBatchResults[N_CALLS * i + 5] as BigNumber;
+    const version = detailsBatchResults[N_CALLS * i + 10] as string;
     if (v instanceof BorrowingVault) {
       v.setPreLoads(
         maxLtv,
@@ -185,10 +188,11 @@ const setVaultsPreLoads = (
         safetyRating,
         name,
         activeProvider,
-        allProviders
+        allProviders,
+        version
       );
     } else if (v instanceof LendingVault) {
-      v.setPreLoads(safetyRating, name, activeProvider, allProviders);
+      v.setPreLoads(safetyRating, name, activeProvider, allProviders, version);
     }
   });
 };

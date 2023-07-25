@@ -11,7 +11,6 @@ import {
   CHAIN,
   CONNEXT_ROUTER_ADDRESS,
   FujiErrorCode,
-  SIGNER_DOMAIN_VERSION,
   URLS,
 } from '../../constants';
 import { LENDING_PROVIDERS } from '../../constants/lending-providers';
@@ -119,6 +118,12 @@ export abstract class AbstractVault {
    */
   multicallRpcProvider?: IMulticallProvider;
   abstract multicallContract?: BaseVaultMulticall;
+
+  /**
+   * The version of the implementation contract used in obtaining the digest
+   * to sign.
+   */
+  version?: string;
 
   constructor(address: Address, collateral: Token, type: VaultType) {
     this.name = '';
@@ -259,12 +264,14 @@ export abstract class AbstractVault {
     safetyRating: BigNumber,
     name: string,
     activeProvider: string,
-    allProviders: string[]
+    allProviders: string[],
+    version: string
   ) {
     this.safetyRating = safetyRating;
     this.name = name;
     this.activeProvider = activeProvider;
     this.allProviders = allProviders;
+    this.version = version;
   }
 
   protected async _getProvidersStatsFor(
@@ -347,9 +354,12 @@ export abstract class AbstractVault {
       ['bytes'],
       [defaultAbiCoder.encode(['uint256'], [this.chainId])]
     );
+    // due to an issue in the first iteration of the contract 'VaultPermissions'
+    // the version used was '1' instead of '0.0.1'
+    const version = this.version === '0.0.1' ? '1' : this.version;
     const domain: TypedDataDomain = {
       name: this.name,
-      version: SIGNER_DOMAIN_VERSION,
+      version,
       verifyingContract: this.address.value,
       salt,
     };
