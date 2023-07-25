@@ -3,6 +3,7 @@ import { useState } from 'react';
 
 import { chains } from '../../helpers/chains';
 import { theme } from '../../styles/theme';
+import OnPageBanner from '../Shared/Banners/OnPageBanner';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import Lending from '../Shared/Lending';
 import { MarketFilters } from './MarketFiltersHeader';
@@ -19,6 +20,12 @@ function Markets() {
 
   return (
     <Box>
+      <OnPageBanner
+        key="referral"
+        type="Time Sensitive"
+        title="Refer to earn points"
+        text="Invite your friends to earn points and hike up the Fuji Mountain together. 🥾"
+      />
       <Typography variant="h4">Markets</Typography>
       <Typography variant="body">
         {currentTab === 0 || onMobile
