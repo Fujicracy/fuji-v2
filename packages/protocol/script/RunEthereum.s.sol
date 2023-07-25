@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV2} from "../src/providers/mainnet/AaveV2.sol";
 import {AaveV3} from "../src/providers/mainnet/AaveV3.sol";
 import {CompoundV2} from "../src/providers/mainnet/CompoundV2.sol";

@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AgaveGnosis} from "../src/providers/gnosis/AgaveGnosis.sol";
 
 contract RunGnosis is ScriptPlus {

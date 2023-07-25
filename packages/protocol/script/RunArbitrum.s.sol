@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV3Arbitrum} from "../src/providers/arbitrum/AaveV3Arbitrum.sol";
 import {RadiantArbitrum} from "../src/providers/arbitrum/RadiantArbitrum.sol";
 import {DForceArbitrum} from "../src/providers/arbitrum/DForceArbitrum.sol";
