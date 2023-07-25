@@ -91,7 +91,6 @@ function MarketFiltersHeader({
   return (
     <Stack
       sx={{
-        mt: '0.75rem',
         flexDirection: { xs: 'column', md: 'row' },
         justifyContent: { xs: 'start', md: 'end' },
         alignItems: { xs: 'start', md: 'center' },
