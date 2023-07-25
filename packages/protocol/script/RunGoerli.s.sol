@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV3Goerli} from "../src/providers/goerli/AaveV3Goerli.sol";
 
 contract RunGoerli is ScriptPlus {
