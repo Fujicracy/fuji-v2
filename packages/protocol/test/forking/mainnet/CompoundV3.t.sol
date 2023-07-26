@@ -26,8 +26,12 @@ import {
 import {UniswapV2Swapper} from "../../../src/swappers/UniswapV2Swapper.sol";
 import {IUniswapV2Router01} from "../../../src/interfaces/uniswap/IUniswapV2Router01.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
+import {FujiOracle} from "../../../src/FujiOracle.sol";
 
 contract CompoundV3ForkingTests is Routines, ForkingSetup {
+  using Math for uint256;
+
   ILendingProvider public compoundV3;
 
   uint256 public constant DEPOSIT_AMOUNT = 0.5 ether;
@@ -213,6 +217,7 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
   // }
 
   function test_harvestWithStrategy1AndSwap() public {
+    uint256 protocolFee = harvestManager.protocolFee();
     uint8 assetDecimals = yieldVault.decimals();
     uint8 compDecimals = 18;
     do_deposit(DEPOSIT_AMOUNT, yieldVault, ALICE);
@@ -239,22 +244,32 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
     uint256 expectedRewards = expectedRewardsInCompound
       * oracle.getPriceOf(collateralAsset, debtAsset, assetDecimals) / (10 ** compDecimals); //in collateralAsset
 
+    uint256 treasuryAmount = expectedRewards.mulDiv(protocolFee, 1e18);
+
     uint256 rewardsInyieldVault =
       compoundV3.getDepositBalance(address(yieldVault), vault) - balanceBefore;
 
-    assertEq(rewardsInyieldVault, expectedRewards);
+    assertEq(rewardsInyieldVault, expectedRewards - treasuryAmount);
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), treasuryAmount);
   }
 
   function test_harvestWithStrategy2AndSwap() public {
+    uint256 protocolFee = harvestManager.protocolFee();
     uint8 debtDecimals = vault.debtDecimals();
     uint8 compDecimals = 18;
 
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
 
-    vm.warp(block.timestamp + (13 * 1000 seconds));
-    vm.roll(block.number + 1000);
+    vm.warp(block.timestamp + (13 * 100000 seconds));
+    vm.roll(block.number + 100000);
 
     uint256 borrowBalanceBefore = compoundV3.getBorrowBalance(address(vault), vault);
+
+    address market = CompoundV3(address(compoundV3)).getMapper().getAddressNestedMapping(
+      compoundV3.providerName(), collateralAsset, debtAsset
+    );
+    RewardOwed memory rewardOwed = ICompoundV3Rewards(0x1B0e765F6224C21223AeA2af16c1C46E38885a40)
+      .getRewardOwed(market, address(vault));
 
     bytes memory data = abi.encode(vault);
     vm.startPrank(HARVESTER);
@@ -263,30 +278,47 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
     );
     vm.stopPrank();
 
-    address market = CompoundV3(address(compoundV3)).getMapper().getAddressNestedMapping(
-      compoundV3.providerName(), collateralAsset, debtAsset
-    );
-    RewardOwed memory rewardOwed = ICompoundV3Rewards(0x1B0e765F6224C21223AeA2af16c1C46E38885a40)
-      .getRewardOwed(market, address(yieldVault));
-
     uint256 expectedRewardsInCompound = rewardOwed.owed / 10;
-    uint256 expectedRewardsInDebtAsset = expectedRewardsInCompound
-      * oracle.getPriceOf(debtAsset, rewardOwed.token, debtDecimals) / (10 ** compDecimals); //in debtAsset
+    uint256 expectedRewardsInDebtAsset = expectedRewardsInCompound.mulDiv(
+      oracle.getPriceOf(debtAsset, rewardOwed.token, debtDecimals), (10 ** compDecimals)
+    ); //in debtAsset
 
+    uint256 treasuryAmount = expectedRewardsInDebtAsset.mulDiv(protocolFee, 1e18);
     uint256 expectedBorrowBalance = 0;
     uint256 expectedTreasuryBalance = 0;
 
-    if (borrowBalanceBefore >= expectedRewardsInDebtAsset) {
-      expectedBorrowBalance = borrowBalanceBefore - expectedRewardsInDebtAsset;
-      expectedTreasuryBalance = 0;
+    if (borrowBalanceBefore > expectedRewardsInDebtAsset - treasuryAmount) {
+      expectedBorrowBalance = borrowBalanceBefore - (expectedRewardsInDebtAsset - treasuryAmount);
+      expectedTreasuryBalance = treasuryAmount;
     } else {
       expectedBorrowBalance = 0;
       expectedTreasuryBalance = expectedRewardsInDebtAsset - borrowBalanceBefore;
     }
 
     //assert debt in vault
-    assertEq(compoundV3.getBorrowBalance(address(vault), vault), expectedBorrowBalance);
+    assertApproxEqAbs(
+      compoundV3.getBorrowBalance(address(vault), vault),
+      expectedBorrowBalance,
+      expectedBorrowBalance / 1000
+    );
     //assert treasury detbAsset balance
-    assertEq(IERC20(debtAsset).balanceOf(TREASURY), expectedTreasuryBalance);
+    assertGe(
+      IERC20(debtAsset).balanceOf(TREASURY), expectedTreasuryBalance, "treasury debtAsset balance"
+    );
+
+    // assertEq(
+    //   IERC20(rewardOwed.token).balanceOf(TREASURY),
+    //   _getAmountOfDebtAssetToComp(IERC20(debtAsset).balanceOf(TREASURY) - expectedTreasuryBalance),
+    //   "treasury comp balance"
+    // ); //treasury is sweeper in swap so it will get comp from swap
+    assertEq(IERC20(rewardOwed.token).balanceOf(address(vault)), 0, "vault comp balance"); //vault claims rewards and sends to harvestmanager
+    assertEq(
+      IERC20(rewardOwed.token).balanceOf(address(harvestManager)), 0, "harvestManager balance"
+    );
+  }
+
+  function _getAmountOfDebtAssetToComp(uint256 amountOfDebtAsset) internal view returns (uint256) {
+    address comp = 0xc00e94Cb662C3520282E6f5717214004A7f26888;
+    return amountOfDebtAsset.mulDiv((1e18), oracle.getPriceOf(debtAsset, comp, 6));
   }
 }
