@@ -166,14 +166,17 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     uint256 totalAmount = 0;
     address collateralAsset = vault.asset();
     for (uint256 i = 0; i < tokens.length; i++) {
-      if (tokens[i] != collateralAsset) {
-        IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
-        totalAmount += _swap(swapper, tokens[i], collateralAsset, amounts[i], address(vault));
-      } else {
+      IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
+      if (tokens[i] == collateralAsset) {
         totalAmount += amounts[i];
+      } else {
+        totalAmount += _swap(swapper, tokens[i], collateralAsset, amounts[i], address(this));
       }
     }
-    data = abi.encodeWithSelector(vault.deposit.selector, totalAmount, vault);
+    uint256 treasuryAmount = totalAmount.mulDiv(protocolFee, 1e18);
+    IERC20(collateralAsset).safeTransfer(treasury, treasuryAmount);
+    IERC20(collateralAsset).safeTransfer(address(vault), totalAmount - treasuryAmount);
+    data = abi.encodeWithSelector(vault.deposit.selector, totalAmount - treasuryAmount, vault);
   }
 
   /**
@@ -203,25 +206,28 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     address debtAsset = BorrowingVault(payable(address(vault))).debtAsset();
     uint256 providerDebt =
       ILendingProvider(address(provider)).getBorrowBalance(address(vault), vault);
-    uint256 amountSwapped = 0;
+    uint256 totalAmount = 0;
     for (uint256 i = 0; i < tokens.length; i++) {
       IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
       if (tokens[i] == debtAsset) {
-        amountSwapped += amounts[i];
+        totalAmount += amounts[i];
       } else {
-        amountSwapped += _swap(swapper, tokens[i], debtAsset, amounts[i], address(this));
+        totalAmount += _swap(swapper, tokens[i], debtAsset, amounts[i], address(this));
       }
     }
 
-    uint256 amountToTransfer = amountSwapped;
-    if (amountSwapped > providerDebt) {
-      amountToTransfer = providerDebt;
-      IERC20(debtAsset).safeTransfer(treasury, amountSwapped - providerDebt);
+    uint256 treasuryAmount = totalAmount.mulDiv(protocolFee, 1e18);
+    uint256 amountToRepay = totalAmount - treasuryAmount;
+
+    if (amountToRepay > providerDebt) {
+      amountToRepay = providerDebt;
     }
 
-    IERC20(debtAsset).safeTransfer(address(vault), amountToTransfer);
+    IERC20(debtAsset).safeTransfer(treasury, totalAmount - amountToRepay);
+    IERC20(debtAsset).safeTransfer(address(vault), amountToRepay);
+
     data = abi.encodeWithSelector(
-      ILendingProvider(address(provider)).payback.selector, amountToTransfer, vault
+      ILendingProvider(address(provider)).payback.selector, amountToRepay, vault
     );
   }
 
