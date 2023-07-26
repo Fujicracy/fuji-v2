@@ -224,9 +224,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     if (deployFactory) {
       if (deployImplementation) {
         implementation = address(new YieldVault());
-        saveAddress("YieldVault-Impl", implementation);
+        saveAddress("YieldVaultUpgradeable", implementation);
       } else {
-        implementation = getAddress("YieldVault-Impl");
+        implementation = getAddress("YieldVaultUpgradeable");
       }
       yieldFactory = new YieldVaultFactory(address(chief), implementation);
       saveAddress("YieldVaultBeaconFactory", address(yieldFactory));
