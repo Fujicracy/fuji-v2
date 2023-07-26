@@ -26,6 +26,14 @@
       "providers": ["Aave_V3_Goerli"],
       "rating": 80
     }
+  ],
+  "yield-vaults": [
+    {
+      "asset": "WETH",
+      "name": "YieldVault-WETH-1",
+      "providers": ["Aave_V3_Goerli"],
+      "rating": 90
+    }
   ]
 }
 

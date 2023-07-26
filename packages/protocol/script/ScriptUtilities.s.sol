@@ -18,8 +18,8 @@ contract ScriptUtilities is Script {
   uint32 public constant POLYGON_CHAIN_ID = 137;
   uint32 public constant GNOSIS_CHAIN_ID = 100;
 
-  string chainName;
-  string configJson;
+  string internal chainName;
+  string internal configJson;
 
   function readAddrFromConfig(string memory key) internal returns (address) {
     return vm.parseJsonAddress(configJson, string.concat(".", key));
