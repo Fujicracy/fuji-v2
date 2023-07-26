@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV3Optimism} from "../src/providers/optimism/AaveV3Optimism.sol";
 import {DForceOptimism} from "../src/providers/optimism/DForceOptimism.sol";
 import {WePiggyOptimism} from "../src/providers/optimism/WePiggyOptimism.sol";
@@ -23,7 +23,7 @@ contract RunOptimism is ScriptPlus {
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
-    setOrDeployYieldVaultFactory(false);
+    setOrDeployYieldVaultFactory(false, false);
     setOrDeployAddrMapper(false);
     setOrDeployFlasherBalancer(false);
     setOrDeployRebalancer(false);

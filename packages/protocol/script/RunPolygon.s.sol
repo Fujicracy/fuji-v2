@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV3Polygon} from "../src/providers/polygon/AaveV3Polygon.sol";
 import {AaveV2Polygon} from "../src/providers/polygon/AaveV2Polygon.sol";
 import {DForcePolygon} from "../src/providers/polygon/DForcePolygon.sol";
@@ -25,7 +25,7 @@ contract RunPolygon is ScriptPlus {
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
-    setOrDeployYieldVaultFactory(false);
+    setOrDeployYieldVaultFactory(false, false);
     setOrDeployAddrMapper(false);
     setOrDeployFlasherBalancer(false);
     setOrDeployRebalancer(false);

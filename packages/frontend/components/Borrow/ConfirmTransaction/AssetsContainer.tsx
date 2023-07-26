@@ -1,11 +1,9 @@
 import { Stack, Typography } from '@mui/material';
 import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
-import { BigNumber } from 'ethers';
-import { formatUnits } from 'ethers/lib/utils';
 import React from 'react';
 
 import { chainName } from '../../../helpers/chains';
-import { toNotSoFixed } from '../../../helpers/values';
+import { formatAssetWithSymbol } from '../../../helpers/values';
 import { CurrencyIcon, NetworkIcon } from '../../Shared/Icons';
 
 const routingSteps = [
@@ -80,13 +78,11 @@ function AssetBox({
         gap={0.75}
       >
         <Typography variant="h5">
-          {`${toNotSoFixed(
-            formatUnits(
-              step.amount ?? BigNumber.from('0'),
-              step.token?.decimals ?? 18
-            ),
-            true
-          )} ${step.token?.symbol}`}
+          {formatAssetWithSymbol({
+            amount: step.amount,
+            symbol: step.token?.symbol,
+            decimals: step.token?.decimals,
+          })}
         </Typography>
         <Stack flexDirection="row" alignItems="center">
           <Typography variant="xsmallDark" mr={0.5}>
