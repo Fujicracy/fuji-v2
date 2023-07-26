@@ -113,5 +113,12 @@
       "rating": 80
     }
   ],
-  "yield-vaults": []
+  "yield-vaults": [
+    {
+      "asset": "WETH",
+      "name": "YieldVault-WETH-1",
+      "providers": ["Aave_V3_Arbitrum", "DForce_Arbitrum", "Radiant_Arbitrum"],
+      "rating": 80
+    }
+  ]
 }
