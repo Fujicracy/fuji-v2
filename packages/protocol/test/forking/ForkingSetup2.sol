@@ -15,6 +15,8 @@ import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from
+  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IRouter} from "../../src/interfaces/IRouter.sol";
 import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
 import {Chief} from "../../src/Chief.sol";
@@ -51,6 +53,10 @@ contract ForkingSetup2 is CoreRoles, Test {
   struct Vault {
     string name;
     address addr;
+    address asset;
+    address debtAsset;
+    uint256 sampleDeposit;
+    uint256 sampleBorrow;
   }
 
   struct VaultConfig {
@@ -95,11 +101,14 @@ contract ForkingSetup2 is CoreRoles, Test {
   address implementation;
 
   Vault[] allVaults;
+  mapping(address => mapping(address => uint256)) cachedPrices;
+  mapping(address => uint8) cachedDecimals;
 
   address connextCore;
 
   uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
   uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
+  uint256 public constant BORROW_BASE = 500;
 
   string chainName;
   string configJson;
@@ -228,8 +237,7 @@ contract ForkingSetup2 is CoreRoles, Test {
         deal(collateral, msg.sender, minCollateral);
         address v =
           chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
-        allVaults.push(Vault(name, v));
-        vm.label(v, name);
+        _pushVault(v, collateral, debt, maxLtv, name);
 
         _callWithTimelock(
           v, abi.encodeWithSelector(BorrowingVaultUpgradeable.setOracle.selector, address(oracle))
@@ -240,9 +248,46 @@ contract ForkingSetup2 is CoreRoles, Test {
         );
       } else {
         address addr = getAddress(name);
-        allVaults.push(Vault(name, addr));
-        vm.label(addr, name);
+        _pushVault(addr, collateral, debt, maxLtv, name);
       }
+    }
+  }
+
+  function _pushVault(
+    address vault,
+    address collateral,
+    address debt,
+    uint256 maxLtv,
+    string memory name
+  )
+    internal
+  {
+    uint8 debtDecimals = _getDecimalsOf(debt);
+    uint256 price = _getPriceOf(collateral, debt);
+    uint256 debtAmount = BORROW_BASE * 10 ** debtDecimals;
+    // calculate required collateral amount for BORROW_BASE then multiply by 1.2
+    uint256 collateralAmount = (debtAmount * 1e36) / (maxLtv * price) * 60 / 50;
+
+    allVaults.push(Vault(name, vault, collateral, debt, collateralAmount, debtAmount));
+    vm.label(vault, name);
+  }
+
+  function _getDecimalsOf(address asset) internal returns (uint8 decimals) {
+    if (cachedDecimals[asset] == 0) {
+      decimals = IERC20Metadata(asset).decimals();
+      cachedDecimals[asset] = decimals;
+    } else {
+      decimals = cachedDecimals[asset];
+    }
+  }
+
+  function _getPriceOf(address asset1, address asset2) internal returns (uint256 price) {
+    if (cachedPrices[asset1][asset2] == 0) {
+      uint8 decimals = _getDecimalsOf(asset2);
+      price = oracle.getPriceOf(asset2, asset1, decimals);
+      cachedPrices[asset1][asset2] = price;
+    } else {
+      price = cachedPrices[asset1][asset2];
     }
   }
 
