@@ -21,6 +21,7 @@ import {Address} from "openzeppelin-contracts/contracts/utils/Address.sol";
 import {RebalancerManager} from "../../../src/RebalancerManager.sol";
 import {ISwapper} from "../../../src/interfaces/ISwapper.sol";
 import {MockSwapper} from "../../../src/mocks/MockSwapper.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
 contract MockProviderIdA is MockProvider {
   function providerName() public pure override returns (string memory) {
@@ -136,6 +137,8 @@ contract MockProviderRewardsInDebtAsset is ILendingProvider, IHarvestable {
 }
 
 contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
+  using Math for uint256;
+
   BorrowingVault public bvault;
   BorrowingVault public bvault2;
   YieldVault public yvault;
@@ -244,6 +247,7 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
 
   // test with provider that returns rewards in collateralAsset -> no need to swap
   function test_harvestWithStrategy1() public {
+    uint256 protocolFee = harvestManager.protocolFee();
     uint256 balanceBefore = mockProviderA.getDepositBalance(address(bvault), bvault);
 
     bytes memory data = abi.encode(bvault);
@@ -254,13 +258,17 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
     vm.stopPrank();
 
     uint256 expectedRewards = 1e18;
+    uint256 treasuryAmount = expectedRewards.mulDiv(protocolFee, 1e18);
     assertEq(
-      mockProviderA.getDepositBalance(address(bvault), bvault) - balanceBefore, expectedRewards
+      mockProviderA.getDepositBalance(address(bvault), bvault) - balanceBefore,
+      expectedRewards - treasuryAmount
     );
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), treasuryAmount);
   }
 
   // test with provider that returns rewards in debtAsset
   function test_harvestWithStrategy1AndSwap() public {
+    uint256 protocolFee = harvestManager.protocolFee();
     uint256 balanceBefore =
       mockProviderRewardsInDebtAsset.getDepositBalance(address(bvault2), bvault2);
 
@@ -279,14 +287,17 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
     uint256 expectedRewards = expectedRewardsInDebtAsset
       * oracle.getPriceOf(collateralAsset, debtAsset, assetDecimals) / (10 ** debtDecimals); //in collateralAsset
 
+    uint256 treasuryAmount = expectedRewards.mulDiv(protocolFee, 1e18);
     uint256 rewardsInVault =
       mockProviderRewardsInDebtAsset.getDepositBalance(address(bvault2), bvault2) - balanceBefore;
 
-    assertEq(rewardsInVault, expectedRewards);
+    assertEq(rewardsInVault, expectedRewards - treasuryAmount);
+    assertEq(IERC20(collateralAsset).balanceOf(TREASURY), treasuryAmount);
   }
 
   // test with provider that returns rewards in debtAsset -> no need to swap
   function test_harvestWithStrategy2() public {
+    uint256 protocolFee = harvestManager.protocolFee();
     uint256 borrowBalanceBefore =
       mockProviderRewardsInDebtAsset.getBorrowBalance(address(bvault2), bvault2);
 
@@ -302,15 +313,16 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
     vm.stopPrank();
 
     uint256 expectedRewardsInDebtAsset = 1e18;
+    uint256 treasuryAmount = expectedRewardsInDebtAsset.mulDiv(protocolFee, 1e18);
     uint256 expectedBorrowBalance = 0;
     uint256 expectedTreasuryBalance = 0;
 
-    if (borrowBalanceBefore >= expectedRewardsInDebtAsset) {
-      expectedBorrowBalance = borrowBalanceBefore - expectedRewardsInDebtAsset;
-      expectedTreasuryBalance = 0;
+    if (borrowBalanceBefore >= expectedRewardsInDebtAsset - treasuryAmount) {
+      expectedBorrowBalance = borrowBalanceBefore - (expectedRewardsInDebtAsset - treasuryAmount);
+      expectedTreasuryBalance = treasuryAmount;
     } else {
       expectedBorrowBalance = 0;
-      expectedTreasuryBalance = expectedRewardsInDebtAsset - borrowBalanceBefore;
+      expectedTreasuryBalance = treasuryAmount + (expectedRewardsInDebtAsset - borrowBalanceBefore);
     }
 
     //assert debt in vault
@@ -324,6 +336,7 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
 
   //test with provider that returns rewards in collateralAsset
   function test_harvestWithStrategy2AndSwap() public {
+    uint256 protocolFee = harvestManager.protocolFee();
     uint256 borrowBalanceBefore = mockProviderA.getBorrowBalance(address(bvault), bvault);
 
     bytes memory data = abi.encode(bvault);
@@ -336,16 +349,16 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
     uint256 expectedRewardsInCollateralAsset = 1e18;
     uint256 expectedRewardsInDebtAsset = expectedRewardsInCollateralAsset
       * oracle.getPriceOf(debtAsset, collateralAsset, debtDecimals) / (10 ** assetDecimals);
-
+    uint256 treasuryAmount = expectedRewardsInDebtAsset.mulDiv(protocolFee, 1e18);
     uint256 expectedBorrowBalance = 0;
     uint256 expectedTreasuryBalance = 0;
 
-    if (borrowBalanceBefore >= expectedRewardsInDebtAsset) {
-      expectedBorrowBalance = borrowBalanceBefore - expectedRewardsInDebtAsset;
-      expectedTreasuryBalance = 0;
+    if (borrowBalanceBefore >= expectedRewardsInDebtAsset - treasuryAmount) {
+      expectedBorrowBalance = borrowBalanceBefore - (expectedRewardsInDebtAsset - treasuryAmount);
+      expectedTreasuryBalance = treasuryAmount;
     } else {
       expectedBorrowBalance = 0;
-      expectedTreasuryBalance = expectedRewardsInDebtAsset - borrowBalanceBefore;
+      expectedTreasuryBalance = treasuryAmount + (expectedRewardsInDebtAsset - borrowBalanceBefore);
     }
 
     //assert debt in vault
