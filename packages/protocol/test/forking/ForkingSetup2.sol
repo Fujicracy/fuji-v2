@@ -248,7 +248,9 @@ contract ForkingSetup2 is CoreRoles, Test {
 
     for (uint256 i; i < len; i++) {
       collateral = readAddrFromConfig(vaults[i].collateral);
+      vm.label(collateral, vaults[i].collateral);
       debt = readAddrFromConfig(vaults[i].debt);
+      vm.label(debt, vaults[i].debt);
       name = vaults[i].name;
       rating = vaults[i].rating;
       liqRatio = vaults[i].liqRatio;
