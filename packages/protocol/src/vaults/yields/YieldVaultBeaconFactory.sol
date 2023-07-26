@@ -2,13 +2,11 @@
 pragma solidity 0.8.15;
 
 /**
- * @title BorrowingVaultBeaconFactory
+ * @title YieldVaultBeaconFactory
  *
  * @author Fujidao Labs
  *
- * @notice A factory contract through which new borrowing vaults are created.
- * This vault factory deploys (OZ implementation) VaultBeaconProxy that
- * point to `implementation` state variable as the target implementation of the proxy.
+ * @notice A factory contract through which new yield vaults are created.
  */
 
 import {IERC20Metadata} from
@@ -25,13 +23,12 @@ import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {IChief} from "../../interfaces/IChief.sol";
 
-contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
+contract YieldVaultBeaconFactory is IBeacon, VaultDeployer {
   using SafeERC20 for IERC20;
   using Strings for uint256;
 
-  struct BVaultData {
+  struct YVaultData {
     address asset;
-    address debtAsset;
     string name;
     string symbol;
     bytes32 salt;
@@ -39,26 +36,20 @@ contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
   }
 
   /// @dev Custom Errors
-  error BorrowingVaultFactory__deployVault_noImplementation();
-  error BorrowingVaultFactory__setImplementation_notContract();
+  error YieldVaultFactory__deployVault_noImplementation();
+  error YieldVaultFactory__setImplementation_notContract();
 
   /**
-   * @dev Emit when a new BorrowingVault is deployed.
+   * @dev Emit when a new YieldVault is deployed.
    *
    * @param vault address
    * @param asset of this vault
-   * @param debtAsset of this vault
    * @param name  of the tokenized asset shares
    * @param symbol of the tokenized aset shares
    * @param salt distinguishing this vault
    */
-  event DeployBorrowingVault(
-    address indexed vault,
-    address indexed asset,
-    address indexed debtAsset,
-    string name,
-    string symbol,
-    bytes32 salt
+  event DeployYieldVault(
+    address indexed vault, address indexed asset, string name, string symbol, bytes32 salt
   );
 
   /**
@@ -73,10 +64,10 @@ contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
   address private _implementation;
 
   /**
-   * @notice Constructor of a new {BorrowingVaultFactory}.
+   * @notice Constructor of a new {YieldVaultFactory}.
    *
    * @param chief_ address of {Chief}
-   * @param implementation_ address of the master BorrowingVault.sol
+   * @param implementation_ address of the master YieldVault.sol
    *
    * @dev Requirements:
    * - Must comply with {VaultDeployer} requirements.
@@ -93,52 +84,46 @@ contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
   }
 
   /**
-   * @notice Deploys a new {BorrowingVault}.
+   * @notice Deploys a new {YieldVault}.
    *
-   * @param deployData The encoded data containing asset, debtAsset, oracle and providers
+   * @param deployData The encoded data containing asset and providers
    *
    * @dev Requirements:
    * - Must be called from {Chief} contract only.
    */
   function deployVault(bytes memory deployData) external onlyChief returns (address vault) {
     if (implementation() == address(0)) {
-      revert BorrowingVaultFactory__deployVault_noImplementation();
+      revert YieldVaultFactory__deployVault_noImplementation();
     }
 
     uint256 initAssets = 1e6;
 
-    BVaultData memory vdata;
+    YVaultData memory vdata;
     address futureVault;
 
     ///@dev Scoped section created to avoid stack too big error.
     {
-      (address asset, address debtAsset, ILendingProvider[] memory providers) =
-        abi.decode(deployData, (address, address, ILendingProvider[]));
+      (address asset, ILendingProvider[] memory providers) =
+        abi.decode(deployData, (address, ILendingProvider[]));
 
       // Use tx.origin because it will pull assets from EOA who originated the `Chief.deployVault(...)`.
       IERC20(asset).safeTransferFrom(tx.origin, address(this), initAssets);
 
       vdata.asset = asset;
-      vdata.debtAsset = debtAsset;
 
       string memory assetSymbol = IERC20Metadata(asset).symbol();
-      string memory debtSymbol = IERC20Metadata(debtAsset).symbol();
 
-      // Example of `name_`: "Fuji-V2 WETH-DAI BorrowingVault-1".
-      vdata.name = string(
-        abi.encodePacked(
-          "Fuji-V2 ", assetSymbol, "-", debtSymbol, " BorrowingVault", "-", nonce.toString()
-        )
-      );
-      // Example of `symbol_`: "fbvWETHDAI-1".
-      vdata.symbol = string(abi.encodePacked("fbv", assetSymbol, debtSymbol, "-", nonce.toString()));
+      // Example of `name_`: "Fuji-V2 WETH YieldVault-1".
+      vdata.name =
+        string(abi.encodePacked("Fuji-V2 ", assetSymbol, " YieldVault", "-", nonce.toString()));
+      // Example of `symbol_`: "fyvWETH-1".
+      vdata.symbol = string(abi.encodePacked("fyv", assetSymbol, "-", nonce.toString()));
 
       vdata.salt = keccak256(abi.encode(deployData, nonce, block.number));
 
       bytes memory initCall = abi.encodeWithSignature(
-        "initialize(address,address,address,string,string,address[])",
+        "initialize(address,address,string,string,address[])",
         vdata.asset,
-        vdata.debtAsset,
         chief,
         vdata.name,
         vdata.symbol,
@@ -164,9 +149,7 @@ contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
 
     _registerVault(vault, vdata.asset, vdata.salt);
 
-    emit DeployBorrowingVault(
-      vault, vdata.asset, vdata.debtAsset, vdata.name, vdata.symbol, vdata.salt
-    );
+    emit DeployYieldVault(vault, vdata.asset, vdata.name, vdata.symbol, vdata.salt);
 
     IVault(vault).deposit(initAssets, IChief(chief).timelock());
   }
@@ -197,7 +180,7 @@ contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
 
   function _setImplementation(address newImplementation) private {
     if (!Address.isContract(newImplementation)) {
-      revert BorrowingVaultFactory__setImplementation_notContract();
+      revert YieldVaultFactory__setImplementation_notContract();
     }
     _implementation = newImplementation;
   }

@@ -6,7 +6,7 @@ import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV3Goerli} from "../src/providers/goerli/AaveV3Goerli.sol";
 
 contract RunGoerli is ScriptPlus {
-  AaveV3Goerli aaveV3;
+  AaveV3Goerli internal aaveV3;
 
   function setUp() public {
     setUpOn();
@@ -19,6 +19,7 @@ contract RunGoerli is ScriptPlus {
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
+    setOrDeployYieldVaultFactory(false, false);
     /*setOrDeployAddrMapper(false);*/
     /*setOrDeployFlasherBalancer(false);*/
     /*setOrDeployRebalancer(false);*/
@@ -31,6 +32,10 @@ contract RunGoerli is ScriptPlus {
     }
 
     /*upgradeBorrowingImpl(false);*/
+
+    if (chief.allowedVaultFactory(address(yieldFactory))) {
+      deployYieldVaults();
+    }
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/

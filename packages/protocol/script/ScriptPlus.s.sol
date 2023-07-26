@@ -19,8 +19,9 @@ import {BorrowingVaultBeaconFactory} from "../src/vaults/borrowing/BorrowingVaul
 import {BorrowingVaultUpgradeable as BorrowingVault} from
   "../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
 import {VaultBeaconProxy} from "../src/vaults/VaultBeaconProxy.sol";
-import {YieldVaultFactory} from "../src/vaults/yields/YieldVaultFactory.sol";
-import {YieldVault} from "../src/vaults/yields/YieldVault.sol";
+import {YieldVaultBeaconFactory as YieldVaultFactory} from
+  "../src/vaults/yields/YieldVaultBeaconFactory.sol";
+import {YieldVaultUpgradeable as YieldVault} from "../src/vaults/yields/YieldVaultUpgradeable.sol";
 import {AddrMapper} from "../src/helpers/AddrMapper.sol";
 import {FujiOracle} from "../src/FujiOracle.sol";
 import {Chief} from "../src/Chief.sol";
@@ -67,29 +68,31 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     uint256 rating;
   }
 
+  uint256 private constant MIN_INITIALIZE = 1e6;
+
   bool UPGRADE_SAFETY_CHECK_BYPASS; // bypass all upgrade safety checks
   string ETHERSCAN_API_KEY;
 
-  AddrMapper mapper;
-  Chief chief;
-  TimelockController timelock;
-  BorrowingVaultBeaconFactory factory;
-  YieldVaultFactory yieldFactory;
-  FujiOracle oracle;
-  ConnextRouter connextRouter;
-  RebalancerManager rebalancer;
-  FlasherBalancer flasherBalancer;
+  AddrMapper internal mapper;
+  Chief internal chief;
+  TimelockController internal timelock;
+  BorrowingVaultBeaconFactory internal factory;
+  YieldVaultFactory internal yieldFactory;
+  FujiOracle internal oracle;
+  ConnextRouter internal connextRouter;
+  RebalancerManager internal rebalancer;
+  FlasherBalancer internal flasherBalancer;
 
-  address implementation;
-  address deployer;
+  address internal implementation;
+  address internal deployer;
 
-  address[] timelockTargets;
-  bytes[] timelockDatas;
-  uint256[] timelockValues;
-  string[] chainNames;
+  address[] internal timelockTargets;
+  bytes[] internal timelockDatas;
+  uint256[] internal timelockValues;
+  string[] internal chainNames;
 
-  address[] approvals;
-  mapping(address => uint256) approvalsByToken;
+  address[] internal approvals;
+  mapping(address => uint256) internal approvalsByToken;
 
   constructor() {
     chainNames.push("ethereum");
@@ -217,12 +220,18 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     }
   }
 
-  function setOrDeployYieldVaultFactory(bool deploy) internal {
-    if (deploy) {
-      yieldFactory = new YieldVaultFactory(address(chief));
-      saveAddress("YieldVaultFactory", address(yieldFactory));
+  function setOrDeployYieldVaultFactory(bool deployFactory, bool deployImplementation) internal {
+    if (deployFactory) {
+      if (deployImplementation) {
+        implementation = address(new YieldVault());
+        saveAddress("YieldVaultUpgradeable", implementation);
+      } else {
+        implementation = getAddress("YieldVaultUpgradeable");
+      }
+      yieldFactory = new YieldVaultFactory(address(chief), implementation);
+      saveAddress("YieldVaultBeaconFactory", address(yieldFactory));
     } else {
-      yieldFactory = YieldVaultFactory(getAddress("YieldVaultFactory"));
+      yieldFactory = YieldVaultFactory(getAddress("YieldVaultBeaconFactory"));
     }
 
     if (!chief.allowedVaultFactory(address(yieldFactory))) {
@@ -355,8 +364,6 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
     VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
 
-    uint256 minCollateral = 1e6;
-
     uint256 len = vaults.length;
     address collateral;
     address debt;
@@ -380,10 +387,10 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
         console.log(string.concat("Skip deploying: ", name));
       } catch {
-        if (IERC20(collateral).allowance(msg.sender, address(factory)) < minCollateral) {
+        if (IERC20(collateral).allowance(msg.sender, address(factory)) < MIN_INITIALIZE) {
           console.log(string.concat("Needs to increase allowance to deploy vault: ", name, " ..."));
           if (approvalsByToken[collateral] == 0) approvals.push(collateral);
-          approvalsByToken[collateral] += minCollateral;
+          approvalsByToken[collateral] += MIN_INITIALIZE;
         } else {
           console.log(string.concat("Deploying: ", name, " ..."));
           uint256 count = factory.vaultsCount(collateral);
@@ -523,40 +530,47 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     uint256 len = vaults.length;
     address asset;
     string memory name;
-    string[] memory providerNames;
     uint256 rating;
+    string[] memory providerNames;
+
     for (uint256 i; i < len; i++) {
       asset = readAddrFromConfig(vaults[i].asset);
       name = vaults[i].name;
-      providerNames = vaults[i].providers;
       rating = vaults[i].rating;
+      providerNames = vaults[i].providers;
 
       uint256 providersLen = providerNames.length;
       ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
-      address vault;
       for (uint256 j; j < providersLen; j++) {
         providers[j] = ILendingProvider(getAddress(providerNames[j]));
       }
+
       try vm.readFile(string.concat("deployments/", chainName, "/", name)) {
         console.log(string.concat("Skip deploying: ", name));
-        vault = getAddress(name);
       } catch {
-        console.log(string.concat("Deploying: ", name, " ..."));
-        vault = chief.deployVault(address(yieldFactory), abi.encode(asset, providers), rating);
-        saveAddress(name, vault);
+        if (IERC20(asset).allowance(msg.sender, address(yieldFactory)) < MIN_INITIALIZE) {
+          console.log(string.concat("Needs to increase allowance to deploy vault: ", name, " ..."));
+          if (approvalsByToken[asset] == 0) approvals.push(asset);
+          approvalsByToken[asset] += MIN_INITIALIZE;
+        } else {
+          console.log(string.concat("Deploying: ", name, " ..."));
+          chief.deployVault(address(yieldFactory), abi.encode(asset, providers), rating);
+          address vault = yieldFactory.allVaults(yieldFactory.vaultsCount(asset) - 1);
+          saveAddress(name, vault);
+        }
       }
+    }
 
-      YieldVault v = YieldVault(payable(vault));
-      if (!v.initialized()) {
-        console.log(string.concat("Initializing: ", name, " ..."));
-
-        uint256 minCollateral = v.minAmount();
-
-        IERC20(asset).safeIncreaseAllowance(address(v), minCollateral);
-        v.initializeVaultShares(minCollateral);
-      } else {
-        console.log(string.concat("Skip initializing ", name));
+    {
+      len = approvals.length;
+      for (uint256 i; i < len; i++) {
+        address token = approvals[i];
+        if (approvalsByToken[token] > 0) {
+          IERC20(asset).safeIncreaseAllowance(address(yieldFactory), approvalsByToken[token]);
+          approvalsByToken[token] = 0;
+        }
       }
+      delete approvals;
     }
   }
 

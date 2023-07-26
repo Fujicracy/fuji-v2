@@ -15,6 +15,8 @@ import {FujiOracle} from "../../src/FujiOracle.sol";
 import {MockERC20} from "../../src/mocks/MockERC20.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from
+  "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IRouter} from "../../src/interfaces/IRouter.sol";
 import {IVaultPermissions} from "../../src/interfaces/IVaultPermissions.sol";
 import {Chief} from "../../src/Chief.sol";
@@ -51,6 +53,10 @@ contract ForkingSetup2 is CoreRoles, Test {
   struct Vault {
     string name;
     address addr;
+    address asset;
+    address debtAsset;
+    uint256 sampleDeposit;
+    uint256 sampleBorrow;
   }
 
   struct VaultConfig {
@@ -79,13 +85,21 @@ contract ForkingSetup2 is CoreRoles, Test {
   uint32 public constant OPTIMISM_GOERLI_DOMAIN = 1735356532;
   uint32 public constant MUMBAI_DOMAIN = 9991;
 
+  uint32 public constant MAINNET_BLOCK = 17775621;
+  uint32 public constant OPTIMISM_BLOCK = 107378765;
+  uint32 public constant ARBITRUM_BLOCK = 115050048;
+  uint32 public constant POLYGON_BLOCK = 45530260;
+  uint32 public constant GNOSIS_BLOCK = 29140239;
+  uint32 public constant GOERLI_BLOCK = 9410146;
+  uint32 public constant OPTIMISM_GOERLI_BLOCK = 12463641;
+  uint32 public constant MUMBAI_BLOCK = 38311402;
+
   uint256 public constant ALICE_PK = 0xA;
   address public ALICE = vm.addr(ALICE_PK);
   uint256 public constant BOB_PK = 0xB;
   address public BOB = vm.addr(BOB_PK);
   uint256 public constant CHARLIE_PK = 0xC;
   address public CHARLIE = vm.addr(CHARLIE_PK);
-  address public INITIALIZER = vm.addr(0x111A13); // arbitrary address
 
   Chief chief;
   ConnextRouter connextRouter;
@@ -95,11 +109,12 @@ contract ForkingSetup2 is CoreRoles, Test {
   address implementation;
 
   Vault[] allVaults;
+  mapping(address => mapping(address => uint256)) cachedPrices;
+  mapping(address => uint8) cachedDecimals;
 
   address connextCore;
 
-  uint256 public constant DEFAULT_MAX_LTV = 75e16; // 75%
-  uint256 public constant DEFAULT_LIQ_RATIO = 82.5e16; // 82.5%
+  uint256 public constant BORROW_BASE = 500;
 
   string chainName;
   string configJson;
@@ -108,12 +123,12 @@ contract ForkingSetup2 is CoreRoles, Test {
     vm.label(ALICE, "alice");
     vm.label(BOB, "bob");
     vm.label(CHARLIE, "charlie");
-    vm.label(INITIALIZER, "initializer");
   }
 
   function setUpFork() public {
     chainName = vm.envString("CHAIN_NAME");
-    vm.createSelectFork(chainName);
+
+    _createAndSelectFork();
 
     string memory path = string.concat("deploy-configs/", chainName, ".json");
     configJson = vm.readFile(path);
@@ -121,10 +136,35 @@ contract ForkingSetup2 is CoreRoles, Test {
 
   function setUpNamedFork(string memory chain) public {
     chainName = chain;
-    vm.createSelectFork(chainName);
+
+    _createAndSelectFork();
 
     string memory path = string.concat("deploy-configs/", chainName, ".json");
     configJson = vm.readFile(path);
+  }
+
+  function _createAndSelectFork() internal {
+    bool ignoreCacheBlock = tryLoadEnvBool(false, "IGNORE_CACHE_BLOCK");
+
+    if (ignoreCacheBlock) {
+      vm.createSelectFork(chainName);
+    } else if (areEq(chainName, "ethereum")) {
+      vm.createSelectFork(chainName, MAINNET_BLOCK);
+    } else if (areEq(chainName, "optimism")) {
+      vm.createSelectFork(chainName, OPTIMISM_BLOCK);
+    } else if (areEq(chainName, "arbitrum")) {
+      vm.createSelectFork(chainName, ARBITRUM_BLOCK);
+    } else if (areEq(chainName, "polygon")) {
+      vm.createSelectFork(chainName, POLYGON_BLOCK);
+    } else if (areEq(chainName, "gnosis")) {
+      vm.createSelectFork(chainName, GNOSIS_BLOCK);
+    } else if (areEq(chainName, "goerli")) {
+      vm.createSelectFork(chainName, GOERLI_BLOCK);
+    } else if (areEq(chainName, "optimism_goerli")) {
+      vm.createSelectFork(chainName, OPTIMISM_GOERLI_BLOCK);
+    } else if (areEq(chainName, "mumbai")) {
+      vm.createSelectFork(chainName, MUMBAI_BLOCK);
+    }
   }
 
   function setOrDeployChief(bool deploy) internal {
@@ -208,7 +248,9 @@ contract ForkingSetup2 is CoreRoles, Test {
 
     for (uint256 i; i < len; i++) {
       collateral = readAddrFromConfig(vaults[i].collateral);
+      vm.label(collateral, vaults[i].collateral);
       debt = readAddrFromConfig(vaults[i].debt);
+      vm.label(debt, vaults[i].debt);
       name = vaults[i].name;
       rating = vaults[i].rating;
       liqRatio = vaults[i].liqRatio;
@@ -228,7 +270,7 @@ contract ForkingSetup2 is CoreRoles, Test {
         deal(collateral, msg.sender, minCollateral);
         address v =
           chief.deployVault(address(factory), abi.encode(collateral, debt, providers), rating);
-        allVaults.push(Vault(name, v));
+        _pushVault(v, collateral, debt, maxLtv, name);
 
         _callWithTimelock(
           v, abi.encodeWithSelector(BorrowingVaultUpgradeable.setOracle.selector, address(oracle))
@@ -238,8 +280,47 @@ contract ForkingSetup2 is CoreRoles, Test {
           abi.encodeWithSelector(BorrowingVaultUpgradeable.setLtvFactors.selector, maxLtv, liqRatio)
         );
       } else {
-        allVaults.push(Vault(name, getAddress(name)));
+        address addr = getAddress(name);
+        _pushVault(addr, collateral, debt, maxLtv, name);
       }
+    }
+  }
+
+  function _pushVault(
+    address vault,
+    address collateral,
+    address debt,
+    uint256 maxLtv,
+    string memory name
+  )
+    internal
+  {
+    uint8 debtDecimals = _getDecimalsOf(debt);
+    uint256 price = _getPriceOf(collateral, debt);
+    uint256 debtAmount = BORROW_BASE * 10 ** debtDecimals;
+    // calculate required collateral amount for BORROW_BASE then multiply by 1.2
+    uint256 collateralAmount = (debtAmount * 1e36) / (maxLtv * price) * 60 / 50;
+
+    allVaults.push(Vault(name, vault, collateral, debt, collateralAmount, debtAmount));
+    vm.label(vault, name);
+  }
+
+  function _getDecimalsOf(address asset) internal returns (uint8 decimals) {
+    if (cachedDecimals[asset] == 0) {
+      decimals = IERC20Metadata(asset).decimals();
+      cachedDecimals[asset] = decimals;
+    } else {
+      decimals = cachedDecimals[asset];
+    }
+  }
+
+  function _getPriceOf(address asset1, address asset2) internal returns (uint256 price) {
+    if (cachedPrices[asset1][asset2] == 0) {
+      uint8 decimals = _getDecimalsOf(asset2);
+      price = oracle.getPriceOf(asset2, asset1, decimals);
+      cachedPrices[asset1][asset2] = price;
+    } else {
+      price = cachedPrices[asset1][asset2];
     }
   }
 
@@ -397,5 +478,32 @@ contract ForkingSetup2 is CoreRoles, Test {
       LibSigUtils.getHashTypedDataV4Digest(IVaultPermissions(vault).DOMAIN_SEPARATOR(), structHash);
     (v, r, s) = vm.sign(ownerPKey, digest);
     deadline = permit.deadline;
+  }
+
+  function areEq(string memory a, string memory b) internal pure returns (bool) {
+    if (bytes(a).length != bytes(b).length) {
+      return false;
+    } else {
+      return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
+    }
+  }
+
+  function tryLoadEnvBool(
+    bool defaultVal,
+    string memory varName
+  )
+    internal
+    virtual
+    returns (bool val)
+  {
+    val = defaultVal;
+
+    if (!val) {
+      try vm.envBool(varName) returns (bool val_) {
+        val = val_;
+      } catch {}
+    }
+
+    if (val) console.log("%s=true", varName);
   }
 }
