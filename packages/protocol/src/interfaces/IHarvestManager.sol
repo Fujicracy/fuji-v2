@@ -62,6 +62,11 @@ interface IHarvestManager {
   function setFee(uint256 fee) external;
 
   /**
+   * @notice Returns the protocol fee.
+   */
+  function protocolFee() external view returns (uint256);
+
+  /**
    * @notice Collects rewards from the protocol.
    *
    * @param vault to harvest rewards.
