@@ -212,25 +212,6 @@ contract CompoundV3ForkingTests is Routines, ForkingSetup {
   //   console.log("Reward Amount: ", rewardOwed.owed);
   // }
 
-  // function test_harvest() public {
-  //   do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, vault, ALICE);
-  //
-  //   vm.warp(block.timestamp + (13 * 1000 seconds));
-  //   vm.roll(block.number + 1000);
-  //
-  //   //Check view functions are working as expected
-  // address market = CompoundV3(address(compoundV3)).getMapper().getAddressNestedMapping(
-  //   compoundV3.providerName(), collateralAsset, debtAsset
-  // );
-  //   console.log("Market: ", market);
-  //   RewardOwed memory rewardOwed = ICompoundV3Rewards(0x1B0e765F6224C21223AeA2af16c1C46E38885a40)
-  //     .getRewardOwed(market, address(vault));
-  //
-  //   //compoundV3 will only return one token as reward
-  //   console.log("Reward Token: ", rewardOwed.token);
-  //   console.log("Reward Amount: ", rewardOwed.owed);
-  // }
-
   function test_harvestWithStrategy1AndSwap() public {
     uint8 assetDecimals = yieldVault.decimals();
     uint8 compDecimals = 18;
