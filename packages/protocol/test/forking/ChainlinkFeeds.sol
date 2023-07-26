@@ -28,7 +28,7 @@ contract ChainlinkFeeds {
   //https://github.com/connext/chaindata/blob/main/crossChain.json
 
   constructor() {
-    //0-weth, 1-usdc, 2-dai, 3-wmatic, 4-usdt, 5-wsteth
+    //0-weth, 1-usdc, 2-dai, 3-wmatic, 4-usdt, 5-wsteth, 6-comp
 
     //GOERLI
     assets[GOERLI_DOMAIN] = [
@@ -70,7 +70,8 @@ contract ChainlinkFeeds {
       0x6B175474E89094C44Da98b954EedeAC495271d0F,
       0x7c9f4C87d911613Fe9ca58b579f737911AAD2D43,
       0xdAC17F958D2ee523a2206206994597C13D831ec7,
-      0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0
+      0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0,
+      0xc00e94Cb662C3520282E6f5717214004A7f26888
     ];
 
     priceFeeds[MAINNET_DOMAIN] = [
@@ -80,7 +81,8 @@ contract ChainlinkFeeds {
       0x7bAC85A8a13A4BcD8abb3eB7d6b4d632c5a57676,
       0x3E7d1eAB13ad0104d2750B8863b489D65364e32D,
       //TODO change this address if needed after oracle issue is solved
-      0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8
+      0xCfE54B5cD566aB89272946F602D76Ea879CAb4a8,
+      0xdbd020CAeF83eFd542f4De03e3cF0C28A4428bd5
     ];
 
     //OPTIMISM
