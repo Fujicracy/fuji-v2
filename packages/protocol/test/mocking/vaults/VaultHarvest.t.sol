@@ -358,7 +358,7 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
       expectedTreasuryBalance = treasuryAmount;
     } else {
       expectedBorrowBalance = 0;
-      expectedTreasuryBalance = treasuryAmount + (expectedRewardsInDebtAsset - borrowBalanceBefore);
+      expectedTreasuryBalance = expectedRewardsInDebtAsset - borrowBalanceBefore;
     }
 
     //assert debt in vault
