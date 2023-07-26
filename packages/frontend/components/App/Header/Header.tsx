@@ -16,7 +16,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { alpha, useTheme } from '@mui/material/styles';
+import { useTheme } from '@mui/material/styles';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -26,6 +26,7 @@ import { shallow } from 'zustand/shallow';
 import { topLevelPages } from '../../../helpers/navigation';
 import { hiddenAddress } from '../../../helpers/values';
 import { AuthStatus, useAuth } from '../../../store/auth.store';
+import { useNavigation } from '../../../store/navigation.store';
 import styles from '../../../styles/components/Header.module.css';
 import Banners from '../../Shared/Banners/Banners';
 import { BurgerMenuIcon } from '../../Shared/Icons';
@@ -33,12 +34,14 @@ import AccountModal from './AccountModal/AccountModal';
 import AddressAddon from './AddressAddon';
 import BalanceAddon from './BalanceAddon';
 import ChainSelect from './ChainSelect';
+import NavigationItem from './NavigationItem';
 import SocialMenu from './SocialMenu';
 import SocialMenuWrapper from './SocialMenuWrapper';
 
 const Header = () => {
   const theme = useTheme();
   const router = useRouter();
+  const { setIsReferralModalOpen } = useNavigation();
 
   const { address, ens, status, balance, started, login } = useAuth(
     (state) => ({
@@ -239,36 +242,25 @@ const Header = () => {
               display: { xs: 'none', md: 'flex' },
               ml: '1rem',
               justifyContent: 'center',
+              alignItems: 'center',
               gap: '0.25rem',
             }}
           >
             {topLevelPages.map((page) => (
               <Link key={page.path} href={page.path} replace={true}>
-                <MenuItem
-                  sx={{
-                    lineHeight: '160%',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: isPageActive(page.path.toLowerCase())
-                      ? palette.text.primary
-                      : palette.info.main,
-                    background: isPageActive(page.path.toLowerCase())
-                      ? alpha('#25262A', 0.7)
-                      : 'transparent',
-                    p: '0.375rem 1rem',
-                    borderRadius: '10px',
-                    '&:hover': {
-                      color: palette.text.primary,
-                      background: alpha('#25262A', 0.7),
-                    },
-                  }}
-                >
-                  {page.title}
-                </MenuItem>
+                <NavigationItem
+                  label={page.title}
+                  isActive={isPageActive(page.path.toLowerCase())}
+                />
               </Link>
             ))}
-          </MenuList>
 
+            <NavigationItem
+              label={'Referrals'}
+              type="New"
+              onClick={() => setIsReferralModalOpen(true)}
+            />
+          </MenuList>
           <Grid
             container
             columnGap="0.5rem"

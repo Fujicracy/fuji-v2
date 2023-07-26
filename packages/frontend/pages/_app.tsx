@@ -6,7 +6,7 @@ import { Web3OnboardProvider } from '@web3-onboard/react';
 import { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import Header from '../components/App/Header/Header';
 import Notification from '../components/App/Notification';
@@ -58,15 +58,11 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   const startedRef = useRef(false);
 
-  const [isReferralModalOpen, setIsReferralModalOpen] =
-    useState<boolean>(false);
+  const { isReferralModalOpen, setIsReferralModalOpen } = useNavigation();
 
   useEffect(() => {
     storeReferrer();
-    setTimeout(() => {
-      setIsReferralModalOpen(true);
-    }, 2000);
-  });
+  }, []);
 
   useEffect(() => {
     if (!startedRef.current) {

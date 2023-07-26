@@ -12,11 +12,12 @@ import { storeOptions } from '../helpers/stores';
 type NavigationState = {
   currentPath: string;
   borrowPage: BorrowPageNavigation;
+  isReferralModalOpen: boolean;
 };
 
 type NavigationActions = {
   changePath: (path: string) => void;
-
+  setIsReferralModalOpen: (isOpen: boolean) => void;
   changeBorrowPageShouldReset: (reset: boolean, lock?: boolean) => void;
   changeBorrowPageWillLoad: (willLoadBorrow: boolean) => void;
 };
@@ -28,6 +29,7 @@ const initialState: NavigationState = {
     willLoad: false,
     lock: false,
   },
+  isReferralModalOpen: false,
 };
 
 export type NavigationStore = NavigationState & NavigationActions;
@@ -39,6 +41,10 @@ export const useNavigation = create<NavigationStore>()(
 
       changePath(currentPath) {
         set({ currentPath });
+      },
+
+      setIsReferralModalOpen(isOpen: boolean) {
+        set({ isReferralModalOpen: isOpen });
       },
 
       changeBorrowPageShouldReset(shouldReset, lock) {
