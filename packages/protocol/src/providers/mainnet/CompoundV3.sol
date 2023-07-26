@@ -12,6 +12,7 @@ pragma solidity 0.8.15;
  * See `_getMarketAndAssets`.
  */
 
+import "forge-std/console.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IHarvestable} from "../../interfaces/IHarvestable.sol";
 import {IVault} from "../../interfaces/IVault.sol";
@@ -176,7 +177,7 @@ contract CompoundV3 is ILendingProvider, IHarvestable {
     tokens[0] = rewardOwed.token;
 
     amounts = new uint256[](1);
-    amounts[0] = rewardOwed.owed.mulDiv(1, 10);
+    amounts[0] = rewardOwed.owed;
 
     _getRewards().claim(address(cMarketV3), address(vault), true);
   }
