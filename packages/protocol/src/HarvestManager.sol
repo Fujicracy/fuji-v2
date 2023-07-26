@@ -29,12 +29,21 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
   /// @dev Custom errors
   error HarvestManager__allowExecutor_noAllowChange();
   error HarvestManager__zeroAddress();
+  error HarvestManager__setFee_noFeeChange();
+  error HarvestManager__setFee_feeTooHigh();
+  error HarvestManager__setFee_feeTooLow();
   error HarvestManager__harvest_notValidExecutor();
   error HarvestManager__harvest_notValidSwapper();
   error HarvestManager__harvest_harvestAlreadyInProgress();
   error HarvestManager__harvest_vaultNotAllowed();
 
   address public immutable treasury;
+
+  uint256 public constant MAX_FEE = 1e18; // 100%
+  uint256 public constant MIN_FEE = 1e16; // 1%
+  uint256 public constant BASE_FEE = 2e17; // 20%
+
+  uint256 public protocolFee;
 
   /// @dev addresses allowed to harvest via this manager.
   mapping(address => bool) public allowedExecutor;
@@ -44,6 +53,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
   constructor(address chief_, address treasury_) {
     __SystemAccessControl_init(chief_);
     treasury = treasury_;
+    protocolFee = BASE_FEE;
   }
 
   /// @inheritdoc IHarvestManager
@@ -56,6 +66,21 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     }
     allowedExecutor[executor] = allowed;
     emit AllowExecutor(executor, allowed);
+  }
+
+  /// @inheritdoc IHarvestManager
+  function setFee(uint256 fee) external override onlyTimelock {
+    if (fee == protocolFee) {
+      revert HarvestManager__setFee_noFeeChange();
+    }
+    if (fee > MAX_FEE) {
+      revert HarvestManager__setFee_feeTooHigh();
+    }
+    if (fee < MIN_FEE) {
+      revert HarvestManager__setFee_feeTooLow();
+    }
+    protocolFee = fee;
+    emit SetFee(fee);
   }
 
   /// @inheritdoc IHarvestManager

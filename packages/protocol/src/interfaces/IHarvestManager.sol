@@ -29,6 +29,13 @@ interface IHarvestManager {
   event AllowExecutor(address indexed executor, bool allowed);
 
   /**
+   * @dev Emit when `fee` changes.
+   *
+   * @param fee new fee (in 1e18)
+   */
+  event SetFee(uint256 fee);
+
+  /**
    * @notice Set `executor` as an authorized address for calling harvest operations
    * or remove authorization.
    *
@@ -40,6 +47,19 @@ interface IHarvestManager {
    * - Must emit a `AllowExecutor` event.
    */
   function allowExecutor(address executor, bool allowed) external;
+
+  /**
+   * @notice Set the protocol fee.
+   *
+   * @param fee to change to.
+   *
+   * @dev Requirement:
+   * - Must be called from a timelock.
+   * - `fee` must be less than or equal to MAX_FEE.
+   * - `fee` must be greater than or equal to MIN_FEE.
+   * - Must be in 1e18 (1e18 = 100%)
+   */
+  function setFee(uint256 fee) external;
 
   /**
    * @notice Collects rewards from the protocol.
