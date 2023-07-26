@@ -7,26 +7,26 @@ import { dismissBanner, getBannerVisibility } from '../../../helpers/banners';
 import CloseButton from '../CloseButton';
 
 type OnPageBannerProps = {
-  key: string;
+  bannerKey: string;
   title?: string;
   text?: string;
   type?: string;
 };
 
-function OnPageBanner({ key, type, text, title }: OnPageBannerProps) {
+function OnPageBanner({ bannerKey, type, text, title }: OnPageBannerProps) {
   const { palette } = useTheme();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const shouldBeVisible = getBannerVisibility(key);
+    const shouldBeVisible = getBannerVisibility(bannerKey);
     if (shouldBeVisible) {
       setIsVisible(true);
     }
-  }, [key]);
+  }, [bannerKey]);
 
   const onDismissClick = () => {
     setIsVisible(false);
-    dismissBanner(key);
+    dismissBanner(bannerKey);
   };
 
   return isVisible ? (
@@ -35,6 +35,7 @@ function OnPageBanner({ key, type, text, title }: OnPageBannerProps) {
         position: 'relative',
         width: '100%',
         p: 3,
+        mt: -7,
         mb: 4.5,
         border: '1px solid #2A2E35',
         borderRadius: '0.5rem',

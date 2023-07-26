@@ -47,6 +47,7 @@ function NavigationItem({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            ml: -1,
           }}
         >
           <Typography

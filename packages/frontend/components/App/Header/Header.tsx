@@ -205,6 +205,16 @@ const Header = () => {
                         </ListItemText>
                       </MenuItem>
                     ))}
+                    <MenuItem
+                      onClick={() => {
+                        setIsReferralModalOpen(true);
+                        handleCloseNavMenu();
+                      }}
+                    >
+                      <ListItemText>
+                        <Typography variant="small">Referrals</Typography>
+                      </ListItemText>
+                    </MenuItem>
                     {address && <Divider />}
                     {address && (
                       <MenuItem

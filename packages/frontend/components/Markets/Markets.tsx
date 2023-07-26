@@ -21,7 +21,7 @@ function Markets() {
   return (
     <Box>
       <OnPageBanner
-        key="referral"
+        bannerKey="referral"
         type="Time Sensitive"
         title="Refer to earn points"
         text="Invite your friends to earn points and hike up the Fuji Mountain together. 🥾"
