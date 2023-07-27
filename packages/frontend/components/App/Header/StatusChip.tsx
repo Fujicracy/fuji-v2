@@ -27,17 +27,19 @@ function StatusChip() {
   const walletChainId = useAuth((state) => state.chainId);
   const { loading, positionsAtRisk, borrowPositions } = usePositions();
 
+  const isLoading = loading && borrowPositions.length === 0;
+
   useEffect(() => {
     setAnchorEl(null);
-  }, [loading]);
+  }, [isLoading]);
 
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (loading) return;
+    if (isLoading) return;
 
     setAnchorEl(event.currentTarget);
   };
 
-  const statusIcon = loading ? (
+  const statusIcon = isLoading ? (
     <CircularProgress size={20} />
   ) : positionsAtRisk.length > 0 ? (
     <ErrorIcon />
