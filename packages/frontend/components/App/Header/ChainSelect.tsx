@@ -1,5 +1,4 @@
 import CheckIcon from '@mui/icons-material/Check';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import {
   Chip,
@@ -8,7 +7,6 @@ import {
   Menu,
   MenuItem,
   Stack,
-  Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -42,13 +40,23 @@ function ChainSelect() {
     setAnchorEl(null);
   };
 
+  const hasSupportedNetwork = networkName && isSupported(chainId);
+
   return (
     <>
-      {networkName && isSupported(chainId) ? (
-        <TooltipWrapper title={networkName} placement="bottom">
-          <Chip
-            data-cy="network-button"
-            label={
+      {/* {networkName && isSupported(chainId) ? ( */}
+      <TooltipWrapper
+        title={hasSupportedNetwork ? networkName : 'Switch network'}
+        placement="bottom"
+      >
+        <Chip
+          data-cy={
+            hasSupportedNetwork
+              ? 'network-button'
+              : 'header-unsupported-network'
+          }
+          label={
+            hasSupportedNetwork ? (
               <Stack direction="row" alignItems="center" spacing={1}>
                 <ListItem
                   chainName={networkName}
@@ -57,25 +65,18 @@ function ChainSelect() {
                   isOnlyIcon
                 />
               </Stack>
-            }
-            onClick={openMenu}
-            sx={{ '.MuiChip-label': { padding: '0 0.5rem' } }}
-          />
-        </TooltipWrapper>
-      ) : (
-        <Chip
-          data-cy="header-unsupported-network"
-          label={
-            <Stack direction="row" spacing={1} alignItems="center">
-              <WarningAmberIcon fontSize="inherit" sx={{ ml: '1px' }} />
-              <Typography fontSize="inherit">Switch network</Typography>
-              <KeyboardArrowDownIcon sx={{ ml: '0px !important' }} />
-            </Stack>
+            ) : (
+              <WarningAmberIcon fontSize="small" sx={{ margin: '0 -0.2rem' }} />
+            )
           }
           onClick={openMenu}
-          color="error"
+          sx={
+            hasSupportedNetwork
+              ? { '.MuiChip-label': { padding: '0 0.5rem' } }
+              : {}
+          }
         />
-      )}
+      </TooltipWrapper>
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}
