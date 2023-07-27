@@ -64,6 +64,10 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.FANTOM]: [],
   [ChainId.ARBITRUM]: [
+    new LendingVault(
+      Address.from('0xcF6381f528E813B12476399E8471D5689aD4736b'),
+      WETH9[ChainId.ARBITRUM]
+    ),
     new BorrowingVault(
       Address.from('0x78c5A2b6AD8CC824ad28DecCe82a3be9Ba12785B'),
       WETH9[ChainId.ARBITRUM],

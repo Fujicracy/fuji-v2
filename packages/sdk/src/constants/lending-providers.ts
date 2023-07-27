@@ -56,7 +56,7 @@ export const LENDING_PROVIDERS: Record<
     },
     '0x8755bE098D54Cd16687B7c0D39791Cd899E4dD8c': {
       name: 'Radiant',
-      llamaKey: 'radiant',
+      llamaKey: 'radiant-v2',
     },
     '0xc0F505224B91Bd50Cd5991CcA8e492563e9b7b72': {
       name: 'dForce',
