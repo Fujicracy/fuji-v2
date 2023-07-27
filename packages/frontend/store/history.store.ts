@@ -133,6 +133,7 @@ export const useHistory = create<HistoryStore>()(
             chainCount,
             steps: toHistoryRoutingStep(steps),
             status: HistoryEntryStatus.ONGOING,
+            timestamp: new Date(),
           };
 
           const transaction = { hash, address };
