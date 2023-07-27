@@ -17,7 +17,7 @@ import { ReactNode, useState } from 'react';
 
 import { TabOption } from '../../../../constants';
 import { addressUrl } from '../../../../helpers/chains';
-import { HistoryEntry, HistoryEntryStatus } from '../../../../helpers/history';
+import { HistoryEntry } from '../../../../helpers/history';
 import {
   NotificationDuration,
   notify,
@@ -57,7 +57,6 @@ function AccountModal({
       .slice(0, 10)
   );
   const openModal = useHistory((state) => state.openModal);
-  const clearAll = useHistory((state) => state.clearAll);
 
   const formattedAddress =
     address.substring(0, 8) + '...' + address.substring(address.length - 4);
@@ -82,10 +81,6 @@ function AccountModal({
   const handleEntryClick = (entry: HistoryEntry) => {
     openModal(entry.hash, true);
     closeAccountModal();
-  };
-
-  const handleClear = () => {
-    clearAll(address);
   };
 
   const onLogout = () => {
@@ -148,25 +143,13 @@ function AccountModal({
             </Stack>
           </Stack>
 
-          <Box sx={{ p: '1rem' }}>
+          <Box sx={{ p: '1rem 1rem 0 1rem' }}>
             <TabSwitch
               options={tabOptions}
               selected={currentTab}
               onChange={handleTabChange}
             />
           </Box>
-
-          <Stack direction="row" justifyContent="space-between" mx="1.25rem">
-            <Typography variant="xsmall">Recent Transactions</Typography>
-            {historyEntries.length > 0 &&
-              historyEntries.filter(
-                (entry) => entry.status === HistoryEntryStatus.ONGOING
-              ).length !== historyEntries.length && (
-                <Typography variant="xsmallLink" onClick={handleClear}>
-                  clear all
-                </Typography>
-              )}
-          </Stack>
 
           <List sx={{ pb: '.75rem' }}>
             {historyEntries?.length ? (
