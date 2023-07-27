@@ -25,6 +25,7 @@ type PositionsState = {
   totalAPY?: number;
   availableBorrowPowerUSD?: number;
   loading: boolean;
+  started: boolean;
 };
 
 type PositionsActions = {
@@ -37,6 +38,7 @@ const initialState: PositionsState = {
   borrowPositions: [],
   lendingPositions: [],
   loading: false,
+  started: false,
 };
 
 type PositionsStore = PositionsState & PositionsActions;
@@ -125,6 +127,7 @@ export const usePositions = create<PositionsStore>()(
             totalAPY: parseFloat(totalAPY.toFixed(2)),
             availableBorrowPowerUSD,
             loading: false,
+            started: true,
           };
         });
       },

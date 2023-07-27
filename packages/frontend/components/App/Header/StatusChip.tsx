@@ -25,32 +25,31 @@ function StatusChip() {
   const isOpen = Boolean(anchorEl);
 
   const walletChainId = useAuth((state) => state.chainId);
-  const { loading, positionsAtRisk, borrowPositions } = usePositions();
-
-  const isLoading = loading && borrowPositions.length === 0;
+  const { loading, positionsAtRisk, borrowPositions, started } = usePositions();
 
   useEffect(() => {
     setAnchorEl(null);
-  }, [isLoading]);
+  }, [loading]);
 
   const openMenu = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-    if (isLoading) return;
+    if (loading) return;
 
     setAnchorEl(event.currentTarget);
   };
 
-  const statusIcon = isLoading ? (
-    <CircularProgress size={20} />
-  ) : positionsAtRisk.length > 0 ? (
-    <ErrorIcon />
-  ) : (
-    <Image
-      src={'/assets/images/shared/success-outlined.svg'}
-      alt={'success icon'}
-      width={20}
-      height={20}
-    />
-  );
+  const statusIcon =
+    loading && !started ? (
+      <CircularProgress size={20} />
+    ) : positionsAtRisk.length > 0 ? (
+      <ErrorIcon />
+    ) : (
+      <Image
+        src={'/assets/images/shared/success-outlined.svg'}
+        alt={'success icon'}
+        width={20}
+        height={20}
+      />
+    );
 
   return (
     <>
