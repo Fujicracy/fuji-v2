@@ -93,8 +93,8 @@ function AccountModal({
       open={isOpen}
       onClose={closeAccountModal}
       anchorEl={anchorEl}
-      anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'center' }}
       PaperProps={{ sx: { background: 'transparent', padding: 0 } }}
     >
       <Card sx={{ border: `1px solid ${palette.secondary.light}`, mt: 1 }}>
