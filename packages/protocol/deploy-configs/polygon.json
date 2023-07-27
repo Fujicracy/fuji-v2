@@ -38,6 +38,10 @@
     {
       "asset": "MATICX",
       "chainlink": "0x5d37E4b374E6907de8Fc7fb33EE3b0af403C7403"
+    },
+    {
+      "asset": "WMATIC",
+      "chainlink": "0xab594600376ec9fd91f8e885dadf0ce036862de0"
     }
   ],
   "simple-mappings": [
