@@ -19,8 +19,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import React from 'react';
-import { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 
 import { topLevelPages } from '../../../helpers/navigation';
@@ -85,6 +84,16 @@ const Header = () => {
   const handleOpenAccountModal = (show: boolean, element?: HTMLElement) => {
     setShowAccountModal(show);
     setAccountModalEl(element);
+  };
+
+  const onReferralClick = () => {
+    if (!address || status !== AuthStatus.Connected) return;
+
+    setIsReferralModalOpen(true);
+
+    if (anchorElNav) {
+      handleCloseNavMenu();
+    }
   };
 
   return (
@@ -205,12 +214,7 @@ const Header = () => {
                         </ListItemText>
                       </MenuItem>
                     ))}
-                    <MenuItem
-                      onClick={() => {
-                        setIsReferralModalOpen(true);
-                        handleCloseNavMenu();
-                      }}
-                    >
+                    <MenuItem onClick={onReferralClick}>
                       <ListItemText>
                         <Typography variant="small">Referrals</Typography>
                       </ListItemText>
@@ -268,7 +272,7 @@ const Header = () => {
             <NavigationItem
               label={'Referrals'}
               type="New"
-              onClick={() => setIsReferralModalOpen(true)}
+              onClick={onReferralClick}
             />
           </MenuList>
           <Grid
