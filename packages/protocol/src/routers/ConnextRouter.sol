@@ -221,29 +221,14 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     Action action,
     bytes memory args
   )
-    internal
+    private
     pure
     returns (bytes memory newArgs, uint256 beforeSlipped)
   {
-    newArgs = args;
-
-    // Check first action type and replace with slippage-amount.
-    if (action == Action.Deposit || action == Action.Payback) {
-      // For Deposit or Payback.
-      (IVault vault, uint256 amount, address receiver, address sender) =
-        abi.decode(args, (IVault, uint256, address, address));
-
-      if (amount != receivedAmount) {
-        beforeSlipped = amount;
-        newArgs = abi.encode(vault, receivedAmount, receiver, sender);
-      }
-    } else if (action == Action.WithdrawETH) {
-      // For WithdrawETH
-      (uint256 amount, address receiver) = abi.decode(args, (uint256, address));
-      if (amount != receivedAmount) {
-        beforeSlipped = amount;
-        newArgs = abi.encode(receivedAmount, receiver);
-      }
+    uint256 prevAmount;
+    (newArgs, prevAmount) = _replaceAmountArgInAction(action, args, receivedAmount);
+    if (prevAmount != receivedAmount) {
+      beforeSlipped = prevAmount;
     }
   }
 
@@ -365,6 +350,42 @@ contract ConnextRouter is BaseRouter, IXReceiver {
     );
 
     return beneficiary_;
+  }
+
+  /// @inheritdoc BaseRouter
+  function _replaceAmountInCrossAction(
+    Action action,
+    bytes memory args,
+    uint256 updateAmount
+  )
+    internal
+    pure
+    override
+    returns (bytes memory newArgs, uint256 previousAmount)
+  {
+    if (action == Action.XTransfer) {
+      (
+        uint256 destDomain,
+        uint256 slippage,
+        address asset,
+        uint256 amount,
+        address receiver,
+        address sender
+      ) = abi.decode(args, (uint256, uint256, address, uint256, address, address));
+      previousAmount = amount;
+      newArgs = abi.encode(destDomain, slippage, asset, updateAmount, receiver, sender);
+    } else if (action == Action.XTransferWithCall) {
+      (
+        uint256 destDomain,
+        uint256 slippage,
+        address asset,
+        uint256 amount,
+        address sender,
+        bytes memory callData
+      ) = abi.decode(args, (uint256, uint256, address, uint256, address, bytes));
+      previousAmount = amount;
+      newArgs = abi.encode(destDomain, slippage, asset, updateAmount, sender, callData);
+    }
   }
 
   /// @inheritdoc BaseRouter
