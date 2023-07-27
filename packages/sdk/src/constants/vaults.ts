@@ -16,7 +16,7 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.MATIC]: [
     new LendingVault(
-      Address.from('0x203031cA51FC28f38a0234a0f03b7c489c93391a'),
+      Address.from('0x1e49eCB017D30BcC1b179198f8d447CF0fb6bd09'),
       WETH9[ChainId.MATIC]
     ),
     new BorrowingVault(
@@ -96,7 +96,7 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.OPTIMISM]: [
     new LendingVault(
-      Address.from('0x5B3433897FAf2b7a155d3AafDA4d2D9c58D1D689'),
+      Address.from('0x84cd7471D74b7D50c7eE67b443354593D5Bfc31C'),
       WETH9[ChainId.OPTIMISM]
     ),
     new BorrowingVault(
@@ -139,7 +139,7 @@ export const VAULT_LIST: ChainVaultList = {
   ],
   [ChainId.GNOSIS]: [
     new LendingVault(
-      Address.from('0x19c16EfAFc36B857b07199Db5c31646da4d6D78A'),
+      Address.from('0xA55c0132903F1Ed2c756f31bCc9772fcCD0efaB2'),
       WETH9[ChainId.GNOSIS]
     ),
     new BorrowingVault(

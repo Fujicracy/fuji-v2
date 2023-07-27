@@ -165,13 +165,13 @@ export const CHIEF_ADDRESS: AddressMap = {
 export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(
-    '0xCC1cF8f5f32ce55B6E798c8122d841e957077C59'
+    '0x78acd2B9cE252cfB00F895b2A16D93CE94d02A11'
   ),
   [ChainId.OPTIMISM]: Address.from(
-    '0x96252Cf825c805d671A833e9e3eBb19e7FABaaD6'
+    '0x4CF563627dD390a07B7C8833281504D9A5328959'
   ),
   [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from('0xbffAAC8B84016fA2aEC8B731940E0FdDBC461Ab4'),
+  [ChainId.MATIC]: Address.from('0xc43DADA7d851953d1C79e355f3eeA839959dfD34'),
   [ChainId.GOERLI]: Address.from('0xa678C43f04ce286434E32731dD9Ab0721763f953'),
   [ChainId.MATIC_MUMBAI]: Address.from(
     '0x62607f1AF5980DFccB94FcbAd42afaC4dDAd32Ff'
@@ -179,5 +179,5 @@ export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
   [ChainId.OPTIMISM_GOERLI]: Address.from(
     '0x1C7c4623C4b83805968603a5312928CC6E1Bf3C8'
   ),
-  [ChainId.GNOSIS]: Address.from('0x897167C23139F4588001AD808263AA999628387e'),
+  [ChainId.GNOSIS]: Address.from('0xc2756B0d2C65fBD1b695772F86758bFC8a5f3dad'),
 };
