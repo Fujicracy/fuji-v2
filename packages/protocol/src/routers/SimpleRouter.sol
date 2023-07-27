@@ -43,6 +43,20 @@ contract SimpleRouter is BaseRouter {
   }
 
   /// @inheritdoc BaseRouter
+  function _replaceAmountInCrossAction(
+    Action,
+    bytes memory,
+    uint256
+  )
+    internal
+    pure
+    override
+    returns (bytes memory, uint256)
+  {
+    revert SimpleRouter__noCrossTransfersImplemented();
+  }
+
+  /// @inheritdoc BaseRouter
   function _getBeneficiaryFromCalldata(
     Action[] memory actions,
     bytes[] memory args
