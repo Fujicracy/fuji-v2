@@ -3,17 +3,6 @@ import { BigNumberish } from 'ethers';
 import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import moment from 'moment';
 
-export const safeBnToNumber = (bn: BigNumber, decimals: number) => {
-  // TODO: TEMP FIX when user hits the max button:
-  // Subtract a small amount if decimals are 18
-  // because parseFloat rounds up at the 15th digit.
-  // https://stackoverflow.com/questions/7988827/parse-float-has-a-rounding-limit-how-can-i-fix-this
-  const dust = (10 ** 5).toString();
-  const toSub = decimals === 18 && bn.gt(dust) ? dust : '0';
-  const value = parseFloat(formatUnits(bn.sub(toSub), decimals));
-  return value;
-};
-
 export const validAmount = (
   amount: string | number,
   decimals: number
