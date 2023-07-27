@@ -1,11 +1,12 @@
 import { ConnectOptions } from '@web3-onboard/core';
-import { Balances, WalletState } from '@web3-onboard/core/dist/types';
+import { WalletState } from '@web3-onboard/core/dist/types';
 import { ChainId, DEFAULT_SLIPPAGE } from '@x-fuji/sdk';
 import { ethers, utils } from 'ethers';
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
 import { getOnboardStatus, web3onboard } from '../helpers/auth';
+import { Balance } from '../helpers/balances';
 import { chainIdToHex, hexToChainId } from '../helpers/chains';
 import { stringifyError } from '../helpers/errors';
 import { notify } from '../helpers/notifications';
@@ -26,11 +27,11 @@ type AuthState = {
   started: boolean;
   address?: string;
   ens?: string;
-  balance?: Balances;
   chainId?: ChainId;
   provider?: ethers.providers.Web3Provider;
   walletName?: string;
   slippage: number;
+  xBalances?: Balance[];
 };
 
 type AuthActions = {
@@ -41,6 +42,7 @@ type AuthActions = {
   disconnect: () => void;
   changeChain: (chainId: ChainId) => void;
   changeSlippageValue: (slippage: number) => void;
+  changeXBalances: (xBalances?: Balance[]) => void;
 };
 
 type AuthStore = AuthState & AuthActions;
@@ -50,6 +52,7 @@ const initialState: AuthState = {
   started: false,
   isDisclaimerShown: false,
   slippage: DEFAULT_SLIPPAGE,
+  xBalances: undefined,
 };
 
 export const useAuth = create<AuthStore>()(
@@ -84,7 +87,6 @@ export const useAuth = create<AuthStore>()(
         },
 
         changeWallet(wallets) {
-          const balance = wallets[0].accounts[0].balance;
           const ens = wallets[0].accounts[0].ens?.name;
           const address = utils.getAddress(wallets[0].accounts[0].address);
           const chainId = hexToChainId(wallets[0].chains[0]?.id);
@@ -95,7 +97,6 @@ export const useAuth = create<AuthStore>()(
           set({
             status: AuthStatus.Connected,
             address,
-            balance,
             chainId,
             ens,
             provider,
@@ -153,6 +154,10 @@ export const useAuth = create<AuthStore>()(
 
         changeSlippageValue(slippage) {
           set({ slippage });
+        },
+
+        changeXBalances(xBalances) {
+          set({ xBalances });
         },
       }),
       storeOptions('auth')

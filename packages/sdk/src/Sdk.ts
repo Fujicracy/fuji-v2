@@ -193,13 +193,13 @@ export class Sdk {
     try {
       const { multicallRpcProvider, rpcProvider } =
         this.getConnectionFor(chainId);
+      currencies.forEach((c) => c.setConnection(this._configParams));
+
       const tokens = currencies.filter((c) => c.isToken) as Token[];
-      const balances = tokens
-        .map((token) => token.setConnection(this._configParams))
-        .map(
-          (token) =>
-            token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
-        );
+      const balances = tokens.map(
+        (token) =>
+          token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
+      );
 
       const [bals, nativeBal] = await Promise.all([
         multicallRpcProvider.all(balances),
