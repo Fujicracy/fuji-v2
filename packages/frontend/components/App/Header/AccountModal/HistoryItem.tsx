@@ -12,6 +12,7 @@ import { useTheme } from '@mui/material/styles';
 import { RoutingStep, VaultType } from '@x-fuji/sdk';
 import Image from 'next/image';
 
+import { timeAgoFromNow } from '../../../../helpers/date';
 import {
   HistoryEntry,
   HistoryEntryStatus,
@@ -141,33 +142,45 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
     >
       <ListItem sx={{ p: 0 }}>
         <ListItemText sx={{ m: 0 }}>
-          <Stack direction="row" alignItems="center" sx={{ pr: '1rem' }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '2rem',
-                height: '2rem',
-                borderRadius: '50%',
-                backgroundColor: palette.secondary.main,
-              }}
-            >
-              {listAction}
-            </Box>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            sx={{ width: '100%' }}
+          >
+            <Stack direction="row" alignItems="center" sx={{ pr: '1rem' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '2rem',
+                  height: '2rem',
+                  borderRadius: '50%',
+                  backgroundColor: palette.secondary.main,
+                }}
+              >
+                {listAction}
+              </Box>
 
-            <Stack
-              direction="column"
-              justifyContent="space-between"
-              sx={{ ml: 1 }}
-            >
-              <Typography variant="small" fontWeight={500}>
-                {stepLabel} {statusLabel}
-              </Typography>
-              <Typography variant="xsmall" mt={0.5} color={palette.info.main}>
-                {description}
-              </Typography>
+              <Stack
+                direction="column"
+                justifyContent="space-between"
+                sx={{ ml: 1 }}
+              >
+                <Typography variant="small" fontWeight={500}>
+                  {stepLabel} {statusLabel}
+                </Typography>
+                <Typography variant="xsmall" mt={0.5} color={palette.info.main}>
+                  {description}
+                </Typography>
+              </Stack>
             </Stack>
+            {entry?.timestamp && (
+              <Typography variant="xsmall" mt={0.5} color={palette.info.main}>
+                {timeAgoFromNow(entry.timestamp)}
+              </Typography>
+            )}
           </Stack>
         </ListItemText>
       </ListItem>
