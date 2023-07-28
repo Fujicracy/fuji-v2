@@ -187,6 +187,7 @@ function AccountModal({
                     </Button>
                   </>
                 )}
+                <Typography>{'Assets'}</Typography>
                 {xBalances?.map((b) => (
                   <BalanceItem
                     key={`${b.currency.chainId}-${b.currency.symbol}`}
