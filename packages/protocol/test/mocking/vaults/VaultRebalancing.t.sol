@@ -332,7 +332,6 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     );
   }
 
-  //TODO add more test cases with RebalancerManager contract.
   function test_rebalanceBorrowingVaultWithRebalancer() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
     uint256 debt = 4 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
