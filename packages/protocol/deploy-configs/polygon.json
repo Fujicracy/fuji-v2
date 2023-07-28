@@ -38,6 +38,10 @@
     {
       "asset": "MATICX",
       "chainlink": "0x5d37E4b374E6907de8Fc7fb33EE3b0af403C7403"
+    },
+    {
+      "asset": "WMATIC",
+      "chainlink": "0xab594600376ec9fd91f8e885dadf0ce036862de0"
     }
   ],
   "simple-mappings": [
@@ -132,6 +136,12 @@
     {
       "asset": "WETH",
       "name": "YieldVault-WETH-1",
+      "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 85
+    },
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
       "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
       "rating": 85
     }

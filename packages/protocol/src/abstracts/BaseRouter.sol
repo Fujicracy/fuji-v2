@@ -24,11 +24,11 @@ import {LibBytes} from "../libraries/LibBytes.sol";
 
 abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   using SafeERC20 for ERC20;
+
   /**
    * @dev Contains an address of an ERC-20 and the balance the router holds
    * at a given moment of the transaction (ref. `_tokensToCheck`).
    */
-
   struct Snapshot {
     address token;
     uint256 balance;
@@ -47,6 +47,25 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     uint8 v;
     bytes32 r;
     bytes32 s;
+  }
+
+  struct BundleStore {
+    uint256 len;
+    /**
+     * @dev Operations in the bundle should "benefit" or be executed
+     * on behalf of this account. These are receivers on DEPOSIT and PAYBACK
+     * or owners on WITHDRAW and BORROW.
+     */
+    address beneficiary;
+    /**
+     * @dev Hash generated during execution of "_bundleInternal()" that should
+     * match the signed permit.
+     * This argument is used in {VaultPermissions-PermitWithdraw} and
+     * {VaultPermissions-PermitBorrow}
+     */
+    bytes32 actionArgsHash;
+    uint256 nativeBalance;
+    Snapshot[] tokensToCheck;
   }
 
   /**
@@ -185,41 +204,28 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   )
     internal
   {
-    uint256 len = actions.length;
-    if (len != args.length) {
+    BundleStore memory store;
+
+    store.len = actions.length;
+    if (store.len != args.length) {
       revert BaseRouter__bundleInternal_paramsMismatch();
     }
-
-    /**
-     * @dev Operations in the bundle should "benefit" or be executed
-     * on behalf of this account. These are receivers on DEPOSIT and PAYBACK
-     * or owners on WITHDRAW and BORROW.
-     */
-    address beneficiary;
-
-    /**
-     * @dev Hash generated during execution of "_bundleInternal()" that should
-     * match the signed permit.
-     * This argument is used in {VaultPermissions-PermitWithdraw} and
-     * {VaultPermissions-PermitBorrow}
-     */
-    bytes32 actionArgsHash;
 
     /**
      * @dev Stores token balances of this contract at a given moment.
      * It's used to ensure there're no changes in balances at the
      * end of a transaction.
      */
-    Snapshot[] memory tokensToCheck = new Snapshot[](10);
+    store.tokensToCheck = new Snapshot[](10);
 
     /// @dev Add token to check from parent calls.
     if (tokenToCheck_.token != address(0)) {
-      tokensToCheck[0] = tokenToCheck_;
+      store.tokensToCheck[0] = tokenToCheck_;
     }
 
-    uint256 nativeBalance = address(this).balance - msg.value;
+    store.nativeBalance = address(this).balance - msg.value;
 
-    for (uint256 i; i < len;) {
+    for (uint256 i; i < store.len;) {
       Action action = actions[i];
       if (action == Action.Deposit) {
         // DEPOSIT
@@ -229,25 +235,17 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         _checkVaultInput(address(vault));
 
         address token = vault.asset();
-        beneficiary = _checkBeneficiary(beneficiary, receiver);
-        _addTokenToList(token, tokensToCheck);
-        _addTokenToList(address(vault), tokensToCheck);
+        store.beneficiary = _checkBeneficiary(store.beneficiary, receiver);
+        _addTokenToList(token, store.tokensToCheck);
+        _addTokenToList(address(vault), store.tokensToCheck);
         _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
         vault.deposit(amount, receiver);
       } else if (action == Action.Withdraw) {
         // WITHDRAW
-        (IVault vault, uint256 amount, address receiver, address owner) =
-          abi.decode(args[i], (IVault, uint256, address, address));
-
-        _checkVaultInput(address(vault));
-
-        beneficiary = _checkBeneficiary(beneficiary, owner);
-        _addTokenToList(vault.asset(), tokensToCheck);
-        _addTokenToList(address(vault), tokensToCheck);
-
-        vault.withdraw(amount, receiver, owner);
+        (bool replace, bytes memory nextArgs) = _handleWithdrawAction(actions, args, store, i);
+        if (replace) args[i + 1] = nextArgs;
       } else if (action == Action.Borrow) {
         // BORROW
         (IVault vault, uint256 amount, address receiver, address owner) =
@@ -255,8 +253,8 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
 
         _checkVaultInput(address(vault));
 
-        beneficiary = _checkBeneficiary(beneficiary, owner);
-        _addTokenToList(vault.debtAsset(), tokensToCheck);
+        store.beneficiary = _checkBeneficiary(store.beneficiary, owner);
+        _addTokenToList(vault.debtAsset(), store.tokensToCheck);
 
         vault.borrow(amount, receiver, owner);
       } else if (action == Action.Payback) {
@@ -267,38 +265,40 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         _checkVaultInput(address(vault));
 
         address token = vault.debtAsset();
-        beneficiary = _checkBeneficiary(beneficiary, receiver);
-        _addTokenToList(token, tokensToCheck);
+        store.beneficiary = _checkBeneficiary(store.beneficiary, receiver);
+        _addTokenToList(token, store.tokensToCheck);
         _safePullTokenFrom(token, sender, amount);
         _safeApprove(token, address(vault), amount);
 
         vault.payback(amount, receiver);
       } else if (action == Action.PermitWithdraw) {
         // PERMIT WITHDRAW
-        if (actionArgsHash == ZERO_BYTES32) {
-          actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
+        // TODO Need to handle case in where withdraw action replaced argument.
+        if (store.actionArgsHash == ZERO_BYTES32) {
+          store.actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
         }
 
         // Scoped code in new private function to avoid "Stack too deep"
-        address owner_ = _handlePermitAction(action, args[i], actionArgsHash);
-        beneficiary = _checkBeneficiary(beneficiary, owner_);
+        address owner_ = _handlePermitAction(action, args[i], store.actionArgsHash);
+        store.beneficiary = _checkBeneficiary(store.beneficiary, owner_);
       } else if (action == Action.PermitBorrow) {
         // PERMIT BORROW
-        if (actionArgsHash == ZERO_BYTES32) {
-          actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
+        // TODO Need to handle case in where withdraw action replaced argument.
+        if (store.actionArgsHash == ZERO_BYTES32) {
+          store.actionArgsHash = _getActionArgsHash(actions, args, beforeSlipped);
         }
 
         // Scoped code in new private function to avoid "Stack too deep"
-        address owner_ = _handlePermitAction(action, args[i], actionArgsHash);
-        beneficiary = _checkBeneficiary(beneficiary, owner_);
+        address owner_ = _handlePermitAction(action, args[i], store.actionArgsHash);
+        store.beneficiary = _checkBeneficiary(store.beneficiary, owner_);
       } else if (action == Action.XTransfer) {
         // SIMPLE BRIDGE TRANSFER
 
-        beneficiary = _crossTransfer(args[i], beneficiary);
+        store.beneficiary = _crossTransfer(args[i], store.beneficiary);
       } else if (action == Action.XTransferWithCall) {
         // BRIDGE WITH CALLDATA
 
-        beneficiary = _crossTransferWithCalldata(args[i], beneficiary);
+        store.beneficiary = _crossTransferWithCalldata(args[i], store.beneficiary);
       } else if (action == Action.Swap) {
         // SWAP
 
@@ -307,7 +307,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
           revert BaseRouter__bundleInternal_notFirstAction();
         }
 
-        beneficiary = _handleSwapAction(args[i], beneficiary, tokensToCheck);
+        store.beneficiary = _handleSwapAction(args[i], store.beneficiary, store.tokensToCheck);
       } else if (action == Action.Flashloan) {
         // FLASHLOAN
 
@@ -326,10 +326,10 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         if (requestor != address(this)) {
           revert BaseRouter__bundleInternal_flashloanInvalidRequestor();
         }
-        _addTokenToList(asset, tokensToCheck);
+        _addTokenToList(asset, store.tokensToCheck);
 
-        beneficiary =
-          _checkBeneficiary(beneficiary, _getBeneficiaryFromCalldata(innerActions, innerArgs));
+        store.beneficiary =
+          _checkBeneficiary(store.beneficiary, _getBeneficiaryFromCalldata(innerActions, innerArgs));
 
         bytes memory requestorCalldata = abi.encodeWithSelector(
           this.xBundleFlashloan.selector, innerActions, innerArgs, asset, flashAmount
@@ -341,13 +341,13 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         uint256 amount = abi.decode(args[i], (uint256));
 
         ///@dev There is no check for msg.value as that is already done via `nativeBalance`
-        _addTokenToList(address(WETH9), tokensToCheck);
+        _addTokenToList(address(WETH9), store.tokensToCheck);
 
         WETH9.deposit{value: amount}();
       } else if (action == Action.WithdrawETH) {
         (uint256 amount, address receiver) = abi.decode(args[i], (uint256, address));
-        beneficiary = _checkBeneficiary(beneficiary, receiver);
-        _addTokenToList(address(WETH9), tokensToCheck);
+        store.beneficiary = _checkBeneficiary(store.beneficiary, receiver);
+        _addTokenToList(address(WETH9), store.tokensToCheck);
 
         WETH9.withdraw(amount);
 
@@ -357,8 +357,68 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         ++i;
       }
     }
-    _checkNoBalanceChange(tokensToCheck, nativeBalance);
+    _checkNoBalanceChange(store.tokensToCheck, store.nativeBalance);
   }
+
+  /**
+   * @dev Decodes and replaces "amount" argument in args with `updateAmount`
+   * in actions in where it is required to replace it.
+   */
+  function _replaceAmountArgInAction(
+    Action action,
+    bytes memory args,
+    uint256 updateAmount
+  )
+    internal
+    pure
+    returns (bytes memory newArgs, uint256 previousAmount)
+  {
+    if (
+      action == Action.Deposit || action == Action.Withdraw || action == Action.Borrow
+        || action == Action.Payback
+    ) {
+      (IVault vault, uint256 amount, address addr1, address addr2) =
+        abi.decode(args, (IVault, uint256, address, address));
+      previousAmount = amount;
+      newArgs = abi.encode(vault, updateAmount, addr1, addr2);
+    } else if (action == Action.XTransfer || action == Action.XTransferWithCall) {
+      (newArgs, previousAmount) = _replaceAmountInCrossAction(action, args, updateAmount);
+    } else if (action == Action.Swap) {
+      (
+        ISwapper swapper,
+        address assetIn,
+        address assetOut,
+        uint256 amountIn,
+        uint256 amountOut,
+        address receiver,
+        address sweeper,
+        uint256 minSweepOut
+      ) =
+        abi.decode(args, (ISwapper, address, address, uint256, uint256, address, address, uint256));
+      previousAmount = amountIn;
+      newArgs = abi.encode(
+        swapper, assetIn, assetOut, updateAmount, amountOut, receiver, sweeper, minSweepOut
+      );
+    } else if (action == Action.WithdrawETH) {
+      (uint256 amount, address receiver) = abi.decode(args, (uint256, address));
+      previousAmount = amount;
+      newArgs = abi.encode(updateAmount, receiver);
+    }
+  }
+
+  /**
+   * @dev Similar to `_replaceAmountArgInAction(...)` but asbtracted to implement
+   * specific bridge logic.
+   */
+  function _replaceAmountInCrossAction(
+    Action action,
+    bytes memory args,
+    uint256 updateAmount
+  )
+    internal
+    pure
+    virtual
+    returns (bytes memory newArgs, uint256 previousAmount);
 
   /**
    * @dev Handles both permit actions logic flow.
@@ -508,6 +568,68 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
   }
 
   /**
+   * @dev Handles withdraw actions logic flow. When there may be futher actions
+   * requiring to replace the `amount` argument, it handles the replacement.
+   *
+   * Requirements:
+   * - Check if next action is type that requires `amount` arg update otherwise
+   *   proceed as normal.
+   */
+  function _handleWithdrawAction(
+    Action[] memory actions,
+    bytes[] memory args,
+    BundleStore memory store,
+    uint256 i
+  )
+    private
+    returns (bool replace, bytes memory updatedArgs)
+  {
+    (IVault vault, uint256 amount, address receiver, address owner) =
+      abi.decode(args[i], (IVault, uint256, address, address));
+
+    _checkVaultInput(address(vault));
+
+    store.beneficiary = _checkBeneficiary(store.beneficiary, owner);
+    _addTokenToList(vault.asset(), store.tokensToCheck);
+    _addTokenToList(address(vault), store.tokensToCheck);
+
+    if (i + 1 == store.len) {
+      // If Withdraw is last action just withdraw
+      vault.withdraw(amount, receiver, owner);
+      return (false, "");
+    }
+
+    Action nextAction = actions[i + 1];
+    bytes memory nextArgs = args[i + 1];
+
+    // Default to return same args
+    updatedArgs = nextArgs;
+    if (
+      (
+        nextAction == Action.Deposit || nextAction == Action.Swap || nextAction == Action.XTransfer
+          || nextAction == Action.XTransferWithCall || nextAction == Action.WithdrawETH
+      ) && receiver == address(this)
+    ) {
+      // Sandwhich the withrawal with bal requests to know if max-soft-withdrawal took place.
+      IERC20 asset = IERC20(vault.asset());
+      uint256 prevBal = asset.balanceOf(address(this));
+      vault.withdraw(amount, receiver, owner);
+      uint256 afterBal = asset.balanceOf(address(this));
+
+      uint256 updateAmount = (afterBal - prevBal);
+
+      if (amount > updateAmount) {
+        replace = true;
+        // If the withdraw `amount` encoded was > than the `owner`'s "maxWithdraw", the
+        // difference in "(afterBal - prevBal)" must be less than amount.
+        (updatedArgs,) = _replaceAmountArgInAction(nextAction, nextArgs, updateAmount);
+      }
+    }
+
+    vault.withdraw(amount, receiver, owner);
+  }
+
+  /**
    * @dev Handles swap actions logic flow.
    * This function was required to avoid "stack too deep" error in `_bundleInternal()`.
    * Requirements:
@@ -525,7 +647,7 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
     address beneficiary_,
     Snapshot[] memory tokensToCheck_
   )
-    internal
+    private
     returns (address)
   {
     (
