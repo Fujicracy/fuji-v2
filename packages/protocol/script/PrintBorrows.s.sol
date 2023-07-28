@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {LibSigUtils} from "../src/libraries/LibSigUtils.sol";
 import {IVaultPermissions} from "../src/interfaces/IVaultPermissions.sol";
 import {IRouter} from "../src/interfaces/IRouter.sol";

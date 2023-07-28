@@ -198,14 +198,12 @@ contract ConnextHandler {
     }
 
     IERC20(txn.asset).safeIncreaseAllowance(address(connextRouter), txn.amount);
-    txn.executed = true;
-    _failedTxns[transferId][nonce] = txn;
+    _failedTxns[transferId][nonce].executed = true;
 
     try connextRouter.xBundle(actions, args) {
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, true);
     } catch {
-      txn.executed = false;
-      _failedTxns[transferId][nonce] = txn;
+      _failedTxns[transferId][nonce].executed = false;
       IERC20(txn.asset).safeDecreaseAllowance(address(connextRouter), txn.amount);
 
       emit FailedTxnExecuted(transferId, txn.actions, actions, txn.args, args, nonce, false);
