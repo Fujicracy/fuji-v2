@@ -106,6 +106,12 @@
       "name": "YieldVault-WETH-1",
       "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
       "rating": 90
+    },
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
+      "providers": ["Aave_V3_Optimism", "DForce_Optimism"],
+      "rating": 90
     }
   ]
 

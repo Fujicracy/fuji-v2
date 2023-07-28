@@ -119,6 +119,12 @@
       "name": "YieldVault-WETH-1",
       "providers": ["Aave_V3_Arbitrum", "DForce_Arbitrum", "Radiant_Arbitrum"],
       "rating": 80
+    },
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
+      "providers": ["DForce_Arbitrum", "Radiant_Arbitrum", "Aave_V3_Arbitrum"],
+      "rating": 80
     }
   ]
 }

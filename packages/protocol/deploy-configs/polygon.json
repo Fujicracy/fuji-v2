@@ -138,6 +138,12 @@
       "name": "YieldVault-WETH-1",
       "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
       "rating": 85
+    },
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
+      "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 85
     }
   ]
 

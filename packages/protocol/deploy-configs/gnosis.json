@@ -67,6 +67,12 @@
       "name": "YieldVault-WETH-1",
       "providers": ["Agave_Gnosis"],
       "rating": 80
+    },
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
     }
   ]
 }
