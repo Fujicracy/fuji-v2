@@ -36,6 +36,12 @@ interface IRebalancerManager {
    * @dev Requirements:
    * - Must only be called by a valid executor.
    * - Must check `assets` and `debt` amounts are less than `vault`'s managed amounts.
+   *
+   * NOTE: For arguments `assets` and `debt` you can pass `type(uint256).max` in solidity
+   * to effectively rebalance 100% of both assets and debt from a provider to another.
+   * Hints:
+   *  - In ethers.js use `ethers.constants.MaxUint256` to return equivalent BigNumber.
+   *  - In Foundry using console use $(cast max-uint).
    */
   function rebalanceVault(
     IVault vault,
