@@ -21,6 +21,10 @@ import { fetchRoutes } from './routes';
 
 const defaultDebtCurrencies = sdk.getDebtForChain(DEFAULT_CHAIN_ID);
 const defaultCollateralCurrencies = sdk.getCollateralForChain(DEFAULT_CHAIN_ID);
+const defaultSupplyCurrencies = sdk.getCollateralForChain(
+  DEFAULT_CHAIN_ID,
+  VaultType.LEND
+);
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
@@ -98,11 +102,16 @@ export const defaultCurrency = (
   return foundCurrency(selectable, updated) || selectable[0];
 };
 
-export const defaultAssetForType = (type: AssetType): AssetChange => {
+export const defaultAssetForType = (
+  type: AssetType,
+  vaultType: VaultType
+): AssetChange => {
   const defaultCurrencies =
     type === AssetType.Debt
       ? defaultDebtCurrencies
-      : defaultCollateralCurrencies;
+      : vaultType === VaultType.BORROW
+      ? defaultCollateralCurrencies
+      : defaultSupplyCurrencies;
   return assetForData(
     DEFAULT_CHAIN_ID,
     defaultCurrencies,

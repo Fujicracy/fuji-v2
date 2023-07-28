@@ -107,7 +107,9 @@ export const changeAll = async (
   collateral: Currency,
   debt?: Currency
 ) => {
-  const collaterals = sdk.getCollateralForChain(collateral.chainId);
+  const vaultType =
+    vault instanceof BorrowingVault ? VaultType.BORROW : VaultType.LEND;
+  const collaterals = sdk.getCollateralForChain(collateral.chainId, vaultType);
   const debts = debt && sdk.getDebtForChain(debt.chainId);
   api.setState(
     produce((state: AbstractState) => {
@@ -169,16 +171,16 @@ export const changeAll = async (
 
 export const changeAllowance = (
   api: StoreApi,
-  type: AssetType,
+  assetType: AssetType,
   status: AllowanceStatus,
   amount?: number
 ) => {
   api.setState(
     produce((s: AbstractState) => {
-      if (type === AssetType.Collateral) {
+      if (assetType === AssetType.Collateral) {
         s.collateral.allowance.status = status;
         if (amount !== undefined) s.collateral.allowance.value = amount;
-      } else if (type === AssetType.Debt && 'debt' in s && s.debt) {
+      } else if (assetType === AssetType.Debt && 'debt' in s && s.debt) {
         s.debt.allowance.status = status;
         if (amount !== undefined) s.debt.allowance.value = amount;
       }
@@ -186,18 +188,19 @@ export const changeAllowance = (
   );
 };
 
-export const changeAssetChain = (
+export const changeAssetChainFor = (
   api: StoreApi,
-  type: AssetType,
+  assetType: AssetType,
+  vaultType: VaultType,
   chainId: ChainId,
   updateVault: boolean,
   currency?: Currency
 ) => {
   if (!isSupported(chainId)) return;
   const currencies =
-    type === AssetType.Debt
+    assetType === AssetType.Debt
       ? sdk.getDebtForChain(chainId)
-      : sdk.getCollateralForChain(chainId);
+      : sdk.getCollateralForChain(chainId, vaultType);
 
   if (
     api.getState().formType === FormType.Edit &&
@@ -215,12 +218,12 @@ export const changeAssetChain = (
     produce((state: AbstractState) => {
       const hasDebt = 'debt' in state;
       let t =
-        type === AssetType.Debt && hasDebt ? state.debt : state.collateral;
+        assetType === AssetType.Debt && hasDebt ? state.debt : state.collateral;
       if (!t) {
         t = assetForData(chainId, currencies, defaultCurrency(currencies));
-        if (hasDebt && type === AssetType.Debt) {
+        if (hasDebt && assetType === AssetType.Debt) {
           state.debt = t;
-        } else if (type === AssetType.Collateral) {
+        } else if (assetType === AssetType.Collateral) {
           state.collateral = t;
         }
       } else {
@@ -232,37 +235,45 @@ export const changeAssetChain = (
       }
     })
   );
-  api.getState().updateMeta(type, updateVault, true);
+  api.getState().updateMeta(assetType, updateVault, true);
 };
 
 export const changeAssetCurrency = (
   api: StoreApi,
-  type: AssetType,
+  assetType: AssetType,
   currency: Currency,
   updateVault: boolean
 ) => {
   api.setState(
     produce((state: AbstractState) => {
-      if (type === AssetType.Collateral) {
+      if (assetType === AssetType.Collateral) {
         state.collateral.currency = currency;
-      } else if (type === AssetType.Debt && 'debt' in state && state.debt) {
+      } else if (
+        assetType === AssetType.Debt &&
+        'debt' in state &&
+        state.debt
+      ) {
         state.debt.currency = currency;
       }
     })
   );
-  api.getState().updateMeta(type, updateVault, false);
+  api.getState().updateMeta(assetType, updateVault, false);
 };
 
 export const changeAssetValue = (
   api: StoreApi,
-  type: AssetType,
+  assetType: AssetType,
   value: string
 ) => {
   api.setState(
     produce((state: AbstractState) => {
-      if (type === AssetType.Collateral) {
+      if (assetType === AssetType.Collateral) {
         state.collateral.input = value;
-      } else if (type === AssetType.Debt && 'debt' in state && state.debt) {
+      } else if (
+        assetType === AssetType.Debt &&
+        'debt' in state &&
+        state.debt
+      ) {
         state.debt.input = value;
       }
     })
@@ -273,14 +284,18 @@ export const changeAssetValue = (
 
 export const changeBalances = (
   api: StoreApi,
-  type: AssetType,
+  assetType: AssetType,
   balances: Record<string, number>
 ) => {
   api.setState(
     produce((state: AbstractState) => {
-      if (type === AssetType.Collateral) {
+      if (assetType === AssetType.Collateral) {
         state.collateral.balances = balances;
-      } else if (type === AssetType.Debt && 'debt' in state && state.debt) {
+      } else if (
+        assetType === AssetType.Debt &&
+        'debt' in state &&
+        state.debt
+      ) {
         state.debt.balances = balances;
       }
     })
@@ -313,8 +328,8 @@ export const changeTransactionMeta = (api: StoreApi, route: RouteMeta) => {
   );
 };
 
-export const updateAllowance = async (api: StoreApi, type: AssetType) => {
-  const asset = api.getState().assetForType(type);
+export const updateAllowance = async (api: StoreApi, assetType: AssetType) => {
+  const asset = api.getState().assetForType(assetType);
   if (!asset) return;
   const currency = asset.currency;
   const address = useAuth.getState().address;
@@ -323,14 +338,14 @@ export const updateAllowance = async (api: StoreApi, type: AssetType) => {
     return;
   }
   if (currency.isNative) {
-    api.getState().changeAllowance(type, AllowanceStatus.Unneeded);
+    api.getState().changeAllowance(assetType, AllowanceStatus.Unneeded);
     return;
   }
-  api.getState().changeAllowance(type, AllowanceStatus.Loading);
+  api.getState().changeAllowance(assetType, AllowanceStatus.Loading);
   try {
     const res = await sdk.getAllowanceFor(currency, Address.from(address));
 
-    const currentCurrency = api.getState().assetForType(type)?.currency;
+    const currentCurrency = api.getState().assetForType(assetType)?.currency;
     if (
       !currentCurrency ||
       currency.address !== currentCurrency.address ||
@@ -339,17 +354,17 @@ export const updateAllowance = async (api: StoreApi, type: AssetType) => {
       return;
 
     const value = parseFloat(formatUnits(res, currency.decimals));
-    api.getState().changeAllowance(type, AllowanceStatus.Ready, value);
+    api.getState().changeAllowance(assetType, AllowanceStatus.Ready, value);
   } catch (e) {
     // TODO: how to handle the case where we can't fetch allowance ?
     console.error(e);
-    api.getState().changeAllowance(type, AllowanceStatus.Error);
+    api.getState().changeAllowance(assetType, AllowanceStatus.Error);
   }
 };
 
-export const updateBalances = async (api: StoreApi, type: AssetType) => {
+export const updateBalances = async (api: StoreApi, assetType: AssetType) => {
   const address = useAuth.getState().address;
-  const asset = api.getState().assetForType(type);
+  const asset = api.getState().assetForType(assetType);
   if (!address || !asset) {
     return;
   }
@@ -362,7 +377,7 @@ export const updateBalances = async (api: StoreApi, type: AssetType) => {
     console.error(result.error.message);
     return;
   }
-  const currentAsset = api.getState().assetForType(type);
+  const currentAsset = api.getState().assetForType(assetType);
   if (!currentAsset) return; // TODO: handle this case?
   const currentCurrency = currentAsset.currency;
   if (
@@ -371,11 +386,14 @@ export const updateBalances = async (api: StoreApi, type: AssetType) => {
   )
     return;
   const balances = result.data;
-  api.getState().changeBalances(type, balances);
+  api.getState().changeBalances(assetType, balances);
 };
 
-export const updateCurrencyPrice = async (api: StoreApi, type: AssetType) => {
-  const asset = api.getState().assetForType(type);
+export const updateCurrencyPrice = async (
+  api: StoreApi,
+  assetType: AssetType
+) => {
+  const asset = api.getState().assetForType(assetType);
   if (!asset) return;
   const currency = asset.currency;
 
@@ -385,7 +403,7 @@ export const updateCurrencyPrice = async (api: StoreApi, type: AssetType) => {
     return;
   }
 
-  const currentCurrency = api.getState().assetForType(type)?.currency;
+  const currentCurrency = api.getState().assetForType(assetType)?.currency;
   if (!currentCurrency || currency.address !== currentCurrency.address) return;
 
   let currencyValue = result.data;
@@ -396,7 +414,7 @@ export const updateCurrencyPrice = async (api: StoreApi, type: AssetType) => {
 
   api.setState(
     produce((state: AbstractState) => {
-      if (type === AssetType.Collateral) {
+      if (assetType === AssetType.Collateral) {
         state.collateral.usdPrice = currencyValue;
       } else if ('debt' in state && state.debt) {
         state.debt.usdPrice = currencyValue;
@@ -409,21 +427,21 @@ export const updateCurrencyPrice = async (api: StoreApi, type: AssetType) => {
 
 export const updateMeta = (
   api: StoreApi,
-  type: AssetType,
+  assetType: AssetType,
   updateVault: boolean,
   updateBalance: boolean
 ) => {
   const state = api.getState();
-  state.updateCurrencyPrice(type);
+  state.updateCurrencyPrice(assetType);
   if (updateBalance) {
-    state.updateBalances(type);
+    state.updateBalances(assetType);
   }
   if (updateVault) {
     state.updateVault();
   } else {
     state.updateTransactionMeta();
   }
-  state.updateAllowance(type);
+  state.updateAllowance(assetType);
 };
 
 export const updateTransactionMeta = async (api: StoreApi) => {
@@ -527,9 +545,9 @@ export const updateTransactionMeta = async (api: StoreApi) => {
 
 export const allow = async (
   api: StoreApi,
-  type: AssetType = AssetType.Collateral
+  assetType: AssetType = AssetType.Collateral
 ) => {
-  const asset = api.getState().assetForType(type);
+  const asset = api.getState().assetForType(assetType);
   if (!asset) return;
   const { currency, input } = asset;
   const amount = parseFloat(input);
@@ -540,7 +558,7 @@ export const allow = async (
   if (!provider || !userAddress) {
     return;
   }
-  api.getState().changeAllowance(type, AllowanceStatus.Approving);
+  api.getState().changeAllowance(assetType, AllowanceStatus.Approving);
   const owner = provider.getSigner();
   try {
     const approval = await contracts.ERC20__factory.connect(
@@ -549,7 +567,7 @@ export const allow = async (
     ).approve(spender, parseUnits(amount.toString(), currency.decimals));
     await approval.wait();
 
-    api.getState().changeAllowance(type, AllowanceStatus.Ready, amount);
+    api.getState().changeAllowance(assetType, AllowanceStatus.Ready, amount);
     notify({
       message: NOTIFICATION_MESSAGES.ALLOWANCE_SUCCESS,
       type: 'success',
@@ -559,7 +577,7 @@ export const allow = async (
       }),
     });
   } catch (e) {
-    api.getState().changeAllowance(type, AllowanceStatus.Error);
+    api.getState().changeAllowance(assetType, AllowanceStatus.Error);
     handleTransactionError(
       e,
       NOTIFICATION_MESSAGES.TX_CANCELLED,
@@ -669,7 +687,7 @@ export const execute = async (
   }
 };
 
-export const signAndExecute = async (api: StoreApi, type: VaultType) => {
+export const signAndExecute = async (api: StoreApi, assetType: VaultType) => {
   if (api.getState().needsSignature) {
     await api.getState().sign();
   }
@@ -681,7 +699,13 @@ export const signAndExecute = async (api: StoreApi, type: VaultType) => {
   if (tx && vault) {
     useHistory
       .getState()
-      .add(type, tx.hash, tx.from, vault, api.getState().transactionMeta.steps);
+      .add(
+        assetType,
+        tx.hash,
+        tx.from,
+        vault,
+        api.getState().transactionMeta.steps
+      );
 
     api.getState().clearInputValues();
   }

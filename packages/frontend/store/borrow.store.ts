@@ -14,7 +14,7 @@ import {
   changeActiveVault,
   changeAll,
   changeAllowance,
-  changeAssetChain,
+  changeAssetChainFor,
   changeAssetCurrency,
   changeAssetValue,
   changeBalances,
@@ -39,8 +39,10 @@ export const useBorrow = create<BorrowStore>()(
     (set, get, api) => ({
       ...initialBorrowState,
 
-      assetForType(type) {
-        return type === AssetType.Collateral ? get().collateral : get().debt;
+      assetForType(assetType) {
+        return assetType === AssetType.Collateral
+          ? get().collateral
+          : get().debt;
       },
 
       changeActiveVault(vault) {
@@ -51,24 +53,31 @@ export const useBorrow = create<BorrowStore>()(
         changeAll(api, vault, collateral, debt);
       },
 
-      async changeAllowance(type, status, amount) {
-        changeAllowance(api, type, status, amount);
+      async changeAllowance(assetType, status, amount) {
+        changeAllowance(api, assetType, status, amount);
       },
 
-      changeAssetChain(type, chainId, updateVault, currency) {
-        changeAssetChain(api, type, chainId, updateVault, currency);
+      changeAssetChain(assetType, chainId, updateVault, currency) {
+        changeAssetChainFor(
+          api,
+          assetType,
+          VaultType.BORROW,
+          chainId,
+          updateVault,
+          currency
+        );
       },
 
-      changeAssetCurrency(type, currency, updateVault) {
-        changeAssetCurrency(api, type, currency, updateVault);
+      changeAssetCurrency(assetType, currency, updateVault) {
+        changeAssetCurrency(api, assetType, currency, updateVault);
       },
 
-      changeAssetValue(type, value) {
-        changeAssetValue(api, type, value);
+      changeAssetValue(assetType, value) {
+        changeAssetValue(api, assetType, value);
       },
 
-      async changeBalances(type, balances) {
-        changeBalances(api, type, balances);
+      async changeBalances(assetType, balances) {
+        changeBalances(api, assetType, balances);
       },
 
       async changeDebt(debt) {
@@ -104,16 +113,16 @@ export const useBorrow = create<BorrowStore>()(
         await get().updateVault(vaultAddress);
       },
 
-      async updateAllowance(type) {
-        updateAllowance(api, type);
+      async updateAllowance(assetType) {
+        updateAllowance(api, assetType);
       },
 
-      async updateBalances(type) {
-        updateBalances(api, type);
+      async updateBalances(assetType) {
+        updateBalances(api, assetType);
       },
 
-      async updateCurrencyPrice(type) {
-        updateCurrencyPrice(api, type);
+      async updateCurrencyPrice(assetType) {
+        updateCurrencyPrice(api, assetType);
       },
 
       updateLiquidation() {
@@ -174,8 +183,8 @@ export const useBorrow = create<BorrowStore>()(
         );
       },
 
-      async updateMeta(type, updateVault, updateBalance) {
-        updateMeta(api, type, updateVault, updateBalance);
+      async updateMeta(assetType, updateVault, updateBalance) {
+        updateMeta(api, assetType, updateVault, updateBalance);
       },
 
       async updateTransactionMeta() {
@@ -236,8 +245,8 @@ export const useBorrow = create<BorrowStore>()(
         set({ availableVaultsStatus: FetchStatus.Ready });
       },
 
-      async allow(type) {
-        allow(api, type);
+      async allow(assetType) {
+        allow(api, assetType);
       },
 
       async sign() {
