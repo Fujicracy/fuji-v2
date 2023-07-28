@@ -4,6 +4,7 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import {
   Box,
+  Button,
   Card,
   CardContent,
   List,
@@ -13,9 +14,14 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 import { TabOption } from '../../../../constants';
+import {
+  didShowBalanceWarning,
+  setBalanceWarningShown,
+} from '../../../../helpers/auth';
+import { fetchXBalances } from '../../../../helpers/balances';
 import { addressUrl } from '../../../../helpers/chains';
 import { HistoryEntry } from '../../../../helpers/history';
 import {
@@ -25,6 +31,7 @@ import {
 import { useAuth } from '../../../../store/auth.store';
 import { useHistory } from '../../../../store/history.store';
 import TabSwitch from '../../../Shared/TabSwitch/TabSwitch';
+import BalanceItem from './BalanceItem';
 import HistoryItem from './HistoryItem';
 
 type AccountModalProps = {
@@ -48,6 +55,8 @@ function AccountModal({
   const { palette } = useTheme();
 
   const chainId = useAuth((state) => state.chainId);
+  const xBalances = useAuth((state) => state.xBalances);
+  const changeXBalances = useAuth((state) => state.changeXBalances);
   const logout = useAuth((state) => state.logout);
 
   const historyEntries = useHistory((state) =>
@@ -65,6 +74,15 @@ function AccountModal({
   const handleTabChange = (newValue: number) => {
     setCurrentTab(newValue);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      (async () => {
+        const result = await fetchXBalances();
+        changeXBalances(result);
+      })();
+    }
+  }, [isOpen, changeXBalances]);
 
   const copy = () => {
     navigator.clipboard.writeText(address);
@@ -152,7 +170,31 @@ function AccountModal({
           </Box>
 
           <List sx={{ pb: '.75rem' }}>
-            {historyEntries?.length ? (
+            {currentTab === 0 ? (
+              <>
+                {!didShowBalanceWarning && (
+                  <>
+                    <Typography>
+                      Displays only the assets available for lending and
+                      borrowing on Fuji
+                    </Typography>
+                    <Button
+                      onClick={() => {
+                        setBalanceWarningShown();
+                      }}
+                    >
+                      Close
+                    </Button>
+                  </>
+                )}
+                {xBalances?.map((b) => (
+                  <BalanceItem
+                    key={`${b.currency.chainId}-${b.currency.symbol}`}
+                    balance={b}
+                  />
+                ))}
+              </>
+            ) : historyEntries?.length ? (
               historyEntries.map((e) => (
                 <HistoryItem
                   key={e.hash}
