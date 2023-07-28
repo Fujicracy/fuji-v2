@@ -15,7 +15,7 @@ contract RunPolygon is ScriptPlus {
   CompoundV3Polygon compound;
 
   function setUp() public {
-    setUpOn("polygon");
+    setUpOn();
   }
 
   function run() public {
@@ -45,7 +45,9 @@ contract RunPolygon is ScriptPlus {
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
     // If setting all routers at once, call after deploying all chains
-    /*setRouters();*/
+    /*setConnextReceivers();*/
+
+    /*upgradeBorrowingImpl(false);*/
 
     vm.stopBroadcast();
   }

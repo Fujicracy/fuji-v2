@@ -15,7 +15,7 @@ contract RunArbitrum is ScriptPlus {
   CompoundV3Arbitrum compound;
 
   function setUp() public {
-    setUpOn("arbitrum");
+    setUpOn();
   }
 
   function run() public {
@@ -45,7 +45,9 @@ contract RunArbitrum is ScriptPlus {
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
     // If setting all routers at once, call after deploying all chians
-    /*setRouters();*/
+    /*setConnextReceivers();*/
+
+    /*upgradeBorrowingImpl(false);*/
 
     vm.stopBroadcast();
   }

@@ -6,6 +6,7 @@
   "USDT": "0xc2132D05D31c914a87C6611C10748AEb04B58e8F",
   "MATICX": "0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6",
   "WMATIC": "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270",
+  "WSTETH": "0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD",
   "ConnextCore": "0x11984dc4465481512eb5b777E44061C158CF2259",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
   "FujiRelayer": "0xdaa792add8a6c6c12ad0e7c7afa88c50ee291811",
@@ -31,8 +32,16 @@
       "chainlink": "0x0a6513e40db6eb1b165753ad52e80663aea50545"
     },
     {
+      "asset": "WSTETH",
+      "chainlink": "0x6010bACe1F271DdF8114134562653Eaf9206D2f2"
+    },
+    {
       "asset": "MATICX",
       "chainlink": "0x5d37E4b374E6907de8Fc7fb33EE3b0af403C7403"
+    },
+    {
+      "asset": "WMATIC",
+      "chainlink": "0xab594600376ec9fd91f8e885dadf0ce036862de0"
     }
   ],
   "simple-mappings": [
@@ -127,6 +136,12 @@
     {
       "asset": "WETH",
       "name": "YieldVault-WETH-1",
+      "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 85
+    },
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
       "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
       "rating": 85
     }

@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 /**
- * @title XReceiveProxy
+ * @title ConnextReceiver
  *
  * @author Fujidao Labs
  *
@@ -15,15 +15,15 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IXReceiver} from "../interfaces/connext/IConnext.sol";
 import {ConnextRouter} from "./ConnextRouter.sol";
 
-contract XReceiveProxy is IXReceiver {
+contract ConnextReceiver is IXReceiver {
   using SafeERC20 for IERC20;
 
-  error XReceiveProxy__xReceive_notReceivedAssetBalance();
+  error ConnextReceiver__xReceive_notReceivedAssetBalance();
 
   ConnextRouter public immutable connextRouter;
 
   /**
-   * @notice Constructor that initializes XReceiveProxy
+   * @notice Constructor that initializes ConnextReceiver
    */
   constructor(address connextRouter_) {
     // No need to check address(0) since this contract is deployed within {ConnextRouter.sol}
@@ -44,7 +44,7 @@ contract XReceiveProxy is IXReceiver {
     if (amount > 0) {
       uint256 balance = IERC20(asset).balanceOf(address(this));
       if (balance < amount) {
-        revert XReceiveProxy__xReceive_notReceivedAssetBalance();
+        revert ConnextReceiver__xReceive_notReceivedAssetBalance();
       }
       IERC20(asset).safeIncreaseAllowance(address(connextRouter), amount);
     }

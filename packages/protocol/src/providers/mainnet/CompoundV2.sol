@@ -35,8 +35,7 @@ contract CompoundV2 is ILendingProvider {
    * @notice Returns the {AddrMapper} contract applicable to this provider.
    */
   function getMapper() public pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
+    return IAddrMapper(0xb2f151D71BD0396891A68C15BF608445a6aC835e);
   }
 
   /// @inheritdoc ILendingProvider

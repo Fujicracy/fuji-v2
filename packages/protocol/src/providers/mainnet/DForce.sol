@@ -36,8 +36,7 @@ contract DForce is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
+    return IAddrMapper(0xb2f151D71BD0396891A68C15BF608445a6aC835e);
   }
 
   /**
@@ -53,7 +52,7 @@ contract DForce is ILendingProvider {
    * @param asset address of the token to be used as collateral/debt.   *
    */
   function _getiToken(address asset) internal view returns (address iToken) {
-    iToken = _getAddrmapper().getAddressMapping("DForce", asset);
+    iToken = _getAddrmapper().getAddressMapping(providerName(), asset);
   }
 
   /**
@@ -92,7 +91,7 @@ contract DForce is ILendingProvider {
   function deposit(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     // Get iToken address from mapping
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", asset);
+    address iTokenAddr = _getAddrmapper().getAddressMapping(providerName(), asset);
 
     // Enter and/or ensure collateral market is enacted
     _enterCollatMarket(iTokenAddr);
@@ -120,7 +119,7 @@ contract DForce is ILendingProvider {
   function borrow(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     // Get iToken address from mapping
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", asset);
+    address iTokenAddr = _getAddrmapper().getAddressMapping(providerName(), asset);
 
     // Create a reference to the corresponding iToken contract
     IGenIToken iToken = IGenIToken(iTokenAddr);
@@ -139,7 +138,7 @@ contract DForce is ILendingProvider {
   function withdraw(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.asset();
     // Get iToken address from mapping
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", asset);
+    address iTokenAddr = _getAddrmapper().getAddressMapping(providerName(), asset);
 
     // Create a reference to the corresponding iToken contract
     IGenIToken iToken = IGenIToken(iTokenAddr);
@@ -158,7 +157,7 @@ contract DForce is ILendingProvider {
   function payback(uint256 amount, IVault vault) external override returns (bool success) {
     address asset = vault.debtAsset();
     // Get iToken address from mapping
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", asset);
+    address iTokenAddr = _getAddrmapper().getAddressMapping(providerName(), asset);
 
     if (_isWETH(asset)) {
       // Create a reference to the corresponding iToken contract
@@ -179,7 +178,7 @@ contract DForce is ILendingProvider {
 
   /// @inheritdoc ILendingProvider
   function getDepositRateFor(IVault vault) external view override returns (uint256 rate) {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.asset());
+    address iTokenAddr = _getAddrmapper().getAddressMapping(providerName(), vault.asset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: dForce uses base 1e18
     uint256 bRateperBlock = IGenIToken(iTokenAddr).supplyRatePerBlock() * 10 ** 9;
@@ -191,7 +190,7 @@ contract DForce is ILendingProvider {
 
   /// @inheritdoc ILendingProvider
   function getBorrowRateFor(IVault vault) external view override returns (uint256 rate) {
-    address iTokenAddr = _getAddrmapper().getAddressMapping("DForce", vault.debtAsset());
+    address iTokenAddr = _getAddrmapper().getAddressMapping(providerName(), vault.debtAsset());
 
     // Block Rate transformed for common mantissa for Fuji in ray (1e27), Note: dForce uses base 1e18
     uint256 bRateperBlock = IGenIToken(iTokenAddr).borrowRatePerBlock() * 10 ** 9;

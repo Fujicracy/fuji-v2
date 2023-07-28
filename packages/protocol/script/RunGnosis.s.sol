@@ -9,7 +9,7 @@ contract RunGnosis is ScriptPlus {
   AgaveGnosis agave;
 
   function setUp() public {
-    setUpOn("gnosis");
+    setUpOn();
   }
 
   function run() public {
@@ -37,11 +37,13 @@ contract RunGnosis is ScriptPlus {
       deployYieldVaults();
     }
 
+    /*upgradeBorrowingImpl(false);*/
+
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 55);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
     // If setting all routers at once, call after deploying all chians
-    /*setRouters();*/
+    /*setConnextReceivers();*/
 
     vm.stopBroadcast();
   }
