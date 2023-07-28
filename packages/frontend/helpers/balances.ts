@@ -4,7 +4,6 @@ import {
   Currency,
   FujiResultPromise,
   FujiResultSuccess,
-  NATIVE,
 } from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 
@@ -29,20 +28,7 @@ export const fetchXBalances = async (): Promise<Balance[] | undefined> => {
 
   const values: Balance[] = [];
   const promises = chains.map(async (chain) => {
-    const collaterals = sdk.getCollateralForChain(chain.chainId);
-    const debts = sdk.getDebtForChain(chain.chainId);
-    const currenciesMap = new Map();
-    [...collaterals, ...debts].forEach((currency) => {
-      currenciesMap.set(currency.address, currency);
-    });
-
-    // Add the native currency if it's not already in the map
-    const nativeCurrency = NATIVE[chain.chainId];
-    if (!currenciesMap.has(nativeCurrency.address)) {
-      currenciesMap.set(nativeCurrency.address, nativeCurrency);
-    }
-
-    const currencies = Array.from(currenciesMap.values());
+    const currencies = sdk.getSupportedCurrencies(chain.chainId);
     const balances = await sdk.getBalancesFor(
       currencies,
       Address.from(address),
@@ -120,15 +106,6 @@ export const fetchXBalances = async (): Promise<Balance[] | undefined> => {
       return -1;
     }
     return b.amountUsd - a.amountUsd;
-  });
-
-  balancesWithPrices.forEach(async (balance) => {
-    console.log(
-      balance.currency.symbol,
-      balance.currency.isNative,
-      balance.currency.chainId,
-      balance.amount
-    );
   });
 
   return balancesWithPrices;
