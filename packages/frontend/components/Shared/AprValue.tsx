@@ -11,7 +11,7 @@ function AprValue({
   base,
   reward,
   positive,
-  type,
+  assetType,
   providerName,
   justify = 'right',
 }: BorrowAprProps) {
@@ -22,7 +22,8 @@ function AprValue({
     ?.split(' ')
     ?.some((word) => ['compound', 'dforce'].includes(word));
 
-  const diff = (Number(reward) || 0) * (type === AssetType.Collateral ? 1 : -1);
+  const diff =
+    (Number(reward) || 0) * (assetType === AssetType.Collateral ? 1 : -1);
   const resultAPR = Math.abs(base - diff);
 
   return (

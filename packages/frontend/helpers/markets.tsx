@@ -113,21 +113,21 @@ export type AprData = {
   positive: boolean;
   base: number;
   providerName: string;
-  type?: AssetType;
+  assetType?: AssetType;
   reward?: number;
 };
 
 export const aprData = (
   base: number,
   reward?: number,
-  type: AssetType = AssetType.Collateral
+  assetType: AssetType = AssetType.Collateral
 ): Partial<AprData> => {
   return {
     positive:
-      type === AssetType.Debt || (reward !== undefined && reward > base),
+      assetType === AssetType.Debt || (reward !== undefined && reward > base),
     reward,
     base,
-    type,
+    assetType,
   };
 };
 

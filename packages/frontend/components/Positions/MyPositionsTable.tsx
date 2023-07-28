@@ -110,7 +110,7 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
                 )
               : isLend
               ? aprData(
-                  match.depositApr.value,
+                  match.depositAprBase.value,
                   match.depositAprReward.value,
                   AssetType.Debt
                 )
@@ -187,6 +187,7 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
                     base={apr.base || 0}
                     reward={apr.reward}
                     positive={apr.positive}
+                    type={isLend ? AssetType.Debt : AssetType.Collateral}
                     providerName={row.activeProvidersNames[0]}
                   />
                 </TableCell>
