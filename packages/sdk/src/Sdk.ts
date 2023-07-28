@@ -160,6 +160,34 @@ export class Sdk {
   }
 
   /**
+   * Returns all supported currencies on a specific chain.
+   *
+   * @param chainId - ID of the chain
+   */
+  getSupportedCurrencies(chainId: ChainId): Currency[] {
+    const borrowCollaterals = this.getCollateralForChain(
+      chainId,
+      VaultType.BORROW
+    );
+    const lendCollaterals = this.getCollateralForChain(chainId, VaultType.LEND);
+    const debts = this.getDebtForChain(chainId);
+
+    const currenciesMap = new Map();
+    [...borrowCollaterals, ...lendCollaterals, ...debts].forEach((currency) => {
+      currenciesMap.set(currency.address, currency);
+    });
+
+    // Add the native currency if it's not already in the map
+    const nativeCurrency = NATIVE[chainId];
+    if (!currenciesMap.has(nativeCurrency.address)) {
+      currenciesMap.set(nativeCurrency.address, nativeCurrency);
+    }
+
+    const currencies = Array.from(currenciesMap.values());
+    return currencies;
+  }
+
+  /**
    * Returns rpc providers as connection details.
    *
    * @param chainId - ID of the chain
