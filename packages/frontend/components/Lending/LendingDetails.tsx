@@ -21,7 +21,7 @@ type LendingDetailsProps = {
 };
 
 function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
-  const [selectedPeriod, setSelectedPeriod] = useState(Period.WEEK);
+  const [selectedPeriod, setSelectedPeriod] = useState(Period.MONTH);
   const [loading, setLoading] = useState<boolean>(false);
   const [depositData, setDepositData] = useState<AprResult[]>([]);
 
@@ -62,7 +62,6 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
                   })} ${position.collateral.currency.wrapped.symbol}`
                 : '0.00'
             }
-            tooltip={'Deposits to a selected vault'}
             amount={position?.collateral.amount}
             extra={positionData?.editedPosition?.collateral.amount}
             loading={loading}
@@ -71,12 +70,16 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
         </Grid>
         <Grid item xs={12} sm={6}>
           <InfoBlock
-            label={`Total Supplied (${activeProvider?.name})`}
+            label={`Total Supplied${
+              activeProvider?.name ? ` (${activeProvider?.name})` : ''
+            }`}
             value={
               availableVaults[0] && activeProvider?.totalSupplyUsd ? (
-                `${formatValue(activeProvider?.totalSupplyUsd, {
+                formatValue(activeProvider?.totalSupplyUsd, {
+                  maximumSignificantDigits: 3,
+                  notation: 'compact',
                   style: 'currency',
-                })}`
+                })
               ) : (
                 <Tooltip
                   title="Error loading data"
@@ -98,6 +101,7 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
           display: 'flex',
           flexDirection: 'column',
           p: '0 1.5rem 1.5rem 1.5rem',
+          overflow: 'unset',
         }}
       >
         <Stack
@@ -132,7 +136,11 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
             )}
           </Stack>
 
-          <PeriodOptions onChange={setSelectedPeriod} isDayExcluded={true} />
+          <PeriodOptions
+            onChange={setSelectedPeriod}
+            isDayExcluded={true}
+            defaultValue={Period.MONTH}
+          />
         </Stack>
 
         {loading ? (

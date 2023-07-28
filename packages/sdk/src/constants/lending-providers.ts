@@ -56,7 +56,7 @@ export const LENDING_PROVIDERS: Record<
     },
     '0x8755bE098D54Cd16687B7c0D39791Cd899E4dD8c': {
       name: 'Radiant',
-      llamaKey: 'radiant',
+      llamaKey: 'radiant-v2',
     },
     '0xc0F505224B91Bd50Cd5991CcA8e492563e9b7b72': {
       name: 'dForce',
@@ -94,7 +94,7 @@ export const LENDING_PROVIDERS: Record<
   [ChainId.GNOSIS]: {
     '0x63d20C47901f6CAe61aA3c19a21ED5f08F8c5112': {
       name: 'Agave',
-      llamaKey: 'acryptos',
+      llamaKey: 'agave',
     },
     '0x305F31582b963A875c3ABD854B9C54D35798b3eF': {
       name: 'Hundred',

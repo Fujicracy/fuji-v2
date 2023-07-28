@@ -198,6 +198,7 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
 
   return (
     <OperationContainer
+      type={VaultType.BORROW}
       isConfirmationModalShown={isConfirmationModalShown}
       setIsConfirmationModalShown={setIsConfirmationModalShown}
       positionData={positionData}

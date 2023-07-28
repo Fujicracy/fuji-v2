@@ -1,10 +1,17 @@
-import { AbstractVault, Currency, LendingVault } from '@x-fuji/sdk';
+import { AbstractVault, Currency, LendingVault, VaultType } from '@x-fuji/sdk';
 
-import { Mode } from '../../helpers/assets';
+import {
+  AssetChange,
+  AssetType,
+  defaultAssetForType,
+  Mode,
+} from '../../helpers/assets';
 import { initialSharedState, SharedActions, SharedState } from './state';
 
 export type LendState = Omit<SharedState, 'activeVault'> & {
   activeVault: LendingVault | undefined;
+
+  collateral: AssetChange;
 };
 
 type LendActions = SharedActions & {
@@ -16,5 +23,6 @@ export type LendStore = LendState & LendActions;
 export const initialLendState: LendState = {
   ...initialSharedState,
   activeVault: undefined,
+  collateral: defaultAssetForType(AssetType.Collateral, VaultType.LEND),
   mode: Mode.DEPOSIT,
 };

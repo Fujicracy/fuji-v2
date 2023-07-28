@@ -31,7 +31,7 @@ type ConfirmTransactionModalProps = {
   actionType: ActionType;
   onClose: () => void;
   action: () => void;
-  type?: VaultType;
+  type: VaultType;
 };
 
 function ConfirmTransactionModal({
@@ -40,7 +40,7 @@ function ConfirmTransactionModal({
   open,
   onClose,
   action,
-  type = VaultType.BORROW,
+  type,
 }: ConfirmTransactionModalProps) {
   const { palette } = useTheme();
   const { steps } = transactionMeta;

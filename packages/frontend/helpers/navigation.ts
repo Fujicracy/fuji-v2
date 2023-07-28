@@ -60,7 +60,10 @@ const updateBorrowingStoreBeforeNavigation = (
 ) => {
   const changeAll = useBorrow.getState().changeAll;
   if (walletChainId && isSupported(walletChainId)) {
-    const collaterals = sdk.getCollateralForChain(walletChainId);
+    const collaterals = sdk.getCollateralForChain(
+      walletChainId,
+      VaultType.BORROW
+    );
     const collateralCurrency = collaterals.find(
       (t: Currency) => t.symbol === vault.collateral.symbol
     );

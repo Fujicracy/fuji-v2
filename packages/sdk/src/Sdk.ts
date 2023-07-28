@@ -7,15 +7,14 @@ import axios from 'axios';
 import {
   BN_ZERO,
   CHAIN,
-  COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
   CONNEXT_URL,
-  DEBT_LIST,
   FujiErrorCode,
   NATIVE,
   URLS,
 } from './constants';
 import { Address, Currency, Token } from './entities';
+import { AbstractVault } from './entities/abstract/AbstractVault';
 import { BorrowingVault } from './entities/BorrowingVault';
 import {
   FujiError,
@@ -104,11 +103,28 @@ export class Sdk {
    * to be used.
    *
    * @param chainId - ID of the chain
+   * @param VaultType - 'LEND' or 'BORROW'
    */
-  getCollateralForChain(chainId: ChainId): Currency[] {
-    let list: Currency[] = COLLATERAL_LIST[chainId].map((token: Token) =>
-      token.setConnection(this._configParams)
-    );
+  getCollateralForChain(
+    chainId: ChainId,
+    vaultType: VaultType = VaultType.BORROW
+  ): Currency[] {
+    const vaults: AbstractVault[] =
+      vaultType === VaultType.BORROW
+        ? this.getAllBorrowingVaults(CHAIN[chainId].chainType)
+        : this.getAllLendingVaults(CHAIN[chainId].chainType);
+
+    let list: Currency[] = vaults
+      .filter((v) => v.chainId === chainId)
+      .reduce((acc: Token[], vault: AbstractVault) => {
+        const collateral = vault.collateral;
+        if (!acc.find((t) => collateral.equals(t))) {
+          acc.push(collateral);
+        }
+        return acc;
+      }, [])
+      .map((token: Token) => token.setConnection(this._configParams));
+
     // we don't support WMATIC and WXDAI as collateral yet
     if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
       list = [NATIVE[chainId].setConnection(this._configParams), ...list];
@@ -124,9 +140,19 @@ export class Sdk {
    * @param chainId - ID of the chain
    */
   getDebtForChain(chainId: ChainId): Currency[] {
-    const list: Currency[] = DEBT_LIST[chainId].map((token: Token) =>
-      token.setConnection(this._configParams)
-    );
+    const vaults = this.getAllBorrowingVaults(CHAIN[chainId].chainType);
+
+    const list: Currency[] = vaults
+      .filter((v) => v.chainId === chainId)
+      .reduce((acc: Token[], vault: BorrowingVault) => {
+        const debt = vault.debt;
+        if (!acc.find((t) => debt.equals(t))) {
+          acc.push(debt);
+        }
+        return acc;
+      }, [])
+      .map((token: Token) => token.setConnection(this._configParams));
+
     //if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
     //list = [NATIVE[chainId].setConnection(this._configParams), ...list];
     //}

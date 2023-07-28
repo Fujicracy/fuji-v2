@@ -62,21 +62,29 @@ export class LendingVault extends AbstractVault {
       this.safetyRating &&
       this.name !== '' &&
       this.activeProvider &&
-      this.allProviders
+      this.allProviders &&
+      this.version
     )
       return;
 
     const chief = Chief__factory.multicall(CHIEF_ADDRESS[this.chainId].value);
 
-    const [safetyRating, name, activeProvider, allProviders] =
+    const [safetyRating, name, activeProvider, allProviders, version] =
       await this.multicallRpcProvider.all([
         chief.vaultSafetyRating(this.address.value),
         this.multicallContract.name(),
         this.multicallContract.activeProvider(),
         this.multicallContract.getProviders(),
+        this.multicallContract.VERSION(),
       ]);
 
-    this._setPreLoads(safetyRating, name, activeProvider, allProviders);
+    this._setPreLoads(
+      safetyRating,
+      name,
+      activeProvider,
+      allProviders,
+      version
+    );
   }
 
   async rates(): Promise<BigNumber[]> {
@@ -107,9 +115,16 @@ export class LendingVault extends AbstractVault {
     safetyRating: BigNumber,
     name: string,
     activeProvider: string,
-    allProviders: string[]
+    allProviders: string[],
+    version: string
   ) {
-    this._setPreLoads(safetyRating, name, activeProvider, allProviders);
+    this._setPreLoads(
+      safetyRating,
+      name,
+      activeProvider,
+      allProviders,
+      version
+    );
   }
 
   async getBalances(account: Address): Promise<AccountBalances> {

@@ -1,8 +1,10 @@
-import { BorrowingVault, Currency } from '@x-fuji/sdk';
+import { BorrowingVault, Currency, VaultType } from '@x-fuji/sdk';
 
 import { Ltv } from '../../constants';
 import {
   AssetChange,
+  AssetType,
+  defaultAssetForType,
   LiquidationMeta,
   LtvMeta,
   Mode,
@@ -11,6 +13,8 @@ import { initialSharedState, SharedActions, SharedState } from './state';
 
 export type BorrowState = Omit<SharedState, 'activeVault'> & {
   activeVault: BorrowingVault | undefined;
+
+  collateral: AssetChange;
   debt?: AssetChange;
 
   ltv: LtvMeta;
@@ -35,6 +39,7 @@ export const initialBorrowState: BorrowState = {
   ...initialSharedState,
   activeVault: undefined,
   mode: Mode.DEPOSIT_AND_BORROW,
+  collateral: defaultAssetForType(AssetType.Collateral, VaultType.BORROW),
   debt: undefined,
   ltv: {
     ltv: 0,

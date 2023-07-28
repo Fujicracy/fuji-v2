@@ -43,7 +43,7 @@ export const CHAIN_LLAMA_KEY: Record<ChainId, string> = {
   [ChainId.FANTOM]: 'Fantom',
   [ChainId.MATIC]: 'Polygon',
   [ChainId.OPTIMISM]: 'Optimism',
-  [ChainId.GNOSIS]: 'gnosis',
+  [ChainId.GNOSIS]: 'Gnosis',
   [ChainId.GOERLI]: 'Ethereum',
   [ChainId.OPTIMISM_GOERLI]: 'Optimism',
   [ChainId.MATIC_MUMBAI]: 'Polygon',

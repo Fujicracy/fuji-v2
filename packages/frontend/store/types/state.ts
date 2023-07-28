@@ -13,7 +13,6 @@ import {
   AllowanceStatus,
   AssetChange,
   AssetType,
-  defaultAssetForType,
   FetchStatus,
   Mode,
 } from '../../helpers/assets';
@@ -38,8 +37,6 @@ export type SharedState = {
   activeProvider?: LendingProviderWithFinancials;
   allProviders: LendingProviderWithFinancials[] | [];
 
-  collateral: AssetChange;
-
   transactionMeta: TransactionMeta;
   availableRoutes: RouteMeta[];
 
@@ -62,8 +59,6 @@ export const initialSharedState: SharedState = {
   activeVault: undefined,
   activeProvider: undefined,
 
-  collateral: defaultAssetForType(AssetType.Collateral),
-
   transactionMeta: {
     status: FetchStatus.Initial,
     bridgeFees: undefined,
@@ -80,37 +75,40 @@ export const initialSharedState: SharedState = {
 };
 
 export type SharedActions = {
-  assetForType: (type: AssetType) => AssetChange | undefined;
+  assetForType: (assetType: AssetType) => AssetChange | undefined;
   changeActiveVault: (v: VaultWithFinancials) => void;
   changeAllowance: (
-    type: AssetType,
+    assetType: AssetType,
     status: AllowanceStatus,
     amount?: number
   ) => void;
   changeAssetChain: (
-    type: AssetType,
+    assetType: AssetType,
     chainId: ChainId,
     updateVault: boolean,
     currency?: Currency
   ) => void;
   changeAssetCurrency: (
-    type: AssetType,
+    assetType: AssetType,
     currency: Currency,
     updateVault: boolean
   ) => void;
-  changeAssetValue: (type: AssetType, value: string) => void;
-  changeBalances: (type: AssetType, balances: Record<string, number>) => void;
-  changeFormType: (type: FormType) => void;
+  changeAssetValue: (assetType: AssetType, value: string) => void;
+  changeBalances: (
+    assetType: AssetType,
+    balances: Record<string, number>
+  ) => void;
+  changeFormType: (assetType: FormType) => void;
   changeMode: (mode: Mode) => void;
   changeTransactionMeta: (route: RouteMeta) => void;
   clearInputValues: () => void;
 
   updateAll: (vaultAddress?: string) => void;
-  updateAllowance: (type: AssetType) => void;
-  updateBalances: (type: AssetType) => void;
-  updateCurrencyPrice: (type: AssetType) => void;
+  updateAllowance: (assetType: AssetType) => void;
+  updateBalances: (assetType: AssetType) => void;
+  updateCurrencyPrice: (assetType: AssetType) => void;
   updateMeta: (
-    type: AssetType,
+    assetType: AssetType,
     updateVault: boolean,
     updateBalance: boolean
   ) => void;
@@ -118,7 +116,7 @@ export type SharedActions = {
   updateTransactionMetaDebounced: () => void;
   updateVault: (address?: string) => void;
 
-  allow: (type: AssetType) => void;
+  allow: (assetType: AssetType) => void;
   sign: () => void;
   execute: () => Promise<ethers.providers.TransactionResponse | undefined>;
   signAndExecute: () => void;
