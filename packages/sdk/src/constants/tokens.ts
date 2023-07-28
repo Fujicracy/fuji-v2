@@ -284,6 +284,72 @@ export const MATICX = new Token(
   'Liquid Staking Matic'
 );
 
+export const WSTETH: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    Address.from('0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    Address.from(AddressZero),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    Address.from('0x5979D7b546E38E414F7E9822514be443A4800529'),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    Address.from('0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb'),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    Address.from('0x5979D7b546E38E414F7E9822514be443A4800529'),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    Address.from(AddressZero),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    Address.from('0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD'),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    Address.from(AddressZero),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    Address.from('0x6C76971f98945AE98dD7d4DFcA8711ebea946eA6'),
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+};
+
 export const WNATIVE: TokenMap = {
   [ChainId.ETHEREUM]: WETH9[ChainId.ETHEREUM],
   [ChainId.GOERLI]: WETH9[ChainId.GOERLI],
