@@ -10,7 +10,7 @@ import {
 import { AbstractVault, VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { AssetType } from '../../helpers/assets';
+import { AprType } from '../../helpers/assets';
 import { aprData } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
 import { MarketRow, MarketRowStatus } from '../../store/types/markets';
@@ -141,7 +141,11 @@ function MarketsTableRow({
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
-                {row.isBest && <BestLabel />}
+                {row.isBest && (
+                  <BestLabel
+                    aprType={isLend ? AprType.SUPPLY : AprType.BORROW}
+                  />
+                )}
               </Stack>
             </Stack>
           )}
@@ -153,6 +157,7 @@ function MarketsTableRow({
               <AprValue
                 base={borrowApr.base || 0}
                 reward={borrowApr.reward}
+                aprType={AprType.BORROW}
                 positive={borrowApr.positive}
                 providerName={row.integratedProviders.value[0]}
               />
@@ -170,7 +175,7 @@ function MarketsTableRow({
               base={row.depositAprBase.value}
               reward={row.depositAprReward.value}
               providerName={row.integratedProviders.value[0]}
-              type={AssetType.Debt}
+              aprType={AprType.SUPPLY}
               positive
             />
           )}

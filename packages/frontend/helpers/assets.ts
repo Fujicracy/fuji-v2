@@ -26,6 +26,11 @@ const defaultSupplyCurrencies = sdk.getCollateralForChain(
   VaultType.LEND
 );
 
+export enum AprType {
+  BORROW,
+  SUPPLY,
+}
+
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
   PAYBACK_AND_WITHDRAW, // removePosition: both collateral and debt

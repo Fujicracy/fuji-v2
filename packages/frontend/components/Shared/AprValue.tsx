@@ -1,30 +1,34 @@
 import { IconButton, Stack, Tooltip, useTheme } from '@mui/material';
 
-import { AssetType } from '../../helpers/assets';
+import { AprType } from '../../helpers/assets';
 import { AprData } from '../../helpers/markets';
 import { DropletIcon } from './Icons';
 import { TooltipWrapper } from './Tooltips';
 
-type BorrowAprProps = AprData & { justify?: 'left' | 'center' | 'right' };
+type AprProps = Omit<AprData, 'assetType'> & {
+  aprType: AprType;
+  justify?: 'left' | 'center' | 'right';
+};
 
 function AprValue({
   base,
   reward,
   positive,
-  assetType,
+  aprType,
   providerName,
   justify = 'right',
-}: BorrowAprProps) {
+}: AprProps) {
   const { palette } = useTheme();
 
   const isHiddenReward = providerName
     ?.toLowerCase()
     ?.split(' ')
-    ?.some((word) => ['compound', 'dforce'].includes(word));
+    ?.some((word) => ['dforce'].includes(word));
 
-  const diff =
-    (Number(reward) || 0) * (assetType === AssetType.Collateral ? 1 : -1);
-  const resultAPR = Math.abs(base - diff);
+  const actualReward = reward ? Math.abs(reward) : 0;
+  const result = Math.abs(
+    aprType === AprType.BORROW ? base - actualReward : base + actualReward
+  );
 
   return (
     <Stack
@@ -52,10 +56,10 @@ function AprValue({
           }
           placement={'top'}
         >
-          <>{resultAPR.toFixed(2)}%</>
+          <>{result.toFixed(2)}%</>
         </TooltipWrapper>
       ) : (
-        <>{resultAPR.toFixed(2)}%</>
+        <>{result.toFixed(2)}%</>
       )}
     </Stack>
   );
@@ -64,6 +68,5 @@ function AprValue({
 export default AprValue;
 
 AprValue.defaultProps = {
-  type: AssetType.Collateral,
   positive: false,
 };

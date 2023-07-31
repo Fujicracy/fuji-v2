@@ -147,7 +147,9 @@ const groupByPair = (rows: MarketRow[], type: VaultType): MarketRow[] => {
     );
     if (entries.length > 1) {
       const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
-      const sorted = entries.sort(sortBy.descending);
+      const sorted = entries.sort(
+        isLend ? sortBy.ascending : sortBy.descending
+      );
       const children = groupByChain(
         sorted.map((r) => ({
           ...r,
