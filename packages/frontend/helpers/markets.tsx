@@ -209,12 +209,12 @@ const sortByBorrowAPR: Record<SortBy, CompareFn> = {
 
 const sortByLendAPY: Record<SortBy, CompareFn> = {
   ascending: (a, b) =>
-    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) >
+    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) <
     b.depositAprBase.value + (Number(b.depositAprReward.value) || 0)
       ? 1
       : -1,
   descending: (a, b) =>
-    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) <
+    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) >
     b.depositAprBase.value + (Number(b.depositAprReward.value) || 0)
       ? 1
       : -1,
