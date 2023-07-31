@@ -90,13 +90,11 @@ function AccountModal({
   const copy = () => {
     navigator.clipboard.writeText(address);
 
-    setTimeout(() => {
-      notify({
-        type: 'success',
-        message: 'Address Copied!',
-        duration: NotificationDuration.SHORT,
-      });
-    }, 1000);
+    notify({
+      type: 'success',
+      message: 'Address Copied!',
+      duration: NotificationDuration.SHORT,
+    });
   };
 
   const handleEntryClick = (entry: HistoryEntry) => {
