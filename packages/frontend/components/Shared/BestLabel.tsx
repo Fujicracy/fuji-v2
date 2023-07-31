@@ -2,12 +2,22 @@ import { Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import Image from 'next/image';
 
+import { AprType } from '../../helpers/assets';
 import { TooltipWrapper } from './Tooltips';
 
-function BestLabel() {
+type BestLabelProps = {
+  aprType: AprType;
+};
+
+function BestLabel({ aprType }: BestLabelProps) {
   const { palette } = useTheme();
   return (
-    <TooltipWrapper title="Lowest borrow APR" placement="top">
+    <TooltipWrapper
+      title={
+        aprType === AprType.BORROW ? 'Lowest borrow APR' : 'Highest supply APY'
+      }
+      placement="top"
+    >
       <Stack
         data-cy="best-label"
         direction="row"
@@ -38,3 +48,7 @@ function BestLabel() {
 }
 
 export default BestLabel;
+
+BestLabel.defaultProps = {
+  aprType: AprType.BORROW,
+};

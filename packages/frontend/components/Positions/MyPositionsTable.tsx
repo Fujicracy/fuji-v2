@@ -13,7 +13,7 @@ import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
-import { AssetType, recommendedLTV } from '../../helpers/assets';
+import { AprType, AssetType, recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { aprData } from '../../helpers/markets';
 import { showPosition } from '../../helpers/navigation';
@@ -110,7 +110,7 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
                 )
               : isLend
               ? aprData(
-                  match.depositApr.value,
+                  match.depositAprBase.value,
                   match.depositAprReward.value,
                   AssetType.Debt
                 )
@@ -187,6 +187,7 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
                     base={apr.base || 0}
                     reward={apr.reward}
                     positive={apr.positive}
+                    aprType={isLend ? AprType.SUPPLY : AprType.BORROW}
                     providerName={row.activeProvidersNames[0]}
                   />
                 </TableCell>
