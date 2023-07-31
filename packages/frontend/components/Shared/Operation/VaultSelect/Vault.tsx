@@ -12,7 +12,7 @@ import { VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React, { createRef, useEffect, useRef, useState } from 'react';
 
-import { AssetType } from '../../../../helpers/assets';
+import { AprType, AssetType } from '../../../../helpers/assets';
 import { chainName } from '../../../../helpers/chains';
 import { AprData, aprData } from '../../../../helpers/markets';
 import { RouteMeta } from '../../../../helpers/routes';
@@ -174,6 +174,7 @@ function Vault({
               reward={aprRef.current.reward}
               positive={aprRef.current.positive}
               providerName={data.activeProvider.name}
+              aprType={AprType.BORROW}
             />
           </TableCell>
         )}
