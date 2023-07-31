@@ -31,6 +31,7 @@ contract RunEthereum is ScriptPlus {
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
+    /*setOrDeployYieldVaultFactory(true, false);*/
     setOrDeployAddrMapper(false);
     /*setOrDeployFlasherBalancer(false);*/
     /*setOrDeployRebalancer(false);*/
@@ -47,6 +48,11 @@ contract RunEthereum is ScriptPlus {
 
     // If setting all routers at once, call after deploying all chians
     /*setConnextReceivers();*/
+
+    /*upgradeBorrowingImpl(false);*/
+
+    /*bytes memory constructorArgs = abi.encode(getAddress("ConnextRouter"));*/
+    /*verifyContract("ConnextHandler", constructorArgs);*/
 
     vm.stopBroadcast();
   }
