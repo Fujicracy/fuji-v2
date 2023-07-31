@@ -3,7 +3,6 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import {
   Box,
-  Button,
   Card,
   CardContent,
   List,
@@ -18,8 +17,8 @@ import { ReactNode, useEffect, useState } from 'react';
 
 import { TabOption } from '../../../../constants';
 import {
-  didShowBalanceWarning,
   setBalanceWarningShown,
+  shouldShowBalanceWarning,
 } from '../../../../helpers/auth';
 import { fetchXBalances } from '../../../../helpers/balances';
 import { addressUrl } from '../../../../helpers/chains';
@@ -31,6 +30,7 @@ import {
 import { useAuth } from '../../../../store/auth.store';
 import { useHistory } from '../../../../store/history.store';
 import TabSwitch from '../../../Shared/TabSwitch/TabSwitch';
+import WarningBanner from '../../../Shared/WarningBanner';
 import BalanceItem from './BalanceItem';
 import HistoryItem from './HistoryItem';
 
@@ -54,6 +54,9 @@ function AccountModal({
 }: AccountModalProps) {
   const { palette } = useTheme();
 
+  const [isAssetWarningShown, setAssetWarningShown] = useState(
+    shouldShowBalanceWarning()
+  );
   const chainId = useAuth((state) => state.chainId);
   const xBalances = useAuth((state) => state.xBalances);
   const changeXBalances = useAuth((state) => state.changeXBalances);
@@ -104,6 +107,11 @@ function AccountModal({
   const onLogout = () => {
     logout();
     closeAccountModal();
+  };
+
+  const onAssetWarningClose = () => {
+    setBalanceWarningShown();
+    setAssetWarningShown(false);
   };
 
   return (
@@ -185,20 +193,15 @@ function AccountModal({
           <List sx={{ pb: '.75rem' }}>
             {currentTab === 0 ? (
               <>
-                {!didShowBalanceWarning && (
-                  <>
-                    <Typography>
-                      Displays only the assets available for lending and
-                      borrowing on Fuji
-                    </Typography>
-                    <Button
-                      onClick={() => {
-                        setBalanceWarningShown();
-                      }}
-                    >
-                      Close
-                    </Button>
-                  </>
+                {isAssetWarningShown && (
+                  <Box sx={{ p: '1rem 1rem 0 1rem' }}>
+                    <WarningBanner
+                      text={
+                        'Displays only the assets available for lending and borrowing on Fuji'
+                      }
+                      onClose={onAssetWarningClose}
+                    />
+                  </Box>
                 )}
                 {xBalances?.map((b) => (
                   <BalanceItem

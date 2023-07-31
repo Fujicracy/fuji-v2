@@ -9,7 +9,7 @@ import walletConnectModule, {
 } from '@web3-onboard/walletconnect';
 import xdefiWalletModule from '@web3-onboard/xdefi';
 
-import { FUJI_INFO, fujiLogo } from '../constants';
+import { ASSET_WARNING_KEY, FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
 
 type OnboardStatus = {
@@ -96,9 +96,11 @@ export const setExploreInfoShown = (wasExploreInfoShown: boolean) => {
   localStorage.setItem('termsAccepted', json);
 };
 
-export const didShowBalanceWarning = (): boolean =>
-  localStorage.getItem('balanceWarningShown') === 'true';
+export const shouldShowBalanceWarning = (): boolean => {
+  const statusJson = localStorage.getItem(ASSET_WARNING_KEY);
+  return !statusJson || statusJson !== 'true';
+};
 
 export const setBalanceWarningShown = () => {
-  localStorage.setItem('balanceWarningShown', 'true');
+  localStorage.setItem(ASSET_WARNING_KEY, 'true');
 };
