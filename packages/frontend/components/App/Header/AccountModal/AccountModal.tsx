@@ -1,4 +1,3 @@
-import CircleIcon from '@mui/icons-material/Circle';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import LaunchIcon from '@mui/icons-material/Launch';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
@@ -14,6 +13,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import Image from 'next/image';
 import { ReactNode, useEffect, useState } from 'react';
 
 import { TabOption } from '../../../../constants';
@@ -116,7 +116,15 @@ function AccountModal({
       PaperProps={{ sx: { background: 'transparent', padding: 0 } }}
     >
       <Card sx={{ border: `1px solid ${palette.secondary.light}`, mt: 1 }}>
-        <CardContent sx={{ width: '360px', p: 0, pb: '0 !important' }}>
+        <CardContent
+          sx={{
+            width: '360px',
+            p: 0,
+            pb: '0 !important',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+          }}
+        >
           <Stack
             direction="row"
             justifyContent="space-between"
@@ -124,7 +132,12 @@ function AccountModal({
             p="1.5rem 1.25rem 0.625rem 1.25rem"
           >
             <Stack direction="row" alignItems="center" gap=".5rem">
-              <CircleIcon sx={{ fontSize: '20px' }} />
+              <Image
+                src={'/assets/images/shared/account.svg'}
+                alt="account icon"
+                width={32}
+                height={32}
+              />
               <Typography variant="body">{formattedAddress}</Typography>
             </Stack>
             <Stack
@@ -187,7 +200,6 @@ function AccountModal({
                     </Button>
                   </>
                 )}
-                <Typography>{'Assets'}</Typography>
                 {xBalances?.map((b) => (
                   <BalanceItem
                     key={`${b.currency.chainId}-${b.currency.symbol}`}
