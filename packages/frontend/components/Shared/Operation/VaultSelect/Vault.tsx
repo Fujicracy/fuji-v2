@@ -167,6 +167,7 @@ function Vault({
               reward={data.activeProvider.depositAprReward}
               positive={true}
               providerName={data.activeProvider.name}
+              aprType={AprType.SUPPLY}
             />
           </TableCell>
         )}
