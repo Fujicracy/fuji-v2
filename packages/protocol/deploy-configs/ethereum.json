@@ -157,7 +157,23 @@
       "name": "BorrowingVault-WETHUSDC-3",
       "providers": ["Morpho_Compound", "Morpho_Aave_V2"],
       "rating": 85
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "USDC",
+      "liqRatio": 850000000000000000,
+      "maxLtv": 820000000000000000,
+      "name": "BorrowingVault-WSTETHUSDC-1",
+      "providers": ["DForce", "Aave_V3"],
+      "rating": 70
     }
   ],
-  "yield-vaults": []
+  "yield-vaults": [
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
+      "providers": ["Aave_V2", "Aave_V3", "Compound_V3", "Compound_V2"],
+      "rating": 95
+    }
+  ]
 }

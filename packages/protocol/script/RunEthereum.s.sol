@@ -31,7 +31,7 @@ contract RunEthereum is ScriptPlus {
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
-    /*setOrDeployYieldVaultFactory(true, false);*/
+    setOrDeployYieldVaultFactory(false, false);
     setOrDeployAddrMapper(false);
     /*setOrDeployFlasherBalancer(false);*/
     /*setOrDeployRebalancer(false);*/
@@ -66,7 +66,7 @@ contract RunEthereum is ScriptPlus {
     /*aaveV3 = new AaveV3();*/
     /*saveAddress("Aave_V3", address(aaveV3));*/
 
-    /*dforce = DForce(getAddress("DForce"));*/
+    dforce = DForce(getAddress("DForce"));
     /*dforce = new DForce();*/
     /*saveAddress("DForce", address(dforce));*/
 
