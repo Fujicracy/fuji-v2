@@ -114,6 +114,15 @@ interface IVault is IERC4626 {
    */
   event DepositCapChanged(uint256 newDepositCap);
 
+  /**
+   * @dev Emit when harvest occurs.
+   *
+   * @param provider the provider that was harvested
+   * @param tokens the tokens harvested
+   * @param amounts the amounts harvested
+   */
+  event Harvest(address provider, address[] tokens, uint256[] amounts);
+
   /*///////////////////////////
     Asset management functions
   //////////////////////////*/

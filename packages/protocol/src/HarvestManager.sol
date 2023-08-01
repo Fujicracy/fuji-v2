@@ -134,10 +134,10 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     IVault vault_ = IVault(vault);
 
     if (strategy == Strategy.ConvertToCollateral) {
-      data = _convertToCollateral(tokens, amounts, swapper, vault_);
+      data = _convertToCollateral(tokens, amounts, swapper, vault_, strategy);
     }
     if (strategy == Strategy.RepayDebt) {
-      data = _repayDebt(provider, tokens, amounts, swapper, vault_);
+      data = _repayDebt(provider, tokens, amounts, swapper, vault_, strategy);
     }
     if (strategy == Strategy.Distribute) {
       data = _distribute(tokens, amounts, vault_);
@@ -153,6 +153,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
    * @param amounts the amounts of reward tokens.
    * @param swapper the swapper to use.
    * @param vault the vault that has harvested the rewards.
+   * @param strategy the strategy that has been used to harvest the rewards.
    *
    * @return data the encoded data to be used in the vault's completeHarvest function.
    *
@@ -162,7 +163,8 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     address[] memory tokens,
     uint256[] memory amounts,
     ISwapper swapper,
-    IVault vault
+    IVault vault,
+    Strategy strategy
   )
     internal
     returns (bytes memory data)
@@ -181,6 +183,8 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     IERC20(collateralAsset).safeTransfer(treasury, treasuryAmount);
     IERC20(collateralAsset).safeTransfer(address(vault), totalAmount - treasuryAmount);
     data = abi.encodeWithSelector(vault.deposit.selector, totalAmount - treasuryAmount, vault);
+
+    emit Harvest(address(vault), strategy, treasury, treasuryAmount);
   }
 
   /**
@@ -191,6 +195,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
    * @param amounts the amounts of reward tokens.
    * @param swapper the swapper to use.
    * @param vault the vault that has harvested the rewards.
+   * @param strategy the strategy that has been used to harvest the rewards.
    *
    * @return data the encoded data to be used in the vault's completeHarvest function.
    *
@@ -202,7 +207,8 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     address[] memory tokens,
     uint256[] memory amounts,
     ISwapper swapper,
-    IVault vault
+    IVault vault,
+    Strategy strategy
   )
     internal
     returns (bytes memory data)
@@ -233,6 +239,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     data = abi.encodeWithSelector(
       ILendingProvider(address(provider)).payback.selector, amountToRepay, vault
     );
+    emit Harvest(address(vault), strategy, treasury, totalAmount - amountToRepay);
   }
 
   //TODO

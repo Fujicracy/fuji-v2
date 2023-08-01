@@ -939,6 +939,8 @@ abstract contract BaseVaultUpgradeable is
       callData, string(abi.encodePacked("harvest", ": delegate call failed"))
     );
     (tokens, amounts) = abi.decode(returnData, (address[], uint256[]));
+
+    emit Harvest(address(provider), tokens, amounts);
   }
 
   function _completeHarvest(

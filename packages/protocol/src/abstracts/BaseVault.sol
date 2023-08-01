@@ -1056,6 +1056,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
       callData, string(abi.encodePacked("harvest", ": delegate call failed"))
     );
     (tokens, amounts) = abi.decode(returnData, (address[], uint256[]));
+
+    emit Harvest(address(provider), tokens, amounts);
   }
 
   function _completeHarvest(

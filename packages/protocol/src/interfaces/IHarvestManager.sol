@@ -36,6 +36,17 @@ interface IHarvestManager {
   event SetFee(uint256 fee);
 
   /**
+   * @dev Emit when a harvest is complete at the IHarvestManager level.
+   *
+   * @param vault that harvested rewards.
+   * @param strategy enum of the strategy applied.
+   * @param treasury address that received the protocol fee.
+   * @param protocolFee amount of protocol fee received.
+   *
+   */
+  event Harvest(address vault, Strategy strategy, address treasury, uint256 protocolFee);
+
+  /**
    * @notice Set `executor` as an authorized address for calling harvest operations
    * or remove authorization.
    *
