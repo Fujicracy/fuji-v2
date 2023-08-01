@@ -8,6 +8,7 @@ import {
   List,
   ListItem,
   Popover,
+  Skeleton,
   Stack,
   Typography,
 } from '@mui/material';
@@ -54,6 +55,7 @@ function AccountModal({
 }: AccountModalProps) {
   const { palette } = useTheme();
 
+  const [isLoading, setIsLoading] = useState(true);
   const [isAssetWarningShown, setAssetWarningShown] = useState(
     shouldShowBalanceWarning()
   );
@@ -83,6 +85,7 @@ function AccountModal({
       (async () => {
         const result = await fetchXBalances();
         changeXBalances(result);
+        setIsLoading(false);
       })();
     }
   }, [isOpen, changeXBalances]);
@@ -189,7 +192,16 @@ function AccountModal({
           </Box>
 
           <List sx={{ pb: '.75rem' }}>
-            {currentTab === 0 ? (
+            {isLoading ? (
+              <>
+                {new Array(10).fill('').map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    sx={{ m: '1rem 1rem 0 1rem', height: '2.75rem' }}
+                  />
+                ))}
+              </>
+            ) : currentTab === 0 ? (
               <>
                 {isAssetWarningShown && (
                   <Box sx={{ p: '1rem 1rem 0 1rem' }}>
