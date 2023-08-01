@@ -1,5 +1,5 @@
 import { Box, Stack, TextField } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import Image from 'next/image';
 import React, { ReactNode, useMemo, useState } from 'react';
 
@@ -44,7 +44,7 @@ function MarketFiltersHeader({
       chains.forEach((chain, i) => {
         filtered.includes(chain.name) && resultIndexes.push(i + 1);
       });
-      setSelectedChainIndexes(resultIndexes);
+      setSelectedChainIndexes(filtered.length === 0 ? [0] : resultIndexes);
     } else {
       setFilters({ ...filters, chains: [...filters.chains, chainName] });
       const resultIndexes: number[] = [];
@@ -121,6 +121,11 @@ function MarketFiltersHeader({
           variant="outlined"
           sx={{
             width: '100%',
+            height: '2.75rem',
+            backgroundColor: palette.secondary.contrastText,
+            '&.MuiTextField-root': {
+              borderColor: `${alpha(palette.secondary.light, 0.5)}`,
+            },
             '& .MuiInputBase-input': {
               p: '0.75rem 1rem 0.75rem 2.5rem',
               fontSize: '0.875rem',
