@@ -5,13 +5,111 @@ import {
   FujiResultPromise,
   FujiResultSuccess,
 } from '@x-fuji/sdk';
-import { formatUnits } from 'ethers/lib/utils';
+import { BigNumber } from 'ethers';
 
 import { BALANCE_POLLING_INTERVAL } from '../constants';
 import { sdk } from '../services/sdk';
 import { onboard, useAuth } from '../store/auth.store';
 import { useBorrow } from '../store/borrow.store';
 import { AssetChange, AssetType } from './assets';
+import { chains } from './chains';
+import { safeBnToNumber } from './values';
+
+export type Balance = {
+  currency: Currency;
+  amount: number;
+  amountUsd?: number;
+};
+
+export const fetchXBalances = async (): Promise<Balance[] | undefined> => {
+  const address = useAuth.getState().address;
+  const currentChainId = useAuth.getState().chainId;
+  if (!address || !currentChainId) return;
+
+  const values: Balance[] = [];
+  const promises = chains.map(async (chain) => {
+    const currencies = sdk.getSupportedCurrencies(chain.chainId);
+    const balances = await sdk.getBalancesFor(
+      currencies,
+      Address.from(address),
+      chain.chainId
+    );
+    if (balances.success) {
+      balances.data.forEach((bn: BigNumber, i: number) => {
+        const currency = currencies[i];
+        // console.log(currency.symbol, console.log(bn.toString()));
+        const amount = safeBnToNumber(bn, currency.decimals);
+        const balance: Balance = {
+          currency,
+          amount,
+        };
+        values.push(balance);
+      });
+    }
+  });
+
+  await Promise.all(promises);
+
+  // Fetch USD prices for all currencies and multiply by the amount
+  const pricePromises = values.map((balance) =>
+    balance.currency
+      .getPriceUSD()
+      .then((result) =>
+        result.success ? result.data * balance.amount : undefined
+      )
+  );
+  const prices = await Promise.all(pricePromises);
+
+  // Create a new array of balances with their corresponding USD prices
+  const balancesWithPrices: Balance[] = values.map((balance, index) => ({
+    ...balance,
+    amountUsd: prices[index],
+  }));
+
+  // Sort the balances based on the USD prices and chainId
+  balancesWithPrices.sort((a, b) => {
+    // If both currencies are in the current chain
+    if (
+      a.currency.chainId === currentChainId &&
+      b.currency.chainId === currentChainId
+    ) {
+      // If one of the currencies is native, put it first
+      if (a.currency.isNative) {
+        return -1;
+      }
+      if (b.currency.isNative) {
+        return 1;
+      }
+      // If neither is native, sort by amountUsd
+      if (a.amountUsd === undefined) {
+        return 1;
+      }
+      if (b.amountUsd === undefined) {
+        return -1;
+      }
+      return b.amountUsd - a.amountUsd;
+    }
+
+    // If only one of the currencies is in the current chain, put it first
+    if (a.currency.chainId === currentChainId) {
+      return -1;
+    }
+    if (b.currency.chainId === currentChainId) {
+      return 1;
+    }
+
+    // If neither currency is in the current chain, sort by amountUsd
+    if (a.amountUsd === undefined) {
+      return 1;
+    }
+    if (b.amountUsd === undefined) {
+      return -1;
+    }
+    return b.amountUsd - a.amountUsd;
+  });
+
+  return balancesWithPrices;
+};
 
 export const fetchBalances = async (
   currencies: Currency[],
@@ -32,13 +130,7 @@ export const fetchBalances = async (
   const balances: Record<string, number> = {};
   rawBalances.forEach((b, i) => {
     const decimals = currencies[i].decimals;
-    // TODO: TEMP FIX when user hits the max button:
-    // Substract a small amount if decimals are 18
-    // because parseFloat rounds up at the 15th digit.
-    // https://stackoverflow.com/questions/7988827/parse-float-has-a-rounding-limit-how-can-i-fix-this
-    const dust = (10 ** 5).toString();
-    const toSub = decimals === 18 && b.gt(dust) ? dust : '0';
-    const value = parseFloat(formatUnits(b.sub(toSub), currencies[i].decimals));
+    const value = safeBnToNumber(b, decimals);
     balances[currencies[i].symbol] = value;
   });
   return new FujiResultSuccess(balances);

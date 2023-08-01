@@ -21,11 +21,7 @@ import { formatUnits, parseUnits } from 'ethers/lib/utils';
 import produce from 'immer';
 import { StoreApi as ZustandStoreApi } from 'zustand';
 
-import {
-  DEFAULT_LTV_MAX,
-  DEFAULT_LTV_THRESHOLD,
-  NOTIFICATION_MESSAGES,
-} from '../../constants';
+import { Ltv, NOTIFICATION_MESSAGES } from '../../constants';
 import {
   AllowanceStatus,
   AssetChange,
@@ -70,11 +66,11 @@ export const changeActiveVault = (
   const ltvMax =
     vault instanceof BorrowingVault && vault.maxLtv
       ? parseInt(formatUnits(vault.maxLtv, 16))
-      : DEFAULT_LTV_MAX;
+      : Ltv.MAX;
   const ltvThreshold =
     vault instanceof BorrowingVault && vault.liqRatio
       ? parseInt(formatUnits(vault.liqRatio, 16))
-      : DEFAULT_LTV_THRESHOLD;
+      : Ltv.THRESHOLD;
 
   api.setState(
     produce((state: AbstractState) => {

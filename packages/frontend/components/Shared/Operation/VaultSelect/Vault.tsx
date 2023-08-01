@@ -162,9 +162,13 @@ function Vault({
         )}
         {(!isMobile || type === VaultType.LEND) && (
           <TableCell align="right">
-            <Typography variant="small" color={palette.success.main}>
-              {data.activeProvider.depositAprBase?.toFixed(2)}%
-            </Typography>
+            <AprValue
+              base={data.activeProvider.depositAprBase ?? 0}
+              reward={data.activeProvider.depositAprReward}
+              positive={true}
+              providerName={data.activeProvider.name}
+              aprType={AprType.SUPPLY}
+            />
           </TableCell>
         )}
         {type === VaultType.BORROW && (

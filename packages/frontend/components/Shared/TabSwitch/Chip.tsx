@@ -1,10 +1,10 @@
 import { Box, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React from 'react';
+import React, { ReactNode } from 'react';
 
 type TabChipProps = {
   selected: boolean;
-  label: string;
+  label: string | ReactNode;
   onClick: () => void;
   size: 'large' | 'default';
 };
@@ -22,27 +22,33 @@ function Chip({ selected, label, onClick, size }: TabChipProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        p: '0.4rem 0.75rem',
       }}
       onClick={() => {
         onClick();
       }}
     >
-      <Typography
-        color={palette.text.primary}
-        fontSize={size === 'large' ? '1rem' : '0.875rem'}
-        lineHeight="100%"
-        textAlign="center"
-        sx={{
-          ['@media screen and (max-width: 980px)']: {
-            fontSize: '0.8rem',
-          },
-          ['@media screen and (max-width: 390px)']: {
-            fontSize: '0.7rem',
-          },
-        }}
-      >
-        {label}
-      </Typography>
+      {typeof label === 'string' ? (
+        <Typography
+          variant="small"
+          color={palette.text.primary}
+          fontSize={size === 'large' ? '1rem' : '0.875rem'}
+          lineHeight="120%"
+          textAlign="center"
+          sx={{
+            ['@media screen and (max-width: 980px)']: {
+              fontSize: '0.8rem',
+            },
+            ['@media screen and (max-width: 390px)']: {
+              fontSize: '0.7rem',
+            },
+          }}
+        >
+          {label}
+        </Typography>
+      ) : (
+        label
+      )}
     </Box>
   );
 }

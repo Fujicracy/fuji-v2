@@ -9,7 +9,7 @@ import walletConnectModule, {
 } from '@web3-onboard/walletconnect';
 import xdefiWalletModule from '@web3-onboard/xdefi';
 
-import { FUJI_INFO, fujiLogo } from '../constants';
+import { ASSET_WARNING_KEY, FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
 
 type OnboardStatus = {
@@ -60,7 +60,7 @@ export const web3onboard = Onboard({
   theme: 'dark',
 });
 
-export function acceptTermsOfUse() {
+export const acceptTermsOfUse = () => {
   const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
   const onboardStatus = JSON.parse(onboardStatusJson);
 
@@ -72,9 +72,9 @@ export function acceptTermsOfUse() {
     },
   });
   localStorage.setItem('termsAccepted', json);
-}
+};
 
-export function getOnboardStatus(): OnboardStatus {
+export const getOnboardStatus = (): OnboardStatus => {
   const onboardStatusJson = localStorage.getItem('termsAccepted');
   if (!onboardStatusJson) return { hasAcceptedTerms: false };
 
@@ -85,13 +85,22 @@ export function getOnboardStatus(): OnboardStatus {
     date: onboardStatus.date && new Date(onboardStatus.date),
     wasExploreInfoShown: onboardStatus.wasExploreInfoShown,
   };
-}
+};
 
-export function setExploreInfoShown(wasExploreInfoShown: boolean) {
+export const setExploreInfoShown = (wasExploreInfoShown: boolean) => {
   const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
 
   const onboardStatus = JSON.parse(onboardStatusJson);
 
   const json = JSON.stringify({ ...onboardStatus, wasExploreInfoShown });
   localStorage.setItem('termsAccepted', json);
-}
+};
+
+export const shouldShowBalanceWarning = (): boolean => {
+  const statusJson = localStorage.getItem(ASSET_WARNING_KEY);
+  return !statusJson || statusJson !== 'true';
+};
+
+export const setBalanceWarningShown = () => {
+  localStorage.setItem(ASSET_WARNING_KEY, 'true');
+};

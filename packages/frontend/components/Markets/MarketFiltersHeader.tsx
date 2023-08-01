@@ -1,10 +1,11 @@
-import { Box, Stack, TextField, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { Chain } from '@x-fuji/sdk';
+import { Box, Stack, TextField } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import Image from 'next/image';
-import React, { ReactNode, useMemo } from 'react';
+import React, { ReactNode, useMemo, useState } from 'react';
 
+import { TabOption } from '../../constants';
 import { chains } from '../../helpers/chains';
+import TabSwitch from '../Shared/TabSwitch/TabSwitch';
 import { TooltipWrapper } from '../Shared/Tooltips';
 
 export type MarketFilters = {
@@ -19,6 +20,7 @@ function MarketFiltersHeader({
   setFilters: (filters: MarketFilters) => void;
 }) {
   const { palette } = useTheme();
+  const [selectedChainIndexes, setSelectedChainIndexes] = useState([0]);
 
   const handleSearchChange = (event: React.FocusEvent<HTMLInputElement>) => {
     const enteredValue = event?.target?.value.trim();
@@ -26,67 +28,64 @@ function MarketFiltersHeader({
     setFilters({ ...filters, searchQuery: enteredValue });
   };
 
-  const handleChainChange = (chainName: string) => {
-    if (!chainName) {
+  const handleChainChange = (index: number) => {
+    const chainName = index > 0 ? chains[index - 1].name : '';
+    if (index === 0) {
       setFilters({ ...filters, chains: chains.map((c) => c.name) });
+      setSelectedChainIndexes([0]);
     } else if (filters.chains.length === chains.length) {
       setFilters({ ...filters, chains: [chainName] });
+      setSelectedChainIndexes([index]);
     } else if (filters.chains.includes(chainName)) {
       const filtered = filters.chains.filter((c) => c !== chainName);
       const result = filtered.length > 0 ? filtered : chains.map((c) => c.name);
       setFilters({ ...filters, chains: result });
+      const resultIndexes: number[] = [];
+      chains.forEach((chain, i) => {
+        filtered.includes(chain.name) && resultIndexes.push(i + 1);
+      });
+      setSelectedChainIndexes(filtered.length === 0 ? [0] : resultIndexes);
     } else {
       setFilters({ ...filters, chains: [...filters.chains, chainName] });
+      const resultIndexes: number[] = [];
+      chains.forEach((chain, i) => {
+        [...filters.chains, chainName].includes(chain.name) &&
+          resultIndexes.push(i + 1);
+      });
+      setSelectedChainIndexes(
+        resultIndexes.length === chains.length ? [0] : resultIndexes
+      );
     }
-  };
-
-  const ChainButton = ({
-    children,
-    chainName,
-    isSelected,
-  }: {
-    children: React.ReactNode;
-    chainName: string;
-    isSelected: boolean;
-  }) => {
-    return (
-      <Stack
-        data-cy="market-network-filter"
-        alignItems="center"
-        justifyContent="center"
-        sx={{
-          backgroundColor: palette.secondary.contrastText,
-          borderRadius: '0.5rem',
-          width: { xs: '2rem', sm: '2.75rem' },
-          height: { xs: '2rem', sm: '2.75rem' },
-          cursor: 'pointer',
-          border: `1px solid ${
-            isSelected ? palette.text.primary : 'transparent'
-          }`,
-        }}
-        onClick={() => handleChainChange(chainName)}
-      >
-        {children}
-      </Stack>
-    );
   };
 
   const images = useMemo(() => {
     const result: { [key: string]: ReactNode } = {};
     chains.forEach((chain) => {
       result[chain.name] = (
-        <Image
-          src={`/assets/images/protocol-icons/networks/${chain.name}.svg`}
-          height={18}
-          width={18}
-          alt={chain.name}
-          style={{ objectFit: 'cover' }}
-        />
+        <TooltipWrapper title={chain.name} placement="top" key={chain.chainId}>
+          <Image
+            src={`/assets/images/protocol-icons/networks/${chain.name}.svg`}
+            height={22}
+            width={22}
+            alt={chain.name}
+            style={{ objectFit: 'cover', marginBottom: '-4px' }}
+          />
+        </TooltipWrapper>
       );
     });
 
     return result;
   }, []);
+
+  const tabOptions = useMemo((): TabOption[] => {
+    return [
+      { value: 0, label: 'All' },
+      ...chains.map((chain, i) => ({
+        value: i + 1,
+        label: images[chain.name],
+      })),
+    ];
+  }, [images]);
 
   return (
     <Stack
@@ -96,33 +95,15 @@ function MarketFiltersHeader({
         alignItems: { xs: 'start', md: 'center' },
       }}
     >
-      <Stack direction="row" gap="0.5rem" alignItems="center" flexWrap="wrap">
-        <Typography variant="smallDark" color={palette.info.main} mr="0.75rem">
-          Filter Chains:
-        </Typography>
-        <ChainButton
-          chainName={''}
-          isSelected={filters.chains.length === chains.length}
-        >
-          <Typography variant="small">All</Typography>
-        </ChainButton>
-        {chains.map((chain: Chain) => (
-          <TooltipWrapper
-            title={chain.name}
-            placement="top"
-            key={chain.chainId}
-          >
-            <ChainButton
-              chainName={chain.name}
-              isSelected={
-                filters.chains.includes(chain.name) &&
-                filters.chains.length !== chains.length
-              }
-            >
-              {images[chain.name]}
-            </ChainButton>
-          </TooltipWrapper>
-        ))}
+      <Stack direction="row" gap="0.5rem" alignItems="center">
+        <TabSwitch
+          options={tabOptions}
+          selected={selectedChainIndexes}
+          onChange={handleChainChange}
+          size="large"
+          width="100%"
+          withBackground
+        />
       </Stack>
       <Box
         sx={{
@@ -140,6 +121,11 @@ function MarketFiltersHeader({
           variant="outlined"
           sx={{
             width: '100%',
+            height: '2.75rem',
+            backgroundColor: palette.secondary.contrastText,
+            '&.MuiTextField-root': {
+              borderColor: `${alpha(palette.secondary.light, 0.5)}`,
+            },
             '& .MuiInputBase-input': {
               p: '0.75rem 1rem 0.75rem 2.5rem',
               fontSize: '0.875rem',
