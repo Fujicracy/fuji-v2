@@ -6,8 +6,8 @@ import { devtools } from 'zustand/middleware';
 
 import { TRANSACTION_META_DEBOUNCE_INTERVAL } from '../constants';
 import { AssetType, FetchStatus, Mode } from '../helpers/assets';
-import { notify } from '../helpers/notifications';
 import { storeOptions } from '../helpers/stores';
+import { getVaultsWithFinancials } from '../helpers/vaults';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import {
@@ -164,19 +164,7 @@ export const useLend = create<LendStore>()(
           return;
         }
 
-        const llamaResult = await sdk.getLlamaFinancials(availableVaults);
-
-        if (!llamaResult.success) {
-          notify({
-            type: 'error',
-            message: llamaResult.error.message,
-          });
-        }
-
-        availableVaults =
-          llamaResult.success && llamaResult.data
-            ? llamaResult.data
-            : availableVaults;
+        availableVaults = await getVaultsWithFinancials(availableVaults);
 
         const activeVault =
           availableVaults.find((v) => v.vault.address.value === vaultAddress) ??

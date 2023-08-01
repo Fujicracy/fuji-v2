@@ -48,6 +48,7 @@ import {
   notify,
 } from '../../helpers/notifications';
 import { fetchRoutes, RouteMeta } from '../../helpers/routes';
+import { getVaultsWithFinancials } from '../../helpers/vaults';
 import { sdk } from '../../services/sdk';
 import { useAuth } from '../auth.store';
 import { useHistory } from '../history.store';
@@ -153,7 +154,8 @@ export const changeAll = async (
     api.setState({ availableVaultsStatus: FetchStatus.Error });
     return;
   }
-  const availableVaults = result.data;
+  const availableVaults = await getVaultsWithFinancials(result.data);
+
   api.setState({ availableVaults });
 
   const e = availableVaults.find((r) => r.vault.address === vault.address);

@@ -7,6 +7,7 @@ import { devtools } from 'zustand/middleware';
 import { TRANSACTION_META_DEBOUNCE_INTERVAL } from '../constants';
 import { AssetType, FetchStatus } from '../helpers/assets';
 import { storeOptions } from '../helpers/stores';
+import { getVaultsWithFinancials } from '../helpers/vaults';
 import { sdk } from '../services/sdk';
 import { useAuth } from './auth.store';
 import {
@@ -226,13 +227,14 @@ export const useBorrow = create<BorrowStore>()(
           return;
         }
 
-        const availableVaults = result.data;
-
+        let availableVaults = result.data;
         if (availableVaults.length === 0) {
           console.error('No available vault');
           set({ availableVaultsStatus: FetchStatus.Error });
           return;
         }
+
+        availableVaults = await getVaultsWithFinancials(availableVaults);
 
         const activeVault =
           availableVaults.find((v) => v.vault.address.value === vaultAddress) ??

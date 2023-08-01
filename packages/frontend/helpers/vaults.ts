@@ -11,8 +11,29 @@ import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
 import { useLend } from '../store/lend.store';
 import { chains } from './chains';
+import { notify } from './notifications';
 
 export type FinancialsOrError = VaultWithFinancials | FujiError;
+
+export const getVaultsWithFinancials = async (
+  availableVaults: VaultWithFinancials[]
+) => {
+  const llamaResult = await sdk.getLlamaFinancials(availableVaults);
+
+  if (!llamaResult.success) {
+    notify({
+      type: 'error',
+      message: llamaResult.error.message,
+    });
+  }
+
+  availableVaults =
+    llamaResult.success && llamaResult.data
+      ? llamaResult.data
+      : availableVaults;
+
+  return availableVaults;
+};
 
 export const getVaultFinancials = async (
   type: VaultType,
