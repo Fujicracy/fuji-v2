@@ -1021,6 +1021,8 @@ abstract contract BaseVault is ERC20, SystemAccessControl, PausableVault, VaultP
     //collect rewards from provider
     (tokens, amounts) = _harvest(provider, data);
 
+    //TODO create an abstract contract "Harvestable" that inherits "IHarvestable" that is inherited by a provider that is "harvestable".
+    //In there we can put repeated logic and checks, that we could offboard from the vault contracts.
     if (tokens.length != amounts.length) {
       revert BaseVault__harvest_invalidRewards();
     }
