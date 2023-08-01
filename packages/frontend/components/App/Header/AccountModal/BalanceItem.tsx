@@ -39,6 +39,7 @@ function BalanceItem({ balance }: BalanceItemProps) {
           direction="column"
           alignItems="flex-end"
           justifyContent="flex-end"
+          sx={{ flexGrow: 1, textAlign: 'right' }}
         >
           <Typography variant="small" fontWeight={500}>
             {formatAssetWithSymbol({
