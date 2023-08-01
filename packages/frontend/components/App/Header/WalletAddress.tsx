@@ -1,5 +1,4 @@
 import { Box, Chip, CircularProgress, Grid, Typography } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
 
 import { hiddenAddress } from '../../../helpers/values';
 import { useHistory } from '../../../store/history.store';
@@ -10,7 +9,6 @@ type BalanceAddonProps = {
   onClick: (element: EventTarget & HTMLSpanElement) => void;
 };
 function WalletAddress({ address, ens, onClick }: BalanceAddonProps) {
-  const { palette } = useTheme();
   const active = useHistory(
     (state) =>
       state.ongoingTransactions.filter((o) => o.address === address).length

@@ -1,4 +1,3 @@
-import { useTheme } from '@mui/material';
 import { SyntheticEvent, useState } from 'react';
 
 import { getProviderImage } from '../../../helpers/paths';
@@ -11,7 +10,6 @@ interface Props extends Icon {
 const defaultImage = '/assets/images/protocol-icons/providers/Aave%20V3.svg';
 
 function ProviderIcon(props: Props) {
-  const { palette } = useTheme();
   const { provider } = props;
   const path = getProviderImage(provider);
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>();

@@ -163,7 +163,6 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
           width: '100%',
           mt: '1rem',
           position: 'relative',
-          backgroundColor: '#191B1F',
           transition: 'all 500ms',
         }}
       >

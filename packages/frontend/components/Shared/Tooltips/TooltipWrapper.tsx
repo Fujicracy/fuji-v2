@@ -48,7 +48,7 @@ function TooltipWrapper({
   }, [defaultOpen]);
 
   return (
-    <div style={{ display: 'inline' }} onMouseOver={clearHideTimer}>
+    <div style={{ display: 'inline-block' }} onMouseOver={clearHideTimer}>
       <Tooltip
         title={title}
         placement={placement}
@@ -56,7 +56,7 @@ function TooltipWrapper({
         onOpen={() => setOpen(true)}
         open={open}
         arrow
-        sx={{ display: { xs: 'inline', sm: 'none' } }}
+        sx={{ display: { xs: 'inline-block', sm: 'none' } }}
       >
         <div>{children}</div>
       </Tooltip>
