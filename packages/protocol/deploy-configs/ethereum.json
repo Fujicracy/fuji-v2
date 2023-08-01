@@ -128,6 +128,12 @@
       "asset2": "USDC",
       "market": "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
       "name": "Compound_V3"
+    },
+    {
+      "asset1": "USDC",
+      "asset2": "ZERO",
+      "market": "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
+      "name": "Compound_V3"
     }
   ],
   "borrowing-vaults": [
@@ -170,10 +176,16 @@
   ],
   "yield-vaults": [
     {
+      "asset": "WETH",
+      "name": "YieldVault-WETH-1",
+      "providers": ["Aave_V3", "Aave_V2", "Compound_V3", "Compound_V2"],
+      "rating": 90
+    },
+    {
       "asset": "USDC",
       "name": "YieldVault-USDC-1",
-      "providers": ["Aave_V2", "Aave_V3", "Compound_V3", "Compound_V2"],
-      "rating": 95
+      "providers": ["Aave_V3", "Aave_V2", "Compound_V3"],
+      "rating": 90
     }
   ]
 }

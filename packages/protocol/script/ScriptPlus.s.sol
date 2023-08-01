@@ -289,7 +289,8 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     bytes memory data;
     for (uint256 i; i < len; i++) {
       asset1 = readAddrFromConfig(nested[i].asset1);
-      asset2 = readAddrFromConfig(nested[i].asset2);
+      // asset2 could be the zero address when getting mappings for yield vaults
+      asset2 = areEq(nested[i].asset2, "ZERO") ? address(0) : readAddrFromConfig(nested[i].asset2);
       market = nested[i].market;
       name = nested[i].name;
 
@@ -566,7 +567,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       for (uint256 i; i < len; i++) {
         address token = approvals[i];
         if (approvalsByToken[token] > 0) {
-          IERC20(asset).safeIncreaseAllowance(address(yieldFactory), approvalsByToken[token]);
+          IERC20(token).safeIncreaseAllowance(address(yieldFactory), approvalsByToken[token]);
           approvalsByToken[token] = 0;
         }
       }

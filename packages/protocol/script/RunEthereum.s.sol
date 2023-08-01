@@ -43,6 +43,10 @@ contract RunEthereum is ScriptPlus {
       setBorrowingVaults();
     }
 
+    if (chief.allowedVaultFactory(address(yieldFactory))) {
+      deployYieldVaults();
+    }
+
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
