@@ -184,7 +184,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     IERC20(collateralAsset).safeTransfer(address(vault), totalAmount - treasuryAmount);
     data = abi.encodeWithSelector(vault.deposit.selector, totalAmount - treasuryAmount, vault);
 
-    emit Harvest(address(vault), strategy, treasury, treasuryAmount);
+    emit Harvest(address(vault), strategy, totalAmount - treasuryAmount, treasury, treasuryAmount);
   }
 
   /**
@@ -239,7 +239,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     data = abi.encodeWithSelector(
       ILendingProvider(address(provider)).payback.selector, amountToRepay, vault
     );
-    emit Harvest(address(vault), strategy, treasury, totalAmount - amountToRepay);
+    emit Harvest(address(vault), strategy, amountToRepay, treasury, totalAmount - amountToRepay);
   }
 
   //TODO

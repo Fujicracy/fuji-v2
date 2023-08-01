@@ -40,11 +40,14 @@ interface IHarvestManager {
    *
    * @param vault that harvested rewards.
    * @param strategy enum of the strategy applied.
+   * @param vaultGain amount of gain received by the vault.
    * @param treasury address that received the protocol fee.
    * @param protocolFee amount of protocol fee received.
    *
    */
-  event Harvest(address vault, Strategy strategy, address treasury, uint256 protocolFee);
+  event Harvest(
+    address vault, Strategy strategy, uint256 vaultGain, address treasury, uint256 protocolFee
+  );
 
   /**
    * @notice Set `executor` as an authorized address for calling harvest operations
