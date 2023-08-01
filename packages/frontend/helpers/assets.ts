@@ -10,7 +10,7 @@ import {
 import {
   DEFAULT_CHAIN_ID,
   DUST_AMOUNT,
-  LTV_RECOMMENDED_DECREASE,
+  Ltv,
   NOTIFICATION_MESSAGES,
 } from '../constants';
 import { sdk } from '../services/sdk';
@@ -150,7 +150,7 @@ export const assetForData = (
 };
 
 export const recommendedLTV = (ltvMax: number): number => {
-  return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0;
+  return ltvMax > Ltv.DECREASE ? ltvMax - Ltv.DECREASE : 0;
 };
 
 export const needsAllowance = (

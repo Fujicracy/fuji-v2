@@ -77,7 +77,7 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
               {isLend ? 'Asset' : 'Borrow'}
             </SizableTableCell>
             {!isLend && (
-              <SizableTableCell align="left" width="120px">
+              <SizableTableCell align="left" width="160px">
                 Collateral
               </SizableTableCell>
             )}
@@ -85,7 +85,7 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
               Network
             </SizableTableCell>
             {!isLend && (
-              <SizableTableCell width="140px" align="right">
+              <SizableTableCell width="130px" align="right">
                 <Stack
                   direction="row"
                   spacing="0.25rem"
@@ -96,7 +96,7 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
                 </Stack>
               </SizableTableCell>
             )}
-            <SizableTableCell width="130px" align="right">
+            <SizableTableCell width="120px" align="right">
               {'Supply APY'}
             </SizableTableCell>
             <SizableTableCell align="right" width="130px">
@@ -105,7 +105,7 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
                 Protocols
               </Stack>
             </SizableTableCell>
-            <SizableTableCell width="140px">
+            <SizableTableCell width="130px">
               <Stack
                 direction="row"
                 alignItems="center"
@@ -117,7 +117,7 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
               </Stack>
             </SizableTableCell>
             {!isLend && (
-              <SizableTableCell width="140px" align="right">
+              <SizableTableCell width="130px" align="right">
                 Liquidity
               </SizableTableCell>
             )}

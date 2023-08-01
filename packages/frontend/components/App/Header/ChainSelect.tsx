@@ -1,5 +1,4 @@
 import CheckIcon from '@mui/icons-material/Check';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import {
   Chip,
@@ -8,7 +7,6 @@ import {
   Menu,
   MenuItem,
   Stack,
-  Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -18,6 +16,7 @@ import React from 'react';
 import { chainName, chains, isSupported } from '../../../helpers/chains';
 import { useAuth } from '../../../store/auth.store';
 import { NetworkIcon } from '../../Shared/Icons';
+import { TooltipWrapper } from '../../Shared/Tooltips';
 
 function ChainSelect() {
   const theme = useTheme();
@@ -41,39 +40,43 @@ function ChainSelect() {
     setAnchorEl(null);
   };
 
+  const hasSupportedNetwork = networkName && isSupported(chainId);
+
   return (
     <>
-      {networkName && isSupported(chainId) ? (
+      {/* {networkName && isSupported(chainId) ? ( */}
+      <TooltipWrapper
+        title={hasSupportedNetwork ? networkName : 'Switch network'}
+        placement="bottom"
+      >
         <Chip
-          data-cy="network-button"
+          data-cy={
+            hasSupportedNetwork
+              ? 'network-button'
+              : 'header-unsupported-network'
+          }
           label={
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <ListItem
-                chainName={networkName}
-                selected={false}
-                onMobile={onMobile}
-              />
-              {!onMobile && (
-                <KeyboardArrowDownIcon sx={{ ml: '0px !important' }} />
-              )}
-            </Stack>
+            hasSupportedNetwork ? (
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <ListItem
+                  chainName={networkName}
+                  selected={false}
+                  onMobile={onMobile}
+                  isOnlyIcon
+                />
+              </Stack>
+            ) : (
+              <WarningAmberIcon fontSize="small" sx={{ margin: '0 -0.2rem' }} />
+            )
           }
           onClick={openMenu}
-        />
-      ) : (
-        <Chip
-          data-cy="header-unsupported-network"
-          label={
-            <Stack direction="row" spacing={1} alignItems="center">
-              <WarningAmberIcon fontSize="inherit" sx={{ ml: '1px' }} />
-              <Typography fontSize="inherit">Switch network</Typography>
-              <KeyboardArrowDownIcon sx={{ ml: '0px !important' }} />
-            </Stack>
+          sx={
+            hasSupportedNetwork
+              ? { '.MuiChip-label': { padding: '0 0.5rem' } }
+              : {}
           }
-          onClick={openMenu}
-          color="error"
         />
-      )}
+      </TooltipWrapper>
       <Menu
         id="basic-menu"
         anchorEl={anchorEl}
@@ -109,10 +112,15 @@ type ListItemProps = {
   chainName: string;
   selected: boolean;
   onMobile: boolean;
+  isOnlyIcon?: boolean;
 };
 
-const ListItem = (props: ListItemProps) => {
-  const { chainName, selected, onMobile } = props;
+const ListItem = ({
+  chainName,
+  selected,
+  onMobile,
+  isOnlyIcon,
+}: ListItemProps) => {
   const { palette } = useTheme();
 
   return (
@@ -120,7 +128,7 @@ const ListItem = (props: ListItemProps) => {
       <ListItemIcon sx={{ minWidth: 'inherit' }}>
         <NetworkIcon network={chainName} height={20} width={20} />
       </ListItemIcon>
-      {!onMobile && (
+      {!onMobile && !isOnlyIcon && (
         <ListItemText
           data-cy="header-network"
           sx={{

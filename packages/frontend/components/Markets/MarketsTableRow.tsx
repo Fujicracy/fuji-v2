@@ -105,7 +105,7 @@ function MarketsTableRow({
             )}
         </SizableTableCell>
         {!isLend && (
-          <SizableTableCell width="120px">
+          <SizableTableCell width="160px">
             {row.collateral && isHighLevelRow && (
               <CurrencyTableItem
                 currency={row.collateral}
@@ -151,7 +151,7 @@ function MarketsTableRow({
           )}
         </SizableTableCell>
         {!isLend && (
-          <SizableTableCell align="right" width="140px">
+          <SizableTableCell align="right" width="130px">
             {!expandRow && loaderOrError(row.borrowApr.status)}
             {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
               <AprValue
@@ -166,7 +166,7 @@ function MarketsTableRow({
         )}
         <SizableTableCell
           align="right"
-          width="130px"
+          width="120px"
           sx={{ color: palette.success.main }}
         >
           {!expandRow && loaderOrError(row.depositApr.status)}
@@ -186,7 +186,7 @@ function MarketsTableRow({
             <IntegratedProviders providers={row.integratedProviders} />
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
+        <SizableTableCell align="right" width="130px">
           {!expandRow && (
             <>
               {loaderOrError(row.safetyRating.status)}
@@ -197,7 +197,7 @@ function MarketsTableRow({
           )}
         </SizableTableCell>
         {!isLend && (
-          <SizableTableCell align="right" width="140px">
+          <SizableTableCell align="right" width="130px">
             {!expandRow && loaderOrError(row.liquidity.status)}
             {row.liquidity.status === MarketRowStatus.Ready &&
               !expandRow &&

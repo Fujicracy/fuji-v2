@@ -21,13 +21,13 @@ function Lending({ positionData }: LendingProps) {
       <BackToList type={VaultType.LEND} isEditing={isEditing} />
 
       <Grid container wrap="wrap" alignItems="flex-start" spacing={3}>
-        <Grid item xs={12} md={7.5} order={{ xs: 2, md: 1 }}>
+        <Grid item xs={12} md={7.1} order={{ xs: 2, md: 1 }}>
           <LendingDetails isEditing={isEditing} positionData={positionData} />
         </Grid>
         <Grid
           item
           xs={12}
-          md={4.5}
+          md={4.9}
           order={{ xs: 1, md: 2 }}
           mt={{ xs: 0, md: !isEditing ? '2.6rem' : 0 }}
         >

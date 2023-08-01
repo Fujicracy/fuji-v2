@@ -6,6 +6,7 @@ import { AssetType } from '../helpers/assets';
 import { shouldShowStoreNotification } from '../helpers/navigation';
 import { showOnchainErrorNotification } from '../helpers/notifications';
 import {
+  borrowingPositionsAtRisk,
   getAccrual,
   getCurrentAvailableBorrowingPower,
   getPositionsWithBalance,
@@ -16,6 +17,7 @@ import { useAuth } from './auth.store';
 import { BorrowingPosition, Position } from './models/Position';
 
 type PositionsState = {
+  positionsAtRisk: BorrowingPosition[];
   borrowPositions: BorrowingPosition[];
   lendingPositions: Position[];
   totalDepositsUSD?: number;
@@ -23,6 +25,7 @@ type PositionsState = {
   totalAPY?: number;
   availableBorrowPowerUSD?: number;
   loading: boolean;
+  started: boolean;
 };
 
 type PositionsActions = {
@@ -31,9 +34,11 @@ type PositionsActions = {
 };
 
 const initialState: PositionsState = {
+  positionsAtRisk: [],
   borrowPositions: [],
   lendingPositions: [],
   loading: false,
+  started: false,
 };
 
 type PositionsStore = PositionsState & PositionsActions;
@@ -110,8 +115,11 @@ export const usePositions = create<PositionsStore>()(
         const availableBorrowPowerUSD =
           getCurrentAvailableBorrowingPower(borrowPositions);
 
+        const positionsAtRisk = borrowingPositionsAtRisk(borrowPositions);
+
         set(() => {
           return {
+            positionsAtRisk,
             borrowPositions,
             lendingPositions,
             totalDepositsUSD,
@@ -119,6 +127,7 @@ export const usePositions = create<PositionsStore>()(
             totalAPY: parseFloat(totalAPY.toFixed(2)),
             availableBorrowPowerUSD,
             loading: false,
+            started: true,
           };
         });
       },

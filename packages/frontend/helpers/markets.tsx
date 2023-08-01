@@ -148,7 +148,7 @@ const groupByPair = (rows: MarketRow[], type: VaultType): MarketRow[] => {
     if (entries.length > 1) {
       const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
       const sorted = entries.sort(
-        isLend ? sortBy.ascending : sortBy.descending
+        isLend ? sortBy.descending : sortBy.ascending
       );
       const children = groupByChain(
         sorted.map((r) => ({
@@ -179,7 +179,9 @@ const groupByChain = (rows: MarketRow[], type: VaultType): MarketRow[] => {
     const entries = rows.filter((r) => r.chain.value === row.chain.value);
     if (entries.length > 1) {
       const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
-      const sorted = entries.sort(sortBy.descending);
+      const sorted = entries.sort(
+        isLend ? sortBy.descending : sortBy.ascending
+      );
 
       const children = sorted.map((r) => ({
         ...r,
@@ -196,12 +198,12 @@ const groupByChain = (rows: MarketRow[], type: VaultType): MarketRow[] => {
 
 const sortByBorrowAPR: Record<SortBy, CompareFn> = {
   ascending: (a, b) =>
-    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) <
+    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) >
     b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
       ? 1
       : -1,
   descending: (a, b) =>
-    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) >
+    a.borrowAprBase.value - (Number(a.borrowAprReward.value) || 0) <
     b.borrowAprBase.value - (Number(b.borrowAprReward.value) || 0)
       ? 1
       : -1,
@@ -209,12 +211,12 @@ const sortByBorrowAPR: Record<SortBy, CompareFn> = {
 
 const sortByLendAPY: Record<SortBy, CompareFn> = {
   ascending: (a, b) =>
-    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) <
+    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) >
     b.depositAprBase.value + (Number(b.depositAprReward.value) || 0)
       ? 1
       : -1,
   descending: (a, b) =>
-    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) >
+    a.depositAprBase.value + (Number(a.depositAprReward.value) || 0) <
     b.depositAprBase.value + (Number(b.depositAprReward.value) || 0)
       ? 1
       : -1,
@@ -419,7 +421,9 @@ const setBest = (rows: MarketRow[], type: VaultType): MarketRow[] => {
     );
     if (entries.length > 1) {
       const sortBy = isLend ? sortByLendAPY : sortByBorrowAPR;
-      const sorted = entries.sort(sortBy.descending);
+      const sorted = entries.sort(
+        isLend ? sortBy.descending : sortBy.ascending
+      );
       const children = groupByChain(sorted, type);
       children[0].isBest = true;
       if (children[0].children) {
