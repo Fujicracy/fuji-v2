@@ -229,6 +229,15 @@ contract VaultHarvestUnitTests is MockingSetup, MockRoutines {
     executionCall = abi.encodeWithSelector(chief.allowSwapper.selector, address(swapper), true);
     _callWithTimelock(address(chief), executionCall);
 
+    executionCall = abi.encodeWithSelector(chief.setVaultStatus.selector, yvault, true);
+    _callWithTimelock(address(chief), executionCall);
+
+    executionCall = abi.encodeWithSelector(chief.setVaultStatus.selector, bvault2, true);
+    _callWithTimelock(address(chief), executionCall);
+
+    executionCall = abi.encodeWithSelector(chief.setVaultStatus.selector, bvault, true);
+    _callWithTimelock(address(chief), executionCall);
+
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, ALICE);
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, BOB);
     do_depositAndBorrow(DEPOSIT_AMOUNT, BORROW_AMOUNT, bvault, CHARLIE);

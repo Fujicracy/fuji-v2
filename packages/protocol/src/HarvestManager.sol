@@ -103,6 +103,10 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
       revert HarvestManager__harvest_notValidSwapper();
     }
 
+    if (!chief.isVaultActive(address(vault))) {
+      revert HarvestManager__harvest_vaultNotAllowed();
+    }
+
     if (currentVaultHarvest != address(0)) {
       revert HarvestManager__harvest_harvestAlreadyInProgress();
     }
