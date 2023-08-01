@@ -7,7 +7,8 @@ export const CHAIN: Record<ChainId, Chain> = {
   [ChainId.ETHEREUM]: new Chain(
     ChainId.ETHEREUM,
     ChainType.MAINNET,
-    ConnextDomain.ETHEREUM
+    ConnextDomain.ETHEREUM,
+    true
   ),
   [ChainId.GOERLI]: new Chain(
     ChainId.GOERLI,

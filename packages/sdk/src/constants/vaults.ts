@@ -6,7 +6,36 @@ import { ChainVaultList } from '../types';
 import { DAI, MATICX, USDC, USDT, WETH9, WSTETH } from './tokens';
 
 export const VAULT_LIST: ChainVaultList = {
-  [ChainId.ETHEREUM]: [],
+  [ChainId.ETHEREUM]: [
+    new LendingVault(
+      Address.from('0x47949980636697AeBF93111097DB2537E8eB317f'),
+      WETH9[ChainId.ETHEREUM]
+    ),
+    new LendingVault(
+      Address.from('0x22B6251935dA74a69b63A52d993924904559B76a'),
+      USDC[ChainId.ETHEREUM]
+    ),
+    new BorrowingVault(
+      Address.from('0xf58456695406E04E748010c065A5F5861665B6a9'),
+      WETH9[ChainId.ETHEREUM],
+      USDC[ChainId.ETHEREUM]
+    ),
+    new BorrowingVault(
+      Address.from('0x26cb668F87Fff93F2c3F1865124D51DD900a77E3'),
+      WETH9[ChainId.ETHEREUM],
+      USDC[ChainId.ETHEREUM]
+    ),
+    //new BorrowingVault(
+    //Address.from('0xC5A93F0EEaB26ef8f6bE7D35451E2f4B55Dfd25d'),
+    //WETH9[ChainId.ETHEREUM],
+    //USDC[ChainId.ETHEREUM]
+    //),
+    new BorrowingVault(
+      Address.from('0xf7a7cf71d9986f7fcBC2A71eE6bcF271ACb3DC7A'),
+      WSTETH[ChainId.ETHEREUM],
+      USDC[ChainId.ETHEREUM]
+    ),
+  ],
   [ChainId.GOERLI]: [
     new BorrowingVault(
       Address.from('0xD08b093b4804DEC9af22f70Bc35E8e132106B5C2'),

@@ -41,8 +41,10 @@ export const WNATIVE_ADDRESS: AddressMap = {
 };
 
 export const WSTETH_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(AddressZero),
-  [ChainId.MATIC]: Address.from(AddressZero),
+  [ChainId.ETHEREUM]: Address.from(
+    '0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'
+  ),
+  [ChainId.MATIC]: Address.from('0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD'),
   [ChainId.FANTOM]: Address.from(AddressZero),
   [ChainId.ARBITRUM]: Address.from(
     '0x5979D7b546E38E414F7E9822514be443A4800529'
@@ -53,7 +55,7 @@ export const WSTETH_ADDRESS: AddressMap = {
   [ChainId.GOERLI]: Address.from(AddressZero),
   [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
   [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
-  [ChainId.GNOSIS]: Address.from(AddressZero),
+  [ChainId.GNOSIS]: Address.from('0x6C76971f98945AE98dD7d4DFcA8711ebea946eA6'),
 };
 
 export const DAI_ADDRESS: AddressMap = {
@@ -123,7 +125,9 @@ export const USDT_ADDRESS: AddressMap = {
 };
 
 export const FUJI_ORACLE_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(AddressZero),
+  [ChainId.ETHEREUM]: Address.from(
+    '0x52b23b09fF03669fbD2203902d83F4c4d2DEe0D4'
+  ),
   [ChainId.ARBITRUM]: Address.from(
     '0x527B279fe61E459e0c0a0a1bb9De08a49Cdc689a'
   ),
@@ -143,7 +147,9 @@ export const FUJI_ORACLE_ADDRESS: AddressMap = {
 };
 
 export const CHIEF_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(AddressZero),
+  [ChainId.ETHEREUM]: Address.from(
+    '0x88ed3B8D03e5a70Bf23286872b24cFFd76e91922'
+  ),
   [ChainId.ARBITRUM]: Address.from(
     '0x31F6556A61637839aA8bC3b55d8DBefd9DB8865c'
   ),
@@ -163,7 +169,9 @@ export const CHIEF_ADDRESS: AddressMap = {
 };
 
 export const CONNEXT_ROUTER_ADDRESS: AddressMap = {
-  [ChainId.ETHEREUM]: Address.from(AddressZero),
+  [ChainId.ETHEREUM]: Address.from(
+    '0x308C2cDaC8Cd08E17123d3aaB28ADE74B16751cF'
+  ),
   [ChainId.ARBITRUM]: Address.from(
     '0x78acd2B9cE252cfB00F895b2A16D93CE94d02A11'
   ),

@@ -5,7 +5,36 @@ export const LENDING_PROVIDERS: Record<
   ChainId,
   { [address: string]: LendingProviderBase }
 > = {
-  [ChainId.ETHEREUM]: {},
+  [ChainId.ETHEREUM]: {
+    '0x63d20C47901f6CAe61aA3c19a21ED5f08F8c5112': {
+      name: 'Aave V2',
+      llamaKey: 'aave-v2',
+    },
+    '0x62a790A77df54Cc75C899a3b27D118958c279A37': {
+      name: 'Aave V3',
+      llamaKey: 'aave-v3',
+    },
+    '0x9a24dfDad9cE5B709E4BeEfD8Af72c5B339452Ac': {
+      name: 'Compound V2',
+      llamaKey: 'compound',
+    },
+    '0xfCeb53C781df5451dbfFc4C8E3A95bF289E2Bdb3': {
+      name: 'Compound V3',
+      llamaKey: 'compound-v3',
+    },
+    '0x77F535F7B2785FE0fD310dD97d30C5A4E020019A': {
+      name: 'dForce',
+      llamaKey: 'dforce',
+    },
+    '0x314Cfa1BA6E88B2B2118eD0bECD30D040dA232bf': {
+      name: 'Morpho Aave V2',
+      llamaKey: 'morpho-aave',
+    },
+    '0x9DE0CE8Aaa2772f9DB00D223ce9CA17fc430943B': {
+      name: 'Morpho Compound',
+      llamaKey: 'morpho-compound',
+    },
+  },
   [ChainId.GOERLI]: {
     '0xbE55f76cC3f4409C320c8F8D5AF1220c914F7B54': {
       name: 'Aave V2',

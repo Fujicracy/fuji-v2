@@ -10,6 +10,7 @@ import {
   USDT_ADDRESS,
   WETH9_ADDRESS,
   WNATIVE_ADDRESS,
+  WSTETH_ADDRESS,
 } from './addresses';
 
 export const USDC: TokenMap = {
@@ -287,63 +288,63 @@ export const MATICX = new Token(
 export const WSTETH: TokenMap = {
   [ChainId.ETHEREUM]: new Token(
     ChainId.ETHEREUM,
-    Address.from('0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0'),
+    WSTETH_ADDRESS[ChainId.ETHEREUM],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
   ),
   [ChainId.GOERLI]: new Token(
     ChainId.GOERLI,
-    Address.from(AddressZero),
+    WSTETH_ADDRESS[ChainId.GOERLI],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
   ),
   [ChainId.ARBITRUM]: new Token(
     ChainId.ARBITRUM,
-    Address.from('0x5979D7b546E38E414F7E9822514be443A4800529'),
+    WSTETH_ADDRESS[ChainId.ARBITRUM],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
   ),
   [ChainId.OPTIMISM]: new Token(
     ChainId.OPTIMISM,
-    Address.from('0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb'),
+    WSTETH_ADDRESS[ChainId.OPTIMISM],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
   ),
   [ChainId.OPTIMISM_GOERLI]: new Token(
     ChainId.OPTIMISM_GOERLI,
-    Address.from('0x5979D7b546E38E414F7E9822514be443A4800529'),
+    WSTETH_ADDRESS[ChainId.OPTIMISM_GOERLI],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
   ),
   [ChainId.FANTOM]: new Token(
     ChainId.FANTOM,
-    Address.from(AddressZero),
+    WSTETH_ADDRESS[ChainId.FANTOM],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
   ),
   [ChainId.MATIC]: new Token(
     ChainId.MATIC,
-    Address.from('0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD'),
+    WSTETH_ADDRESS[ChainId.MATIC],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
   ),
   [ChainId.MATIC_MUMBAI]: new Token(
     ChainId.MATIC_MUMBAI,
-    Address.from(AddressZero),
+    WSTETH_ADDRESS[ChainId.MATIC_MUMBAI],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
   ),
   [ChainId.GNOSIS]: new Token(
     ChainId.GNOSIS,
-    Address.from('0x6C76971f98945AE98dD7d4DFcA8711ebea946eA6'),
+    WSTETH_ADDRESS[ChainId.GNOSIS],
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
