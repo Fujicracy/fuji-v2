@@ -891,6 +891,7 @@ abstract contract BaseVaultUpgradeable is
     hasRole(msg.sender, HARVESTER_ROLE)
     returns (address[] memory tokens, uint256[] memory amounts)
   {
+    //TODO maybe move this verification to the HarvestManager
     //check strategy is valid for this vault
     if (strategy == Strategy.RepayDebt) {
       revert BaseVault__harvest_strategyNotImplemented();
