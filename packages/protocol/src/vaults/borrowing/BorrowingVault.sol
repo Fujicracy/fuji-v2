@@ -36,7 +36,6 @@ import {ISwapper} from "../../interfaces/ISwapper.sol";
 contract BorrowingVault is BaseVault {
   using Math for uint256;
   using SafeERC20 for IERC20Metadata;
-  using SafeERC20 for IERC20;
 
   /**
    * @dev Emitted when a user is liquidated.
@@ -1018,7 +1017,7 @@ contract BorrowingVault is BaseVault {
 
     for (uint256 i = 0; i < tokens.length; i++) {
       //transfer rewards to recipient
-      IERC20(tokens[i]).safeIncreaseAllowance(msg.sender, amounts[i]);
+      IERC20Metadata(tokens[i]).safeIncreaseAllowance(msg.sender, amounts[i]);
     }
 
     bytes memory callData = IHarvestManager(msg.sender).completeHarvest(
