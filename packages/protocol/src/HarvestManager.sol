@@ -167,7 +167,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     internal
     returns (bytes memory data)
   {
-    uint256 totalAmount = 0;
+    uint256 totalAmount;
     address collateralAsset = vault.asset();
     for (uint256 i = 0; i < tokens.length; i++) {
       IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
@@ -210,7 +210,7 @@ contract HarvestManager is IHarvestManager, SystemAccessControl {
     address debtAsset = BorrowingVault(payable(address(vault))).debtAsset();
     uint256 providerDebt =
       ILendingProvider(address(provider)).getBorrowBalance(address(vault), vault);
-    uint256 totalAmount = 0;
+    uint256 totalAmount;
     for (uint256 i = 0; i < tokens.length; i++) {
       IERC20(tokens[i]).safeTransferFrom(address(vault), address(this), amounts[i]);
       if (tokens[i] == debtAsset) {
