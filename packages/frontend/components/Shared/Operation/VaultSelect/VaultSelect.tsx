@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { VaultType } from '@x-fuji/sdk';
+import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../../../store/borrow.store';
@@ -26,6 +27,7 @@ import Vault from './Vault';
 
 function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   const { breakpoints, palette } = useTheme();
+  const router = useRouter();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
   const [isUnFolded, setUnFolded] = useState(false);
@@ -107,11 +109,10 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     setIsLoading(true);
     setSelectedRoute(0);
     setOpenedRoute(null);
-  }, [collateral.chainId, debt?.chainId]);
+  }, [collateral.chainId, debt?.chainId, router.pathname]);
 
   useEffect(() => {
     if (availableVaults.length === 0) return;
-    setIsLoading(true);
     let selected = 0;
     if (!override) {
       for (let i = 0; i < availableVaults.length; i++) {
@@ -124,11 +125,13 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     }
 
     didSelectRoute(selected);
-    setIsLoading(false);
   }, [override, activeVault, availableVaults, didSelectRoute]);
 
   useEffect(() => {
-    setIsLoading(false);
+    // We do this because we already have availableRoutes and it is changing and no ways to track it
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
   }, [availableRoutes]);
 
   return (
