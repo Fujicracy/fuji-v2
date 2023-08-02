@@ -1,12 +1,12 @@
 import { Stack } from '@mui/material';
-import { Currency } from '@x-fuji/sdk';
+import { ChainId, Currency } from '@x-fuji/sdk';
 
 import CurrencyIcon from './CurrencyIcon';
 import NetworkIcon from './NetworkIcon';
 
 type CurrencyWithNetworkIconProps = {
   currency: Currency | string;
-  network: string;
+  network: ChainId | string;
   innerTop: string;
 };
 

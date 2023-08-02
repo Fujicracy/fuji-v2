@@ -1,7 +1,10 @@
 import {
+  AbstractVault,
   BorrowingVault,
   ChainId,
   Currency,
+  LendingVault,
+  VaultType,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 import { NextRouter } from 'next/router';
@@ -14,10 +17,17 @@ import {
 } from '../constants';
 import { sdk } from '../services/sdk';
 import { useBorrow } from '../store/borrow.store';
+import { useLend } from '../store/lend.store';
 import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
 import { isSupported } from './chains';
-import { vaultFromEntity } from './markets';
+import { vaultFromEntity } from './vaults';
+
+export type OperationPageNavigation = {
+  shouldReset: boolean;
+  willLoad: boolean;
+  lock: boolean;
+};
 
 type Page = {
   title: string;
@@ -39,31 +49,61 @@ export const myPositionPage: Page = {
 export const isTopLevelUrl = (url: string) =>
   topLevelPages.some((p) => p.path === url);
 
-export const showPosition = async (
-  router: NextRouter,
-  reset = true,
-  entity?: BorrowingVault | VaultWithFinancials,
+const updateLendingStoreBeforeNavigation = (vault: LendingVault) => {
+  useLend.getState().changeAll(vault, vault.collateral);
+};
+
+const updateBorrowingStoreBeforeNavigation = (
+  vault: BorrowingVault,
+  reset: boolean,
   walletChainId?: ChainId
 ) => {
-  const vault = vaultFromEntity(entity);
-  if (!vault) return;
-
   const changeAll = useBorrow.getState().changeAll;
   if (walletChainId && isSupported(walletChainId)) {
-    const collaterals = sdk.getCollateralForChain(walletChainId);
+    const collaterals = sdk.getCollateralForChain(
+      walletChainId,
+      VaultType.BORROW
+    );
     const collateralCurrency = collaterals.find(
       (t: Currency) => t.symbol === vault.collateral.symbol
     );
-    changeAll(collateralCurrency ?? vault.collateral, vault.debt, vault);
+    changeAll(vault, collateralCurrency ?? vault.collateral, vault.debt);
   } else {
-    changeAll(vault.collateral, vault.debt, vault);
+    changeAll(vault, vault.collateral, vault.debt);
   }
 
   if (reset) {
-    useBorrow.getState().changeInputValues('', '');
+    useBorrow.getState().clearInputValues();
+  }
+};
+
+export const showPosition = async (
+  type: VaultType,
+  router: NextRouter,
+  reset = true,
+  entity?: AbstractVault | VaultWithFinancials,
+  walletChainId?: ChainId
+) => {
+  const vault = vaultFromEntity(entity);
+  if (
+    !vault
+    // TODO: reverse comment when we will have real vaults
+    // ||
+    // (vault instanceof BorrowingVault && type === VaultType.LEND) ||
+    // (vault instanceof LendingVault && type === VaultType.BORROW)
+  )
+    return;
+
+  if (vault instanceof BorrowingVault) {
+    updateBorrowingStoreBeforeNavigation(vault, reset, walletChainId);
+  } else if (vault instanceof LendingVault) {
+    updateLendingStoreBeforeNavigation(vault);
   }
 
-  const positions = usePositions.getState().positions;
+  const positions =
+    type === VaultType.BORROW
+      ? usePositions.getState().borrowPositions
+      : usePositions.getState().lendingPositions;
   if (
     positions?.some(
       (p) =>
@@ -71,29 +111,30 @@ export const showPosition = async (
         p.vault?.chainId === vault.chainId
     )
   ) {
-    router.push(`${PATH.MY_POSITIONS}/${vault.address.value}-${vault.chainId}`);
+    router.push(
+      `${PATH.MY_POSITIONS}/${type === VaultType.BORROW ? 'borrow' : 'lend'}&${
+        vault.address.value
+      }-${vault.chainId}`
+    );
   } else {
-    showBorrow(router, false);
+    showOperationPage(type, router, false);
   }
 };
 
+export const pathForVaultType = (type: VaultType) =>
+  type === VaultType.BORROW ? PATH.BORROW : PATH.LEND;
+
+export const showLend = async (router: NextRouter, override = true) => {
+  showOperationPage(VaultType.LEND, router, override);
+};
+
 export const showBorrow = async (router: NextRouter, override = true) => {
-  // I'm not exactly thrilled about this solution, but it works for now
-  useNavigation
-    .getState()
-    .changeBorrowPageShouldReset(override, !override ? true : undefined);
-  router.push(PATH.BORROW);
+  showOperationPage(VaultType.BORROW, router, override);
 };
 
 export const shouldShowStoreNotification = (type: 'markets' | 'positions') =>
   useNavigation.getState().currentPath ===
   (type === 'markets' ? PATH.MARKETS : PATH.MARKETS);
-
-export type BorrowPageNavigation = {
-  shouldReset: boolean;
-  willLoad: boolean;
-  lock: boolean;
-};
 
 export const navigationalTaskDelay = (func: () => void) => {
   setTimeout(func, NAVIGATION_TASK_DELAY);
@@ -109,6 +150,17 @@ export const navigationalRunAndResetWithDelay = (
       callback(false);
     }, NAVIGATION_TASK_DELAY * 2);
   }
+};
+
+const showOperationPage = (
+  type: VaultType,
+  router: NextRouter,
+  override: boolean
+) => {
+  useNavigation
+    .getState()
+    .changePageShouldReset(type, override, !override ? true : undefined);
+  router.push(pathForVaultType(type));
 };
 
 export const HELPER_LINKS: HelperLink[] = [

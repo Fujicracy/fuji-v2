@@ -230,13 +230,19 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
 
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
+    uint256 aliceShares = vault.balanceOf(ALICE);
     uint256 maxWithdrawable = vault.maxWithdraw(ALICE);
+    uint256 maxRedeemable = vault.maxRedeem(ALICE);
 
     vm.prank(ALICE);
     vault.withdraw(type(uint256).max, ALICE, ALICE);
 
+    uint256 aliceSharesAfter = vault.balanceOf(ALICE);
+
     // Assert user received exactly the maxWithdrawable amount
     assertEq(IERC20(vault.asset()).balanceOf(ALICE), maxWithdrawable);
+    // Assert user has remainder shares after maxWithdrawable amount
+    assertEq(aliceSharesAfter, aliceShares - maxRedeemable);
   }
 
   function test_redeemwMaxWithoutRepay(uint96 amount, uint96 borrowAmount) public {
@@ -247,13 +253,18 @@ contract VaultUnitTests is MockingSetup, MockRoutines {
     do_depositAndBorrow(amount, borrowAmount, vault, ALICE);
 
     uint256 aliceShares = vault.balanceOf(ALICE);
+    uint256 maxWithdrawable = vault.maxWithdraw(ALICE);
     uint256 maxRedeemable = vault.maxRedeem(ALICE);
 
     vm.prank(ALICE);
     vault.redeem(type(uint256).max, ALICE, ALICE);
 
+    uint256 aliceSharesAfter = vault.balanceOf(ALICE);
+
+    // Assert user received exactly the maxWithdrawable amount
+    assertEq(IERC20(vault.asset()).balanceOf(ALICE), maxWithdrawable);
     // Assert user has remainder shares after maxRedeemable amount
-    assertEq(vault.balanceOf(ALICE), aliceShares - maxRedeemable);
+    assertEq(aliceSharesAfter, aliceShares - maxRedeemable);
   }
 
   function test_tryTransferWithoutRepay(uint96 amount, uint96 borrowAmount) public {

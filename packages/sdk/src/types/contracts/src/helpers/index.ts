@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export type { AddrMapper } from "./AddrMapper";
+export type { ChainlinkComputedFeed } from "./ChainlinkComputedFeed";
 export type { ProxyReceiver } from "./ProxyReceiver";

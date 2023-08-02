@@ -1,4 +1,11 @@
-import { ChainId, RoutingStep, RoutingStepDetails } from '@x-fuji/sdk';
+import {
+  BorrowingVault,
+  ChainId,
+  LendingVault,
+  RoutingStep,
+  RoutingStepDetails,
+  VaultType,
+} from '@x-fuji/sdk';
 import { BigNumber } from 'ethers';
 
 import { useBorrow } from '../store/borrow.store';
@@ -28,14 +35,14 @@ export type SerializableToken = {
   isNative: boolean;
 };
 
-export type HistoryEntryChain = {
+type HistoryEntryChain = {
   chainId: ChainId;
   status: HistoryEntryStatus;
   hash?: string;
   shown?: boolean; // If the user reloads the page while executing a cross-chain tx, without this prop we show the initial notification again
 };
 
-export type HistoryEntryConnext = {
+type HistoryEntryConnext = {
   transferId: string;
   timestamp: number;
   secondTransferId?: string;
@@ -43,6 +50,7 @@ export type HistoryEntryConnext = {
 };
 
 export type HistoryEntry = {
+  type?: VaultType; // Default to borrow
   hash: string;
   address: string;
   steps: HistoryRoutingStep[];
@@ -55,6 +63,7 @@ export type HistoryEntry = {
   secondChain?: HistoryEntryChain;
   thirdChain?: HistoryEntryChain;
   error?: string;
+  timestamp?: string | Date;
 };
 
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
@@ -142,6 +151,23 @@ export const stepForFinishing = (entry: HistoryEntry) => {
     return chainCompleted(entry.sourceChain) ? 1 : 0;
   }
   return 0;
+};
+
+export const isVaultTheCurrentPosition = (
+  entry: HistoryEntry,
+  borrowActiveVault: BorrowingVault | undefined,
+  lendingActiveVault: LendingVault | undefined
+): boolean => {
+  const isCurrentPosition =
+    entry.vaultChainId !== undefined
+      ? (borrowActiveVault?.address.value === entry.vaultAddress &&
+          borrowActiveVault?.chainId === entry.vaultChainId) ||
+        (lendingActiveVault?.address.value === entry.vaultAddress &&
+          lendingActiveVault?.chainId === entry.vaultChainId)
+      : borrowActiveVault?.address.value === entry.vaultAddress ||
+        lendingActiveVault?.address.value === entry.vaultAddress;
+
+  return isCurrentPosition;
 };
 
 const connextLinkify = (id: string) => `https://amarok.connextscan.io/tx/${id}`;

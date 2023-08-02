@@ -4,22 +4,32 @@ import {
   FujiResultPromise,
   FujiResultSuccess,
   OperationType,
+  VaultType,
 } from '@x-fuji/sdk';
 
 import {
   DEFAULT_CHAIN_ID,
   DUST_AMOUNT,
-  LTV_RECOMMENDED_DECREASE,
+  Ltv,
   NOTIFICATION_MESSAGES,
 } from '../constants';
 import { sdk } from '../services/sdk';
 import { AssetMeta } from '../store/models/Position';
 import { notify } from './notifications';
-import { BasePosition } from './positions';
-import { fetchRoutes } from './routing';
+import { PositionData } from './positions';
+import { fetchRoutes } from './routes';
 
 const defaultDebtCurrencies = sdk.getDebtForChain(DEFAULT_CHAIN_ID);
 const defaultCollateralCurrencies = sdk.getCollateralForChain(DEFAULT_CHAIN_ID);
+const defaultSupplyCurrencies = sdk.getCollateralForChain(
+  DEFAULT_CHAIN_ID,
+  VaultType.LEND
+);
+
+export enum AprType {
+  BORROW,
+  SUPPLY,
+}
 
 export enum Mode {
   DEPOSIT_AND_BORROW, // addPosition: both collateral and debt
@@ -51,11 +61,6 @@ export enum AllowanceStatus {
   Unneeded,
 }
 
-export type Allowance = {
-  status: AllowanceStatus;
-  value?: number;
-};
-
 export type AssetChange = {
   selectableCurrencies: Currency[];
   balances: Record<string, number>;
@@ -83,6 +88,11 @@ export enum ActionType {
   REMOVE = 1,
 }
 
+type Allowance = {
+  status: AllowanceStatus;
+  value?: number;
+};
+
 export const foundCurrency = (
   selectable: Currency[],
   updated?: Currency
@@ -97,11 +107,16 @@ export const defaultCurrency = (
   return foundCurrency(selectable, updated) || selectable[0];
 };
 
-export const defaultAssetForType = (type: AssetType): AssetChange => {
+export const defaultAssetForType = (
+  type: AssetType,
+  vaultType: VaultType
+): AssetChange => {
   const defaultCurrencies =
     type === AssetType.Debt
       ? defaultDebtCurrencies
-      : defaultCollateralCurrencies;
+      : vaultType === VaultType.BORROW
+      ? defaultCollateralCurrencies
+      : defaultSupplyCurrencies;
   return assetForData(
     DEFAULT_CHAIN_ID,
     defaultCurrencies,
@@ -135,7 +150,7 @@ export const assetForData = (
 };
 
 export const recommendedLTV = (ltvMax: number): number => {
-  return ltvMax > 20 ? ltvMax - LTV_RECOMMENDED_DECREASE : 0;
+  return ltvMax > Ltv.DECREASE ? ltvMax - Ltv.DECREASE : 0;
 };
 
 export const needsAllowance = (
@@ -171,40 +186,47 @@ export const remainingBorrowLimit = (
   maxLtv: number
 ): number => {
   const max = maxBorrowLimit(collateral.amount, collateral.usdPrice, maxLtv);
-  return max - debt.amount * debt.usdPrice;
+  return max - debt?.amount * debt?.usdPrice;
 };
 
-export const ltvMeta = (basePosition?: BasePosition): LtvMeta | undefined => {
-  if (!basePosition?.position) return undefined;
-  const { position, editedPosition } = basePosition;
+export const ltvMeta = (positionData?: PositionData): LtvMeta | undefined => {
+  if (!positionData?.position || positionData.position.type === VaultType.LEND)
+    return undefined;
+  const { position, editedPosition } = positionData;
   return {
-    ltv: editedPosition ? editedPosition.ltv : position.ltv,
+    ltv:
+      editedPosition && 'ltv' in editedPosition
+        ? editedPosition.ltv
+        : position.ltv,
     ltvMax: position.ltvMax,
-    ltvThreshold: editedPosition
-      ? editedPosition.ltvThreshold
-      : position.ltvThreshold,
+    ltvThreshold:
+      editedPosition && 'ltvThreshold' in editedPosition
+        ? editedPosition.ltvThreshold
+        : position.ltvThreshold,
   };
 };
 
 export const withdrawMaxAmount = async (
   mode: Mode.PAYBACK_AND_WITHDRAW | Mode.WITHDRAW,
-  basePosition: BasePosition,
+  positionData: PositionData,
   debt: AssetChange,
   collateral: AssetChange
 ): FujiResultPromise<number> => {
   // if price is too high as for BTC, deduct less
-  const significance = basePosition.position.collateral.usdPrice / 10000 + 1;
+  const significance = positionData.position.collateral.usdPrice / 10000 + 1;
   const deductedCollateral = Math.max(
     0,
-    basePosition.position.collateral.amount -
+    positionData.position.collateral.amount -
       DUST_AMOUNT / Math.pow(10, significance)
   );
 
-  let debtAmount = (
-    basePosition.editedPosition
-      ? basePosition.editedPosition.debt
-      : basePosition.position.debt
-  ).amount;
+  let debtAmount =
+    positionData.position.type === VaultType.BORROW
+      ? (positionData.editedPosition?.type === VaultType.BORROW
+          ? positionData.editedPosition.debt
+          : positionData.position.debt
+        ).amount
+      : 0;
 
   // In the case of PAYBACK_AND_WITHDRAW mode when the operation is cross-chain and
   // the vault is on the destination chain, we need to take into account the fees and
@@ -212,12 +234,12 @@ export const withdrawMaxAmount = async (
   if (mode === Mode.PAYBACK_AND_WITHDRAW) {
     let failed;
 
-    if (basePosition.position.vault) {
+    if (positionData.position.vault) {
       // Fetch metadata for the operation:
       // we only need estimateSlippage, bridgeFees and steps
       const response = await fetchRoutes(
         mode,
-        basePosition.position.vault,
+        positionData.position.vault,
         collateral.currency,
         debt.currency,
         // we don't care about the collateral input
@@ -259,12 +281,13 @@ export const withdrawMaxAmount = async (
     }
   }
 
-  const ltvMax = basePosition.position.ltvMax;
+  const ltvMax =
+    'ltvMax' in positionData.position ? positionData.position.ltvMax : 0;
   const currentLtvMax = ltvMax > 1 ? ltvMax / 100 : ltvMax;
 
   const amount =
     deductedCollateral -
-    debtAmount / (currentLtvMax * basePosition.position.collateral.usdPrice);
+    debtAmount / (currentLtvMax * positionData.position.collateral.usdPrice);
 
   return new FujiResultSuccess(amount);
 };

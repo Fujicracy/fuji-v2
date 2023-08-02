@@ -20,4 +20,5 @@ export type LendingProviderWithFinancials = LendingProviderBase & {
   borrowAprReward?: number;
   borrowRewardTokens?: string[];
   availableToBorrowUSD?: number;
+  totalSupplyUsd?: number;
 };

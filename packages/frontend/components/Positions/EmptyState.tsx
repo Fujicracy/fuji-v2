@@ -6,20 +6,25 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
 import { shallow } from 'zustand/shallow';
 
-import { showBorrow } from '../../helpers/navigation';
+import { showBorrow, showLend } from '../../helpers/navigation';
 import { useAuth } from '../../store/auth.store';
 
 function EmptyState({
   reason,
   columnsCount,
   minHeight,
+  withButton = true,
+  type = VaultType.BORROW,
 }: {
   reason: 'no-wallet' | 'no-positions';
   columnsCount: number;
+  type?: VaultType;
+  withButton?: boolean;
   minHeight?: string;
 }) {
   const { palette } = useTheme();
@@ -27,6 +32,8 @@ function EmptyState({
   const router = useRouter();
 
   const login = useAuth((state) => state.login, shallow);
+
+  const isLend = type === VaultType.LEND;
 
   const config = useMemo(() => {
     return reason === 'no-wallet'
@@ -48,15 +55,18 @@ function EmptyState({
                 whiteSpace: 'normal',
               }}
             >
-              Deposit and borrow in a vault to view your dashboard metrics
+              {!isLend ? 'Deposit and borrow in ' : 'Lend to '} a vault to view
+              your dashboard metrics
             </Typography>
           ),
           button: {
-            label: 'Borrow',
-            action: () => showBorrow(router),
+            label: !isLend ? 'Borrow' : 'Lend',
+            action: () => {
+              !isLend ? showBorrow(router) : showLend(router);
+            },
           },
         };
-  }, [reason, login, router]);
+  }, [reason, login, router, isLend]);
 
   return (
     <TableRow>
@@ -87,16 +97,18 @@ function EmptyState({
 
           {config.infoText}
 
-          <Button
-            variant="gradient"
-            size="large"
-            onClick={() => config.button.action()}
-            data-cy="connect-wallet"
-            fullWidth
-            sx={{ mt: '1.5rem', maxWidth: '17rem' }}
-          >
-            {config.button.label}
-          </Button>
+          {withButton && (
+            <Button
+              variant="gradient"
+              size="large"
+              onClick={() => config.button.action()}
+              data-cy="connect-wallet"
+              fullWidth
+              sx={{ mt: '1.5rem', maxWidth: '17rem' }}
+            >
+              {config.button.label}
+            </Button>
+          )}
         </Box>
       </TableCell>
     </TableRow>

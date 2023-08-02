@@ -212,7 +212,7 @@ type LTVProgressBarContainerProps = {
   isMobile: boolean;
 };
 
-export function LTVProgressBarContainer({
+function LTVProgressBarContainer({
   children,
   isMobile,
 }: LTVProgressBarContainerProps) {

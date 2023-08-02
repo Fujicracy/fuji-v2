@@ -1,8 +1,9 @@
-import { Card, Chip, Grid, Typography, useTheme } from '@mui/material';
+import { Card, Grid, Typography, useTheme } from '@mui/material';
 import { Stack } from '@mui/system';
 import React from 'react';
 
 import { belowPriceColor } from '../../../../helpers/positions';
+import ExtraInfoChip from '../../../Shared/Operation/ExtraInfoChip';
 
 export type SummaryCardItemInfo = {
   title: string;
@@ -84,13 +85,7 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
           >
             {amount}
           </Typography>
-          {extra && (
-            <Chip
-              sx={{ marginLeft: '0.5rem' }}
-              label={`${extra} after`}
-              variant={'currency'}
-            />
-          )}
+          <ExtraInfoChip amount={amount} extra={extra} />
         </Stack>
         {footer && data && footer.includes('below current price') ? (
           <Typography

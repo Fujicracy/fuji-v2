@@ -67,6 +67,8 @@ export const xAxisValues = (
   data: AprResultChart[],
   period: Period
 ): string[] => {
+  if (!data.length) return [];
+
   const longest = data.reduce((longest, current) => {
     return current.data.length > longest.data.length ? current : longest;
   });

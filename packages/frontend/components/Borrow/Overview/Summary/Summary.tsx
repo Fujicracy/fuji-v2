@@ -1,4 +1,5 @@
 import { Grid } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 
 import { formatAssetWithSymbol, formatValue } from '../../../../helpers/values';
 import { AssetMeta, Position } from '../../../../store/models/Position';
@@ -34,6 +35,8 @@ function Summary({
       amount: formatAssetWithSymbol({
         amount: collateral.amount,
         symbol: collateral.currency.wrapped.symbol,
+        maximumFractionDigits: 3,
+        minimumFractionDigits: 2,
       }),
       footer: formatValue(collateral.amount * collateral.usdPrice, {
         style: 'currency',
@@ -57,7 +60,9 @@ function Summary({
         symbol: debt.currency.symbol,
       }),
       extra:
-        editedPosition && debtInput && parseFloat(debtInput) !== 0
+        editedPosition?.type === VaultType.BORROW &&
+        debtInput &&
+        parseFloat(debtInput) !== 0
           ? formatValue(editedPosition.debt.amount * debt.usdPrice, {
               style: 'currency',
             })
@@ -74,11 +79,16 @@ function Summary({
           ? `~${liquidationDiff.toFixed(0)}% below current price`
           : `n/a`,
       extra:
-        editedPosition &&
+        editedPosition?.type === VaultType.BORROW &&
         (Number(collateralInput) !== 0 || Number(debtInput) !== 0)
-          ? formatValue(editedPosition.liquidationPrice, {
-              style: 'currency',
-            })
+          ? formatValue(
+              editedPosition.liquidationPrice > collateral.usdPrice
+                ? collateral.usdPrice
+                : editedPosition.liquidationPrice,
+              {
+                style: 'currency',
+              }
+            )
           : undefined,
       data: {
         amount: liquidationDiff,

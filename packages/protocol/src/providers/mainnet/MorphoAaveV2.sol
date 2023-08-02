@@ -24,7 +24,7 @@ contract MorphoAaveV2 is ILendingProvider {
 
   /// @inheritdoc ILendingProvider
   function providerName() public pure override returns (string memory) {
-    return "Morpho";
+    return "Morpho_Aave_V2";
   }
 
   /**
@@ -38,8 +38,7 @@ contract MorphoAaveV2 is ILendingProvider {
    * @dev Returns the {IAddrMapper} on this chain.
    */
   function _getAddrmapper() internal pure returns (IAddrMapper) {
-    // TODO Define final address after deployment strategy is set.
-    return IAddrMapper(0x529eE84BFE4F37132f5f9599d4cc4Ff16Ee6d0D2);
+    return IAddrMapper(0xb2f151D71BD0396891A68C15BF608445a6aC835e);
   }
 
   /**

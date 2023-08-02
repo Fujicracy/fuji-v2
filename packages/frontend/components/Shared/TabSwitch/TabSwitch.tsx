@@ -6,42 +6,51 @@ import Chip from './Chip';
 
 type TabSwitchProps = {
   options: TabOption[];
-  selected: number;
+  selected: number | number[];
   onChange: (value: number) => void;
   size?: 'large' | 'default';
   width?: string;
+  withBackground?: boolean;
 };
 
 function TabSwitch({
   options,
   selected,
   onChange,
+  withBackground = false,
   size = 'default',
   width = 'auto',
 }: TabSwitchProps) {
   const { palette } = useTheme();
 
+  const isSelected = (index: number) => {
+    if (typeof selected === 'number') {
+      return selected === index;
+    }
+
+    return selected.includes(index);
+  };
+
   return (
     <Stack
       direction="row"
       sx={{
-        marginTop: 3,
-        marginBottom: 3,
         flexWrap: 'wrap',
         gap: '0.2rem',
         p: '0.1875rem',
-        height: size === 'large' ? '2.875rem' : '2.5rem',
-        backgroundColor:
-          size === 'large' ? palette.secondary.dark : 'transparent',
+        height: size === 'large' ? '2.75rem' : '2.5rem',
+        backgroundColor: withBackground
+          ? palette.secondary.contrastText
+          : 'transparent',
         borderRadius: '0.75rem',
         border: `1px solid ${alpha(palette.secondary.light, 0.5)}`,
         width,
       }}
     >
-      {options.map((p) => (
+      {options.map((p, index) => (
         <Chip
-          key={`${p.label}`}
-          selected={selected === p.value}
+          key={index}
+          selected={isSelected(p.value)}
           label={p.label}
           onClick={() => {
             onChange(p.value);

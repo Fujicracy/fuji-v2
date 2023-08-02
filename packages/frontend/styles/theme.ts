@@ -61,8 +61,8 @@ const colorTheme = createTheme({
     secondary: {
       main: '#2D2F35',
       light: '#3B404A',
-      dark: '#222429',
-      contrastText: '#191B1F',
+      dark: '#1C1E23',
+      contrastText: '#131518',
     },
     text: {
       primary: '#E8E8E8',
@@ -684,6 +684,7 @@ const theme = createTheme(colorTheme, {
           paddingTop: 0,
           paddingBottom: 0,
           whiteSpace: 'nowrap',
+          borderColor: '#2A2E35',
         },
       },
     },

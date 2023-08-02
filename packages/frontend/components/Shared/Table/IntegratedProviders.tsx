@@ -1,8 +1,9 @@
-import { Box, Chip, Stack, Tooltip } from '@mui/material';
+import { Box, Chip, Stack } from '@mui/material';
 import React from 'react';
 
-import { MarketRowStatus } from '../../../helpers/markets';
+import { MarketRowStatus } from '../../../store/types/markets';
 import { ProviderIcon } from '../Icons';
+import { TooltipWrapper } from '../Tooltips';
 
 type IntegratedProvidersProps = {
   providers: {
@@ -17,24 +18,28 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
       {providers.status === MarketRowStatus.Ready && (
         <Stack
           direction="row"
-          justifyContent="right"
+          justifyContent="flex-end"
           alignItems="center"
           flexWrap="nowrap"
-          sx={{
-            mr: providers.value.length > 1 ? '-0.25rem' : '0',
-          }}
         >
           {providers.value.map((name, i) => (
-            <Tooltip key={name} title={name} arrow>
+            <TooltipWrapper key={`${name}-${i}`} title={name} placement="top">
               <Box
                 sx={{
                   position: 'relative',
-                  right: `${i * 0.25}rem`,
-                  zIndex: 4 - i,
+                  mr:
+                    i === 2 && providers.value.length === 4
+                      ? '-0.5rem'
+                      : i !== providers.value.length - 1
+                      ? '-0.25rem'
+                      : providers.value.length > 4
+                      ? '0.5rem'
+                      : 0,
+                  zIndex: 5 - i,
                   height: '24px',
                 }}
               >
-                {i <= 2 && (
+                {i <= (providers.value.length > 4 ? 2 : 3) && (
                   <ProviderIcon
                     sx={i === 0 ? {} : { filter: 'brightness(50%)' }} // This is going to be more complex in the future
                     provider={name}
@@ -43,16 +48,21 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
                   />
                 )}
               </Box>
-            </Tooltip>
+            </TooltipWrapper>
           ))}
-          {providers.value.length >= 4 && (
+          {providers.value.length > 4 && (
             <Chip
               label={
-                <Stack direction="row" justifyContent="center">
-                  +{providers.value.length - 3}
+                <Stack
+                  direction="row"
+                  justifyContent="center"
+                  sx={{ ml: 0.25 }}
+                >
+                  +{providers.value.length - 4}
                 </Stack>
               }
               variant="number"
+              sx={{ mr: '-0.75rem' }}
             />
           )}
         </Stack>
