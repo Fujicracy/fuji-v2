@@ -28,16 +28,18 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
                 sx={{
                   position: 'relative',
                   mr:
-                    i !== providers.value.length - 1
+                    i === 2 && providers.value.length === 4
+                      ? '-0.5rem'
+                      : i !== providers.value.length - 1
                       ? '-0.25rem'
                       : providers.value.length > 4
-                      ? '0.35rem'
+                      ? '0.5rem'
                       : 0,
-                  zIndex: 4 - i,
+                  zIndex: 5 - i,
                   height: '24px',
                 }}
               >
-                {i <= 2 && (
+                {i <= (providers.value.length > 4 ? 2 : 3) && (
                   <ProviderIcon
                     sx={i === 0 ? {} : { filter: 'brightness(50%)' }} // This is going to be more complex in the future
                     provider={name}
@@ -51,7 +53,11 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
           {providers.value.length > 4 && (
             <Chip
               label={
-                <Stack direction="row" justifyContent="center">
+                <Stack
+                  direction="row"
+                  justifyContent="center"
+                  sx={{ ml: 0.25 }}
+                >
                   +{providers.value.length - 4}
                 </Stack>
               }
