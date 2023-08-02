@@ -41,6 +41,8 @@ contract RunOptimism is ScriptPlus {
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
+    /*rebalanceYieldVaults();*/
+    /*rebalanceBorrowingVaults();*/
 
     // If setting all routers at once, call after deploying all chians
     /*setConnextReceivers();*/

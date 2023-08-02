@@ -732,6 +732,93 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     rebalancer.rebalanceVault(IVault(vault), assets, debt, from, to, flasherBalancer, true);
   }
 
+  function rebalanceBorrowingVaults() internal {
+    bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
+    VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
+
+    uint256 len = vaults.length;
+
+    for (uint256 i; i < len; i++) {
+      string memory name = vaults[i].name;
+      address vault = getAddress(name);
+      string[] memory providerNames = vaults[i].providers;
+
+      ILendingProvider activeProvider = IVault(vault).activeProvider();
+      ILendingProvider to;
+
+      uint256 currentRate = ILendingProvider(activeProvider).getBorrowRateFor(IVault(vault));
+
+      uint256 providersLen = providerNames.length;
+      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      for (uint256 j; j < providersLen; j++) {
+        providers[j] = ILendingProvider(getAddress(providerNames[j]));
+        if (activeProvider != providers[j]) {
+          uint256 rate = providers[j].getBorrowRateFor(IVault(vault));
+          if (rate < currentRate) {
+            to = providers[j];
+          }
+        }
+      }
+
+      if (address(to) != address(0)) {
+        uint256 assets = activeProvider.getDepositBalance(vault, IVault(vault)) - 0.0001 ether;
+        uint256 debt = activeProvider.getBorrowBalance(vault, IVault(vault));
+        console.log(
+          string.concat(
+            "Rebalancing: ", name, " for ", vm.toString(assets), " and ", vm.toString(debt)
+          )
+        );
+
+        rebalancer.rebalanceVault(
+          IVault(vault), assets, debt, activeProvider, to, flasherBalancer, true
+        );
+      } else {
+        console.log(string.concat("Skip rebalancing: ", name));
+      }
+    }
+  }
+
+  function rebalanceYieldVaults() internal {
+    bytes memory raw = vm.parseJson(configJson, ".yield-vaults");
+    YieldVaultConfig[] memory vaults = abi.decode(raw, (YieldVaultConfig[]));
+
+    uint256 len = vaults.length;
+
+    for (uint256 i; i < len; i++) {
+      string memory name = vaults[i].name;
+      address vault = getAddress(name);
+      string[] memory providerNames = vaults[i].providers;
+
+      ILendingProvider activeProvider = IVault(vault).activeProvider();
+      ILendingProvider to;
+
+      uint256 currentRate = ILendingProvider(activeProvider).getDepositRateFor(IVault(vault));
+
+      uint256 providersLen = providerNames.length;
+      ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
+      for (uint256 j; j < providersLen; j++) {
+        providers[j] = ILendingProvider(getAddress(providerNames[j]));
+        if (activeProvider != providers[j]) {
+          uint256 rate = providers[j].getDepositRateFor(IVault(vault));
+          if (rate > currentRate) {
+            to = providers[j];
+          }
+        }
+      }
+
+      if (address(to) != address(0)) {
+        uint256 assets = activeProvider.getDepositBalance(vault, IVault(vault));
+        console.log(string.concat("Rebalancing: ", name, " for ", vm.toString(assets)));
+
+        rebalancer.rebalanceVault(
+          IVault(vault), assets, 0, activeProvider, to, flasherBalancer, true
+        );
+      } else {
+        console.log(string.concat("Skip rebalancing: ", name));
+      }
+    }
+  }
+
   function setVaultNewRating(string memory vaultName, uint256 rating) internal {
     bytes memory callData =
       abi.encodeWithSelector(chief.setSafetyRating.selector, getAddress(vaultName), rating);
