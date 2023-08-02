@@ -181,10 +181,12 @@ function MarketsTableRow({
           )}
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
-          {!expandRow && loaderOrError(row.integratedProviders.status)}
-          {!expandRow && (
-            <IntegratedProviders providers={row.integratedProviders} />
-          )}
+          {/*{!expandRow && loaderOrError(row.integratedProviders.status)}*/}
+          {/*{!expandRow && (*/}
+          <IntegratedProviders
+            providers={{ status: 0, value: ['qwe', 'qweq', 'qweqdq'] }}
+          />
+          {/*)}*/}
         </SizableTableCell>
         <SizableTableCell align="right" width="130px">
           {!expandRow && (

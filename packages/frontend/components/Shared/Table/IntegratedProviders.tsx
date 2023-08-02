@@ -18,7 +18,7 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
       {providers.status === MarketRowStatus.Ready && (
         <Stack
           direction="row"
-          justifyContent="right"
+          justifyContent="flex-end"
           alignItems="center"
           flexWrap="nowrap"
         >
@@ -27,7 +27,12 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
               <Box
                 sx={{
                   position: 'relative',
-                  mr: `-0.25rem`,
+                  mr:
+                    i !== providers.value.length - 1
+                      ? '-0.25rem'
+                      : providers.value.length > 4
+                      ? '0.35rem'
+                      : 0,
                   zIndex: 4 - i,
                   height: '24px',
                 }}
@@ -43,14 +48,15 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
               </Box>
             </TooltipWrapper>
           ))}
-          {providers.value.length >= 4 && (
+          {providers.value.length > 4 && (
             <Chip
               label={
                 <Stack direction="row" justifyContent="center">
-                  +{providers.value.length - 3}
+                  +{providers.value.length - 4}
                 </Stack>
               }
               variant="number"
+              sx={{ mr: '-0.75rem' }}
             />
           )}
         </Stack>
