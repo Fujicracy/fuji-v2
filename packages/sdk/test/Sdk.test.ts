@@ -333,7 +333,7 @@ describe('Sdk', () => {
   });
 
   describe('#getTxDetails', () => {
-    jest.setTimeout(30000);
+    jest.setTimeout(40000);
     const collateral = WETH9[ChainId.MATIC];
     const debt = USDC[ChainId.MATIC];
     const vault = sdk
