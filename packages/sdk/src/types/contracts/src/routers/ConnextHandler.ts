@@ -67,10 +67,9 @@ export declare namespace ConnextHandler {
 export interface ConnextHandlerInterface extends utils.Interface {
   functions: {
     "connextRouter()": FunctionFragment;
-    "executeFailedWithUpdatedArgs(bytes32,uint128,uint8[],bytes[])": FunctionFragment;
-    "getFailedTxn(bytes32,uint128)": FunctionFragment;
+    "executeFailedWithUpdatedArgs(bytes32,uint256,uint8[],bytes[])": FunctionFragment;
+    "getFailedTxn(bytes32,uint256)": FunctionFragment;
     "getFailedTxnNextNonce(bytes32)": FunctionFragment;
-    "isTransferIdRecorded(bytes32,uint128)": FunctionFragment;
     "recordFailed(bytes32,uint256,address,address,uint32,uint8[],bytes[])": FunctionFragment;
   };
 
@@ -80,7 +79,6 @@ export interface ConnextHandlerInterface extends utils.Interface {
       | "executeFailedWithUpdatedArgs"
       | "getFailedTxn"
       | "getFailedTxnNextNonce"
-      | "isTransferIdRecorded"
       | "recordFailed"
   ): FunctionFragment;
 
@@ -99,10 +97,6 @@ export interface ConnextHandlerInterface extends utils.Interface {
   encodeFunctionData(
     functionFragment: "getFailedTxnNextNonce",
     values: [BytesLike]
-  ): string;
-  encodeFunctionData(
-    functionFragment: "isTransferIdRecorded",
-    values: [BytesLike, BigNumberish]
   ): string;
   encodeFunctionData(
     functionFragment: "recordFailed",
@@ -134,17 +128,13 @@ export interface ConnextHandlerInterface extends utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "isTransferIdRecorded",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
     functionFragment: "recordFailed",
     data: BytesLike
   ): Result;
 
   events: {
-    "FailedTxnExecuted(bytes32,uint8[],uint8[],bytes[],bytes[],uint128,bool)": EventFragment;
-    "FailedTxnRecorded(bytes32,uint256,address,address,uint32,uint8[],bytes[],uint128)": EventFragment;
+    "FailedTxnExecuted(bytes32,uint8[],uint8[],bytes[],bytes[],uint256,bool)": EventFragment;
+    "FailedTxnRecorded(bytes32,uint256,address,address,uint32,uint8[],bytes[],uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "FailedTxnExecuted"): EventFragment;
@@ -234,12 +224,6 @@ export interface ConnextHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[BigNumber] & { next: BigNumber }>;
 
-    isTransferIdRecorded(
-      transferId: BytesLike,
-      nonce: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[boolean]>;
-
     recordFailed(
       transferId: BytesLike,
       amount: BigNumberish,
@@ -272,12 +256,6 @@ export interface ConnextHandler extends BaseContract {
     transferId: BytesLike,
     overrides?: CallOverrides
   ): Promise<BigNumber>;
-
-  isTransferIdRecorded(
-    transferId: BytesLike,
-    nonce: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<boolean>;
 
   recordFailed(
     transferId: BytesLike,
@@ -312,12 +290,6 @@ export interface ConnextHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    isTransferIdRecorded(
-      transferId: BytesLike,
-      nonce: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<boolean>;
-
     recordFailed(
       transferId: BytesLike,
       amount: BigNumberish,
@@ -331,7 +303,7 @@ export interface ConnextHandler extends BaseContract {
   };
 
   filters: {
-    "FailedTxnExecuted(bytes32,uint8[],uint8[],bytes[],bytes[],uint128,bool)"(
+    "FailedTxnExecuted(bytes32,uint8[],uint8[],bytes[],bytes[],uint256,bool)"(
       transferId?: BytesLike | null,
       oldActions?: null,
       newActions?: null,
@@ -350,7 +322,7 @@ export interface ConnextHandler extends BaseContract {
       success?: boolean | null
     ): FailedTxnExecutedEventFilter;
 
-    "FailedTxnRecorded(bytes32,uint256,address,address,uint32,uint8[],bytes[],uint128)"(
+    "FailedTxnRecorded(bytes32,uint256,address,address,uint32,uint8[],bytes[],uint256)"(
       transferId?: BytesLike | null,
       amount?: null,
       asset?: null,
@@ -394,12 +366,6 @@ export interface ConnextHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    isTransferIdRecorded(
-      transferId: BytesLike,
-      nonce: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
-
     recordFailed(
       transferId: BytesLike,
       amount: BigNumberish,
@@ -434,12 +400,6 @@ export interface ConnextHandler extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    isTransferIdRecorded(
-      transferId: BytesLike,
-      nonce: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
-
     recordFailed(
       transferId: BytesLike,
       amount: BigNumberish,
@@ -470,10 +430,4 @@ export interface ConnextHandlerMulticall {
     transferId: BytesLike,
     overrides?: CallOverrides
   ): Call<BigNumber>;
-
-  isTransferIdRecorded(
-    transferId: BytesLike,
-    nonce: BigNumberish,
-    overrides?: CallOverrides
-  ): Call<boolean>;
 }

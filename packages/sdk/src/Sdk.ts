@@ -7,29 +7,38 @@ import axios from 'axios';
 import {
   BN_ZERO,
   CHAIN,
-  COLLATERAL_LIST,
   CONNEXT_ROUTER_ADDRESS,
   CONNEXT_URL,
-  DEBT_LIST,
   FujiErrorCode,
   NATIVE,
   URLS,
-  VAULT_LIST,
 } from './constants';
 import { Address, Currency, Token } from './entities';
+import { AbstractVault } from './entities/abstract/AbstractVault';
 import { BorrowingVault } from './entities/BorrowingVault';
 import {
   FujiError,
   FujiResultError,
   FujiResultSuccess,
 } from './entities/FujiError';
-import { ChainId, ChainType, ConnextTxStatus, RouterAction } from './enums';
+import { LendingVault } from './entities/LendingVault';
 import {
-  batchLoad,
+  ChainId,
+  ChainType,
+  ConnextTxStatus,
+  RouterAction,
+  VaultType,
+} from './enums';
+import {
   encodeActionArgs,
   findPermitAction,
   waitForTransaction,
 } from './functions';
+import {
+  getAllVaults,
+  getVaultsFor,
+  getVaultsWithFinancials,
+} from './functions/vaults';
 import { Nxtp } from './Nxtp';
 import { Previews } from './Previews';
 import {
@@ -44,9 +53,9 @@ import {
 import { ConnextRouter__factory } from './types/contracts';
 import {
   GetLlamaAssetPoolsResponse,
-  GetLlamaBorrowPoolsResponse,
+  GetLlamaLendBorrowPoolsResponse,
   LlamaAssetPool,
-  LlamaBorrowPool,
+  LlamaLendBorrowPool,
 } from './types/LlamaResponses';
 
 export class Sdk {
@@ -94,11 +103,28 @@ export class Sdk {
    * to be used.
    *
    * @param chainId - ID of the chain
+   * @param VaultType - 'LEND' or 'BORROW'
    */
-  getCollateralForChain(chainId: ChainId): Currency[] {
-    let list: Currency[] = COLLATERAL_LIST[chainId].map((token: Token) =>
-      token.setConnection(this._configParams)
-    );
+  getCollateralForChain(
+    chainId: ChainId,
+    vaultType: VaultType = VaultType.BORROW
+  ): Currency[] {
+    const vaults: AbstractVault[] =
+      vaultType === VaultType.BORROW
+        ? this.getAllBorrowingVaults(CHAIN[chainId].chainType)
+        : this.getAllLendingVaults(CHAIN[chainId].chainType);
+
+    let list: Currency[] = vaults
+      .filter((v) => v.chainId === chainId)
+      .reduce((acc: Token[], vault: AbstractVault) => {
+        const collateral = vault.collateral;
+        if (!acc.find((t) => collateral.equals(t))) {
+          acc.push(collateral);
+        }
+        return acc;
+      }, [])
+      .map((token: Token) => token.setConnection(this._configParams));
+
     // we don't support WMATIC and WXDAI as collateral yet
     if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
       list = [NATIVE[chainId].setConnection(this._configParams), ...list];
@@ -114,13 +140,51 @@ export class Sdk {
    * @param chainId - ID of the chain
    */
   getDebtForChain(chainId: ChainId): Currency[] {
-    const list: Currency[] = DEBT_LIST[chainId].map((token: Token) =>
-      token.setConnection(this._configParams)
-    );
+    const vaults = this.getAllBorrowingVaults(CHAIN[chainId].chainType);
+
+    const list: Currency[] = vaults
+      .filter((v) => v.chainId === chainId)
+      .reduce((acc: Token[], vault: BorrowingVault) => {
+        const debt = vault.debt;
+        if (!acc.find((t) => debt.equals(t))) {
+          acc.push(debt);
+        }
+        return acc;
+      }, [])
+      .map((token: Token) => token.setConnection(this._configParams));
+
     //if (![ChainId.MATIC, ChainId.GNOSIS].includes(chainId)) {
     //list = [NATIVE[chainId].setConnection(this._configParams), ...list];
     //}
     return list;
+  }
+
+  /**
+   * Returns all supported currencies on a specific chain.
+   *
+   * @param chainId - ID of the chain
+   */
+  getSupportedCurrencies(chainId: ChainId): Currency[] {
+    const borrowCollaterals = this.getCollateralForChain(
+      chainId,
+      VaultType.BORROW
+    );
+    const lendCollaterals = this.getCollateralForChain(chainId, VaultType.LEND);
+    const debts = this.getDebtForChain(chainId);
+
+    const currenciesMap = new Map();
+    [...borrowCollaterals, ...lendCollaterals, ...debts].forEach((currency) => {
+      currenciesMap.set(currency.address, currency);
+    });
+
+    // Add the native currency if it's not already in the map
+    const nativeCurrency = NATIVE[chainId];
+    if (!currenciesMap.has(nativeCurrency.address)) {
+      currenciesMap.set(nativeCurrency.address, nativeCurrency);
+    }
+
+    const currencies = Array.from(currenciesMap.values());
+    return currencies;
   }
 
   /**
@@ -183,13 +247,13 @@ export class Sdk {
     try {
       const { multicallRpcProvider, rpcProvider } =
         this.getConnectionFor(chainId);
+      currencies.forEach((c) => c.setConnection(this._configParams));
+
       const tokens = currencies.filter((c) => c.isToken) as Token[];
-      const balances = tokens
-        .map((token) => token.setConnection(this._configParams))
-        .map(
-          (token) =>
-            token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
-        );
+      const balances = tokens.map(
+        (token) =>
+          token.multicallContract?.balanceOf(account.value) as Call<BigNumber>
+      );
 
       const [bals, nativeBal] = await Promise.all([
         multicallRpcProvider.all(balances),
@@ -206,7 +270,7 @@ export class Sdk {
   }
 
   /**
-   * Returns all vaults.
+   * Returns all borrowing vaults.
    *
    * @param chainType - for type of chains: mainnet or testnet
    *
@@ -214,16 +278,77 @@ export class Sdk {
   getAllBorrowingVaults(
     chainType: ChainType = ChainType.MAINNET
   ): BorrowingVault[] {
-    const vaults = [];
-    const chains = Object.values(CHAIN).filter(
-      (c) => c.chainType === chainType
+    return getAllVaults(
+      VaultType.BORROW,
+      this._configParams,
+      chainType
+    ) as BorrowingVault[];
+  }
+
+  /**
+   * Returns all lending vaults.
+   *
+   * @param chainType - for type of chains: mainnet or testnet
+   *
+   */
+  getAllLendingVaults(
+    chainType: ChainType = ChainType.MAINNET
+  ): LendingVault[] {
+    return getAllVaults(
+      VaultType.LEND,
+      this._configParams,
+      chainType
+    ) as LendingVault[];
+  }
+
+  /**
+   * Returns all vaults for a given combination of tokens and sets a connection for each of them.
+   *
+   * @remarks
+   * The vaults are sorted after checks of the lowest borrow rate for the debt token.
+   * If collateral and debt tokens are on the same chain, we privilege the vault
+   * on the same chain even though it has a lowest borrow rate.
+   *
+   * @param collateral - collateral instance of {@link Currency}
+   * @param debt - debt instance of {@link Currency}
+   * @param account - user address, wrapped in {@link Address}
+   */
+  async getBorrowingVaultsFor(
+    collateral: Currency,
+    debt: Currency,
+    account?: Address
+  ): FujiResultPromise<VaultWithFinancials[]> {
+    return getVaultsFor(
+      VaultType.BORROW,
+      collateral,
+      debt,
+      this._configParams,
+      account
     );
+  }
 
-    for (const chain of chains) {
-      vaults.push(...VAULT_LIST[chain.chainId]);
-    }
-
-    return vaults.map((v) => v.setConnection(this._configParams));
+  /**
+   * Returns all vaults for a given combination of tokens and sets a connection for each of them.
+   *
+   * @remarks
+   * The vaults are sorted after checks of the lowest borrow rate for the debt token.
+   * If collateral and debt tokens are on the same chain, we privilege the vault
+   * on the same chain even though it has a lowest borrow rate.
+   *
+   * @param collateral - collateral instance of {@link Currency}
+   * @param account - user address, wrapped in {@link Address}
+   */
+  async getLendingVaultsFor(
+    collateral: Currency,
+    account?: Address
+  ): FujiResultPromise<VaultWithFinancials[]> {
+    return getVaultsFor(
+      VaultType.LEND,
+      collateral,
+      undefined,
+      this._configParams,
+      account
+    );
   }
 
   /**
@@ -235,20 +360,41 @@ export class Sdk {
    * It's recommended to call afterwards "getLlamaFinancials()".
    *
    * @param chainId - ID of the chain
-   * @param account - {@link Address} for the user
+   * @param account - user address, wrapped in {@link Address}
    */
   async getBorrowingVaultsFinancials(
     chainId: ChainId,
     account?: Address
   ): FujiResultPromise<VaultWithFinancials[]> {
-    const chain = CHAIN[chainId];
-    if (!chain.isDeployed) {
-      return new FujiResultError(`${chain.name} not deployed`);
-    }
-    const vaults = VAULT_LIST[chainId].map((v) =>
-      v.setConnection(this._configParams)
+    return getVaultsWithFinancials(
+      VaultType.BORROW,
+      chainId,
+      this._configParams,
+      account
     );
-    return await batchLoad(vaults, account, chain);
+  }
+
+  /**
+   * Returns all vaults with financial data such as base deposit APRs and
+   * base borrow APRs fetched on-chain.
+   *
+   * @remarks
+   * This methods serves to pre-fetch and loads only partially the financials.
+   * It's recommended to call afterwards "getLlamaFinancials()".
+   *
+   * @param chainId - ID of the chain
+   * @param account - user address, wrapped in {@link Address}
+   */
+  async getLendingVaultsFinancials(
+    chainId: ChainId,
+    account?: Address
+  ): FujiResultPromise<VaultWithFinancials[]> {
+    return getVaultsWithFinancials(
+      VaultType.LEND,
+      chainId,
+      this._configParams,
+      account
+    );
   }
 
   /**
@@ -274,9 +420,9 @@ export class Sdk {
       pools: defillamaproxy ? defillamaproxy + 'pools' : URLS.DEFILLAMA_POOLS,
     };
     try {
-      const [borrows, pools] = await Promise.all([
+      const [lendBorrows, pools] = await Promise.all([
         axios
-          .get<GetLlamaBorrowPoolsResponse>(uri.lendBorrow)
+          .get<GetLlamaLendBorrowPoolsResponse>(uri.lendBorrow)
           .then(({ data }) => data),
         axios
           .get<GetLlamaAssetPoolsResponse>(uri.pools)
@@ -284,7 +430,7 @@ export class Sdk {
       ]);
 
       const data = vaults.map((vault) =>
-        this._getFinancialsFor(vault, pools, borrows)
+        this._getFinancialsFor(vault, pools, lendBorrows)
       );
       return new FujiResultSuccess(data);
     } catch (e) {
@@ -293,69 +439,6 @@ export class Sdk {
         : 'DefiLlama API call failed with an unexpected error!';
       console.error(message);
       return new FujiResultError(message, FujiErrorCode.LLAMA);
-    }
-  }
-
-  /**
-   * Returns all vaults for a given combination of tokens and sets a connection for each of them.
-   *
-   * @remarks
-   * The vaults are sorted after checks of the lowest borrow rate for the debt token.
-   * If collateral and debt tokens are on the same chain, we privilege the vault
-   * on the same chain even though it has a lowest borrow rate.
-   *
-   * @param collateral - collateral instance of {@link Currency}
-   * @param debt - debt instance of {@link Currency}
-   * @param account - debt instance of {@link Currency}
-   */
-  async getBorrowingVaultsFor(
-    collateral: Currency,
-    debt: Currency,
-    account?: Address
-  ): FujiResultPromise<VaultWithFinancials[]> {
-    const _collateral = collateral.isToken ? collateral : collateral.wrapped;
-    const _debt = debt.isToken ? debt : debt.wrapped;
-
-    // find all vaults with this pair
-    try {
-      const _vaults = this._findVaultsByTokens(_collateral, _debt).map(
-        (v: BorrowingVault) => v.setConnection(this._configParams)
-      );
-      const vaults = [];
-      if (collateral.chainId === debt.chainId) {
-        const r = await batchLoad(_vaults, account, collateral.chain);
-        if (r.success) vaults.push(...r.data);
-        else return r;
-      } else {
-        const r1 = _vaults.filter((v) => v.chainId === collateral.chainId);
-        const r2 = _vaults.filter((v) => v.chainId === debt.chainId);
-        const [a, b] = await Promise.all([
-          batchLoad(r1, account, collateral.chain),
-          batchLoad(r2, account, debt.chain),
-        ]);
-        if (a.success && b.success) vaults.push(...a.data, ...b.data);
-        else return a.success ? b : a;
-      }
-
-      // sort them by borrow rate
-      const sorted = vaults.sort((a, b) =>
-        Number(a.activeProvider?.borrowAprBase) <=
-        Number(b.activeProvider?.borrowAprBase)
-          ? -1
-          : 0
-      );
-      // TODO: sort by safety rating too
-
-      //if (collateral.chainId === debt.chainId) {
-      //// sort again to privilege vaults on the same chain
-      //sorted.sort((a) =>
-      //a.collateral.chainId === collateral.chainId ? -1 : 0
-      //);
-      //}
-
-      return new FujiResultSuccess(sorted);
-    } catch (error) {
-      return new FujiResultError('Error getting vaults', FujiErrorCode.SDK);
     }
   }
 
@@ -642,70 +725,53 @@ export class Sdk {
     }
   }
 
-  private _findVaultsByTokens(
-    collateral: Token,
-    debt: Token
-  ): BorrowingVault[] {
-    const collateralSym = collateral.symbol;
-    const debtSym = debt.symbol;
-
-    const chains = [collateral.chainId, debt.chainId];
-
-    return Object.entries(VAULT_LIST)
-      .map(([, list]) => list)
-      .reduce((acc, list) => {
-        const vaults = list
-          .filter(
-            (v: BorrowingVault) =>
-              chains.includes(v.collateral.chainId) ||
-              chains.includes(v.debt.chainId)
-          )
-          .filter(
-            (v: BorrowingVault) =>
-              v.collateral.symbol === collateralSym && v.debt.symbol === debtSym
-          );
-        return [...acc, ...vaults];
-      }, []);
-  }
-
   private _getFinancialsFor(
     v: VaultWithFinancials,
     pools: LlamaAssetPool[],
-    borrows: LlamaBorrowPool[]
+    lendBorrows: LlamaLendBorrowPool[]
   ): VaultWithFinancials {
     const chain = CHAIN[v.vault.chainId].llamaKey;
     const project = v.activeProvider.llamaKey;
     const collateralSym = v.vault.collateral.symbol;
-    const debtSym = v.vault.debt.symbol;
-
-    const borrowPool = pools.find(
-      (p: LlamaAssetPool) =>
-        p.chain === chain && p.project === project && p.symbol === debtSym
-    );
-
-    let borrowData;
-    if (borrowPool) {
-      borrowData = borrows.find(
-        (b: LlamaBorrowPool) => b.pool === borrowPool.pool
-      );
-    }
+    const isBorrowingVault = v.vault instanceof BorrowingVault;
+    const debtSym =
+      v.vault instanceof BorrowingVault ? v.vault.debt.symbol : null;
+    const poolSym = isBorrowingVault ? debtSym : collateralSym;
 
     const depositData = pools.find(
       (p: LlamaAssetPool) =>
         p.chain === chain && p.project === project && p.symbol === collateralSym
     );
 
+    const lendBorrowPool = pools.find(
+      (p: LlamaAssetPool) =>
+        p.chain === chain && p.project === project && p.symbol === poolSym
+    );
+    let lendBorrowData;
+    if (lendBorrowPool) {
+      lendBorrowData = lendBorrows.find(
+        (b: LlamaLendBorrowPool) => b.pool === lendBorrowPool.pool
+      );
+    }
+
+    const borrowingVaultProviderData = isBorrowingVault
+      ? {
+          borrowAprReward: lendBorrowData?.apyRewardBorrow,
+          borrowRewardTokens: lendBorrowData?.rewardTokens,
+          availableToBorrowUSD: lendBorrowData
+            ? lendBorrowData.totalSupplyUsd - lendBorrowData.totalBorrowUsd
+            : undefined,
+        }
+      : {};
+
     return {
       ...v,
       activeProvider: {
         ...v.activeProvider,
+        ...borrowingVaultProviderData,
         depositAprReward: depositData?.apyReward,
         depositRewardTokens: depositData?.rewardTokens,
-        borrowAprReward: borrowData?.apyRewardBorrow,
-        borrowRewardTokens: borrowData?.rewardTokens,
-        availableToBorrowUSD: borrowData
-          ? borrowData.totalSupplyUsd - borrowData.totalBorrowUsd
-          : undefined,
+        totalSupplyUsd: lendBorrowData?.totalSupplyUsd,
       },
     };
   }

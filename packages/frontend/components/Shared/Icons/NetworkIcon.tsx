@@ -1,4 +1,3 @@
-import { useTheme } from '@mui/material';
 import { ChainId } from '@x-fuji/sdk';
 import { SyntheticEvent, useEffect, useState } from 'react';
 
@@ -11,7 +10,6 @@ interface Props extends Icon {
 }
 
 function NetworkIcon(props: Props) {
-  const { palette } = useTheme();
   const { network } = props;
 
   const [name, setName] = useState<string>(
@@ -28,7 +26,7 @@ function NetworkIcon(props: Props) {
   }, [error, network]);
 
   if (error) {
-    return renderIconError(props, palette);
+    return renderIconError(props);
   }
 
   if (path && name) {

@@ -5,9 +5,11 @@ import invariant from 'tiny-invariant';
 import { CONNEXT_ROUTER_ADDRESS } from '../constants/addresses';
 import { CHAIN } from '../constants/chains';
 import { BN_ZERO, DEFAULT_SLIPPAGE } from '../constants/common';
-import { Currency } from '../entities';
+import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { Address } from '../entities/Address';
 import { BorrowingVault } from '../entities/BorrowingVault';
+import { Currency } from '../entities/Currency';
+import { LendingVault } from '../entities/LendingVault';
 import {
   ChainId,
   ConnextDomain,
@@ -39,7 +41,7 @@ import {
 
 function _depositOrPayback(
   action: RouterAction.DEPOSIT | RouterAction.PAYBACK,
-  vault: BorrowingVault,
+  vault: AbstractVault,
   amount: BigNumber,
   receiver: Address,
   sender: Address,
@@ -73,7 +75,7 @@ function _depositOrPayback(
 
 function _borrowOrWithdraw(
   action: RouterAction.BORROW | RouterAction.WITHDRAW,
-  vault: BorrowingVault,
+  vault: AbstractVault,
   amount: BigNumber,
   receiver: Address,
   owner: Address,
@@ -106,7 +108,7 @@ function _borrowOrWithdraw(
 
 function _permit(
   action: RouterAction.BORROW | RouterAction.WITHDRAW,
-  vault: BorrowingVault,
+  vault: AbstractVault,
   amount: BigNumber,
   receiver: Address,
   owner: Address,
@@ -228,6 +230,13 @@ function depositOrPayback(
 ): RouterActionParams[] {
   const { vault, tokenIn, amountIn, account, slippage } = params;
 
+  if (vault instanceof LendingVault && action === RouterAction.PAYBACK) {
+    invariant(
+      action === RouterAction.PAYBACK,
+      'No PAYBACK action on LendingVault!'
+    );
+  }
+
   const wrap = tokenIn.isNative;
   if (op === OperationType.ONE_CHAIN) {
     // everything happens on the same chain
@@ -275,6 +284,12 @@ function borrowOrWithdraw(
     deadline,
     slippage,
   } = params;
+  if (vault instanceof LendingVault && action === RouterAction.BORROW) {
+    invariant(
+      action === RouterAction.BORROW,
+      'No BORROW action on LendingVault!'
+    );
+  }
   const unwrap = tokenOut.isNative;
   const connextRouter: Address = CONNEXT_ROUTER_ADDRESS[vault.chainId];
 
@@ -299,7 +314,9 @@ function borrowOrWithdraw(
       ),
       _xTransfer(
         tokenOut.chainId,
-        action === RouterAction.BORROW ? vault.debt : vault.collateral,
+        action === RouterAction.BORROW && vault instanceof BorrowingVault
+          ? vault.debt
+          : vault.collateral,
         amountOut,
         account,
         connextRouter,
@@ -346,7 +363,9 @@ function borrowOrWithdraw(
       ),
       _xTransfer(
         tokenOut.chainId,
-        vault.debt,
+        action === RouterAction.BORROW && vault instanceof BorrowingVault
+          ? vault.debt
+          : vault.collateral,
         amountOut,
         account,
         connextRouter,
@@ -386,6 +405,11 @@ function depositAndBorrow(
     deadline,
     slippage,
   } = params;
+
+  invariant(
+    vault instanceof BorrowingVault,
+    'No DEPOSIT_AND_BORROW on LendingVault!'
+  );
 
   const destChainId = tokenOut.chainId;
   const DEPOSIT = RouterAction.DEPOSIT;
@@ -513,6 +537,11 @@ function paybackAndWithdraw(
     deadline,
     slippage,
   } = params;
+
+  invariant(
+    vault instanceof BorrowingVault,
+    'No PAYBACK_AND_WITHDRAW on LendingVault!'
+  );
 
   const destChainId = tokenOut.chainId;
   const PAYBACK = RouterAction.PAYBACK;

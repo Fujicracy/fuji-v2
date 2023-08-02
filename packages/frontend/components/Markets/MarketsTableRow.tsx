@@ -1,40 +1,42 @@
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import {
   Collapse,
-  IconButton,
-  Skeleton,
   Stack,
   Table,
   TableBody,
   TableRow,
-  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material';
-import { BorrowingVault, VaultWithFinancials } from '@x-fuji/sdk';
+import { AbstractVault, VaultType, VaultWithFinancials } from '@x-fuji/sdk';
 import { MouseEvent, useEffect, useState } from 'react';
 
-import { AssetType } from '../../helpers/assets';
-import { aprData, MarketRow, MarketRowStatus } from '../../helpers/markets';
+import { AprType } from '../../helpers/assets';
+import { aprData } from '../../helpers/markets';
 import { formatValue } from '../../helpers/values';
+import { MarketRow, MarketRowStatus } from '../../store/types/markets';
 import AprValue from '../Shared/AprValue';
 import BestLabel from '../Shared/BestLabel';
-import { CurrencyIcon, NetworkIcon } from '../Shared/Icons';
-import SizableTableCell from '../Shared/SizableTableCell';
+import { NetworkIcon } from '../Shared/Icons';
+import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
 import IntegratedProviders from '../Shared/Table/IntegratedProviders';
 import SafetyRating from '../Shared/Table/SafetyRating';
+import SizableTableCell from '../Shared/Table/SizableTableCell';
+import Toggle from '../Shared/Table/Toggle';
+import { loaderOrError } from './LoaderOrError';
 
 type MarketsTableRowProps = {
   row: MarketRow;
-  onClick: (entity?: BorrowingVault | VaultWithFinancials) => void;
+  onClick: (entity?: AbstractVault | VaultWithFinancials) => void;
+  type: VaultType;
+  numberOfColumns: number;
   openedByDefault?: boolean;
 };
 
 function MarketsTableRow({
   row,
   onClick,
+  type,
+  numberOfColumns,
   openedByDefault = false,
 }: MarketsTableRowProps) {
   const { palette } = useTheme();
@@ -51,21 +53,12 @@ function MarketsTableRow({
     setExpandRow(openedByDefault);
   }, [openedByDefault]);
 
-  const loaderOrError = (status: MarketRowStatus) =>
-    status === MarketRowStatus.Loading ? (
-      <Skeleton />
-    ) : status === MarketRowStatus.Error ? (
-      <Tooltip title="Error loading data" arrow>
-        <ErrorOutlineIcon sx={{ color: 'white' }} />
-      </Tooltip>
-    ) : (
-      <></>
-    );
-
   const isHighLevelRow = !row.isChild && !row.isGrandChild;
   const shouldNetworkColumnBeShown =
     row.chain.status === MarketRowStatus.Ready &&
     (!isHighLevelRow || (isHighLevelRow && !expandRow));
+
+  const isLend = type === VaultType.LEND;
 
   return (
     <>
@@ -87,50 +80,45 @@ function MarketsTableRow({
       >
         <SizableTableCell
           width="160px"
+          align="left"
           sx={{
             position: 'sticky',
             left: 0,
             zIndex: 5,
           }}
         >
-          {row.debt && isHighLevelRow && (
-            <Stack direction="row" gap={0.5} alignItems="center">
-              <Toggle
-                expandRow={expandRow}
-                isVisible={Boolean(row.children && row.children.length > 0)}
-                onClick={handleExpand}
-              />
-              <Stack
-                direction="row"
-                alignItems="center"
-                flexWrap="nowrap"
-                data-cy="market-row-debt"
-              >
-                <CurrencyIcon currency={row.debt} height={32} width={32} />
-                <Typography ml="0.5rem" variant="small">
-                  {row.debt}
-                </Typography>
+          {((!isLend && row.debt) || (isLend && row.collateral)) &&
+            isHighLevelRow && (
+              <Stack direction="row" gap={0.5} alignItems="center">
+                <Toggle
+                  expandRow={expandRow}
+                  isVisible={Boolean(row.children && row.children.length > 0)}
+                  onClick={handleExpand}
+                />
+                <CurrencyTableItem
+                  currency={isLend ? row.collateral : row.debt || ''}
+                  label={isLend ? row.collateral : row.debt || ''}
+                  iconDimensions={32}
+                  dataCy={`market-row-${isLend ? 'collateral' : 'debt'}`}
+                />
               </Stack>
-            </Stack>
-          )}
+            )}
         </SizableTableCell>
-        <SizableTableCell width="120px">
-          {row.collateral && isHighLevelRow && (
-            <Stack
-              direction="row"
-              alignItems="center"
-              flexWrap="nowrap"
-              data-cy="market-row-collateral"
-            >
-              <CurrencyIcon currency={row.collateral} height={32} width={32} />
-              <Typography ml="0.5rem" variant="small">
-                {row.collateral}
-              </Typography>
-            </Stack>
-          )}
-        </SizableTableCell>
+        {!isLend && (
+          <SizableTableCell width="160px">
+            {row.collateral && isHighLevelRow && (
+              <CurrencyTableItem
+                currency={row.collateral}
+                label={row.collateral}
+                iconDimensions={32}
+                dataCy="market-row-collateral"
+              />
+            )}
+          </SizableTableCell>
+        )}
         <SizableTableCell width="200px">
-          {!expandRow && loaderOrError(row.chain.status)}
+          {((isLend && !expandRow) || !isLend) &&
+            loaderOrError(row.chain.status)}
           {shouldNetworkColumnBeShown && (
             <Stack
               direction="row"
@@ -145,7 +133,7 @@ function MarketsTableRow({
               />
               <Stack
                 direction="row"
-                alignItems="center"
+                alignItems="left"
                 flexWrap="nowrap"
                 data-cy="market-row-network"
               >
@@ -153,25 +141,32 @@ function MarketsTableRow({
                 <Typography ml="0.5rem" mr="0.3rem" variant="small">
                   {row.chain.value}
                 </Typography>
-                {row.isBest && <BestLabel />}
+                {row.isBest && (
+                  <BestLabel
+                    aprType={isLend ? AprType.SUPPLY : AprType.BORROW}
+                  />
+                )}
               </Stack>
             </Stack>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
-          {!expandRow && loaderOrError(row.borrowApr.status)}
-          {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
-            <AprValue
-              base={borrowApr.base || 0}
-              reward={borrowApr.reward}
-              positive={borrowApr.positive}
-              providerName={row.integratedProviders.value[0]}
-            />
-          )}
-        </SizableTableCell>
+        {!isLend && (
+          <SizableTableCell align="right" width="130px">
+            {!expandRow && loaderOrError(row.borrowApr.status)}
+            {row.borrowApr.status === MarketRowStatus.Ready && !expandRow && (
+              <AprValue
+                base={borrowApr.base || 0}
+                reward={borrowApr.reward}
+                aprType={AprType.BORROW}
+                positive={borrowApr.positive}
+                providerName={row.integratedProviders.value[0]}
+              />
+            )}
+          </SizableTableCell>
+        )}
         <SizableTableCell
           align="right"
-          width="130px"
+          width="120px"
           sx={{ color: palette.success.main }}
         >
           {!expandRow && loaderOrError(row.depositApr.status)}
@@ -180,7 +175,7 @@ function MarketsTableRow({
               base={row.depositAprBase.value}
               reward={row.depositAprReward.value}
               providerName={row.integratedProviders.value[0]}
-              type={AssetType.Debt}
+              aprType={AprType.SUPPLY}
               positive
             />
           )}
@@ -191,7 +186,7 @@ function MarketsTableRow({
             <IntegratedProviders providers={row.integratedProviders} />
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
+        <SizableTableCell align="right" width="130px">
           {!expandRow && (
             <>
               {loaderOrError(row.safetyRating.status)}
@@ -201,22 +196,25 @@ function MarketsTableRow({
             </>
           )}
         </SizableTableCell>
-        <SizableTableCell align="right" width="140px">
-          {!expandRow && loaderOrError(row.liquidity.status)}
-          {row.liquidity.status === MarketRowStatus.Ready &&
-            !expandRow &&
-            formatValue(row.liquidity.value, {
-              maximumSignificantDigits: 3,
-              notation: 'compact',
-              style: 'currency',
-            })}
-        </SizableTableCell>
+        {!isLend && (
+          <SizableTableCell align="right" width="130px">
+            {!expandRow && loaderOrError(row.liquidity.status)}
+            {row.liquidity.status === MarketRowStatus.Ready &&
+              !expandRow &&
+              formatValue(row.liquidity.value, {
+                maximumSignificantDigits: 3,
+                notation: 'compact',
+                style: 'currency',
+              })}
+          </SizableTableCell>
+        )}
       </TableRow>
 
       <TableRow>
         <SizableTableCell
           sx={{ p: 0, borderBottom: 'none !important' }}
-          colSpan={8}
+          colSpan={numberOfColumns}
+          align="right"
         >
           <Collapse
             in={expandRow}
@@ -229,7 +227,12 @@ function MarketsTableRow({
                 sx={{ borderCollapse: 'initial' }}
               >
                 <TableBody>
-                  <MarketsTableRow row={collapsedRow} onClick={onClick} />
+                  <MarketsTableRow
+                    row={collapsedRow}
+                    onClick={onClick}
+                    type={type}
+                    numberOfColumns={numberOfColumns}
+                  />
                 </TableBody>
               </Table>
             ))}
@@ -237,29 +240,6 @@ function MarketsTableRow({
         </SizableTableCell>
       </TableRow>
     </>
-  );
-}
-
-type ToggleProps = {
-  expandRow: boolean;
-  isVisible: boolean;
-  onClick: (e: MouseEvent) => void;
-};
-
-function Toggle(props: ToggleProps) {
-  const { expandRow, isVisible, onClick } = props;
-
-  const visibility = isVisible ? 'visible' : 'hidden';
-
-  return (
-    <IconButton
-      onClick={onClick}
-      size="small"
-      sx={{ visibility }}
-      data-cy="market-toggle"
-    >
-      {expandRow ? <KeyboardArrowDownIcon /> : <KeyboardArrowRightIcon />}
-    </IconButton>
   );
 }
 

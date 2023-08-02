@@ -1,130 +1,75 @@
-import { Address, BorrowingVault, FujiError } from '@x-fuji/sdk';
+import { VaultType } from '@x-fuji/sdk';
+import produce from 'immer';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import {
-  FinancialsOrError,
-  getAllBorrowingVaultFinancials,
-  vaultsFromFinancialsOrError,
-} from '../helpers/borrow';
-import {
-  MarketRow,
-  MarketRowStatus,
-  setBase,
-  setBest,
-  setFinancials,
-  setLlamas,
-} from '../helpers/markets';
-import { shouldShowStoreNotification } from '../helpers/navigation';
-import { notify, showOnchainErrorNotification } from '../helpers/notifications';
+import { fetchMarkets } from '../helpers/markets';
 import { storeOptions } from '../helpers/stores';
-import { sdk } from '../services/sdk';
-
-type MarketsState = {
-  rows: MarketRow[];
-  vaults: BorrowingVault[];
-  vaultsWithFinancials: FinancialsOrError[];
-  loading: boolean;
-};
-
-type MarketsActions = {
-  fetchMarkets: (addr?: string) => void;
-};
-
-const initialState: MarketsState = {
-  rows: [],
-  vaults: [],
-  vaultsWithFinancials: [],
-  loading: false,
-};
-
-export type MarketsStore = MarketsState & MarketsActions;
+import { initialMarketsState, MarketsStore } from './types/markets';
 
 export const useMarkets = create<MarketsStore>()(
   devtools(
-    (set, get) => ({
-      ...initialState,
+    (set, get, api) => ({
+      ...initialMarketsState,
 
       fetchMarkets: async (address) => {
         set({ loading: true });
-        const vaults = sdk.getAllBorrowingVaults();
+        await fetchMarkets(VaultType.BORROW, api, address);
+        await fetchMarkets(VaultType.LEND, api, address);
+        set({ loading: false });
+      },
 
-        const rowsBase = vaults.map(setBase);
-        set({ vaults });
-        if (get().rows.length === 0) {
-          set({ rows: rowsBase });
-        }
-
-        const result = await getAllBorrowingVaultFinancials(
-          address ? Address.from(address) : undefined
+      changeRows(type, rows) {
+        set(
+          produce((state) => {
+            if (type === VaultType.BORROW) {
+              state.borrow.rows = rows;
+            } else {
+              state.lending.rows = rows;
+            }
+          })
         );
-        const errors: FujiError[] = result.data.filter(
-          (d) => d instanceof FujiError
-        ) as FujiError[];
-        const allVaults = vaultsFromFinancialsOrError(result.data);
-        if (shouldShowStoreNotification('markets')) {
-          errors.forEach((error) => {
-            showOnchainErrorNotification(error);
-          });
+      },
+
+      changeRowsAndFinancials(type, rows, vaultsWithFinancials) {
+        get().changeRows(type, rows);
+        get().changeVaultsWithFinancials(type, vaultsWithFinancials);
+      },
+
+      changeRowsIfNeeded(type, rows) {
+        const data = type === VaultType.BORROW ? get().borrow : get().lending;
+        if (data.rows.length === 0) {
+          get().changeRows(type, rows);
         }
+      },
 
-        if (allVaults.length === 0) {
-          const rows = rowsBase
-            .map((r) => setFinancials(r, MarketRowStatus.Error))
-            .map((r) => setLlamas(r, MarketRowStatus.Error));
-          set({ rows: setBest(rows) });
-        }
-
-        const vaultsWithFinancials = result.data;
-        const rowsFin = vaultsWithFinancials.map((obj, i) => {
-          const fin = obj instanceof FujiError ? undefined : obj;
-          const status =
-            obj instanceof FujiError
-              ? MarketRowStatus.Error
-              : MarketRowStatus.Ready;
-          return setFinancials(rowsBase[i], status, fin);
-        });
-
-        const currentFinancials = vaultsFromFinancialsOrError(
-          get().vaultsWithFinancials
+      changeVaults(type, vaults) {
+        set(
+          produce((state) => {
+            if (type === VaultType.BORROW) {
+              state.borrow.vaults = vaults;
+            } else if (type === VaultType.LEND) {
+              state.lending.vaults = vaults;
+            }
+          })
         );
-        if (
-          currentFinancials.length === 0 ||
-          currentFinancials.length !== allVaults.length
-        ) {
-          set({ rows: setBest(rowsFin) });
-          set({ vaultsWithFinancials });
-        }
+      },
 
-        const llamaResult = await sdk.getLlamaFinancials(allVaults);
-        if (!llamaResult.success) {
-          notify({
-            type: 'error',
-            message: llamaResult.error.message,
-          });
-          const rows = rowsFin.map((r) => setLlamas(r, MarketRowStatus.Error));
-          set({ rows: setBest(rows) });
-          return;
-        }
-        const vaultsWithLlamas = llamaResult.data;
-        const rowsLlama = vaultsWithFinancials.map((obj, i) => {
-          const llama =
-            obj instanceof FujiError
-              ? undefined
-              : vaultsWithLlamas.find(
-                  (l) => l.vault.address.value === obj.vault.address.value
-                );
-          return setLlamas(
-            rowsFin[i],
-            llama ? MarketRowStatus.Ready : MarketRowStatus.Error,
-            llama
-          );
-        });
-        set({
-          rows: setBest(rowsLlama),
-          vaultsWithFinancials: vaultsWithLlamas,
-          loading: false,
-        });
+      changeVaultsWithFinancials(type, vaultsWithFinancials) {
+        set(
+          produce((state) => {
+            if (type === VaultType.BORROW) {
+              state.borrow.vaultWithFinancials = vaultsWithFinancials;
+            } else if (type === VaultType.LEND) {
+              state.lending.vaultWithFinancials = vaultsWithFinancials;
+            }
+          })
+        );
+      },
+
+      vaultsWithFinancials(type) {
+        return (type === VaultType.BORROW ? get().borrow : get().lending)
+          .vaultsWithFinancials;
       },
     }),
     storeOptions('markets')

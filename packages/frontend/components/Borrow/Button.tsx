@@ -1,6 +1,4 @@
-import LoadingButton from '@mui/lab/LoadingButton';
-import { Button } from '@mui/material';
-import { ChainId, RoutingStep } from '@x-fuji/sdk';
+import { RoutingStep } from '@x-fuji/sdk';
 import React from 'react';
 
 import { MINIMUM_DEBT_AMOUNT } from '../../constants';
@@ -15,31 +13,20 @@ import {
 } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
 import { isBridgeable } from '../../helpers/currencies';
-import { TransactionMeta } from '../../helpers/transactions';
-import { Position } from '../../store/models/Position';
+import { BorrowingPosition } from '../../store/models/Position';
+import {
+  DisabledButton,
+  LoadingButton,
+  loadingTitle,
+  OperationButtonProps,
+  OperationButtonTitles,
+  RegularButton,
+} from '../Shared/Operation/OperationButton';
 
-type BorrowButtonProps = {
-  collateral: AssetChange;
-  metaStatus: FetchStatus;
-  needsSignature: boolean;
-  isSigning: boolean;
-  isExecuting: boolean;
-  availableVaultStatus: FetchStatus;
-  transactionMeta: TransactionMeta;
-  mode: Mode;
-  isEditing: boolean;
-  hasBalanceInVault: boolean;
-  onLoginClick: () => void;
-  onChainChangeClick: (chainId: ChainId) => void;
-  onApproveClick: (type: AssetType) => void;
-  onRedirectClick: (position: boolean) => void;
-  onClick: () => void;
-  withConfirmation: (action?: () => void) => void;
+type BorrowButtonProps = Omit<OperationButtonProps, 'position'> & {
   debt?: AssetChange;
-  position?: Position;
-  walletChainId?: ChainId;
   ltvMeta?: LtvMeta;
-  address?: string;
+  position?: BorrowingPosition;
 };
 
 function BorrowButton({
@@ -65,53 +52,31 @@ function BorrowButton({
   onClick,
   withConfirmation,
 }: BorrowButtonProps) {
-  const regularButton = (title: string, onClick: () => void, data?: string) => {
-    return (
-      <Button
-        variant="gradient"
-        size="large"
-        fullWidth
-        onClick={onClick}
-        data-cy={data}
-      >
-        {title}
-      </Button>
-    );
-  };
-
   const clickWithConfirmation: (action: () => void) => void = (action) => {
     withConfirmation(action);
   };
 
-  const disabledButton = (title: string) => (
-    <Button
-      variant="gradient"
-      size="large"
-      fullWidth
-      disabled
-      data-cy="disabled-borrow-button"
-    >
-      {title}
-    </Button>
-  );
+  const regularButton = (title: string, onClick: () => void, data?: string) => {
+    return <RegularButton title={title} onClick={onClick} data={data} />;
+  };
+
+  const disabledButton = (title: string) => <DisabledButton title={title} />;
 
   const loadingButton = (disabled: boolean, loading: boolean) => (
     <LoadingButton
-      variant="gradient"
-      size="large"
-      loadingPosition="start"
-      startIcon={<></>}
-      fullWidth
       disabled={disabled}
       loading={loading}
+      title={loadingButtonTitle}
       onClick={() => clickWithConfirmation(onClick)}
-    >
-      {loadingButtonTitle}
-    </LoadingButton>
+    />
   );
 
   if (!address) {
-    return regularButton('Connect wallet', onLoginClick, 'borrow-login');
+    return regularButton(
+      OperationButtonTitles.CONNECT,
+      onLoginClick,
+      'borrow-login'
+    );
   }
   if (!debt || !position || !ltvMeta) {
     return disabledButton('Select a network to borrow on');
@@ -121,28 +86,28 @@ function BorrowButton({
   const collateralBalance = collateral.balances[collateral.currency.symbol];
   const debtBalance = debt.balances[debt.currency.symbol];
 
-  const executionStep = needsSignature ? 2 : 1;
-  const actionTitle = `${needsSignature ? 'Sign & ' : ''}${
+  const actionTitle = `${needsSignature ? OperationButtonTitles.SIGN : ''}${
     mode === Mode.DEPOSIT_AND_BORROW
       ? `${needsSignature ? '' : 'Deposit & '}Borrow`
       : mode === Mode.BORROW
       ? 'Borrow'
       : mode === Mode.DEPOSIT
-      ? 'Deposit'
+      ? OperationButtonTitles.DEPOSIT
       : mode === Mode.PAYBACK_AND_WITHDRAW
       ? 'Payback & Withdraw'
       : mode === Mode.WITHDRAW
-      ? 'Withdraw'
+      ? OperationButtonTitles.WITHDRAW
       : 'Payback'
   }`;
 
-  const loadingButtonTitle =
-    (collateral.allowance.status === AllowanceStatus.Approving &&
-      'Approving...') ||
-    (debt.allowance.status === AllowanceStatus.Approving && 'Approving...') ||
-    (isSigning && '(1/2) Signing...') ||
-    (isExecuting && `(${executionStep}/${executionStep}) Processing...`) ||
-    actionTitle;
+  const loadingButtonTitle = loadingTitle(
+    collateral.allowance.status === AllowanceStatus.Approving ||
+      debt.allowance.status === AllowanceStatus.Approving,
+    needsSignature,
+    isSigning,
+    isExecuting,
+    actionTitle
+  );
 
   const firstStep = transactionMeta.steps[0];
   const bridgeStep = transactionMeta.steps.find(
@@ -154,7 +119,7 @@ function BorrowButton({
   ) {
     return loadingButton(false, true);
   } else if (availableVaultStatus === FetchStatus.Error) {
-    return disabledButton('Unsupported pair');
+    return disabledButton(OperationButtonTitles.ERROR);
   } else if (bridgeStep?.token && !isBridgeable(bridgeStep.token)) {
     return disabledButton(
       `${bridgeStep.token.symbol}: not supported cross-chain`
@@ -165,7 +130,7 @@ function BorrowButton({
     availableVaultStatus === FetchStatus.Ready &&
     transactionMeta.status === FetchStatus.Ready
   ) {
-    return regularButton('Manage position', () => {
+    return regularButton(OperationButtonTitles.MANAGE, () => {
       onRedirectClick(false);
     });
   } else if (firstStep && firstStep?.chainId !== walletChainId) {
@@ -208,13 +173,17 @@ function BorrowButton({
     (mode === Mode.WITHDRAW || mode === Mode.PAYBACK_AND_WITHDRAW) &&
     collateralAmount > position.collateral.amount
   ) {
-    return disabledButton('Withdraw more than allowed');
+    return disabledButton(OperationButtonTitles.WITHDRAW_MAX);
   } else if (
     needsAllowance(mode, AssetType.Collateral, collateral, collateralAmount)
   ) {
-    return regularButton('Approve', () => onApproveClick(AssetType.Collateral));
+    return regularButton(OperationButtonTitles.APPROVE, () =>
+      onApproveClick(AssetType.Collateral)
+    );
   } else if (needsAllowance(mode, AssetType.Debt, debt, debtAmount)) {
-    return regularButton('Approve', () => onApproveClick(AssetType.Debt));
+    return regularButton(OperationButtonTitles.APPROVE, () =>
+      onApproveClick(AssetType.Debt)
+    );
   } else {
     return loadingButton(
       !(

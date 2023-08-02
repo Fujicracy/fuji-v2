@@ -9,6 +9,7 @@ function LinkIcon() {
       sx={{
         width: '12px',
         height: '13px',
+        cursor: 'pointer',
       }}
     >
       <path

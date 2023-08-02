@@ -114,6 +114,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseRouter__safeTransferETH_zeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "ConnextRouter__setRouter_invalidInput",
     type: "error",
   },

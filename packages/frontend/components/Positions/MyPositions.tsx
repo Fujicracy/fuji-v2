@@ -1,19 +1,24 @@
-import { Box, Grid, Typography } from '@mui/material';
+import { Grid, Typography } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 
+import { useMarkets } from '../../store/markets.store';
 import { usePositions } from '../../store/positions.store';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
-import Lending from '../Shared/Lending';
-import MyPositionsBorrowTable from './MyPositionsBorrowTable';
 import MyPositionsSummary from './MyPositionsSummary';
+import MyPositionsTable from './MyPositionsTable';
 
 function MyPositions() {
-  const [currentTab, setCurrentTab] = useState(0);
+  const router = useRouter();
+  const [currentTab, setCurrentTab] = useState(
+    router.query?.tab === 'lend' ? 1 : 0
+  );
 
-  const positions = usePositions((state) => state.positions);
-  const loading = usePositions((state) => state.loading);
-
-  const isLoading = loading && positions.length === 0;
+  const borrowPositions = usePositions((state) => state.borrowPositions);
+  const lendingPositions = usePositions((state) => state.lendingPositions);
+  const borrowMarkets = useMarkets((state) => state.borrow.rows);
+  const lendMarkets = useMarkets((state) => state.lending.rows);
 
   return (
     <>
@@ -28,16 +33,17 @@ function MyPositions() {
       <MyPositionsSummary />
 
       <Grid container mt="2.5rem" mb="1rem">
-        <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
+        <BorrowLendingTabNavigation
+          onChange={(tab) => setCurrentTab(tab)}
+          defaultTab={currentTab}
+        />
       </Grid>
 
-      {currentTab === 0 ? (
-        <MyPositionsBorrowTable loading={isLoading} />
-      ) : (
-        <Box sx={{ height: '31rem', width: '100%' }}>
-          <Lending />
-        </Box>
-      )}
+      <MyPositionsTable
+        positions={currentTab === 0 ? borrowPositions : lendingPositions}
+        type={currentTab === 0 ? VaultType.BORROW : VaultType.LEND}
+        markets={currentTab === 0 ? borrowMarkets : lendMarkets}
+      />
     </>
   );
 }

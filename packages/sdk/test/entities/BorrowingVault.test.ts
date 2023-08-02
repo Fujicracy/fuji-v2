@@ -22,7 +22,7 @@ describe('BorrowingVault', () => {
 
   describe('#getProviders', () => {
     it('fetches providers and borrowRate', async () => {
-      const vault = VAULT_LIST[ChainId.GOERLI][0].setConnection(config);
+      const vault = VAULT_LIST[ChainId.MATIC][0].setConnection(config);
 
       const providers = await vault.getProviders();
       expect(providers).toBeTruthy();

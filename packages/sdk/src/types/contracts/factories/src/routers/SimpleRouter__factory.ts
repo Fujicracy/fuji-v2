@@ -109,6 +109,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "BaseRouter__safeTransferETH_zeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "SimpleRouter__noCrossTransfersImplemented",
     type: "error",
   },

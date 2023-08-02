@@ -1,14 +1,14 @@
 import { BigNumber } from '@ethersproject/bignumber';
 
+import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { Address } from '../entities/Address';
-import { BorrowingVault } from '../entities/BorrowingVault';
 import { Currency } from '../entities/Currency';
 import { PreviewName } from '../enums';
 import { ChainId } from '../enums/ChainId';
 
 export type BasePreviewParams = {
   name: PreviewName;
-  vault: BorrowingVault;
+  vault: AbstractVault;
   account: Address;
   srcChainId: ChainId;
   slippage?: number;

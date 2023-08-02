@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 export const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M28.2012 56.4025C43.7763 56.4025 56.4025 43.7763 56.4025 28.2012C56.4025 12.6261 43.7763 0 28.2012 0C12.6261 0 0 12.6261 0 28.2012C0 43.7763 12.6261 56.4025 28.2012 56.4025Z" fill="url(#paint0_linear)"/>
 <path d="M28.2007 43.7037C36.7624 43.7037 43.7031 36.763 43.7031 28.2012C43.7031 19.6395 36.7624 12.6988 28.2007 12.6988C19.6389 12.6988 12.6982 19.6395 12.6982 28.2012C12.6982 36.763 19.6389 43.7037 28.2007 43.7037Z" fill="#101010"/>
@@ -12,4 +14,4 @@ export const fujiLogo = `<svg width="57" height="57" viewBox="0 0 57 57" fill="n
 </defs>
 </svg>`;
 
-export type TabOption = { value: number; label: string };
+export type TabOption = { value: number; label: string | ReactNode };

@@ -9,7 +9,7 @@ import walletConnectModule, {
 } from '@web3-onboard/walletconnect';
 import xdefiWalletModule from '@web3-onboard/xdefi';
 
-import { FUJI_INFO, fujiLogo } from '../constants';
+import { ASSET_WARNING_KEY, FUJI_INFO, fujiLogo } from '../constants';
 import { onboardChains } from './chains';
 
 type OnboardStatus = {
@@ -18,28 +18,13 @@ type OnboardStatus = {
   wasExploreInfoShown?: boolean;
 };
 
-const wcV1InitOptions: WalletConnectOptions = {
-  version: 1,
-  qrcodeModalOptions: {
-    mobileLinks: [
-      'rainbow',
-      'metamask',
-      'argent',
-      'trust',
-      'imtoken',
-      'pillar',
-    ],
-  },
-  connectFirstChainId: true,
-};
-
-const wcV2InitOptions: WalletConnectOptions = {
+const wcInitOptions: WalletConnectOptions = {
   version: 2,
   projectId: `${process.env.NEXT_PUBLIC_WALLET_CONNECT_V2_KEY}`,
 };
 
 const injected = injectedModule();
-const walletConnect = walletConnectModule(wcV2InitOptions || wcV1InitOptions);
+const walletConnect = walletConnectModule(wcInitOptions);
 const coinbase = coinbaseModule();
 const ledger = ledgerModule();
 const mewWalletModule = mewWallet();
@@ -75,7 +60,7 @@ export const web3onboard = Onboard({
   theme: 'dark',
 });
 
-export function acceptTermsOfUse() {
+export const acceptTermsOfUse = () => {
   const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
   const onboardStatus = JSON.parse(onboardStatusJson);
 
@@ -87,9 +72,9 @@ export function acceptTermsOfUse() {
     },
   });
   localStorage.setItem('termsAccepted', json);
-}
+};
 
-export function getOnboardStatus(): OnboardStatus {
+export const getOnboardStatus = (): OnboardStatus => {
   const onboardStatusJson = localStorage.getItem('termsAccepted');
   if (!onboardStatusJson) return { hasAcceptedTerms: false };
 
@@ -100,13 +85,22 @@ export function getOnboardStatus(): OnboardStatus {
     date: onboardStatus.date && new Date(onboardStatus.date),
     wasExploreInfoShown: onboardStatus.wasExploreInfoShown,
   };
-}
+};
 
-export function setExploreInfoShown(wasExploreInfoShown: boolean) {
+export const setExploreInfoShown = (wasExploreInfoShown: boolean) => {
   const onboardStatusJson = localStorage.getItem('termsAccepted') || '{}';
 
   const onboardStatus = JSON.parse(onboardStatusJson);
 
   const json = JSON.stringify({ ...onboardStatus, wasExploreInfoShown });
   localStorage.setItem('termsAccepted', json);
-}
+};
+
+export const shouldShowBalanceWarning = (): boolean => {
+  const statusJson = localStorage.getItem(ASSET_WARNING_KEY);
+  return !statusJson || statusJson !== 'true';
+};
+
+export const setBalanceWarningShown = () => {
+  localStorage.setItem(ASSET_WARNING_KEY, 'true');
+};

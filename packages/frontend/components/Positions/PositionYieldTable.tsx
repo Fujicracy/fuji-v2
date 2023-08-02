@@ -10,6 +10,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { useEffect, useState } from 'react';
 
 import { chainName } from '../../helpers/chains';
@@ -20,24 +21,30 @@ import {
 } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
-import { usePositions } from '../../store/positions.store';
-import { CurrencyIcon, CurrencyWithNetworkIcon } from '../Shared/Icons';
+import { Position } from '../../store/models/Position';
+import { CurrencyWithNetworkIcon } from '../Shared/Icons';
+import CurrencyTableItem from '../Shared/Table/CurrencyTableItem';
+import EmptyState from './EmptyState';
 
 type PositionYieldTableProps = {
   loading: boolean;
   days: number;
-  callback: (value: number) => void;
+  positions: Position[];
+  type: VaultType;
 };
 
 function PositionYieldTable({
   loading,
   days,
-  callback,
+  positions,
+  type,
 }: PositionYieldTableProps) {
   const { palette } = useTheme();
   const account = useAuth((state) => state.address);
-  const positions = usePositions((state) => state.positions);
   const [rows, setRows] = useState<PositionRow[]>([]);
+
+  const isLend = type === VaultType.LEND;
+  const numberOfColumns = isLend ? 3 : 6;
 
   useEffect(() => {
     (() => {
@@ -46,28 +53,11 @@ function PositionYieldTable({
     })();
   }, [loading, account, positions]);
 
-  useEffect(() => {
-    callback(
-      rows.reduce((a, c) => {
-        return (
-          a +
-          getEstimatedEarnings({
-            days,
-            collateralInUsd: c.collateral.usdValue,
-            collateralAPR: c.collateral.baseAPR,
-            debtInUsd: c.debt.usdValue,
-            debtAPR: c.debt.baseAPR,
-          })
-        );
-      }, 0)
-    );
-  }, [rows, days, callback]);
-
   if (loading) {
     return (
-      <PositionYieldTableContainer>
+      <PositionYieldTableContainer isLend={isLend}>
         <TableRow sx={{ height: '2.625rem' }}>
-          {new Array(6).fill('').map((_, index) => (
+          {new Array(numberOfColumns).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
@@ -78,66 +68,83 @@ function PositionYieldTable({
   }
 
   return (
-    <PositionYieldTableContainer>
-      {rows.map((row, i) => (
-        <TableRow key={i}>
-          <TableCell>
-            <Stack direction="row" alignItems="center" pt={1} pb={1}>
-              <CurrencyWithNetworkIcon
-                currency={row.debt.symbol}
-                network={chainName(row.chainId)}
-                innerTop="1.1rem"
-              />
-              {row.debt.symbol}
-            </Stack>
-          </TableCell>
-          <TableCell>
-            <Stack direction="row" alignItems="center" pt={1} pb={1} gap={1}>
-              <CurrencyIcon
-                currency={row.collateral.symbol}
-                width={32}
-                height={32}
-              />
-              {row.collateral.symbol}
-            </Stack>
-          </TableCell>
-          <TableCell align="right">
-            <Typography variant="small" color={palette.warning.main}>
-              {formatValue(row.debt.baseAPR)}%
-            </Typography>
-          </TableCell>
-          <TableCell align="right">
-            <Typography variant="small" color={palette.success.main}>
-              {formatValue(row.collateral.baseAPR)}%
-            </Typography>
-          </TableCell>
-          <TableCell align="right">
-            <Typography variant="small">
-              {formatValue(
-                Number(row.collateral.baseAPR) - Number(row.debt.baseAPR)
+    <PositionYieldTableContainer isLend={isLend}>
+      {rows.length === 0 && positions.length === 0 ? (
+        <EmptyState
+          reason="no-positions"
+          columnsCount={numberOfColumns}
+          minHeight="10rem"
+          type={type}
+          withButton={false}
+        />
+      ) : (
+        <>
+          {rows.map((row, i) => (
+            <TableRow key={i}>
+              {!isLend && row.debt && (
+                <TableCell>
+                  <Stack direction="row" alignItems="center" pt={1} pb={1}>
+                    <CurrencyWithNetworkIcon
+                      currency={row.debt.symbol}
+                      network={chainName(row.chainId)}
+                      innerTop="1.1rem"
+                    />
+                    {row.debt.symbol}
+                  </Stack>
+                </TableCell>
               )}
-              %
-            </Typography>
-          </TableCell>
-          <TableCell align="right">
-            <Typography variant="small">
-              {formatValue(
-                getEstimatedEarnings({
-                  days,
-                  collateralInUsd: row.collateral.usdValue,
-                  collateralAPR: row.collateral.baseAPR,
-                  debtInUsd: row.debt.usdValue,
-                  debtAPR: row.debt.baseAPR,
-                }),
-                {
-                  style: 'currency',
-                  maximumFractionDigits: 2,
-                }
+              <TableCell>
+                <Stack direction="row" alignItems="center" pt={1} pb={1}>
+                  <CurrencyTableItem
+                    currency={row.collateral.symbol}
+                    label={row.collateral.symbol}
+                    iconDimensions={32}
+                  />
+                </Stack>
+              </TableCell>
+              {!isLend && row.debt && (
+                <TableCell align="right">
+                  <Typography variant="small" color={palette.warning.main}>
+                    {formatValue(row.debt.baseAPR)}%
+                  </Typography>
+                </TableCell>
               )}
-            </Typography>
-          </TableCell>
-        </TableRow>
-      ))}
+              <TableCell align="right">
+                <Typography variant="small" color={palette.success.main}>
+                  {formatValue(row.collateral.baseAPR)}%
+                </Typography>
+              </TableCell>
+              {!isLend && row.debt && (
+                <TableCell align="right">
+                  <Typography variant="small">
+                    {formatValue(
+                      Number(row.collateral.baseAPR) - Number(row.debt.baseAPR)
+                    )}
+                    %
+                  </Typography>
+                </TableCell>
+              )}
+              <TableCell align="right">
+                <Typography variant="small">
+                  {formatValue(
+                    getEstimatedEarnings({
+                      days,
+                      collateralInUsd: row.collateral.usdValue,
+                      collateralAPR: row.collateral.baseAPR,
+                      debtInUsd: row.debt ? row.debt.usdValue : 0,
+                      debtAPR: row.debt ? row.debt.baseAPR : 0,
+                    }),
+                    {
+                      style: 'currency',
+                      maximumFractionDigits: 2,
+                    }
+                  )}
+                </Typography>
+              </TableCell>
+            </TableRow>
+          ))}
+        </>
+      )}
     </PositionYieldTableContainer>
   );
 }
@@ -145,18 +152,19 @@ function PositionYieldTable({
 export default PositionYieldTable;
 
 type PositionYieldTableElementProps = {
+  isLend: boolean;
   children: string | JSX.Element | JSX.Element[];
 };
 
-function PositionYieldTableHeader() {
+function PositionYieldTableHeader({ isLend }: { isLend: boolean }) {
   return (
     <TableHead>
       <TableRow sx={{ height: '2.625rem' }}>
-        <TableCell>Borrow</TableCell>
+        {!isLend && <TableCell>Borrow</TableCell>}
         <TableCell>Collateral</TableCell>
-        <TableCell align="right">Borrow APY</TableCell>
+        {!isLend && <TableCell align="right">Borrow APY</TableCell>}
         <TableCell align="right">Supply APY</TableCell>
-        <TableCell align="right">Net APY</TableCell>
+        {!isLend && <TableCell align="right">Net APY</TableCell>}
         <TableCell align="right">Est. Yield/Cost</TableCell>
       </TableRow>
     </TableHead>
@@ -165,6 +173,7 @@ function PositionYieldTableHeader() {
 
 function PositionYieldTableContainer({
   children,
+  isLend,
 }: PositionYieldTableElementProps) {
   return (
     <TableContainer
@@ -177,7 +186,7 @@ function PositionYieldTableContainer({
       }}
     >
       <Table aria-label="Positions yields table" size="small">
-        <PositionYieldTableHeader />
+        <PositionYieldTableHeader isLend={isLend} />
         <TableBody>{children}</TableBody>
       </Table>
     </TableContainer>

@@ -1,15 +1,18 @@
 import { Grid, Link, Typography } from '@mui/material';
 import Image from 'next/image';
 
-function ConnextFooter() {
+const defaultMb = '2rem';
+type ConnextFooterProps = { mb: string };
+
+function ConnextFooter({ mb }: ConnextFooterProps) {
   return (
     <Link href="https://www.connext.network/" target="_blank" rel="noreferrer">
       <Grid
         container
         justifyContent="center"
         alignItems="center"
-        mt="2rem"
-        mb="2rem"
+        mt={defaultMb}
+        mb={mb}
       >
         <Typography variant="small">Powered by</Typography>
         <Image
@@ -24,3 +27,7 @@ function ConnextFooter() {
 }
 
 export default ConnextFooter;
+
+ConnextFooter.defaultProps = {
+  mb: defaultMb,
+};

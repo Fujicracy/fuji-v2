@@ -40,9 +40,9 @@ const _abi = [
         type: "bytes32",
       },
       {
-        internalType: "uint128",
+        internalType: "uint256",
         name: "nonce",
-        type: "uint128",
+        type: "uint256",
       },
     ],
     name: "ConnextHandler__executeFailed_tranferAlreadyExecuted",
@@ -83,9 +83,9 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint128",
+        internalType: "uint256",
         name: "nonce",
-        type: "uint128",
+        type: "uint256",
       },
       {
         indexed: true,
@@ -144,9 +144,9 @@ const _abi = [
       },
       {
         indexed: false,
-        internalType: "uint128",
+        internalType: "uint256",
         name: "nonce",
-        type: "uint128",
+        type: "uint256",
       },
     ],
     name: "FailedTxnRecorded",
@@ -173,9 +173,9 @@ const _abi = [
         type: "bytes32",
       },
       {
-        internalType: "uint128",
+        internalType: "uint256",
         name: "nonce",
-        type: "uint128",
+        type: "uint256",
       },
       {
         internalType: "enum IRouter.Action[]",
@@ -201,9 +201,9 @@ const _abi = [
         type: "bytes32",
       },
       {
-        internalType: "uint128",
+        internalType: "uint256",
         name: "nonce",
-        type: "uint128",
+        type: "uint256",
       },
     ],
     name: "getFailedTxn",
@@ -246,9 +246,9 @@ const _abi = [
             type: "bytes[]",
           },
           {
-            internalType: "uint128",
+            internalType: "uint256",
             name: "nonce",
-            type: "uint128",
+            type: "uint256",
           },
           {
             internalType: "bool",
@@ -275,33 +275,9 @@ const _abi = [
     name: "getFailedTxnNextNonce",
     outputs: [
       {
-        internalType: "uint128",
+        internalType: "uint256",
         name: "next",
-        type: "uint128",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "transferId",
-        type: "bytes32",
-      },
-      {
-        internalType: "uint128",
-        name: "nonce",
-        type: "uint128",
-      },
-    ],
-    name: "isTransferIdRecorded",
-    outputs: [
-      {
-        internalType: "bool",
-        name: "",
-        type: "bool",
+        type: "uint256",
       },
     ],
     stateMutability: "view",

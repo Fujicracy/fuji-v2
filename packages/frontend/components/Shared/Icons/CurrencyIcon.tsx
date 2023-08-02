@@ -1,4 +1,3 @@
-import { useTheme } from '@mui/material';
 import { Currency } from '@x-fuji/sdk';
 import { SyntheticEvent, useState } from 'react';
 
@@ -10,14 +9,13 @@ interface Props extends Icon {
 }
 
 function CurrencyIcon(props: Props) {
-  const { palette } = useTheme();
   const { currency } = props;
   const symbol = typeof currency === 'string' ? currency : currency.symbol;
   const path = getTokenImage(symbol);
   const [error, setError] = useState<SyntheticEvent<HTMLImageElement, Event>>();
 
   if (error) {
-    return renderIconError(props, palette);
+    return renderIconError(props);
   }
 
   return renderIcon(props, path, symbol, (e) => setError(e));

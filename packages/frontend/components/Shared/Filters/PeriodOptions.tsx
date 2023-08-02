@@ -11,17 +11,21 @@ const periodOptions: TabOption[] = [
   { label: '365D', value: Period.YEAR },
 ];
 
-export function PeriodOptions({
+function PeriodOptions({
   onChange,
+  defaultValue,
   isDayExcluded = false,
 }: {
   onChange: (value: number) => void;
   isDayExcluded?: boolean;
+  defaultValue?: Period;
 }) {
   const options = useMemo(() => {
     return isDayExcluded ? periodOptions.slice(1) : periodOptions;
   }, [isDayExcluded]);
-  const [daysPeriod, setDaysPeriod] = useState<number>(options[0].value);
+  const [daysPeriod, setDaysPeriod] = useState<number>(
+    defaultValue || options[0].value
+  );
 
   const onPeriodChange = (value: number) => {
     setDaysPeriod(value);

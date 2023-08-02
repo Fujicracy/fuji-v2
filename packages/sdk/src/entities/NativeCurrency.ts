@@ -3,7 +3,7 @@ import { MaxUint256 } from '@ethersproject/constants';
 import invariant from 'tiny-invariant';
 
 import { ChainConfig } from '../types/ChainConfig';
-import { AbstractCurrency } from './AbstractCurrency';
+import { AbstractCurrency } from './abstract/AbstractCurrency';
 import { Address } from './Address';
 
 /**
