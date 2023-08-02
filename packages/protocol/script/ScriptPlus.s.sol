@@ -70,6 +70,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
 
   uint256 private constant MIN_INITIALIZE = 1e6;
 
+  bool UPGRADE_SAFETY_CHECK_BYPASS; // bypass all upgrade safety checks
+  string ETHERSCAN_API_KEY;
+
   AddrMapper internal mapper;
   Chief internal chief;
   TimelockController internal timelock;
@@ -92,21 +95,42 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
   mapping(address => uint256) internal approvalsByToken;
 
   constructor() {
+    chainNames.push("ethereum");
     chainNames.push("polygon");
     chainNames.push("optimism");
     chainNames.push("arbitrum");
     chainNames.push("gnosis");
-    chainNames.push("goerli");
+    /*chainNames.push("goerli");*/
   }
 
-  function setUpOn(string memory chain) internal {
-    chainName = chain;
+  function setUpOn() internal {
+    if (block.chainid == ETHEREUM_CHAIN_ID) {
+      chainName = "ethereum";
+      ETHERSCAN_API_KEY = tryLoadEnvString("ETHERSCAN_KEY");
+    } else if (block.chainid == OPTIMISM_CHAIN_ID) {
+      chainName = "optimism";
+      ETHERSCAN_API_KEY = tryLoadEnvString("OPTIMISM_ETHERSCAN_KEY");
+    } else if (block.chainid == GNOSIS_CHAIN_ID) {
+      chainName = "gnosis";
+      ETHERSCAN_API_KEY = tryLoadEnvString("GNOSIS_ETHERSCAN_KEY");
+    } else if (block.chainid == POLYGON_CHAIN_ID) {
+      chainName = "polygon";
+      ETHERSCAN_API_KEY = tryLoadEnvString("POLYGON_ETHERSCAN_KEY");
+    } else if (block.chainid == ARBITRUM_CHAIN_ID) {
+      chainName = "arbitrum";
+      ETHERSCAN_API_KEY = tryLoadEnvString("ARBITRUM_ETHERSCAN_KEY");
+    } else if (block.chainid == GOERLI_CHAIN_ID) {
+      chainName = "goerli";
+      ETHERSCAN_API_KEY = tryLoadEnvString("ETHERSCAN_KEY");
+    }
 
     string memory path = string.concat("deploy-configs/", chainName, ".json");
     configJson = vm.readFile(path);
 
     uint256 pvk = vm.envUint("DEPLOYER_PRIVATE_KEY");
     deployer = vm.addr(pvk);
+
+    UPGRADE_SAFETY_CHECK_BYPASS = tryLoadEnvBool(false, "UPGRADE_SAFETY_CHECK_BYPASS");
   }
 
   function setOrDeployChief(bool deploy) internal {
@@ -127,6 +151,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       connextRouter = new ConnextRouter(IWETH9(weth), IConnext(connext), Chief(chief));
       saveAddress("ConnextRouter", address(connextRouter));
       saveAddress("ConnextHandler", address(connextRouter.handler()));
+      saveAddress("ConnextReceiver", address(connextRouter.connextReceiver()));
     } else {
       connextRouter = ConnextRouter(payable(getAddress("ConnextRouter")));
     }
@@ -177,9 +202,10 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     if (deployFactory) {
       if (deployImplementation) {
         implementation = address(new BorrowingVault());
-        saveAddress("BorrowingVault-Impl", implementation);
+        saveAddress("BorrowingVaultUpgradeable", implementation);
+        saveStorageLayout("BorrowingVaultUpgradeable");
       } else {
-        implementation = getAddress("BorrowingVault-Impl");
+        implementation = getAddress("BorrowingVaultUpgradeable");
       }
       factory = new BorrowingVaultBeaconFactory(address(chief), implementation);
       saveAddress("BorrowingVaultBeaconFactory", address(factory));
@@ -198,9 +224,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     if (deployFactory) {
       if (deployImplementation) {
         implementation = address(new YieldVault());
-        saveAddress("YieldVault-Impl", implementation);
+        saveAddress("YieldVaultUpgradeable", implementation);
       } else {
-        implementation = getAddress("YieldVault-Impl");
+        implementation = getAddress("YieldVaultUpgradeable");
       }
       yieldFactory = new YieldVaultFactory(address(chief), implementation);
       saveAddress("YieldVaultBeaconFactory", address(yieldFactory));
@@ -263,7 +289,8 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     bytes memory data;
     for (uint256 i; i < len; i++) {
       asset1 = readAddrFromConfig(nested[i].asset1);
-      asset2 = readAddrFromConfig(nested[i].asset2);
+      // asset2 could be the zero address when getting mappings for yield vaults
+      asset2 = areEq(nested[i].asset2, "ZERO") ? address(0) : readAddrFromConfig(nested[i].asset2);
       market = nested[i].market;
       name = nested[i].name;
 
@@ -277,19 +304,21 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     }
   }
 
-  function setRouters() internal {
+  function setConnextReceivers() internal {
     uint256 len = chainNames.length;
 
     address current = address(connextRouter);
 
     uint32 domain;
-    address router;
+    address receiver;
     for (uint256 i; i < len; i++) {
       domain = getDomainByChainName(chainNames[i]);
-      router = getAddressAt("ConnextRouter", chainNames[i]);
-      if (connextRouter.routerByDomain(domain) != router && current != router) {
+      receiver = getAddressAt("ConnextReceiver", chainNames[i]);
+      if (connextRouter.receiverByDomain(domain) != receiver && current != receiver) {
         timelockTargets.push(current);
-        timelockDatas.push(abi.encodeWithSelector(connextRouter.setRouter.selector, domain, router));
+        timelockDatas.push(
+          abi.encodeWithSelector(connextRouter.setReceiver.selector, domain, receiver)
+        );
         timelockValues.push(0);
       }
     }
@@ -422,6 +451,44 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     callBatchWithTimelock();
   }
 
+  function getConstructorArgs(string memory name) internal view {
+    IVault v = IVault(getAddress(name));
+    console.log(address(v));
+    bytes memory initCall = abi.encodeWithSignature(
+      "initialize(address,address,address,string,string,address[])",
+      v.asset(),
+      v.debtAsset(),
+      address(chief),
+      v.name(),
+      v.symbol(),
+      v.getProviders()
+    );
+    bytes memory constructorArgs = abi.encode(address(factory), initCall, address(chief));
+    console.logBytes(constructorArgs);
+  }
+
+  function verifyContract(string memory contractName, bytes memory constructorArgs) internal {
+    string[] memory script = new string[](12);
+
+    string memory contractAddr = vm.toString(getAddress(contractName));
+
+    script[0] = "forge";
+    script[1] = "verify-contract";
+    script[2] = "--chain-id";
+    script[3] = vm.toString(block.chainid);
+    script[4] = "--num-of-optimizations";
+    script[5] = "200";
+    script[6] = "--constructor-args";
+    script[7] = vm.toString(constructorArgs);
+    script[8] = contractAddr;
+    script[9] = contractName;
+    script[10] = "--etherscan-api-key";
+    script[11] = ETHERSCAN_API_KEY;
+
+    vm.ffi(script);
+    console.log(string.concat("Run verification for ", contractName, " at ", contractAddr));
+  }
+
   // function initBorrowingVaults2() internal {
   //   bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
   //   VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
@@ -500,7 +567,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       for (uint256 i; i < len; i++) {
         address token = approvals[i];
         if (approvalsByToken[token] > 0) {
-          IERC20(asset).safeIncreaseAllowance(address(yieldFactory), approvalsByToken[token]);
+          IERC20(token).safeIncreaseAllowance(address(yieldFactory), approvalsByToken[token]);
           approvalsByToken[token] = 0;
         }
       }
@@ -554,15 +621,57 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
 
   function upgradeBorrowingImpl(bool deploy) internal {
     if (deploy) {
+      if (!UPGRADE_SAFETY_CHECK_BYPASS) {
+        checkStorageLayoutCompatibility("BorrowingVaultUpgradeable");
+      } else {
+        console.log("Skipping upgradeability safety checks...");
+      }
+
       implementation = address(new BorrowingVault());
-      saveAddress("BorrowingVault-Impl", implementation);
+      saveAddress("BorrowingVaultUpgradeable", implementation);
+      saveStorageLayout("BorrowingVaultUpgradeable");
     } else {
-      implementation = getAddress("BorrowingVault-Impl");
+      implementation = getAddress("BorrowingVaultUpgradeable");
     }
 
-    if (factory.implementation() != implementation) {
+    if (factory.implementation() != implementation && address(0) != implementation) {
       bytes memory data = abi.encodeWithSelector(factory.upgradeTo.selector, implementation);
       callWithTimelock(address(factory), data);
+    }
+  }
+
+  function checkStorageLayoutCompatibility(string memory contractName) internal {
+    string memory oldLayoutPath = getStorageLayoutPath(contractName);
+    string memory tempName = string.concat("New", contractName);
+    string memory newLayoutPath = getStorageLayoutPath(tempName);
+    saveStorageLayoutAt(contractName, newLayoutPath);
+
+    string[] memory script = new string[](8);
+
+    script[0] = "diff";
+    script[1] = "-ayw";
+    script[2] = "-W";
+    script[3] = "180";
+    script[4] = "--side-by-side";
+    script[5] = "--suppress-common-lines";
+    script[6] = oldLayoutPath;
+    script[7] = newLayoutPath;
+
+    bytes memory diff = vm.ffi(script);
+
+    if (diff.length == 0) {
+      console.log("Storage layout compatibility check: Pass.");
+    } else {
+      console.log("Storage layout compatibility check: Fail");
+      console.log("\n%s Diff:", contractName);
+      console.log(string(diff));
+
+      console.log(
+        "\nIf you believe the storage layout is compatible, add the following `UPGRADE_SAFETY_CHECK_BYPASS=true` before  `forge script ...`"
+      );
+
+      vm.removeFile(newLayoutPath);
+      revert("Contract storage layout changed and might not be compatible.");
     }
   }
 

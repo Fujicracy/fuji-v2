@@ -624,9 +624,9 @@ abstract contract BaseRouter is ReentrancyGuard, SystemAccessControl, IRouter {
         // difference in "(afterBal - prevBal)" must be less than amount.
         (updatedArgs,) = _replaceAmountArgInAction(nextAction, nextArgs, updateAmount);
       }
+    } else {
+      vault.withdraw(amount, receiver, owner);
     }
-
-    vault.withdraw(amount, receiver, owner);
   }
 
   /**

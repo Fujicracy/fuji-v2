@@ -59,6 +59,11 @@
       "asset": "USDT",
       "market": "0xf52f079Af080C9FB5AFCA57DDE0f8B83d49692a9",
       "name": "DForce_Arbitrum"
+    },
+    {
+      "asset": "WSTETH",
+      "market": "0xa8bAd6CE1937F8e047bcA239Cff1f2224B899b23",
+      "name": "DForce_Arbitrum"
     }
   ],
   "nested-mappings": [
@@ -111,7 +116,29 @@
       "name": "BorrowingVault-WETHDAI-2",
       "providers": ["DForce_Arbitrum", "Aave_V3_Arbitrum"],
       "rating": 80
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "USDC",
+      "liqRatio": 790000000000000000,
+      "maxLtv": 700000000000000000,
+      "name": "BorrowingVault-WSTETHUSDC-1",
+      "providers": ["Aave_V3_Arbitrum", "DForce_Arbitrum", "Radiant_Arbitrum"],
+      "rating": 75
     }
   ],
-  "yield-vaults": []
+  "yield-vaults": [
+    {
+      "asset": "WETH",
+      "name": "YieldVault-WETH-1",
+      "providers": ["Aave_V3_Arbitrum", "DForce_Arbitrum", "Radiant_Arbitrum"],
+      "rating": 80
+    },
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
+      "providers": ["DForce_Arbitrum", "Radiant_Arbitrum", "Aave_V3_Arbitrum"],
+      "rating": 80
+    }
+  ]
 }

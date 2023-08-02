@@ -129,7 +129,6 @@ contract ChainlinkComputedFeed {
     view
     returns (ChainlinkResponse memory clFeed, ChainlinkResponse memory clInter)
   {
-    // Call the chainlink feeds with try-catch method
     (clFeed.roundId, clFeed.answer, clFeed.startedAt, clFeed.updatedAt, clFeed.answeredInRound) =
       feedAsset.latestRoundData();
 

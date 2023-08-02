@@ -9,15 +9,15 @@ contract RunGoerli is ScriptPlus {
   AaveV3Goerli internal aaveV3;
 
   function setUp() public {
-    setUpOn("goerli");
+    setUpOn();
   }
 
   function run() public {
     vm.startBroadcast(deployer);
 
     setOrDeployChief(false);
-    /*setOrDeployConnextRouter(false);*/
-    // setOrDeployFujiOracle(false);
+    setOrDeployConnextRouter(false);
+    setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
     setOrDeployYieldVaultFactory(false, false);
     /*setOrDeployAddrMapper(false);*/
@@ -30,6 +30,8 @@ contract RunGoerli is ScriptPlus {
       deployBorrowingVaults();
       /*setBorrowingVaults();*/
     }
+
+    /*upgradeBorrowingImpl(false);*/
 
     if (chief.allowedVaultFactory(address(yieldFactory))) {
       deployYieldVaults();

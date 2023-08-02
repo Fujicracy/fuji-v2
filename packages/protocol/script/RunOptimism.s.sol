@@ -13,7 +13,7 @@ contract RunOptimism is ScriptPlus {
   WePiggyOptimism wePiggy;
 
   function setUp() public {
-    setUpOn("optimism");
+    setUpOn();
   }
 
   function run() public {
@@ -43,7 +43,12 @@ contract RunOptimism is ScriptPlus {
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
     // If setting all routers at once, call after deploying all chians
-    /*setRouters();*/
+    /*setConnextReceivers();*/
+
+    /*upgradeBorrowingImpl(false);*/
+
+    /*bytes memory constructorArgs = abi.encode(getAddress("ConnextRouter"));*/
+    /*verifyContract("ConnextHandler", constructorArgs);*/
 
     vm.stopBroadcast();
   }
