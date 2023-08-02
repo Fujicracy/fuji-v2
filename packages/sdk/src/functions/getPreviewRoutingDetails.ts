@@ -9,6 +9,8 @@ import {
   FujiResultError,
   FujiResultSuccess,
 } from '../entities';
+import { BorrowingVault } from '../entities/BorrowingVault';
+// import { LendingVault } from '../entities/LendingVault';
 import { ChainId, OperationType, PreviewName, RoutingStep } from '../enums';
 import { Nxtp } from '../Nxtp';
 import { PreviewNxtpResult } from '../types';
@@ -113,7 +115,9 @@ async function depositOrPayback(
   let { estimateSlippage, bridgeFees } = rest;
 
   const vaultToken =
-    step === RoutingStep.DEPOSIT ? vault.collateral : vault.debt;
+    step === RoutingStep.PAYBACK && vault instanceof BorrowingVault
+      ? vault.debt
+      : vault.collateral;
 
   const steps: RoutingStepDetails[] = [
     _step(RoutingStep.START, tokenIn.chainId, amountIn, tokenIn),
@@ -171,7 +175,9 @@ async function borrowOrWithdraw(
   let { estimateSlippage, bridgeFees } = rest;
 
   const vaultToken =
-    step === RoutingStep.BORROW ? vault.debt : vault.collateral;
+    step === RoutingStep.BORROW && vault instanceof BorrowingVault
+      ? vault.debt
+      : vault.collateral;
 
   const steps: RoutingStepDetails[] = [_step(RoutingStep.START, srcChainId)];
 
@@ -258,7 +264,10 @@ async function depositAndBorrow(
   params: DepositAndBorrowPreviewParams
 ): FujiResultPromise<MetaRoutingResult> {
   const { vault, amountIn, tokenIn, amountOut, tokenOut } = params;
-
+  if (!(vault instanceof BorrowingVault)) {
+    return new FujiResultError('Wrong vault type');
+  }
+  const debt = vault.debt;
   const activeProvider = vault.activeProvider;
 
   const { estimateTime, ...rest } = defaultXChainArguments();
@@ -281,7 +290,7 @@ async function depositAndBorrow(
         RoutingStep.BORROW,
         tokenOut.chainId,
         amountOut,
-        vault.debt,
+        debt,
         activeProvider
       ),
       _step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
@@ -291,14 +300,14 @@ async function depositAndBorrow(
     const result = await _callNxtp(
       tokenIn.chain,
       tokenOut.chain,
-      vault.debt,
+      debt,
       amountOut
     );
     if (!result.success) {
       return result;
     }
     const r = result.data;
-    const updatedArguments = await updateXChainArguments(vault.debt, r);
+    const updatedArguments = await updateXChainArguments(debt, r);
     estimateSlippage = updatedArguments.estimateSlippage;
     bridgeFees = updatedArguments.bridgeFees;
 
@@ -312,13 +321,7 @@ async function depositAndBorrow(
         vault.collateral,
         activeProvider
       ),
-      _step(
-        RoutingStep.BORROW,
-        vault.chainId,
-        amountOut,
-        vault.debt,
-        activeProvider
-      ),
+      _step(RoutingStep.BORROW, vault.chainId, amountOut, debt, activeProvider),
       _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, tokenOut),
       _step(RoutingStep.END, tokenOut.chainId, r.received, tokenOut)
     );
@@ -351,31 +354,20 @@ async function depositAndBorrow(
         vault.collateral,
         activeProvider
       ),
-      _step(
-        RoutingStep.BORROW,
-        vault.chainId,
-        amountOut,
-        vault.debt,
-        activeProvider
-      ),
+      _step(RoutingStep.BORROW, vault.chainId, amountOut, debt, activeProvider),
       _step(RoutingStep.END, tokenOut.chainId, amountOut, tokenOut)
     );
   } else {
     const [result1, result2] = await Promise.all([
       _callNxtp(tokenIn.chain, vault.chain, tokenIn, amountIn),
-      _callNxtp(vault.chain, tokenOut.chain, vault.debt, amountOut),
+      _callNxtp(vault.chain, tokenOut.chain, debt, amountOut),
     ]);
     if (!result1.success) return result1;
     if (!result2.success) return result2;
 
     const r1 = result1.data;
     const r2 = result2.data;
-    const updatedArguments = await updateXChainArguments(
-      tokenIn,
-      r1,
-      vault.debt,
-      r2
-    );
+    const updatedArguments = await updateXChainArguments(tokenIn, r1, debt, r2);
     estimateSlippage = updatedArguments.estimateSlippage;
     bridgeFees = updatedArguments.bridgeFees;
 
@@ -393,13 +385,7 @@ async function depositAndBorrow(
         vault.collateral,
         activeProvider
       ),
-      _step(
-        RoutingStep.BORROW,
-        vault.chainId,
-        amountOut,
-        vault.debt,
-        activeProvider
-      ),
+      _step(RoutingStep.BORROW, vault.chainId, amountOut, debt, activeProvider),
       _step(RoutingStep.X_TRANSFER, vault.chainId, amountOut, tokenOut),
       _step(RoutingStep.END, tokenOut.chainId, r2.received, tokenOut)
     );
@@ -428,7 +414,10 @@ async function paybackAndWithdraw(
   params: PaybackAndWithdrawPreviewParams
 ): FujiResultPromise<MetaRoutingResult> {
   const { vault, amountIn, tokenIn, amountOut, tokenOut } = params;
-
+  if (!(vault instanceof BorrowingVault)) {
+    return new FujiResultError('Wrong vault type');
+  }
+  const debt = vault.debt;
   const activeProvider = vault.activeProvider;
 
   const { estimateTime, ...rest } = defaultXChainArguments();
@@ -444,7 +433,7 @@ async function paybackAndWithdraw(
         RoutingStep.PAYBACK,
         tokenIn.chainId,
         amountIn,
-        vault.debt,
+        debt,
         activeProvider
       ),
       _step(
@@ -475,13 +464,7 @@ async function paybackAndWithdraw(
     // Transfer will pass through the fast path
     // so we need to account for the router fee (0.05) + slippage
     steps.push(
-      _step(
-        RoutingStep.PAYBACK,
-        vault.chainId,
-        amountIn,
-        vault.debt,
-        activeProvider
-      ),
+      _step(RoutingStep.PAYBACK, vault.chainId, amountIn, debt, activeProvider),
       _step(
         RoutingStep.WITHDRAW,
         vault.chainId,
@@ -509,12 +492,12 @@ async function paybackAndWithdraw(
     bridgeFees = updatedArguments.bridgeFees;
 
     steps.push(
-      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, vault.debt),
+      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, debt),
       _step(
         RoutingStep.PAYBACK,
         vault.chainId,
         r.received,
-        vault.debt,
+        debt,
         activeProvider
       ),
       _step(
@@ -546,12 +529,12 @@ async function paybackAndWithdraw(
     bridgeFees = updatedArguments.bridgeFees;
 
     steps.push(
-      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, vault.debt),
+      _step(RoutingStep.X_TRANSFER, tokenIn.chainId, amountIn, debt),
       _step(
         RoutingStep.PAYBACK,
         vault.chainId,
         r1.received,
-        vault.debt,
+        debt,
         activeProvider
       ),
       _step(

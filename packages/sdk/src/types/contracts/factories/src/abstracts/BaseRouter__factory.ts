@@ -92,6 +92,11 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [],
+    name: "BaseRouter__safeTransferETH_zeroAddress",
+    type: "error",
+  },
+  {
     inputs: [
       {
         internalType: "address",

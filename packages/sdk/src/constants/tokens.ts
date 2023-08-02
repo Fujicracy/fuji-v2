@@ -10,6 +10,7 @@ import {
   USDT_ADDRESS,
   WETH9_ADDRESS,
   WNATIVE_ADDRESS,
+  WSTETH_ADDRESS,
 } from './addresses';
 
 export const USDC: TokenMap = {
@@ -283,6 +284,72 @@ export const MATICX = new Token(
   'MaticX',
   'Liquid Staking Matic'
 );
+
+export const WSTETH: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    WSTETH_ADDRESS[ChainId.ETHEREUM],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    WSTETH_ADDRESS[ChainId.GOERLI],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    WSTETH_ADDRESS[ChainId.ARBITRUM],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    WSTETH_ADDRESS[ChainId.OPTIMISM],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    WSTETH_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    WSTETH_ADDRESS[ChainId.FANTOM],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    WSTETH_ADDRESS[ChainId.MATIC],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    WSTETH_ADDRESS[ChainId.MATIC_MUMBAI],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    WSTETH_ADDRESS[ChainId.GNOSIS],
+    18,
+    'wstETH',
+    'Wrapped liquid staked Ether 2.0'
+  ),
+};
 
 export const WNATIVE: TokenMap = {
   [ChainId.ETHEREUM]: WETH9[ChainId.ETHEREUM],

@@ -315,6 +315,23 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), debt75);
   }
 
+  function test_rebalancerManagerUsingMax() public {
+    rebalancer.rebalanceVault(
+      bvault, type(uint256).max, type(uint256).max, mockProviderA, mockProviderB, flasher, true
+    );
+
+    assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
+    assertEq(mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault))), 0);
+
+    assertEq(
+      mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))),
+      4 * DEPOSIT_AMOUNT + bvault.convertToAssets(initVaultShares)
+    );
+    assertEq(
+      mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), 4 * BORROW_AMOUNT
+    );
+  }
+
   //TODO add more test cases with RebalancerManager contract.
   function test_rebalanceBorrowingVaultWithRebalancer() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
@@ -375,7 +392,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   // error RebalancerManager__checkAssetsAmount_invalidAmount();
   function test_checkAssetsAmountInvalidAmount(uint256 invalidAmount) public {
     uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
-    vm.assume(invalidAmount > assets);
+    vm.assume(invalidAmount > assets && invalidAmount != type(uint256).max);
 
     //rebalance with more amount than available should revert
     vm.expectRevert(RebalancerManager.RebalancerManager__checkAssetsAmount_invalidAmount.selector);
@@ -387,7 +404,7 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   function test_checkDebtAmountInvalidAmount(uint256 invalidAmount) public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
     uint256 debt = mockProviderA.getBorrowBalance(address(bvault), IVault(address(bvault)));
-    vm.assume(invalidAmount > debt); //ALICE, BOB, CHARLIE, DAVID
+    vm.assume(invalidAmount > debt && invalidAmount != type(uint256).max); //ALICE, BOB, CHARLIE, DAVID
 
     // Rebalance with more amount than available should revert
     vm.expectRevert(RebalancerManager.RebalancerManager__checkDebtAmount_invalidAmount.selector);

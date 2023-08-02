@@ -98,6 +98,15 @@
       "name": "BorrowingVault-WETHDAI-2",
       "providers": ["Aave_V3_Optimism"],
       "rating": 95
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "USDC",
+      "liqRatio": 790000000000000000,
+      "maxLtv": 700000000000000000,
+      "name": "BorrowingVault-WSTETHUSDC-1",
+      "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 75
     }
   ],
   "yield-vaults": [
@@ -105,6 +114,12 @@
       "asset": "WETH",
       "name": "YieldVault-WETH-1",
       "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 90
+    },
+    {
+      "asset": "USDC",
+      "name": "YieldVault-USDC-1",
+      "providers": ["Aave_V3_Optimism", "DForce_Optimism"],
       "rating": 90
     }
   ]

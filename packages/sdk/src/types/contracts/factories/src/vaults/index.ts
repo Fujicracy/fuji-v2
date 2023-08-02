@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as borrowing from "./borrowing";
+export * as yields from "./yields";
 export { VaultPermissions__factory } from "./VaultPermissions__factory";

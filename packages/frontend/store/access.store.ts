@@ -36,7 +36,7 @@ const initialState: AccessState = {
   retriesCount: 0,
 };
 
-export type AccessStore = AccessState & AccessActions;
+type AccessStore = AccessState & AccessActions;
 
 const MAX_ERRORS = 4;
 const RETRY_DELAY = 6000;

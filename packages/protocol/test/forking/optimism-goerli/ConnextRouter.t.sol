@@ -13,7 +13,7 @@ import {IRouter} from "../../../src/interfaces/IRouter.sol";
 import {IConnext} from "../../../src/interfaces/connext/IConnext.sol";
 import {BorrowingVault} from "../../../src/vaults/borrowing/BorrowingVault.sol";
 import {
-  ConnextRouter, ConnextHandler, XReceiveProxy
+  ConnextRouter, ConnextHandler, ConnextReceiver
 } from "../../../src/routers/ConnextRouter.sol";
 import {IWETH9} from "../../../src/abstracts/WETH9.sol";
 import {LibSigUtils} from "../../../src/libraries/LibSigUtils.sol";
@@ -33,7 +33,7 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
   ConnextRouter public connextRouter;
   ConnextHandler public connextHandler;
-  XReceiveProxy public xReceiveProxy;
+  ConnextReceiver public connextReceiver;
 
   uint32 domain;
 
@@ -55,18 +55,18 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     );
 
     connextHandler = connextRouter.handler();
-    xReceiveProxy = XReceiveProxy(connextRouter.xReceiveProxy());
+    connextReceiver = ConnextReceiver(connextRouter.connextReceiver());
 
     // addresses are supposed to be the same across different chains
-    /*connextRouter.setRouter(GOERLI_DOMAIN, address(connextRouter));*/
+    /*connextRouter.setReceiver(GOERLI_DOMAIN, address(connextRouter));*/
     bytes memory callData = abi.encodeWithSelector(
-      ConnextRouter.setRouter.selector, GOERLI_DOMAIN, address(xReceiveProxy)
+      ConnextRouter.setReceiver.selector, GOERLI_DOMAIN, address(connextReceiver)
     );
     _callWithTimelock(address(connextRouter), callData);
 
-    /*connextRouter.setRouter(MUMBAI_DOMAIN, address(connextRouter));*/
+    /*connextRouter.setReceiver(MUMBAI_DOMAIN, address(connextRouter));*/
     callData = abi.encodeWithSelector(
-      ConnextRouter.setRouter.selector, MUMBAI_DOMAIN, address(xReceiveProxy)
+      ConnextRouter.setReceiver.selector, MUMBAI_DOMAIN, address(connextReceiver)
     );
     _callWithTimelock(address(connextRouter), callData);
     // _setVaultProviders(vault, providers);
@@ -122,12 +122,12 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
-    deal(collateralAsset, address(xReceiveProxy), amount);
+    deal(collateralAsset, address(connextReceiver), amount);
 
     vm.startPrank(registry[domain].connext);
     // call from GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    xReceiveProxy.xReceive(
+    connextReceiver.xReceive(
       "", amount, vault.asset(), address(connextRouter), GOERLI_DOMAIN, callData
     );
     vm.stopPrank();
@@ -146,12 +146,12 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     );
 
     // Send directly the bridged funds to our router thus mocking Connext behavior
-    deal(collateralAsset, address(xReceiveProxy), amount);
+    deal(collateralAsset, address(connextReceiver), amount);
 
     vm.startPrank(registry[domain].connext);
     // call attack faked as from GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    xReceiveProxy.xReceive(
+    connextReceiver.xReceive(
       "", amount, vault.asset(), address(connextRouter), GOERLI_DOMAIN, failingCallData
     );
     vm.stopPrank();
@@ -168,7 +168,7 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
     vm.startPrank(attacker);
     // call attack faked as from GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    try xReceiveProxy.xReceive(
+    try connextReceiver.xReceive(
       "", 1 wei, vault.asset(), address(connextRouter), GOERLI_DOMAIN, attackCallData
     ) {
       console.log("attack succeeded");
@@ -194,12 +194,12 @@ contract ConnextRouterForkingTests is Routines, ForkingSetup {
 
     // send directly the bridged funds to our router
     // thus mocking Connext behavior
-    deal(collateralAsset, address(xReceiveProxy), amount);
+    deal(collateralAsset, address(connextReceiver), amount);
 
     vm.startPrank(registry[domain].connext);
     // call from GOERLI where 'originSender' is router that's supposed to have
     // the same address as the one on GOERLI
-    xReceiveProxy.xReceive(
+    connextReceiver.xReceive(
       "", amount, vault.asset(), address(connextRouter), GOERLI_DOMAIN, callData
     );
     vm.stopPrank();

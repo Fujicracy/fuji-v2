@@ -1,45 +1,37 @@
-import { Chip, Stack, Tab, Tabs, useMediaQuery, useTheme } from '@mui/material';
+import { Grid } from '@mui/material';
 import { useState } from 'react';
+
+import TabSwitch from './TabSwitch/TabSwitch';
 
 function BorrowLendingTabNavigation({
   onChange,
-  isLendingDisabled,
+  defaultTab,
 }: {
   onChange: (value: number) => void;
-  isLendingDisabled?: boolean;
+  defaultTab?: number;
 }) {
-  const { breakpoints } = useTheme();
-  const isMobile = useMediaQuery(breakpoints.down('sm'));
-
-  const [currentTab, setCurrentTab] = useState(0);
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+  const [currentTab, setCurrentTab] = useState(defaultTab || 0);
+  const handleTabChange = (newValue: number) => {
     setCurrentTab(newValue);
     onChange(newValue);
   };
 
+  const tabs = [
+    { label: 'Borrowing', value: 0 },
+    { label: 'Lending', value: 1 },
+  ];
+
   return (
-    <Tabs
-      value={currentTab}
-      onChange={handleTabChange}
-      variant={isMobile ? 'fullWidth' : 'standard'}
-    >
-      <Tab label="Borrowing" />
-      <Tab
-        disabled={isLendingDisabled}
-        label={
-          <Stack direction="row" alignItems="center" gap={1}>
-            Lending
-            {!isMobile && (
-              <Chip
-                variant="gradient"
-                label="Coming soon"
-                sx={{ cursor: 'pointer' }}
-              />
-            )}
-          </Stack>
-        }
+    <Grid>
+      <TabSwitch
+        options={tabs}
+        selected={currentTab}
+        onChange={handleTabChange}
+        size="large"
+        width="300px"
+        withBackground
       />
-    </Tabs>
+    </Grid>
   );
 }
 

@@ -3,13 +3,21 @@ import { Box } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
-function CloseButton({ onClose }: { onClose: () => void }) {
+function CloseButton({
+  onClose,
+  dimensionSize,
+}: {
+  onClose: () => void;
+  dimensionSize?: number;
+}) {
   const { palette } = useTheme();
+  const outerSize = dimensionSize || 24;
+  const svgSize = (outerSize * 2) / 3;
 
   return (
     <Box
-      width="1.5rem"
-      height="1.5rem"
+      width={`${outerSize}px`}
+      height={`${outerSize}px`}
       sx={{
         display: 'flex',
         alignItems: 'center',
@@ -19,8 +27,8 @@ function CloseButton({ onClose }: { onClose: () => void }) {
         cursor: 'pointer',
         float: 'right',
         '& svg': {
-          width: '1rem',
-          height: '1rem',
+          width: `${svgSize}px`,
+          height: `${svgSize}px`,
         },
         '&:hover': { background: '#34363E' },
       }}

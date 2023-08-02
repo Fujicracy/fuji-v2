@@ -6,3 +6,4 @@ export { OperationType } from './OperationType';
 export { PreviewName } from './PreviewName';
 export { RouterAction } from './RouterAction';
 export { RoutingStep } from './RoutingStep';
+export { VaultType } from './VaultType';

@@ -1,6 +1,5 @@
-export * from './AbstractCurrency';
+export * from './abstract/AbstractCurrency';
 export * from './Address';
-export * from './BorrowingVault';
 export * from './Chain';
 export * from './Currency';
 export * from './FujiError';

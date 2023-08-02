@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import "forge-std/console.sol";
-import {ScriptPlus} from "./ScriptPlus.sol";
+import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV3Arbitrum} from "../src/providers/arbitrum/AaveV3Arbitrum.sol";
 import {RadiantArbitrum} from "../src/providers/arbitrum/RadiantArbitrum.sol";
 import {DForceArbitrum} from "../src/providers/arbitrum/DForceArbitrum.sol";
@@ -15,7 +15,7 @@ contract RunArbitrum is ScriptPlus {
   CompoundV3Arbitrum compound;
 
   function setUp() public {
-    setUpOn("arbitrum");
+    setUpOn();
   }
 
   function run() public {
@@ -25,7 +25,7 @@ contract RunArbitrum is ScriptPlus {
     setOrDeployConnextRouter(false);
     setOrDeployFujiOracle(false);
     setOrDeployBorrowingVaultFactory(false, false);
-    setOrDeployYieldVaultFactory(false);
+    setOrDeployYieldVaultFactory(false, false);
     setOrDeployAddrMapper(false);
     setOrDeployFlasherBalancer(false);
     setOrDeployRebalancer(false);
@@ -45,7 +45,9 @@ contract RunArbitrum is ScriptPlus {
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
 
     // If setting all routers at once, call after deploying all chians
-    /*setRouters();*/
+    /*setConnextReceivers();*/
+
+    /*upgradeBorrowingImpl(false);*/
 
     vm.stopBroadcast();
   }

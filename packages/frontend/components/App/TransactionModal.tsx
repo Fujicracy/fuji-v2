@@ -17,27 +17,28 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { RoutingStep } from '@x-fuji/sdk';
+import { RoutingStep, VaultType } from '@x-fuji/sdk';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import React, { MouseEvent, useEffect, useState } from 'react';
 
 import { CONNEXT_WARNING_DURATION, PATH } from '../../constants';
-import { userHasFundsInVault } from '../../helpers/borrow';
 import {
   connextLinksForEntry,
   HistoryEntry,
   HistoryEntryStatus,
+  isVaultTheCurrentPosition,
 } from '../../helpers/history';
 import { myPositionPage, showPosition } from '../../helpers/navigation';
 import { vaultFromPosition } from '../../helpers/positions';
 import { transactionSteps } from '../../helpers/transactions';
+import { allAvailableVaults, userHasFundsInVault } from '../../helpers/vaults';
 import { useAuth } from '../../store/auth.store';
 import { useBorrow } from '../../store/borrow.store';
 import { useHistory } from '../../store/history.store';
-import { usePositions } from '../../store/positions.store';
+import { useLend } from '../../store/lend.store';
 import AddTokenButton from '../Shared/AddTokenButton';
-import LinkIcon from '../Shared/Icons/LinkIcon';
+import { LinkIcon } from '../Shared/Icons';
 import ModalHeader from '../Shared/ModalHeader';
 import { stepIcon } from '../Shared/RoutesSteps';
 import WarningInfo from '../Shared/WarningInfo';
@@ -57,15 +58,18 @@ function TransactionModal({
   const router = useRouter();
 
   const activeChainId = useAuth((state) => state.chainId);
-  const activeVault = useBorrow((state) => state.activeVault);
-  const availableVaults = useBorrow((state) => state.availableVaults);
-  const positions = usePositions((state) => state.positions);
+  const borrowActiveVault = useBorrow((state) => state.activeVault);
+  const borrowAvailableVaults = useBorrow((state) => state.availableVaults);
+  const lendingActiveVault = useLend((state) => state.activeVault);
+  const lendingAvailableVaults = useLend((state) => state.availableVaults);
 
   const closeModal = useHistory((state) => state.closeModal);
 
   const [isDetailsShown, setIsDetailsShown] = useState(isHistoricalTransaction);
   const [isCurrentPosition, setIsCurrentPosition] = useState(false);
   const [gif, setGif] = useState('');
+
+  const type = entry.type ?? VaultType.BORROW;
 
   useEffect(() => {
     if (isHistoricalTransaction) return;
@@ -77,6 +81,10 @@ function TransactionModal({
 
     if (entry.status === HistoryEntryStatus.SUCCESS) {
       setGif('/assets/images/transactions/END.gif');
+      router.push({
+        pathname: PATH.MY_POSITIONS,
+        query: { tab: entry.type === VaultType.BORROW ? 'borrow' : 'lend' },
+      });
       return;
     }
 
@@ -84,16 +92,16 @@ function TransactionModal({
     setTimeout(() => {
       setGif('/assets/images/transactions/RIDE.gif');
     }, 4000);
-  }, [entry.status, isHistoricalTransaction]);
+  }, [entry.status, isHistoricalTransaction, entry.type, router]);
 
   useEffect(() => {
-    const isCurrentPosition =
-      entry.vaultChainId !== undefined
-        ? activeVault?.address.value === entry.vaultAddress &&
-          activeVault?.chainId === entry.vaultChainId
-        : activeVault?.address.value === entry.vaultAddress;
+    const isCurrentPosition = isVaultTheCurrentPosition(
+      entry,
+      borrowActiveVault,
+      lendingActiveVault
+    );
     setIsCurrentPosition(isCurrentPosition);
-  }, [positions, activeVault, currentPage, entry]);
+  }, [borrowActiveVault, lendingActiveVault, currentPage, entry]);
 
   if (!entry) return <></>;
 
@@ -110,6 +118,7 @@ function TransactionModal({
     // If the user is not on the my-positions/[pid] page
     if (!(currentPage === myPositionPage.path && isCurrentPosition)) {
       const vault = vaultFromPosition(
+        type,
         entry.vaultAddress as string,
         entry.vaultChainId
       );
@@ -117,15 +126,22 @@ function TransactionModal({
       // We might have to fetch available vaults in order to get the latest data
 
       // If the user has no funds in the vault, redirect to the my-positions page
-      if (vault && !userHasFundsInVault(vault, availableVaults)) {
-        showPosition(router, true, vault, undefined);
+      if (vault && !userHasFundsInVault(vault, allAvailableVaults())) {
+        showPosition(type, router, true, vault, undefined);
       } else {
         showPositions = true;
       }
       // Same for the active vault in case the user is on the my-positions/[pid] page and there are no longer funds after closing the position
     } else if (
-      activeVault &&
-      !userHasFundsInVault(activeVault, availableVaults)
+      type === VaultType.BORROW &&
+      borrowActiveVault &&
+      !userHasFundsInVault(borrowActiveVault, borrowAvailableVaults)
+    ) {
+      showPositions = true;
+    } else if (
+      type === VaultType.LEND &&
+      lendingActiveVault &&
+      !userHasFundsInVault(lendingActiveVault, lendingAvailableVaults)
     ) {
       showPositions = true;
     }

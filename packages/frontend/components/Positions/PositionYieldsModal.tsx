@@ -9,10 +9,12 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
-import { showBorrow } from '../../helpers/navigation';
+import { showBorrow, showLend } from '../../helpers/navigation';
+import { getEstimatedEarnings } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { usePositions } from '../../store/positions.store';
@@ -26,26 +28,74 @@ type PositionYieldsModalProps = {
   onClose: () => void;
 };
 
-export function PositionYieldsModal({
-  open,
-  onClose,
-}: PositionYieldsModalProps) {
+function PositionYieldsModal({ open, onClose }: PositionYieldsModalProps) {
   const { palette } = useTheme();
   const router = useRouter();
   const loading = usePositions((state) => state.loading);
   const totalAPY = usePositions((state) => state.totalAPY);
   const account = useAuth((state) => state.address);
-  const positions = usePositions((state) => state.positions);
+  const borrowPositions = usePositions((state) => state.borrowPositions);
+  const lendingPositions = usePositions((state) => state.lendingPositions);
 
   const [daysPeriod, setDaysPeriod] = useState<number>(1);
   const [currentTab, setCurrentTab] = useState(0);
   const [estEarnings, setEstEarnings] = useState(0);
 
   useEffect(() => {
-    if (!account || positions.length === 0) {
+    if (
+      !account ||
+      (borrowPositions.length === 0 && lendingPositions.length === 0)
+    ) {
       onClose();
     }
-  }, [account, positions, onClose]);
+
+    return () => {
+      setCurrentTab(0);
+    };
+  }, [account, borrowPositions, lendingPositions, onClose]);
+
+  useEffect(() => {
+    const borrowPositionEstEarnings = borrowPositions.reduce((a, c) => {
+      return (
+        a +
+        getEstimatedEarnings({
+          days: daysPeriod,
+          collateralInUsd: c.collateral.usdPrice,
+          collateralAPR: c.collateral.baseAPR,
+          debtInUsd: c.debt?.usdPrice,
+          debtAPR: c.debt?.baseAPR,
+        })
+      );
+    }, 0);
+
+    const lendingPositionsEstEarnings = lendingPositions.reduce((a, c) => {
+      return (
+        a +
+        getEstimatedEarnings({
+          days: daysPeriod,
+          collateralInUsd: c.collateral.usdPrice,
+          collateralAPR: c.collateral.baseAPR,
+          debtInUsd: 0,
+          debtAPR: 0,
+        })
+      );
+    }, 0);
+
+    setEstEarnings(borrowPositionEstEarnings + lendingPositionsEstEarnings);
+  }, [daysPeriod, borrowPositions, lendingPositions]);
+
+  const newActionButtonConfig =
+    currentTab === 0
+      ? {
+          label: 'Deposit and Borrow',
+          action: () => showBorrow(router),
+          dataCy: 'new-borrow-redirect',
+        }
+      : {
+          label: 'Lend',
+          action: () => showLend(router),
+          dataCy: 'new-lend-redirect',
+        };
 
   return (
     <Dialog
@@ -69,14 +119,11 @@ export function PositionYieldsModal({
         <Divider sx={{ mb: '1.375rem' }} />
 
         <Grid container mb="1rem">
-          <BorrowLendingTabNavigation
-            onChange={(tab) => setCurrentTab(tab)}
-            isLendingDisabled
-          />
+          <BorrowLendingTabNavigation onChange={(tab) => setCurrentTab(tab)} />
         </Grid>
 
         <Stack
-          alignItems="end"
+          alignItems="center"
           direction="row"
           justifyContent="space-between"
           sx={{
@@ -125,28 +172,26 @@ export function PositionYieldsModal({
 
           <PeriodOptions onChange={setDaysPeriod} />
         </Stack>
-
-        {currentTab === 0 && (
-          <Box sx={{ maxWidth: '46rem' }}>
-            <PositionYieldTable
-              loading={loading}
-              days={daysPeriod}
-              callback={(value) => setEstEarnings(value)}
-            />
-          </Box>
-        )}
+        <Box sx={{ maxWidth: '46rem', minWidth: '41rem', minHeight: '12rem' }}>
+          <PositionYieldTable
+            loading={loading}
+            days={daysPeriod}
+            positions={currentTab === 0 ? borrowPositions : lendingPositions}
+            type={currentTab === 0 ? VaultType.BORROW : VaultType.LEND}
+          />
+        </Box>
 
         <Button
           variant="gradient"
           size="medium"
           fullWidth
-          onClick={() => showBorrow(router)}
-          data-cy="new-borrow-redirect"
+          onClick={newActionButtonConfig.action}
+          data-cy={newActionButtonConfig.dataCy}
           sx={{
             mt: '1.375rem',
           }}
         >
-          Deposit and Borrow
+          {newActionButtonConfig.label}
         </Button>
       </Paper>
     </Dialog>

@@ -1,8 +1,12 @@
 import * as Sentry from '@sentry/react';
 import { BrowserTracing } from '@sentry/tracing';
 
-import { NOTIFICATION_MESSAGES, SENTRY_DSN, HELPER_URL } from '../constants';
-import { NotificationLink, notify } from './notifications';
+import { HELPER_URL, NOTIFICATION_MESSAGES, SENTRY_DSN } from '../constants';
+import {
+  NotificationLink,
+  NotificationLinkType,
+  notify,
+} from './notifications';
 
 enum ErrorCode {
   CANCELLED,
@@ -49,7 +53,7 @@ export const handleTransactionError = (
 
   const link: NotificationLink | undefined =
     code === ErrorCode.OTHER
-      ? { url: HELPER_URL.DISCORD, type: 'discord' }
+      ? { url: HELPER_URL.DISCORD, type: NotificationLinkType.DISCORD }
       : undefined;
 
   notify({

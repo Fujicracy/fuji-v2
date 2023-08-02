@@ -1,14 +1,14 @@
 import { BigNumber } from '@ethersproject/bignumber';
 
-import { BorrowingVault } from '../entities/BorrowingVault';
+import { AbstractVault } from '../entities/abstract/AbstractVault';
 import { LendingProviderWithFinancials } from './LendingProvider';
 
 export type VaultWithFinancials = {
-  vault: BorrowingVault;
+  vault: AbstractVault;
   depositBalance: BigNumber;
-  borrowBalance: BigNumber;
+  borrowBalance?: BigNumber;
   collateralPriceUSD: BigNumber;
-  debtPriceUSD: BigNumber;
+  debtPriceUSD?: BigNumber;
   activeProvider: LendingProviderWithFinancials;
   allProviders: LendingProviderWithFinancials[];
 };

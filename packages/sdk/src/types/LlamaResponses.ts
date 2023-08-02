@@ -10,7 +10,7 @@ export type LlamaAssetPool = {
   pool: string;
 };
 
-export type LlamaBorrowPool = {
+export type LlamaLendBorrowPool = {
   pool: string;
   apyBaseBorrow: number;
   apyRewardBorrow: number;
@@ -40,4 +40,4 @@ export type GetLlamaPoolStatsResponse = {
   data: LlamaPoolStat[];
 };
 
-export type GetLlamaBorrowPoolsResponse = LlamaBorrowPool[];
+export type GetLlamaLendBorrowPoolsResponse = LlamaLendBorrowPool[];

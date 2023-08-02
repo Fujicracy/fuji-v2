@@ -1,43 +1,48 @@
-import { Box, Container, Divider } from '@mui/material';
+import { VaultType } from '@x-fuji/sdk';
 import { NextPage } from 'next';
-import Head from 'next/head';
+import { useEffect, useState } from 'react';
 
-import Footer from '../components/App/Footer';
-import Lending from '../components/Shared/Lending';
+import LendingWrapper from '../components/Lending/Wrapper';
+import { AssetType } from '../helpers/assets';
+import { navigationalTaskDelay } from '../helpers/navigation';
+import { useAuth } from '../store/auth.store';
+import { useLend } from '../store/lend.store';
+import { useNavigation } from '../store/navigation.store';
+import { FormType } from '../store/types/state';
+
+const formType = FormType.Create;
 
 const LendingPage: NextPage = () => {
-  return (
-    <>
-      <Head>
-        <title>Lending - Fuji V2 Himalaya</title>
-        <meta name="description" content="Lend assets and earn interest" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+  const chainId = useAuth((state) => state.chainId);
+  const shouldResetPage = useNavigation((state) => state.lendPage.shouldReset);
 
-      <Divider
-        sx={{
-          display: { xs: 'block', sm: 'none' },
-          mb: '1rem',
-        }}
-      />
-
-      <Container
-        sx={{
-          mt: { xs: '0', sm: '4rem' },
-          mb: { xs: '7rem', sm: '0' },
-          pl: { xs: '0.25rem', sm: '1rem' },
-          pr: { xs: '0.25rem', sm: '1rem' },
-          minHeight: '75vh',
-        }}
-      >
-        <Box sx={{ height: '45rem', width: '100%' }}>
-          <Lending />
-        </Box>
-      </Container>
-
-      <Footer />
-    </>
+  const changeFormType = useLend((state) => state.changeFormType);
+  const changeAssetChain = useLend((state) => state.changeAssetChain);
+  const clearInputValues = useLend((state) => state.clearInputValues);
+  const changeShouldPageReset = useNavigation(
+    (state) => state.changePageShouldReset
   );
+
+  const [hasChain, setHasChain] = useState(false);
+
+  if (shouldResetPage) {
+    clearInputValues();
+    navigationalTaskDelay(() => changeShouldPageReset(VaultType.LEND, false));
+  }
+
+  useEffect(() => {
+    changeFormType(formType);
+  }, [changeFormType]);
+
+  useEffect(() => {
+    if (chainId && !hasChain) {
+      setHasChain(true);
+      if (!shouldResetPage || !chainId) return;
+      changeAssetChain(AssetType.Collateral, chainId, false);
+    }
+  }, [shouldResetPage, hasChain, chainId, changeAssetChain]);
+
+  return <LendingWrapper formType={FormType.Create} />;
 };
 
 export default LendingPage;

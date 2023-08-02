@@ -1,25 +1,38 @@
-import CircleIcon from '@mui/icons-material/Circle';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import LaunchIcon from '@mui/icons-material/Launch';
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import {
   Box,
-  Button,
   Card,
   CardContent,
-  Divider,
   List,
   ListItem,
   Popover,
+  Skeleton,
   Stack,
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { useState } from 'react';
+import Image from 'next/image';
+import { ReactNode, useEffect, useState } from 'react';
 
+import { TabOption } from '../../../../constants';
+import {
+  setBalanceWarningShown,
+  shouldShowBalanceWarning,
+} from '../../../../helpers/auth';
+import { fetchXBalances } from '../../../../helpers/balances';
 import { addressUrl } from '../../../../helpers/chains';
-import { HistoryEntry, HistoryEntryStatus } from '../../../../helpers/history';
+import { HistoryEntry } from '../../../../helpers/history';
+import {
+  NotificationDuration,
+  notify,
+} from '../../../../helpers/notifications';
 import { useAuth } from '../../../../store/auth.store';
 import { useHistory } from '../../../../store/history.store';
+import TabSwitch from '../../../Shared/TabSwitch/TabSwitch';
+import WarningBanner from '../../../Shared/WarningBanner';
+import BalanceItem from './BalanceItem';
 import HistoryItem from './HistoryItem';
 
 type AccountModalProps = {
@@ -29,6 +42,11 @@ type AccountModalProps = {
   closeAccountModal: () => void;
 };
 
+const tabOptions: TabOption[] = [
+  { value: 0, label: 'Assets' },
+  { value: 1, label: 'Activity' },
+];
+
 function AccountModal({
   isOpen,
   anchorEl,
@@ -37,8 +55,13 @@ function AccountModal({
 }: AccountModalProps) {
   const { palette } = useTheme();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAssetWarningShown, setAssetWarningShown] = useState(
+    shouldShowBalanceWarning()
+  );
   const chainId = useAuth((state) => state.chainId);
-  const walletName = useAuth((state) => state.walletName);
+  const xBalances = useAuth((state) => state.xBalances);
+  const changeXBalances = useAuth((state) => state.changeXBalances);
   const logout = useAuth((state) => state.logout);
 
   const historyEntries = useHistory((state) =>
@@ -48,22 +71,33 @@ function AccountModal({
       .slice(0, 10)
   );
   const openModal = useHistory((state) => state.openModal);
-  const clearAll = useHistory((state) => state.clearAll);
-
-  const [copied, setCopied] = useState(false);
-  const [copyAddressHovered, setCopyAddressHovered] = useState(false);
-  const [viewOnExplorerHovered, setViewOnExplorerHovered] = useState(false);
 
   const formattedAddress =
     address.substring(0, 8) + '...' + address.substring(address.length - 4);
 
+  const [currentTab, setCurrentTab] = useState(0);
+  const handleTabChange = (newValue: number) => {
+    setCurrentTab(newValue);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      (async () => {
+        const result = await fetchXBalances();
+        changeXBalances(result);
+        setIsLoading(false);
+      })();
+    }
+  }, [isOpen, changeXBalances]);
+
   const copy = () => {
     navigator.clipboard.writeText(address);
-    setCopied(true);
 
-    setTimeout(() => {
-      setCopied(false);
-    }, 5000);
+    notify({
+      type: 'success',
+      message: 'Address Copied!',
+      duration: NotificationDuration.SHORT,
+    });
   };
 
   const handleEntryClick = (entry: HistoryEntry) => {
@@ -71,13 +105,14 @@ function AccountModal({
     closeAccountModal();
   };
 
-  const handleClear = () => {
-    clearAll(address);
-  };
-
   const onLogout = () => {
     logout();
     closeAccountModal();
+  };
+
+  const onAssetWarningClose = () => {
+    setBalanceWarningShown();
+    setAssetWarningShown(false);
   };
 
   return (
@@ -85,127 +120,107 @@ function AccountModal({
       open={isOpen}
       onClose={closeAccountModal}
       anchorEl={anchorEl}
-      anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
+      transformOrigin={{ vertical: 'top', horizontal: 'center' }}
       PaperProps={{ sx: { background: 'transparent', padding: 0 } }}
     >
       <Card sx={{ border: `1px solid ${palette.secondary.light}`, mt: 1 }}>
-        <CardContent sx={{ width: '360px', p: 0, pb: '0 !important' }}>
+        <CardContent
+          sx={{
+            width: '360px',
+            p: 0,
+            pb: '0 !important',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+          }}
+        >
           <Stack
             direction="row"
             justifyContent="space-between"
             alignItems="center"
             p="1.5rem 1.25rem 0.625rem 1.25rem"
           >
-            <Typography variant="xsmall">
-              Connected with {walletName}
-            </Typography>
-            <Button
-              data-cy="header-disconnect"
-              variant="small"
-              onClick={onLogout}
-            >
-              Disconnect
-            </Button>
-          </Stack>
-
-          <Stack
-            direction="row"
-            alignItems="center"
-            gap=".5rem"
-            ml="1.25rem"
-            mb=".8rem"
-          >
-            <CircleIcon sx={{ fontSize: '20px' }} />
-            <Typography variant="body">{formattedAddress}</Typography>
-          </Stack>
-
-          <Stack direction="row" alignItems="center" gap="1.125rem" ml="1.4rem">
+            <Stack direction="row" alignItems="center" gap=".5rem">
+              <Image
+                src={'/assets/images/shared/account.svg'}
+                alt="account icon"
+                width={32}
+                height={32}
+              />
+              <Typography variant="body">{formattedAddress}</Typography>
+            </Stack>
             <Stack
               direction="row"
               alignItems="center"
-              sx={{ cursor: 'pointer' }}
-              onClick={copy}
-              onMouseEnter={() => setCopyAddressHovered(true)}
-              onMouseLeave={() => setCopyAddressHovered(false)}
+              justifyContent="flex-end"
             >
-              <ContentCopyIcon
-                fontSize="small"
-                sx={{
-                  color: !copyAddressHovered
-                    ? palette.info.main
-                    : palette.text.primary,
-                  mr: '.2rem',
-                  fontSize: '1rem',
+              <AccountActionButton action={copy}>
+                <ContentCopyIcon
+                  fontSize="small"
+                  sx={{ fontSize: '1rem', color: palette.info.main }}
+                />
+              </AccountActionButton>
+              <AccountActionButton
+                action={() => {
+                  window &&
+                    window
+                      .open(addressUrl(address, chainId), '_blank')
+                      ?.focus();
                 }}
-              />
-              <Typography
-                variant="xsmall"
-                color={
-                  !copyAddressHovered ? palette.info.main : palette.text.primary
-                }
               >
-                {!copied ? 'Copy Address' : 'Copied!'}
-              </Typography>
+                <LaunchIcon
+                  sx={{ color: palette.info.main, fontSize: '1rem' }}
+                />
+              </AccountActionButton>
+              <AccountActionButton
+                action={onLogout}
+                data-cy="header-disconnect"
+              >
+                <LogoutOutlinedIcon
+                  sx={{ color: palette.info.main, fontSize: '1rem' }}
+                />
+              </AccountActionButton>
             </Stack>
-
-            <Box>
-              <a
-                href={addressUrl(address, chainId)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  onMouseEnter={() => setViewOnExplorerHovered(true)}
-                  onMouseLeave={() => setViewOnExplorerHovered(false)}
-                >
-                  <LaunchIcon
-                    sx={{
-                      color: viewOnExplorerHovered
-                        ? palette.text.primary
-                        : palette.info.main,
-                      mr: '.2rem',
-                      fontSize: '1rem',
-                    }}
-                  />
-                  <Typography
-                    variant="xsmall"
-                    color={
-                      viewOnExplorerHovered
-                        ? palette.text.primary
-                        : palette.info.main
-                    }
-                  >
-                    View on Explorer
-                  </Typography>
-                </Stack>
-              </a>
-            </Box>
           </Stack>
 
-          <Divider
-            sx={{
-              m: '1rem 1.25rem .75rem 1.25rem',
-              background: palette.secondary.light,
-            }}
-          />
-
-          <Stack direction="row" justifyContent="space-between" mx="1.25rem">
-            <Typography variant="xsmall">Recent Transactions</Typography>
-            {historyEntries.length > 0 &&
-              historyEntries.filter(
-                (entry) => entry.status === HistoryEntryStatus.ONGOING
-              ).length !== historyEntries.length && (
-                <Typography variant="xsmallLink" onClick={handleClear}>
-                  clear all
-                </Typography>
-              )}
-          </Stack>
+          <Box sx={{ p: '1rem 1rem 0 1rem' }}>
+            <TabSwitch
+              options={tabOptions}
+              selected={currentTab}
+              onChange={handleTabChange}
+            />
+          </Box>
 
           <List sx={{ pb: '.75rem' }}>
-            {historyEntries?.length ? (
+            {isLoading ? (
+              <>
+                {new Array(10).fill('').map((_, i) => (
+                  <Skeleton
+                    key={i}
+                    sx={{ m: '1rem 1rem 0 1rem', height: '2.75rem' }}
+                  />
+                ))}
+              </>
+            ) : currentTab === 0 ? (
+              <>
+                {isAssetWarningShown && (
+                  <Box sx={{ p: '1rem 1rem 0 1rem' }}>
+                    <WarningBanner
+                      text={
+                        'Displays only the assets available for lending and borrowing on Fuji'
+                      }
+                      onClose={onAssetWarningClose}
+                    />
+                  </Box>
+                )}
+                {xBalances?.map((b) => (
+                  <BalanceItem
+                    key={`${b.currency.chainId}-${b.currency.symbol}`}
+                    balance={b}
+                  />
+                ))}
+              </>
+            ) : historyEntries?.length ? (
               historyEntries.map((e) => (
                 <HistoryItem
                   key={e.hash}
@@ -224,6 +239,44 @@ function AccountModal({
         </CardContent>
       </Card>
     </Popover>
+  );
+}
+
+function AccountActionButton({
+  action,
+  children,
+}: {
+  children: ReactNode;
+  action: () => void;
+}) {
+  const { palette } = useTheme();
+
+  return (
+    <Box
+      onClick={action}
+      sx={{
+        width: '2rem',
+        height: '2rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+        borderRadius: '50%',
+        border: '1px solid #2A2E35',
+        cursor: 'pointer',
+        '&:not(first-of-type)': {
+          ml: 1,
+        },
+        '&:hover': {
+          borderColor: palette.text.primary,
+          'svg path': {
+            fill: palette.text.primary,
+          },
+        },
+      }}
+    >
+      {children}
+    </Box>
   );
 }
 

@@ -1,4 +1,5 @@
 [profile.default]
+solc = "0.8.15"
 src = 'src'
 out = 'out'
 libs = ['lib']
@@ -17,6 +18,7 @@ extra_output = ["storageLayout"]
 
 [rpc_endpoints]
 mainnet = "${RPC_MAINNET}"
+ethereum = "${RPC_MAINNET}"
 goerli = "${RPC_GOERLI}"
 optimism_goerli = "${RPC_OPTIMISM_GOERLI}"
 optimism = "${RPC_OPTIMISM}"
@@ -27,6 +29,7 @@ gnosis = "${RPC_GNOSIS}"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_KEY}" }
+ethereum = { key = "${ETHERSCAN_KEY}" }
 goerli =  { key = "${ETHERSCAN_KEY}" }
 optimism_goerli = { key = "${OPTIMISM_ETHERSCAN_KEY}" }
 optimism = { key = "${OPTIMISM_ETHERSCAN_KEY}" }

@@ -3,6 +3,7 @@ import '../styles/globals.css';
 import { ChainvineWidget } from '@chainvine/widget';
 import { ThemeProvider } from '@mui/material';
 import { Web3OnboardProvider } from '@web3-onboard/react';
+import { VaultType } from '@x-fuji/sdk';
 import { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import Script from 'next/script';
@@ -20,7 +21,11 @@ import {
   stopPolling,
 } from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
-import { isTopLevelUrl, navigationalTaskDelay } from '../helpers/navigation';
+import {
+  isTopLevelUrl,
+  navigationalTaskDelay,
+  pathForVaultType,
+} from '../helpers/navigation';
 import { campaignId, storeReferrer, widgetConfig } from '../helpers/referrals';
 import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
@@ -45,12 +50,9 @@ function MyApp({ Component, pageProps }: AppProps) {
   const changePath = useNavigation((state) => state.changePath);
 
   const changeShouldPageReset = useNavigation(
-    (state) => state.changeBorrowPageShouldReset
+    (state) => state.changePageShouldReset
   );
-  const changeWillLoadBorrow = useNavigation(
-    (state) => state.changeBorrowPageWillLoad
-  );
-
+  const changeWillLoad = useNavigation((state) => state.changePageWillLoad);
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
 
   const entry = address && currentTxHash && entries[currentTxHash];
@@ -113,14 +115,9 @@ function MyApp({ Component, pageProps }: AppProps) {
       if (isTop && address) {
         fetchPositions();
       }
+      updateOperationNavigation(VaultType.BORROW, url);
+      updateOperationNavigation(VaultType.LEND, url);
       updatePollingPolicy(url);
-      const routeIsBorrow = url === PATH.BORROW;
-      changeWillLoadBorrow(routeIsBorrow);
-      if (router.asPath === PATH.BORROW) {
-        changeShouldPageReset(routeIsBorrow);
-      } else {
-        navigationalTaskDelay(() => changeShouldPageReset(true));
-      }
       changePath(url);
     };
     router.events.on('routeChangeStart', handleRouteChange);
@@ -128,6 +125,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       router.events.off('routeChangeStart', handleRouteChange);
     };
   });
+
+  function updateOperationNavigation(type: VaultType, url: string) {
+    const path = pathForVaultType(type);
+    const routeIsOperation = url === path;
+    changeWillLoad(type, routeIsOperation);
+    if (router.asPath === path) {
+      changeShouldPageReset(type, routeIsOperation);
+    } else {
+      navigationalTaskDelay(() => changeShouldPageReset(type, true));
+    }
+  }
 
   function updatePollingPolicy(url: string) {
     const should =

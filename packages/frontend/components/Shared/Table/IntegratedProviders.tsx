@@ -1,8 +1,9 @@
-import { Box, Chip, Stack, Tooltip } from '@mui/material';
+import { Box, Chip, Stack } from '@mui/material';
 import React from 'react';
 
-import { MarketRowStatus } from '../../../helpers/markets';
+import { MarketRowStatus } from '../../../store/types/markets';
 import { ProviderIcon } from '../Icons';
+import { TooltipWrapper } from '../Tooltips';
 
 type IntegratedProvidersProps = {
   providers: {
@@ -20,16 +21,13 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
           justifyContent="right"
           alignItems="center"
           flexWrap="nowrap"
-          sx={{
-            mr: providers.value.length > 1 ? '-0.25rem' : '0',
-          }}
         >
           {providers.value.map((name, i) => (
-            <Tooltip key={name} title={name} arrow>
+            <TooltipWrapper key={`${name}-${i}`} title={name} placement="top">
               <Box
                 sx={{
                   position: 'relative',
-                  right: `${i * 0.25}rem`,
+                  mr: `-0.25rem`,
                   zIndex: 4 - i,
                   height: '24px',
                 }}
@@ -43,7 +41,7 @@ function IntegratedProviders({ providers }: IntegratedProvidersProps) {
                   />
                 )}
               </Box>
-            </Tooltip>
+            </TooltipWrapper>
           ))}
           {providers.value.length >= 4 && (
             <Chip

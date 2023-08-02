@@ -1,38 +1,47 @@
+import { VaultType } from '@x-fuji/sdk';
 import produce from 'immer';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { PATH } from '../constants';
 import {
-  BorrowPageNavigation,
   navigationalRunAndResetWithDelay,
+  OperationPageNavigation,
 } from '../helpers/navigation';
 import { storeOptions } from '../helpers/stores';
 
 type NavigationState = {
   currentPath: string;
-  borrowPage: BorrowPageNavigation;
   isReferralModalOpen: boolean;
+  borrowPage: OperationPageNavigation;
+  lendPage: OperationPageNavigation;
+};
+
+const initialOperationNavigationState: OperationPageNavigation = {
+  shouldReset: true,
+  willLoad: false,
+  lock: false,
 };
 
 type NavigationActions = {
   changePath: (path: string) => void;
   setIsReferralModalOpen: (isOpen: boolean) => void;
-  changeBorrowPageShouldReset: (reset: boolean, lock?: boolean) => void;
-  changeBorrowPageWillLoad: (willLoadBorrow: boolean) => void;
+  changePageShouldReset: (
+    type: VaultType,
+    reset: boolean,
+    lock?: boolean
+  ) => void;
+  changePageWillLoad: (type: VaultType, willLoad: boolean) => void;
 };
 
 const initialState: NavigationState = {
   currentPath: PATH.MARKETS,
-  borrowPage: {
-    shouldReset: true,
-    willLoad: false,
-    lock: false,
-  },
   isReferralModalOpen: false,
+  borrowPage: initialOperationNavigationState,
+  lendPage: initialOperationNavigationState,
 };
 
-export type NavigationStore = NavigationState & NavigationActions;
+type NavigationStore = NavigationState & NavigationActions;
 
 export const useNavigation = create<NavigationStore>()(
   devtools(
@@ -47,32 +56,47 @@ export const useNavigation = create<NavigationStore>()(
         set({ isReferralModalOpen: isOpen });
       },
 
-      changeBorrowPageShouldReset(shouldReset, lock) {
-        if (get().borrowPage.lock) return;
+      changePageShouldReset(type, shouldReset, lock) {
+        if (
+          (type === VaultType.BORROW ? get().borrowPage : get().lendPage).lock
+        )
+          return;
         if (lock !== undefined) {
           navigationalRunAndResetWithDelay((newValue: boolean) => {
             set(
               produce((state: NavigationState) => {
-                state.borrowPage.lock = newValue;
+                if (type === VaultType.BORROW) {
+                  state.borrowPage.lock = newValue;
+                } else {
+                  state.lendPage.lock = newValue;
+                }
               })
             );
           }, lock);
         }
         set(
           produce((state: NavigationState) => {
-            state.borrowPage.shouldReset = shouldReset;
+            if (type === VaultType.BORROW) {
+              state.borrowPage.shouldReset = shouldReset;
+            } else {
+              state.lendPage.shouldReset = shouldReset;
+            }
           })
         );
       },
 
-      changeBorrowPageWillLoad(willLoadBorrow) {
+      changePageWillLoad(type, willLoad) {
         navigationalRunAndResetWithDelay((newValue: boolean) => {
           set(
             produce((state: NavigationState) => {
-              state.borrowPage.willLoad = newValue;
+              if (type === VaultType.BORROW) {
+                state.borrowPage.willLoad = newValue;
+              } else {
+                state.lendPage.willLoad = newValue;
+              }
             })
           );
-        }, willLoadBorrow);
+        }, willLoad);
       },
     }),
     storeOptions('navigation')

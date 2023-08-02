@@ -2,4 +2,5 @@
 /* tslint:disable */
 /* eslint-disable */
 export { AddrMapper__factory } from "./AddrMapper__factory";
+export { ChainlinkComputedFeed__factory } from "./ChainlinkComputedFeed__factory";
 export { ProxyReceiver__factory } from "./ProxyReceiver__factory";

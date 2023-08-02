@@ -3,8 +3,9 @@ import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
 import { maxBorrowLimit, recommendedLTV } from '../../../helpers/assets';
-import { BasePosition } from '../../../helpers/positions';
+import { PositionData } from '../../../helpers/positions';
 import { useBorrow } from '../../../store/borrow.store';
+import { BorrowingPosition } from '../../../store/models/Position';
 import Container from './Container';
 import Details from './Details';
 import LTVProgressBar from './LTVProgressBar';
@@ -12,14 +13,14 @@ import Summary from './Summary/Summary';
 
 type OverviewProps = {
   isEditing: boolean;
-  basePosition: BasePosition;
+  positionData: PositionData;
 };
 
-function Overview({ basePosition, isEditing }: OverviewProps) {
+function Overview({ positionData, isEditing }: OverviewProps) {
   const { breakpoints } = useTheme();
   const isMobile = useMediaQuery(breakpoints.down('md'));
 
-  const { position, editedPosition } = basePosition;
+  const { position, editedPosition } = positionData;
   const {
     collateral,
     debt,
@@ -28,7 +29,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
     ltvThreshold,
     liquidationDiff,
     liquidationPrice,
-  } = position;
+  } = position as BorrowingPosition;
 
   const vault = useBorrow((state) => state.activeVault);
   const allProviders = useBorrow((state) => state.allProviders);
@@ -37,7 +38,9 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
   const collateralInput = useBorrow((state) => state.collateral.input);
   const debtInput = useBorrow((state) => state.debt?.input);
 
-  const dynamicLtv = editedPosition ? editedPosition.ltv : ltv;
+  const dynamicLtv = editedPosition
+    ? (editedPosition as BorrowingPosition).ltv
+    : ltv;
   const recommendedLtv = recommendedLTV(ltvMax);
 
   const borrowLimit = maxBorrowLimit(
@@ -46,7 +49,7 @@ function Overview({ basePosition, isEditing }: OverviewProps) {
     ltvMax
   );
 
-  if (debtInput === undefined) return <></>; // TODO: handle this case
+  if (debtInput === undefined) return <></>;
   return (
     <Container isMobile={isMobile}>
       {!isMobile && <Typography variant="body2">Position Overview</Typography>}
