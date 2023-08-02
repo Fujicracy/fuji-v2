@@ -161,7 +161,6 @@ To know more about it and how to use it, please read the README within `packages
 
 ## Quick look on how things works
 
-
 There are 4 different pages:
 
 ```
