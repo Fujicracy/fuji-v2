@@ -76,6 +76,7 @@ contract BorrowingVaultBeaconFactory is IBeacon, VaultDeployer {
    * @notice Constructor of a new {BorrowingVaultFactory}.
    *
    * @param chief_ address of {Chief}
+   * @param implementation_ address of the master BorrowingVault.sol
    *
    * @dev Requirements:
    * - Must comply with {VaultDeployer} requirements.

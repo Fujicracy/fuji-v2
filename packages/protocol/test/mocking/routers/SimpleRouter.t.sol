@@ -109,6 +109,7 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     flasher = new MockFlasher();
 
     simpleRouter = new SimpleRouter(IWETH9(collateralAsset), chief);
+    vm.label(address(simpleRouter), "simpleRouter");
   }
 
   function _depositAndBorrow(uint256 deposit, uint256 debt, IVault vault_) internal {
@@ -688,5 +689,53 @@ contract SimpleRouterUnitTests is MockingSetup, MockRoutines {
     vm.stopPrank();
 
     assertEq(tWBTC.balanceOf(ATTACKER), 0);
+  }
+
+  function test_withdrawSoftMax(uint128 withdrawAmount) public {
+    uint256 depositAmount = 0.1 ether;
+    vm.assume(withdrawAmount > depositAmount);
+    {
+      // Setup for WtihdrawETH
+      deal(collateralAsset, depositAmount);
+    }
+    do_deposit(0.1 ether, vault, ALICE);
+
+    IRouter.Action[] memory actions = new IRouter.Action[](3);
+    actions[0] = IRouter.Action.PermitWithdraw;
+    actions[1] = IRouter.Action.Withdraw;
+    actions[2] = IRouter.Action.WithdrawETH;
+
+    bytes[] memory args = new bytes[](3);
+    {
+      args[0] = LibSigUtils.getZeroPermitEncodedArgs(
+        address(vault), ALICE, address(simpleRouter), withdrawAmount
+      );
+      args[1] = abi.encode(address(vault), withdrawAmount, address(simpleRouter), ALICE);
+      args[2] = abi.encode(withdrawAmount, ALICE);
+
+      bytes32 actionArgsHash = LibSigUtils.getActionArgsHash(actions, args);
+
+      LibSigUtils.Permit memory permit = LibSigUtils.buildPermitStruct(
+        ALICE,
+        address(simpleRouter),
+        address(simpleRouter),
+        withdrawAmount,
+        0,
+        address(vault),
+        actionArgsHash
+      );
+
+      (uint256 deadline, uint8 v, bytes32 r, bytes32 s) =
+        _getPermitWithdrawArgs(permit, ALICE_PK, address(vault));
+
+      // Replace permit action arguments, now with the signature values.
+      args[0] =
+        abi.encode(address(vault), ALICE, address(simpleRouter), withdrawAmount, deadline, v, r, s);
+    }
+
+    vm.prank(ALICE);
+    simpleRouter.xBundle(actions, args);
+
+    assertEq(ALICE.balance, depositAmount);
   }
 }
