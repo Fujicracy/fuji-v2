@@ -11,6 +11,7 @@ import {
   DEFAULT_CHAIN_ID,
   DUST_AMOUNT,
   Ltv,
+  MINIMUM_ETHEREUM_BRIDGING_AMOUNT_USD,
   NOTIFICATION_MESSAGES,
 } from '../constants';
 import { sdk } from '../services/sdk';
@@ -290,4 +291,19 @@ export const withdrawMaxAmount = async (
     debtAmount / (currentLtvMax * positionData.position.collateral.usdPrice);
 
   return new FujiResultSuccess(amount);
+};
+
+export const invalidBridgingAmount = (
+  chains: ChainId[] | undefined,
+  collateralAmount: number,
+  usdPrice: number
+) => {
+  return (
+    chains &&
+    chains.length > 1 &&
+    chains[0] !== chains[1] &&
+    chains[1] === ChainId.ETHEREUM &&
+    collateralAmount > 0 &&
+    usdPrice < MINIMUM_ETHEREUM_BRIDGING_AMOUNT_USD
+  );
 };
