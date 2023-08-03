@@ -43,5 +43,5 @@ export const wrappedSymbol = (currency: Currency): string => {
 
 // Temp helper functions
 export const isBridgeable = ({ symbol }: Currency): boolean => {
-  return symbol !== 'MaticX';
+  return symbol !== 'MaticX' && symbol !== 'wstETH';
 };
