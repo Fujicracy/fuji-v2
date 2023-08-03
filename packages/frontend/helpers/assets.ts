@@ -305,7 +305,10 @@ export const invalidBridgingAmount = (
     if (step.step === RoutingStep.X_TRANSFER && step.token) {
       const asset = [collateral, debt]
         .filter((asset) => asset)
-        .find((asset) => asset && asset.currency.symbol === step.token?.symbol);
+        .find(
+          (asset) =>
+            asset && asset.currency.wrapped.symbol === step.token?.symbol
+        );
       if (step.token && step.amount && asset) {
         const amount = safeBnToNumber(step.amount, step.token.decimals);
         const amountUsd = amount * asset.usdPrice;
