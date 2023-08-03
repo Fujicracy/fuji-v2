@@ -64,6 +64,15 @@
       "name": "BorrowingVault-WSTETHUSDC-1",
       "providers": ["Agave_Gnosis"],
       "rating": 75
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "GNO",
+      "liqRatio": 640000000000000000,
+      "maxLtv": 600000000000000000,
+      "name": "BorrowingVault-WSTETGNO-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 75
     }
   ],
   "yield-vaults": [
