@@ -43,7 +43,6 @@ export type OperationButtonProps = {
   position?: Position;
   walletChainId?: ChainId;
   address?: string;
-  chains?: ChainId[];
 };
 
 type RegularButtonProps = {

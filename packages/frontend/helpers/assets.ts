@@ -4,6 +4,8 @@ import {
   FujiResultPromise,
   FujiResultSuccess,
   OperationType,
+  RoutingStep,
+  RoutingStepDetails,
   VaultType,
 } from '@x-fuji/sdk';
 
@@ -11,7 +13,7 @@ import {
   DEFAULT_CHAIN_ID,
   DUST_AMOUNT,
   Ltv,
-  MINIMUM_ETHEREUM_BRIDGING_AMOUNT_USD,
+  ETHEREUM_BRIDGING_AMOUNT_USD_THRESHOLD,
   NOTIFICATION_MESSAGES,
 } from '../constants';
 import { sdk } from '../services/sdk';
@@ -19,6 +21,7 @@ import { AssetMeta } from '../store/models/Position';
 import { notify } from './notifications';
 import { PositionData } from './positions';
 import { fetchRoutes } from './routes';
+import { safeBnToNumber } from './values';
 
 const defaultDebtCurrencies = sdk.getDebtForChain(DEFAULT_CHAIN_ID);
 const defaultCollateralCurrencies = sdk.getCollateralForChain(DEFAULT_CHAIN_ID);
@@ -294,16 +297,28 @@ export const withdrawMaxAmount = async (
 };
 
 export const invalidBridgingAmount = (
-  chains: ChainId[] | undefined,
-  collateralAmount: number,
-  usdPrice: number
+  steps: RoutingStepDetails[],
+  collateral: AssetChange,
+  debt?: AssetChange
 ) => {
-  return (
-    chains &&
-    chains.length > 1 &&
-    chains[0] !== chains[1] &&
-    chains[1] === ChainId.ETHEREUM &&
-    collateralAmount > 0 &&
-    usdPrice < MINIMUM_ETHEREUM_BRIDGING_AMOUNT_USD
-  );
+  for (const step of steps) {
+    if (step.step === RoutingStep.X_TRANSFER && step.token) {
+      const asset = [collateral, debt]
+        .filter((asset) => asset)
+        .find((asset) => asset && asset.currency.symbol === step.token?.symbol);
+      if (step.token && step.amount && asset) {
+        const amount = safeBnToNumber(step.amount, step.token.decimals);
+        const amountUsd = amount * asset.usdPrice;
+        if (
+          asset &&
+          step.token.chainId === ChainId.ETHEREUM &&
+          amountUsd > 0 &&
+          amountUsd < ETHEREUM_BRIDGING_AMOUNT_USD_THRESHOLD
+        ) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
 };

@@ -7,6 +7,7 @@ import {
   AssetChange,
   AssetType,
   FetchStatus,
+  invalidBridgingAmount,
   LtvMeta,
   Mode,
   needsAllowance,
@@ -124,6 +125,8 @@ function BorrowButton({
     return disabledButton(
       `${bridgeStep.token.symbol}: not supported cross-chain`
     );
+  } else if (invalidBridgingAmount(transactionMeta.steps, collateral, debt)) {
+    return disabledButton(OperationButtonTitles.ETHEREUM_MIN);
   } else if (
     !isEditing &&
     hasBalanceInVault &&

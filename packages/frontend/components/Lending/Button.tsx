@@ -22,7 +22,6 @@ type LendingButtonProps = OperationButtonProps;
 
 function LendingButton({
   address,
-  chains,
   collateral,
   walletChainId,
   metaStatus,
@@ -116,9 +115,7 @@ function LendingButton({
     collateralAmount > Number(collateral?.amount)
   ) {
     return disabledButton(OperationButtonTitles.WITHDRAW_MAX);
-  } else if (
-    invalidBridgingAmount(chains, collateralAmount, collateralAmountUsd)
-  ) {
+  } else if (invalidBridgingAmount(transactionMeta.steps, collateral)) {
     return disabledButton(OperationButtonTitles.ETHEREUM_MIN);
   } else if (
     needsAllowance(mode, AssetType.Collateral, collateral, collateralAmount)

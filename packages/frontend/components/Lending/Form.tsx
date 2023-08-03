@@ -235,9 +235,6 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
             mode={mode}
             isEditing={isEditing}
             hasBalanceInVault={hasBalanceInVault}
-            chains={
-              vault ? [collateral.chainId, vault.chainId] : [collateral.chainId]
-            }
             onLoginClick={login}
             onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={(type) => allow(type)}
