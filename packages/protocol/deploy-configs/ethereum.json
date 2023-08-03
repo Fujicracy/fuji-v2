@@ -5,6 +5,8 @@
   "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
   "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
   "WSTETH": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+  "CBETH": "0xBe9895146f7AF43049ca1c1AE358B0541Ea49704",
+  "RETH": "0xae78736Cd615f374D3085123A210448E74Fc6393",
   "ConnextCore": "0x8898B472C54c31894e3B9bb83cEA802a5d0e63C6",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
   "FujiRelayer": "0xCA07e24b23A03Ea7EEC441BDF0d235608b2fFD25",
@@ -32,6 +34,14 @@
     {
       "asset": "WSTETH",
       "chainlink": "0x8601fF6ABfA65e1970F95701522bbF5249a4d0a2"
+    },
+    {
+      "asset": "CBETH",
+      "chainlink": "0x53c641d390c6a7b0cb8a3b202e8db12d72bebb60"
+    },
+    {
+      "asset": "RETH",
+      "chainlink": "0x1E06fc0F61c3AAaCaBB6f016281E569399bA8fe5"
     }
   ],
   "simple-mappings": [
