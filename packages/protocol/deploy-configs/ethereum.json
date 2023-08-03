@@ -4,6 +4,7 @@
   "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
   "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+  "GHO": "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f",
   "WSTETH": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
   "CBETH": "0xBe9895146f7AF43049ca1c1AE358B0541Ea49704",
   "RETH": "0xae78736Cd615f374D3085123A210448E74Fc6393",
@@ -30,6 +31,10 @@
     {
       "asset": "USDT",
       "chainlink": "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D"
+    },
+    {
+      "asset": "GHO",
+      "chainlink": "0x3f12643D3f6f874d39C2a4c9f2Cd6f2DbAC877FC"
     },
     {
       "asset": "WSTETH",
@@ -213,6 +218,15 @@
       "liqRatio": 920000000000000000,
       "maxLtv": 900000000000000000,
       "name": "BorrowingVault-RETHWETH-1",
+      "providers": ["Aave_V3"],
+      "rating": 90
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "GHO",
+      "liqRatio": 680000000000000000,
+      "maxLtv": 790000000000000000,
+      "name": "BorrowingVault-WSTETHGHO-1",
       "providers": ["Aave_V3"],
       "rating": 90
     }
