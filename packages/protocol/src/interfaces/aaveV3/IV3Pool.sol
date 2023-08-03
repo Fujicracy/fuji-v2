@@ -173,4 +173,17 @@ interface IV3Pool {
    * @return The state and configuration data of the reserve
    */
   function getReserveData(address asset) external view returns (ReserveData memory);
+
+  /**
+   * @notice Allows a user to use the protocol in eMode
+   * @param categoryId The id of the category
+   */
+  function setUserEMode(uint8 categoryId) external;
+
+  /**
+   * @notice Returns the eMode the user is using
+   * @param user The address of the user
+   * @return The eMode id
+   */
+  function getUserEMode(address user) external view returns (uint8);
 }
