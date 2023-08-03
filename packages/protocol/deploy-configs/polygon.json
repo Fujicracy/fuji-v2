@@ -162,6 +162,18 @@
       "name": "YieldVault-USDC-1",
       "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
       "rating": 85
+    },
+    {
+      "asset": "USDT",
+      "name": "YieldVault-USDT-1",
+      "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 85
+    },
+    {
+      "asset": "DAI",
+      "name": "YieldVault-DAI-1",
+      "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 85
     }
   ]
 

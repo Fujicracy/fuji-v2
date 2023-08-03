@@ -78,6 +78,18 @@
       "name": "YieldVault-USDC-1",
       "providers": ["Agave_Gnosis"],
       "rating": 80
+    },
+    {
+      "asset": "USDT",
+      "name": "YieldVault-USDT-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
+    },
+    {
+      "asset": "WXDAI",
+      "name": "YieldVault-WXDAI-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
     }
   ]
 }

@@ -121,7 +121,7 @@
       "name": "BorrowingVault-RETHWETH-1",
       "providers": ["Aave_V3_Optimism"],
       "rating": 90
-    }
+    },
     {
       "collateral": "WSTETH",
       "debt": "WETH",
@@ -151,6 +151,18 @@
     {
       "asset": "USDC",
       "name": "YieldVault-USDC-1",
+      "providers": ["Aave_V3_Optimism", "DForce_Optimism"],
+      "rating": 90
+    },
+    {
+      "asset": "USDT",
+      "name": "YieldVault-USDT-1",
+      "providers": ["Aave_V3_Optimism", "DForce_Optimism"],
+      "rating": 90
+    },
+    {
+      "asset": "DAI",
+      "name": "YieldVault-DAI-1",
       "providers": ["Aave_V3_Optimism", "DForce_Optimism"],
       "rating": 90
     }

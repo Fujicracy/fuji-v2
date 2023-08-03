@@ -243,6 +243,18 @@
       "name": "YieldVault-USDC-1",
       "providers": ["Aave_V3", "Aave_V2", "Compound_V3"],
       "rating": 90
+    },
+    {
+      "asset": "DAI",
+      "name": "YieldVault-DAI-1",
+      "providers": ["Aave_V3", "Aave_V2", "Compound_V3", "Compound_V2"],
+      "rating": 90
+    },
+    {
+      "asset": "USDT",
+      "name": "YieldVault-USDT-1",
+      "providers": ["Aave_V3", "Aave_V2", "Compound_V3", "Compound_V2"],
+      "rating": 90
     }
   ]
 }
