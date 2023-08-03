@@ -130,6 +130,33 @@
       "name": "BorrowingVault-WSTETHUSDC-1",
       "providers": ["Aave_V3_Arbitrum", "DForce_Arbitrum", "Radiant_Arbitrum"],
       "rating": 75
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "WETH",
+      "liqRatio": 920000000000000000,
+      "maxLtv": 900000000000000000,
+      "name": "BorrowingVault-WSTETHWETH-1",
+      "providers": ["Aave_V3_Arbitrum"],
+      "rating": 95
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "WETH",
+      "liqRatio": 790000000000000000,
+      "maxLtv": 700000000000000000,
+      "name": "BorrowingVault-WSTETHWETH-2",
+      "providers": ["Aave_V3_Arbitrum", "Radiant_Arbitrum"],
+      "rating": 80
+    },
+    {
+      "collateral": "RETH",
+      "debt": "WETH",
+      "liqRatio": 920000000000000000,
+      "maxLtv": 900000000000000000,
+      "name": "BorrowingVault-RETHWETH-1",
+      "providers": ["Aave_V3_Arbitrum"],
+      "rating": 95
     }
   ],
   "yield-vaults": [
