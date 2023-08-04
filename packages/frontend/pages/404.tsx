@@ -15,8 +15,8 @@ const NotFoundPage = () => {
 
       <Container
         sx={{
-          pl: '1rem',
-          pr: '1rem',
+          pl: { xs: '0.25rem' },
+          pr: { xs: '0.25rem' },
           minHeight: '90vh',
           display: 'flex',
           alignItems: 'center',
