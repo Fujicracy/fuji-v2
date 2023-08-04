@@ -51,7 +51,7 @@ const SomethingWentWrongPage = () => {
             }
           </Typography>
           <Link href="/" mt="1.5rem" variant="inherit">
-            <Button variant="secondary" size="medium" sx={{ height: '3rem' }}>
+            <Button variant="text" size="medium" sx={{ height: '3rem' }}>
               Go back home
             </Button>
           </Link>

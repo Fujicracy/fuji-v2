@@ -43,8 +43,20 @@ function LendingButton({
     withConfirmation(action);
   };
 
-  const regularButton = (title: string, onClick: () => void, data?: string) => {
-    return <RegularButton title={title} onClick={onClick} data={data} />;
+  const regularButton = (
+    title: string,
+    onClick: () => void,
+    data?: string,
+    variant?: 'gradient' | 'secondary'
+  ) => {
+    return (
+      <RegularButton
+        title={title}
+        onClick={onClick}
+        data={data}
+        variant={variant}
+      />
+    );
   };
 
   const disabledButton = (title: string) => <DisabledButton title={title} />;
@@ -62,7 +74,8 @@ function LendingButton({
     return regularButton(
       OperationButtonTitles.CONNECT,
       onLoginClick,
-      'lend-login'
+      'lend-login',
+      'secondary'
     );
   }
   const collateralAmount = parseFloat(collateral.input);

@@ -45,7 +45,7 @@ const NotFoundPage = () => {
             {"The page you are looking for doesn't exist or has been moved."}
           </Typography>
           <Link href="/" mt="1.5rem" variant="inherit">
-            <Button variant="secondary" size="medium" sx={{ height: '3rem' }}>
+            <Button variant="text" size="medium" sx={{ height: '3rem' }}>
               Go back home
             </Button>
           </Link>

@@ -46,8 +46,9 @@ export type OperationButtonProps = {
 
 type RegularButtonProps = {
   title: string;
-  data?: string;
   onClick: () => void;
+  variant?: 'secondary' | 'gradient';
+  data?: string;
 };
 
 type DisabledButtonProps = {
@@ -61,9 +62,14 @@ type LoadingButtonProps = {
   onClick: () => void;
 };
 
-export const RegularButton = ({ title, data, onClick }: RegularButtonProps) => (
+export const RegularButton = ({
+  title,
+  data,
+  onClick,
+  variant = 'gradient',
+}: RegularButtonProps) => (
   <Button
-    variant="gradient"
+    variant={variant}
     size="large"
     fullWidth
     onClick={onClick}

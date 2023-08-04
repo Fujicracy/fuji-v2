@@ -2,7 +2,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import {
   AppBar,
   Box,
-  Chip,
+  Button,
   Divider,
   Fade,
   Grid,
@@ -142,20 +142,19 @@ const Header = () => {
                 }}
               >
                 {status === AuthStatus.Disconnected && (
-                  <>
-                    <Chip
-                      data-cy="header-login"
-                      label="Connect wallet"
-                      variant="gradient"
-                      sx={{
-                        fontSize: '1rem',
-                        ['@media screen and (max-width: 346px)']: {
-                          fontSize: '0.6rem',
-                        },
-                      }}
-                      onClick={() => login()}
-                    />
-                  </>
+                  <Button
+                    data-cy="header-login"
+                    variant="secondary"
+                    sx={{
+                      fontSize: '1rem',
+                      ['@media screen and (max-width: 346px)']: {
+                        fontSize: '0.6rem',
+                      },
+                    }}
+                    onClick={() => login()}
+                  >
+                    Connect wallet
+                  </Button>
                 )}
                 {status === AuthStatus.Connected && <ChainSelect />}
 
@@ -280,19 +279,18 @@ const Header = () => {
             sx={{ display: { xs: 'none', md: 'flex' } }}
           >
             {status === AuthStatus.Disconnected && (
-              <>
-                <Chip
-                  label="Connect wallet"
-                  variant="gradient"
-                  sx={{
-                    fontSize: '1rem',
-                    ['@media screen and (max-width: 346px)']: {
-                      fontSize: '0.6rem',
-                    },
-                  }}
-                  onClick={() => login()}
-                />
-              </>
+              <Button
+                variant="secondary"
+                sx={{
+                  fontSize: '1rem',
+                  ['@media screen and (max-width: 346px)']: {
+                    fontSize: '0.6rem',
+                  },
+                }}
+                onClick={() => login()}
+              >
+                Connect wallet
+              </Button>
             )}
             {status === AuthStatus.Connected && address && (
               <>
@@ -306,7 +304,9 @@ const Header = () => {
                   <WalletAddress
                     address={address}
                     ens={ens}
-                    onClick={(e) => handleOpenAccountModal(true, e)}
+                    onClick={(e: HTMLElement) =>
+                      handleOpenAccountModal(true, e)
+                    }
                   />
                 </Grid>
                 <Grid item>
