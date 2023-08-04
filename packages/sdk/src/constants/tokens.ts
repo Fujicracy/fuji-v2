@@ -386,8 +386,3 @@ export const WNATIVE: TokenMap = {
     'Wrapped xDai'
   ),
 };
-
-export const UNBRIDGEABLE_TOKENS_SYMBOLS: string[] = [
-  MATICX.symbol,
-  WSTETH[ChainId.ETHEREUM].symbol, // One is enough
-];

@@ -1,4 +1,4 @@
-import { Currency, UNBRIDGEABLE_TOKENS_SYMBOLS } from '@x-fuji/sdk';
+import { Currency, BRIDGEABLE_CURRENCY_SYMBOLS } from '@x-fuji/sdk';
 
 export const isNativeOrWrapped = (
   currency: Currency,
@@ -42,6 +42,6 @@ export const wrappedSymbol = (currency: Currency): string => {
 };
 
 // Temp helper functions
-export const isBridgeable = ({ symbol }: Currency): boolean => {
-  return !UNBRIDGEABLE_TOKENS_SYMBOLS.includes(symbol);
+export const isBridgeable = (currency: Currency): boolean => {
+  return BRIDGEABLE_CURRENCY_SYMBOLS.includes(currency.symbol);
 };
