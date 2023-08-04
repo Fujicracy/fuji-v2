@@ -20,7 +20,7 @@ export enum OperationButtonTitles {
   SIGN = 'Sign & ',
   WITHDRAW = 'Withdraw',
   WITHDRAW_MAX = 'Withdraw more than allowed',
-  ETHEREUM_MIN = 'Bridging to Ethereum minimum of $1000',
+  ETHEREUM_MIN = 'Min. $ 1k required to bridge to Ethereum',
 }
 
 export type OperationButtonProps = {
