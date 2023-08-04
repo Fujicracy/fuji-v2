@@ -173,14 +173,16 @@ function MyApp({ Component, pageProps }: AppProps) {
           <ChainvineWidget
             config={widgetConfig}
             isOpen={isReferralModalOpen}
-            userWalletAddress={address}
+            identifierType={'wallet'}
+            userIdentifier={address}
             campaignId={campaignId}
+            mode="Modal"
             theme="Dark"
             themeConfig={{
               inherit: true,
               token: { colorPrimary: theme.palette.primary.main },
             }}
-            onClose={() => setIsReferralModalOpen(false)}
+            onToggle={() => setIsReferralModalOpen(false)}
           />
         </ThemeProvider>
       </Web3OnboardProvider>
