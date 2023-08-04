@@ -305,6 +305,7 @@ const theme = createTheme(colorTheme, {
             background: colorTheme.palette.secondary.dark,
             border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
             fontWeight: 400,
+            color: colorTheme.palette.text.primary,
           },
         },
         {
