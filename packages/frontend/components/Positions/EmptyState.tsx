@@ -41,8 +41,10 @@ function EmptyState({
           title: 'No wallet connected',
           infoText: <></>,
           button: {
+            variant: 'secondary',
             label: 'Connect Wallet',
             action: login,
+            fullWidth: false,
           },
         }
       : {
@@ -60,10 +62,12 @@ function EmptyState({
             </Typography>
           ),
           button: {
+            variant: 'gradient',
             label: !isLend ? 'Borrow' : 'Lend',
             action: () => {
               !isLend ? showBorrow(router) : showLend(router);
             },
+            fullWidth: true,
           },
         };
   }, [reason, login, router, isLend]);
@@ -99,12 +103,12 @@ function EmptyState({
 
           {withButton && (
             <Button
-              variant="gradient"
-              size="large"
+              variant={config.button.variant as 'gradient' | 'secondary'}
+              size="medium"
               onClick={() => config.button.action()}
               data-cy="connect-wallet"
-              fullWidth
               sx={{ mt: '1.5rem', maxWidth: '17rem' }}
+              fullWidth={config.button.fullWidth}
             >
               {config.button.label}
             </Button>

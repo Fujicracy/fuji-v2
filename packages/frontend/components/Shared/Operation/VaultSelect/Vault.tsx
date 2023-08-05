@@ -187,7 +187,7 @@ function Vault({
             <Button
               size="small"
               fullWidth
-              variant="secondary"
+              variant="text"
               sx={{ p: '0 0.5rem' }}
               onClick={handleOpen}
             >

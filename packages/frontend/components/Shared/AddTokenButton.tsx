@@ -31,7 +31,7 @@ function AddTokenButton({ token }: ButtonAddTokenProps) {
 
   return (
     <LoadingButton
-      variant="secondary"
+      variant="text"
       fullWidth
       size="medium"
       onClick={handleClick}
