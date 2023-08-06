@@ -57,8 +57,20 @@ function BorrowButton({
     withConfirmation(action);
   };
 
-  const regularButton = (title: string, onClick: () => void, data?: string) => {
-    return <RegularButton title={title} onClick={onClick} data={data} />;
+  const regularButton = (
+    title: string,
+    onClick: () => void,
+    data?: string,
+    variant?: 'gradient' | 'secondary'
+  ) => {
+    return (
+      <RegularButton
+        title={title}
+        onClick={onClick}
+        data={data}
+        variant={variant}
+      />
+    );
   };
 
   const disabledButton = (title: string) => <DisabledButton title={title} />;
@@ -76,7 +88,8 @@ function BorrowButton({
     return regularButton(
       OperationButtonTitles.CONNECT,
       onLoginClick,
-      'borrow-login'
+      'borrow-login',
+      'secondary'
     );
   }
   if (!debt || !position || !ltvMeta) {
