@@ -61,6 +61,11 @@
       "name": "DForce_Optimism"
     },
     {
+      "asset": "USDT",
+      "market": "0x5d05c14d71909f4fe03e13d486cca2011148fc44",
+      "name": "DForce_Optimism"
+    },
+    {
       "asset": "WSTETH",
       "market": "0x4B3488123649E8A671097071A02DA8537fE09A16",
       "name": "DForce_Optimism"
@@ -118,7 +123,7 @@
       "debt": "USDC",
       "liqRatio": 730000000000000000,
       "maxLtv": 670000000000000000,
-      "name": "BorrowingVault-RETHWETH-1",
+      "name": "BorrowingVault-RETHUSDC-1",
       "providers": ["Aave_V3_Optimism"],
       "rating": 90
     },
