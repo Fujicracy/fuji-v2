@@ -143,9 +143,7 @@ export const useLend = create<LendStore>()(
         const addr = useAuth.getState().address;
         const account = addr ? Address.from(addr) : undefined;
 
-        console.log('account', account);
         const result = await sdk.getLendingVaultsFor(collateral, account);
-        console.log('result', result);
 
         if (!result.success) {
           console.error(result.error.message);
