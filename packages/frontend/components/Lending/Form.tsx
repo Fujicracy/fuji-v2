@@ -48,6 +48,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
   const availableRoutes = useLend((state) => state.availableRoutes);
   const vault = useLend((state) => state.activeVault);
   const mode = useLend((state) => state.mode);
+  const updateAll = useLend((state) => state.updateAll);
 
   const changeMode = useLend((state) => state.changeMode);
   const clearInputValues = useLend((state) => state.clearInputValues);
@@ -130,6 +131,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
 
   useEffect(() => {
     (async () => {
+      await updateAll(address);
       if (address && vault) {
         const balance = await vault.getBalances(Address.from(address));
         const currentActiveVault = useLend.getState().activeVault;
@@ -142,7 +144,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
         }
       }
     })();
-  }, [address, vault]);
+  }, [address, vault, updateAll]);
 
   useEffect(() => {
     const mode = lendingModeForContext(actionType);

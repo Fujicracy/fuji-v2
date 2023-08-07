@@ -502,6 +502,7 @@ export const updateTransactionMeta = async (api: StoreApi) => {
         );
       })
     );
+
     const error = results.find((r): r is FujiResultError => !r.success);
     if (error) {
       console.error(error);
