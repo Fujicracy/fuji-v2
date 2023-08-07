@@ -3,7 +3,7 @@ import { BorrowingVault } from '../entities/BorrowingVault';
 import { LendingVault } from '../entities/LendingVault';
 import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
-import { DAI, MATICX, USDC, USDT, WETH9, WSTETH } from './tokens';
+import { DAI, MATICX, RETH, USDC, USDT, WETH9, WSTETH } from './tokens';
 
 export const VAULT_LIST: ChainVaultList = {
   [ChainId.ETHEREUM]: [
@@ -105,6 +105,14 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0x9830d653A63F8910d229F3Fbf60361535782436d'),
       USDC[ChainId.ARBITRUM]
     ),
+    new LendingVault(
+      Address.from('0x542CD48cb7Da98E3ff644bC6b92D74dDD2CcdAD7'),
+      USDT[ChainId.ARBITRUM]
+    ),
+    new LendingVault(
+      Address.from('0xA49Bb23EF1936F98E6c31E2d752B3F7bD6a378b9'),
+      DAI[ChainId.ARBITRUM]
+    ),
     new BorrowingVault(
       Address.from('0x78c5A2b6AD8CC824ad28DecCe82a3be9Ba12785B'),
       WETH9[ChainId.ARBITRUM],
@@ -135,6 +143,21 @@ export const VAULT_LIST: ChainVaultList = {
     //WETH9[ChainId.ARBITRUM],
     //USDT[ChainId.ARBITRUM]
     //),
+    new BorrowingVault(
+      Address.from('0x9E41477315c4045B129351428147761082762AEE'),
+      RETH[ChainId.ARBITRUM],
+      WETH9[ChainId.ARBITRUM]
+    ),
+    new BorrowingVault(
+      Address.from('0x4DB1d229170417eDE991E20BE159C0847D67c9aD'),
+      WSTETH[ChainId.ARBITRUM],
+      WETH9[ChainId.ARBITRUM]
+    ),
+    new BorrowingVault(
+      Address.from('0x30E214b05CdA6438ad35b2597130C338cA8AEF74'),
+      WSTETH[ChainId.ARBITRUM],
+      WETH9[ChainId.ARBITRUM]
+    ),
   ],
   [ChainId.OPTIMISM]: [
     new LendingVault(

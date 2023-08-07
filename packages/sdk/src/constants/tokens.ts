@@ -6,6 +6,7 @@ import { ChainId } from '../enums';
 import { TokenMap } from '../types';
 import {
   DAI_ADDRESS,
+  RETH_ADDRESS,
   USDC_ADDRESS,
   USDT_ADDRESS,
   WETH9_ADDRESS,
@@ -348,6 +349,72 @@ export const WSTETH: TokenMap = {
     18,
     'wstETH',
     'Wrapped liquid staked Ether 2.0'
+  ),
+};
+
+export const RETH: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    RETH_ADDRESS[ChainId.ETHEREUM],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    RETH_ADDRESS[ChainId.GOERLI],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    RETH_ADDRESS[ChainId.ARBITRUM],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    RETH_ADDRESS[ChainId.OPTIMISM],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    RETH_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    RETH_ADDRESS[ChainId.FANTOM],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    RETH_ADDRESS[ChainId.MATIC],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    RETH_ADDRESS[ChainId.MATIC_MUMBAI],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    RETH_ADDRESS[ChainId.GNOSIS],
+    18,
+    'rETH',
+    'Rocket Pool ETH'
   ),
 };
 
