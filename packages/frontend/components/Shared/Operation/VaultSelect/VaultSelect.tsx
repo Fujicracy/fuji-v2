@@ -132,7 +132,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     setTimeout(() => {
       setIsLoading(false);
     }, 500);
-  }, [availableRoutes]);
+  }, [availableRoutes, collateral.chainId, debt?.chainId]);
 
   return (
     <Stack
