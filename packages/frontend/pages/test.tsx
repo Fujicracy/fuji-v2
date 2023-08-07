@@ -2,7 +2,7 @@ import { Container, Divider, Grid } from '@mui/material';
 import { NextPage } from 'next';
 import Head from 'next/head';
 
-import MigrateFrom from '../components/Migtator/MigrateFrom';
+import MigrateFrom from '../components/Migrator/MigrateFrom';
 
 const TestPage: NextPage = () => {
   return (
