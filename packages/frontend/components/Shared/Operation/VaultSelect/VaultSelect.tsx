@@ -18,7 +18,7 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { useBorrow } from '../../../../store/borrow.store';
 import { useLend } from '../../../../store/lend.store';
@@ -60,21 +60,19 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     setOpenedRoute(i === openedRoute ? null : i);
   }
 
-  const didSelectRoute = useCallback(
-    (i: number) => {
-      if (selectedRoute !== i) {
-        const vault = availableVaults.find(
-          (v) => v.vault.address.value === availableRoutes[i]?.address
-        );
-        if (!vault) return;
-        changeActiveVault(vault);
-      }
-      setSelectedRoute(i);
-      setOpenedRoute(null);
-      setUnFolded(false);
-    },
-    [availableVaults, availableRoutes, changeActiveVault, selectedRoute]
-  );
+  const didSelectRoute = (i: number) => {
+    if (selectedRoute !== i) {
+      const vault = availableVaults.find(
+        (v) => v.vault.address.value === availableRoutes[i]?.address
+      );
+      if (!vault) return;
+      changeActiveVault(vault);
+    }
+
+    setSelectedRoute(i);
+    setOpenedRoute(null);
+    setUnFolded(false);
+  };
 
   const filteredRoutes = useMemo(() => {
     if (!aggregatedData.length) return [];
@@ -106,10 +104,25 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   };
 
   useEffect(() => {
+    if (type === VaultType.BORROW) return;
     setIsLoading(true);
     setSelectedRoute(0);
     setOpenedRoute(null);
-  }, [collateral.chainId, debt?.chainId, router.pathname]);
+  }, [collateral.currency.symbol, router.pathname, type]);
+
+  useEffect(() => {
+    if (type === VaultType.LEND) return;
+    setIsLoading(true);
+    setSelectedRoute(0);
+    setOpenedRoute(null);
+  }, [
+    collateral.chainId,
+    debt?.chainId,
+    collateral.currency,
+    debt?.currency,
+    router.pathname,
+    type,
+  ]);
 
   useEffect(() => {
     if (availableVaults.length === 0) return;
@@ -125,14 +138,15 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     }
 
     didSelectRoute(selected);
-  }, [override, activeVault, availableVaults, didSelectRoute]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [override, activeVault, availableVaults]);
 
   useEffect(() => {
     // We do this because we already have availableRoutes and it is changing and no ways to track it
     setTimeout(() => {
       setIsLoading(false);
     }, 500);
-  }, [availableRoutes, collateral.chainId, debt?.chainId]);
+  }, [availableRoutes, collateral, debt]);
 
   return (
     <Stack
