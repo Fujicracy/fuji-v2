@@ -22,7 +22,6 @@ import {
   withdrawMaxAmount,
 } from '../../../../helpers/assets';
 import {
-  isNativeAndWrappedPair,
   isNativeOrWrapped,
   nativeAndWrappedPair,
 } from '../../../../helpers/currencies';
@@ -194,10 +193,7 @@ function CurrencyCard({
   const handleCurrencyChange = (currency: Currency) => {
     const currentCurrency =
       type === AssetType.Collateral ? collateral.currency : debt?.currency;
-    const updateVault =
-      currentCurrency !== undefined &&
-      !isEditing &&
-      !isNativeAndWrappedPair(currency, currentCurrency);
+    const updateVault = currentCurrency !== undefined && !isEditing;
     onCurrencyChange(currency, updateVault);
     close();
   };
