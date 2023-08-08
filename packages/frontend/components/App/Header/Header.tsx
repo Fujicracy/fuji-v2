@@ -90,7 +90,10 @@ const Header = () => {
   };
 
   const onReferralClick = () => {
-    if (!address || status !== AuthStatus.Connected) return;
+    if (!address || status !== AuthStatus.Connected) {
+      login();
+      return;
+    }
 
     setIsReferralModalOpen(true);
 
