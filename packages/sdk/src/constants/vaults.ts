@@ -52,6 +52,14 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0xF84a6A6D6a584b0Bad8BbD4B0B70d902e821f11b'),
       USDC[ChainId.MATIC]
     ),
+    new LendingVault(
+      Address.from('0xd8Fe153C5c44535017657f52C36BA1c64FDeC7b3'),
+      DAI[ChainId.MATIC]
+    ),
+    new LendingVault(
+      Address.from('0x973d2990F829662f2415317384c680247Be46AaE'),
+      USDT[ChainId.MATIC]
+    ),
     new BorrowingVault(
       Address.from('0xD0fE6F0CFEfCb46662b616340098e6eb4Bd29f09'),
       WETH9[ChainId.MATIC],
