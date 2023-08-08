@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@chainvine/sdk": "^1.5.9",
-    "@chainvine/widget": "^0.10.7",
+    "@chainvine/widget": "^0.10.11",
     "@emotion/react": "^11.10.0",
     "@emotion/styled": "^11.10.0",
     "@guildxyz/sdk": "^1.1.1",

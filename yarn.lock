@@ -1274,10 +1274,10 @@
     cross-fetch "^3.1.6"
     js-cookie "^3.0.1"
 
-"@chainvine/widget@^0.10.7":
-  version "0.10.7"
-  resolved "https://registry.yarnpkg.com/@chainvine/widget/-/widget-0.10.7.tgz#8d7aafc4a5ccaed54cef4d891220c341083b9475"
-  integrity sha512-dTBjKjx4MlZcG+bP4Bs4DywZ6ek4vtUcNUTFaj0E+VvLXU19aHG+y6w2/WPmkivsK/rTtUDQexZjYPxVS36bnA==
+"@chainvine/widget@^0.10.11":
+  version "0.10.11"
+  resolved "https://registry.yarnpkg.com/@chainvine/widget/-/widget-0.10.11.tgz#e4bac256c066035aafc67bcac8f3c4303260222f"
+  integrity sha512-f/tQjTnoApYMxVKd7G5YhJnq+1dZOOKqaTdzsaMxNCkHNOrkOI4GF/Q6Xbmpxqr3wYFof7Th560PBzfslBMXvg==
   dependencies:
     "@ant-design/icons" "5.1.4"
     "@chainvine/sdk" "^1.5.13"
