@@ -6,6 +6,7 @@ import { ChainId } from '../enums';
 import { TokenMap } from '../types';
 import {
   DAI_ADDRESS,
+  GNO_ADDRESS,
   RETH_ADDRESS,
   USDC_ADDRESS,
   USDT_ADDRESS,
@@ -415,6 +416,72 @@ export const RETH: TokenMap = {
     18,
     'rETH',
     'Rocket Pool ETH'
+  ),
+};
+
+export const GNO: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    GNO_ADDRESS[ChainId.ETHEREUM],
+    18,
+    'GNO',
+    'Gnosis Token'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    GNO_ADDRESS[ChainId.GOERLI],
+    18,
+    'GNO',
+    'Gnosis Token'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    GNO_ADDRESS[ChainId.ARBITRUM],
+    18,
+    'GNO',
+    'Gnosis Token'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    GNO_ADDRESS[ChainId.OPTIMISM],
+    18,
+    'GNO',
+    'Gnosis Token'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    GNO_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    18,
+    'GNO',
+    'Gnosis Token'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    GNO_ADDRESS[ChainId.FANTOM],
+    18,
+    'GNO',
+    'Gnosis Token'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    GNO_ADDRESS[ChainId.MATIC],
+    18,
+    'GNO',
+    'Gnosis Token'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    GNO_ADDRESS[ChainId.MATIC_MUMBAI],
+    18,
+    'GNO',
+    'Gnosis Token'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    GNO_ADDRESS[ChainId.GNOSIS],
+    18,
+    'GNO',
+    'Gnosis Token on xDai'
   ),
 };
 

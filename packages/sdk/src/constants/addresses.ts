@@ -100,7 +100,9 @@ export const GNO_ADDRESS: AddressMap = {
   ),
   [ChainId.MATIC]: Address.from(AddressZero),
   [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.ARBITRUM]: Address.from(AddressZero),
+  [ChainId.ARBITRUM]: Address.from(
+    '0xa0b862F60edEf4452F25B4160F177db44DeB6Cf1'
+  ),
   [ChainId.OPTIMISM]: Address.from(AddressZero),
   [ChainId.GOERLI]: Address.from(AddressZero),
   [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),

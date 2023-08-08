@@ -3,7 +3,17 @@ import { BorrowingVault } from '../entities/BorrowingVault';
 import { LendingVault } from '../entities/LendingVault';
 import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
-import { DAI, MATICX, RETH, USDC, USDT, WETH9, WSTETH } from './tokens';
+import {
+  DAI,
+  GNO,
+  MATICX,
+  RETH,
+  USDC,
+  USDT,
+  WETH9,
+  WNATIVE,
+  WSTETH,
+} from './tokens';
 
 export const VAULT_LIST: ChainVaultList = {
   [ChainId.ETHEREUM]: [
@@ -251,10 +261,23 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0xfa813845CfA88EED4599670A6B63B0025FE2963b'),
       USDC[ChainId.GNOSIS]
     ),
+    new LendingVault(
+      Address.from('0x8696566396421016B1065ee6F2a3906c9D54de67'),
+      WNATIVE[ChainId.GNOSIS]
+    ),
+    new LendingVault(
+      Address.from('0x9f364Afe3d592B749404B21cCdC04A119a379528'),
+      USDT[ChainId.GNOSIS]
+    ),
     new BorrowingVault(
       Address.from('0x8bDdE35081db12e503F95D2263d9949f78393000'),
       WETH9[ChainId.GNOSIS],
       USDC[ChainId.GNOSIS]
+    ),
+    new BorrowingVault(
+      Address.from('0xa99F739Bd55f95D4F0958B629d3522e64A282c7c'),
+      WSTETH[ChainId.GNOSIS],
+      GNO[ChainId.GNOSIS]
     ),
   ],
 };
