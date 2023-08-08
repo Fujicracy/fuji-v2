@@ -155,6 +155,18 @@
       "asset2": "ZERO",
       "market": "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
       "name": "Compound_V3"
+    },
+    {
+      "asset1": "WSTETH",
+      "asset2": "WETH",
+      "market": "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
+      "name": "Compound_V3"
+    },
+    {
+      "asset1": "CBETH",
+      "asset2": "WETH",
+      "market": "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
+      "name": "Compound_V3"
     }
   ],
   "borrowing-vaults": [
@@ -200,7 +212,7 @@
       "liqRatio": 920000000000000000,
       "maxLtv": 900000000000000000,
       "name": "BorrowingVault-WSTETHWETH-1",
-      "providers": ["Compound_V3", "Aave_V3"],
+      "providers": ["Aave_V3", "Compound_V3"],
       "rating": 90
     },
     {
@@ -209,7 +221,7 @@
       "liqRatio": 920000000000000000,
       "maxLtv": 900000000000000000,
       "name": "BorrowingVault-CBWETHWETH-1",
-      "providers": ["Compound_V3", "Aave_V3"],
+      "providers": ["Aave_V3", "Compound_V3"],
       "rating": 90
     },
     {
@@ -224,8 +236,8 @@
     {
       "collateral": "WSTETH",
       "debt": "GHO",
-      "liqRatio": 680000000000000000,
-      "maxLtv": 790000000000000000,
+      "liqRatio": 800000000000000000,
+      "maxLtv": 690000000000000000,
       "name": "BorrowingVault-WSTETHGHO-1",
       "providers": ["Aave_V3"],
       "rating": 90
@@ -247,13 +259,13 @@
     {
       "asset": "DAI",
       "name": "YieldVault-DAI-1",
-      "providers": ["Aave_V3", "Aave_V2", "Compound_V3", "Compound_V2"],
+      "providers": ["Aave_V3", "Compound_V2", "Aave_V2"],
       "rating": 90
     },
     {
       "asset": "USDT",
       "name": "YieldVault-USDT-1",
-      "providers": ["Aave_V3", "Aave_V2", "Compound_V3", "Compound_V2"],
+      "providers": ["Aave_V3", "Compound_V2", "Aave_V2"],
       "rating": 90
     }
   ]

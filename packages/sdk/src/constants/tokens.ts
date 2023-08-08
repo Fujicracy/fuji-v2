@@ -5,7 +5,9 @@ import { Token } from '../entities/Token';
 import { ChainId } from '../enums';
 import { TokenMap } from '../types';
 import {
+  CBETH_ADDRESS,
   DAI_ADDRESS,
+  GHO_ADDRESS,
   GNO_ADDRESS,
   RETH_ADDRESS,
   USDC_ADDRESS,
@@ -213,6 +215,72 @@ export const DAI: TokenMap = {
   ),
 };
 
+export const GHO: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    GHO_ADDRESS[ChainId.ETHEREUM],
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    GHO_ADDRESS[ChainId.GOERLI],
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    GHO_ADDRESS[ChainId.MATIC],
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    GHO_ADDRESS[ChainId.MATIC_MUMBAI],
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    GHO_ADDRESS[ChainId.FANTOM],
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    GHO_ADDRESS[ChainId.ARBITRUM],
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    GHO_ADDRESS[ChainId.OPTIMISM],
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    GHO_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    Address.from(AddressZero),
+    18,
+    'GHO',
+    'Gho Token'
+  ),
+};
+
 export const WETH9: TokenMap = {
   [ChainId.ETHEREUM]: new Token(
     ChainId.ETHEREUM,
@@ -416,6 +484,72 @@ export const RETH: TokenMap = {
     18,
     'rETH',
     'Rocket Pool ETH'
+  ),
+};
+
+export const CBETH: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    CBETH_ADDRESS[ChainId.ETHEREUM],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    CBETH_ADDRESS[ChainId.GOERLI],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    CBETH_ADDRESS[ChainId.ARBITRUM],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    CBETH_ADDRESS[ChainId.OPTIMISM],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    CBETH_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    CBETH_ADDRESS[ChainId.FANTOM],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    CBETH_ADDRESS[ChainId.MATIC],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    CBETH_ADDRESS[ChainId.MATIC_MUMBAI],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    CBETH_ADDRESS[ChainId.GNOSIS],
+    18,
+    'cbETH',
+    'Coinbase Wrapped Staked ETH'
   ),
 };
 

@@ -4,7 +4,9 @@ import { LendingVault } from '../entities/LendingVault';
 import { ChainId } from '../enums';
 import { ChainVaultList } from '../types';
 import {
+  CBETH,
   DAI,
+  GHO,
   GNO,
   MATICX,
   RETH,
@@ -25,6 +27,14 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0x22B6251935dA74a69b63A52d993924904559B76a'),
       USDC[ChainId.ETHEREUM]
     ),
+    //new LendingVault(
+    //Address.from('0x69612f144e7B6933D26Ea6E254b3E76A47a0B4D9'),
+    //DAI[ChainId.ETHEREUM]
+    //),
+    new LendingVault(
+      Address.from('0x337688b46dA29A3B47b3C88941d26754898faA99'),
+      USDT[ChainId.ETHEREUM]
+    ),
     new BorrowingVault(
       Address.from('0xf58456695406E04E748010c065A5F5861665B6a9'),
       WETH9[ChainId.ETHEREUM],
@@ -44,6 +54,26 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0xf7a7cf71d9986f7fcBC2A71eE6bcF271ACb3DC7A'),
       WSTETH[ChainId.ETHEREUM],
       USDC[ChainId.ETHEREUM]
+    ),
+    new BorrowingVault(
+      Address.from('0xBf2b58B962cB951FCEa3F32e3afd54661aA2A78e'),
+      WSTETH[ChainId.ETHEREUM],
+      WETH9[ChainId.ETHEREUM]
+    ),
+    new BorrowingVault(
+      Address.from('0x288465D0385aed5971467E84718BDCE553e24498'),
+      CBETH[ChainId.ETHEREUM],
+      WETH9[ChainId.ETHEREUM]
+    ),
+    new BorrowingVault(
+      Address.from('0xb2a57D48a1553B071B99353CC07dCc1a2D2730c9'),
+      RETH[ChainId.ETHEREUM],
+      WETH9[ChainId.ETHEREUM]
+    ),
+    new BorrowingVault(
+      Address.from('0xF735AbC0E7284D734d711870Eb2340015d370ECE'),
+      WSTETH[ChainId.ETHEREUM],
+      GHO[ChainId.ETHEREUM]
     ),
   ],
   [ChainId.GOERLI]: [
