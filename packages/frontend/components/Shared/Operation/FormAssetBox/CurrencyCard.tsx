@@ -22,6 +22,7 @@ import {
   withdrawMaxAmount,
 } from '../../../../helpers/assets';
 import {
+  isNativeAndWrappedPair,
   isNativeOrWrapped,
   nativeAndWrappedPair,
 } from '../../../../helpers/currencies';
@@ -32,6 +33,7 @@ import {
   validAmount,
 } from '../../../../helpers/values';
 import { useBorrow } from '../../../../store/borrow.store';
+import { useLend } from '../../../../store/lend.store';
 import styles from '../../../../styles/components/Borrow.module.css';
 import Balance from '../../Balance';
 import { CurrencyIcon } from '../../Icons';
@@ -82,7 +84,8 @@ function CurrencyCard({
         balances: undefined,
         selectableCurrencies: undefined,
       };
-  const collateral = useBorrow((state) => state.collateral);
+  const useStore = vaultType === VaultType.LEND ? useLend : useBorrow;
+  const collateral = useStore().collateral;
   const debt = useBorrow((state) => state.debt);
   const [textInput, setTextInput] = useState<HTMLInputElement | undefined>(
     undefined
@@ -193,7 +196,11 @@ function CurrencyCard({
   const handleCurrencyChange = (currency: Currency) => {
     const currentCurrency =
       type === AssetType.Collateral ? collateral.currency : debt?.currency;
-    const updateVault = currentCurrency !== undefined && !isEditing;
+
+    const updateVault =
+      currentCurrency !== undefined &&
+      !isEditing &&
+      !isNativeAndWrappedPair(currency, currentCurrency);
     onCurrencyChange(currency, updateVault);
     close();
   };

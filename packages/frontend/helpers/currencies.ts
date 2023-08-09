@@ -21,14 +21,11 @@ export const isNativeAndWrappedPair = (
   ) {
     return true;
   }
-  if (
+  return (
     currency2.isNative &&
     !currency1.isNative &&
     currency2.wrapped.symbol === currency1.symbol
-  ) {
-    return true;
-  }
-  return false;
+  );
 };
 
 export const nativeAndWrappedPair = (list: Currency[]): Currency[] => {
