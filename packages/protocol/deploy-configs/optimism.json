@@ -4,6 +4,7 @@
   "USDC": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
   "DAI": "0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1",
   "USDT": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+  "SUSD": "0x8c6f28f2F1A3C87F0f938b96d27520d9751ec8d9",
   "WSTETH": "0x1F32b1c2345538c0c6f582fCB022739c4A194Ebb",
   "RETH": "0x9Bcef72be871e61ED4fBbc7630889beE758eb81D",
   "ConnextCore": "0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA",
@@ -165,6 +166,88 @@
       "name": "YieldVault-DAI-1",
       "providers": ["Aave_V3_Optimism", "DForce_Optimism"],
       "rating": 90
+    }
+  ],
+  "aavev3-emodes": [
+    {
+      "asset" : "USDC",
+      "debtAsset": "DAI",
+      "id": 1
+    },
+    {
+      "asset" : "USDC",
+      "debtAsset": "USDT",
+      "id": 1
+    },
+    {
+      "asset" : "USDC",
+      "debtAsset": "SUSD",
+      "id": 1
+    },
+    {
+      "asset" : "DAI",
+      "debtAsset": "USDC",
+      "id": 1
+    },
+    {
+      "asset" : "DAI",
+      "debtAsset": "USDT",
+      "id": 1
+    },
+    {
+      "asset" : "DAI",
+      "debtAsset": "SUSD",
+      "id": 1
+    },
+    {
+      "asset" : "USDT",
+      "debtAsset": "USDC",
+      "id": 1
+    },
+    {
+      "asset" : "USDT",
+      "debtAsset": "DAI",
+      "id": 1
+    },
+    {
+      "asset" : "USDT",
+      "debtAsset": "SUSD",
+      "id": 1
+    },
+    {
+      "asset" : "SUSD",
+      "debtAsset": "USDC",
+      "id": 1
+    },
+    {
+      "asset" : "SUSD",
+      "debtAsset": "DAI",
+      "id": 1
+    },
+    {
+      "asset" : "SUSD",
+      "debtAsset": "USDT",
+      "id": 1
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "WETH",
+      "id": 2
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WETH",
+      "id": 2
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "RETH",
+      "id": 2
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WSTETH",
+      "id": 2
     }
   ]
 
