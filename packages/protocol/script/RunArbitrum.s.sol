@@ -58,6 +58,7 @@ contract RunArbitrum is ScriptPlus {
     aaveV3 = AaveV3Arbitrum(getAddress("Aave_V3_Arbitrum"));
     /*aaveV3 = new AaveV3Arbitrum();*/
     /*saveAddress("Aave_V3_Arbitrum", address(aaveV3));*/
+    setOrdeployAaveEModeHelper(false);
 
     radiant = RadiantArbitrum(getAddress("Radiant_Arbitrum"));
     /*radiant = new RadiantArbitrum();*/
