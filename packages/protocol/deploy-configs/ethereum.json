@@ -302,6 +302,6 @@
       "asset" : "RETH",
       "debtAsset": "CBETH",
       "id": 1
-    },
+    }
   ]
 }
