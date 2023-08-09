@@ -20,7 +20,7 @@ contract AaveV3Optimism is AaveV3Common {
 
   ///@inheritdoc AaveV3Common
   function _getAaveEModeHelper() internal pure override returns (AaveEModeHelper) {
-    return AaveEModeHelper(0x6Ed2428624da78cfE2daeC70BE171D1752cDEfF8);
+    return AaveEModeHelper(0x1085BAa80b2BfB2f0E55822Ce2F547D95aeAe7a4);
   }
 
   ///@inheritdoc AaveV3Common

@@ -19,7 +19,7 @@ contract AaveV3Goerli is AaveV3Common {
 
   ///@inheritdoc AaveV3Common
   function _getAaveEModeHelper() internal pure override returns (AaveEModeHelper) {
-    return AaveEModeHelper(0x746A1bDe1c142B1049B62090CED18B55b27226a4);
+    return AaveEModeHelper(0xA169a53E5C8c36dD1CfeD0Ceb2BcD15026091272);
   }
 
   ///@inheritdoc AaveV3Common

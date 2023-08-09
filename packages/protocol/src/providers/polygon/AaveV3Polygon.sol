@@ -19,7 +19,7 @@ contract AaveV3Polygon is AaveV3Common {
 
   ///@inheritdoc AaveV3Common
   function _getAaveEModeHelper() internal pure override returns (AaveEModeHelper) {
-    return AaveEModeHelper(0x24410958491F428be325f43EC76270bB595e434A);
+    return AaveEModeHelper(0x7C5f6331572350DBB4126591c74df9FAC2429fa0);
   }
 
   ///@inheritdoc AaveV3Common

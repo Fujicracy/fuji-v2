@@ -19,7 +19,7 @@ contract AaveV3 is AaveV3Common {
 
   ///@inheritdoc AaveV3Common
   function _getAaveEModeHelper() internal pure override returns (AaveEModeHelper) {
-    return AaveEModeHelper(0xF93090bB5AcEB60B0388f337226ba1e18B7642bc);
+    return AaveEModeHelper(0xb71073364B78Debe996d041Bb340ff4F03Ff23D9);
   }
 
   ///@inheritdoc AaveV3Common
