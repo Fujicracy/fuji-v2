@@ -28,6 +28,7 @@ type BorrowButtonProps = Omit<OperationButtonProps, 'position'> & {
   debt?: AssetChange;
   ltvMeta?: LtvMeta;
   position?: BorrowingPosition;
+  availableVaultCount: number;
 };
 
 function BorrowButton({
@@ -46,6 +47,7 @@ function BorrowButton({
   mode,
   isEditing,
   hasBalanceInVault,
+  availableVaultCount,
   onLoginClick,
   onChainChangeClick,
   onApproveClick,
@@ -127,7 +129,9 @@ function BorrowButton({
   const bridgeStep = transactionMeta.steps.find(
     (s) => s.step === RoutingStep.X_TRANSFER
   );
-  if (
+  if (availableVaultStatus === FetchStatus.Ready && availableVaultCount === 0) {
+    return disabledButton('No available vaults for pair');
+  } else if (
     collateral.allowance.status === AllowanceStatus.Approving ||
     debt.allowance.status === AllowanceStatus.Approving
   ) {
