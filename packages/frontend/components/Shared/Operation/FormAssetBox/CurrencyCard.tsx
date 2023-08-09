@@ -176,7 +176,8 @@ function CurrencyCard({
 
     const recommended =
       (recommendedLTV(ltvMeta.ltvMax) * collateralValue * collateral.usdPrice) /
-        100 -
+        100 /
+        (debt?.usdPrice ?? 1) -
       (isEditing && positionData.position.type === VaultType.BORROW
         ? positionData.position.debt.amount
         : 0);

@@ -166,7 +166,7 @@ function BorrowButton({
   } else if (
     (mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW) &&
     debtAmount !== 0 &&
-    debtAmount <= MINIMUM_DEBT_AMOUNT
+    debtAmount * position.debt.usdPrice <= MINIMUM_DEBT_AMOUNT
   ) {
     return disabledButton('Need to borrow more than 1 USD');
   } else if (
