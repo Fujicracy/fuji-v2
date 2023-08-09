@@ -144,7 +144,8 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
           minHeight: '75vh',
           '@media (min-width: 1200px)': {
             '&.MuiContainer-root': {
-              maxWidth: '1300px !important',
+              maxWidth: '1200px !important',
+              boxSizing: 'border-box',
             },
           },
         }}
@@ -177,7 +178,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
               timeout={{ enter: isEditing ? 0 : ANIMATION_DURATION }}
             >
               {positionData ? (
-                <Grid item xs={12} sm={9.5} md={7.1} order={{ xs: 2, md: 1 }}>
+                <Grid item xs={12} sm={9.5} md={7.75} order={{ xs: 2, md: 1 }}>
                   {!isEditing && <VaultSelect />}
                   <Overview isEditing={isEditing} positionData={positionData} />
                 </Grid>
@@ -188,7 +189,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
             <Grid
               item
               xs={12}
-              md={4.9}
+              md={4.25}
               order={{ xs: 1, md: 2 }}
               mt={positionData ? { xs: 0, md: '2.6rem' } : 0}
               sx={{ transition: `all ${isEditing ? '0ms' : '500ms'} ease-in` }}

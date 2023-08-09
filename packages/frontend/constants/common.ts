@@ -9,6 +9,8 @@ export const TX_WATCHING_POLLING_INTERVAL = 3000;
 export const TRANSACTION_META_DEBOUNCE_INTERVAL = 750;
 export const NAVIGATION_TASK_DELAY = 250;
 
+export const ETHEREUM_BRIDGING_AMOUNT_USD_THRESHOLD = 1000;
+
 export const ASSET_WARNING_KEY = 'balanceWarningShown';
 
 export enum FUJI_INFO {

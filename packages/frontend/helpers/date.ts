@@ -1,6 +1,11 @@
-export function timeAgoFromNow(inputDate: Date): string {
+export function timeAgoFromNow(inputSource: string | Date): string {
+  const inputDate =
+    typeof inputSource === 'string'
+      ? Date.parse(inputSource)
+      : inputSource.getTime();
+
   const currentDate = new Date();
-  const timeDifference = currentDate.getTime() - inputDate.getTime();
+  const timeDifference = currentDate.getTime() - inputDate;
 
   const minutes = 60 * 1000;
   const hours = 60 * minutes;

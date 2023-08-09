@@ -63,7 +63,7 @@ export type HistoryEntry = {
   secondChain?: HistoryEntryChain;
   thirdChain?: HistoryEntryChain;
   error?: string;
-  timestamp?: Date;
+  timestamp?: string | Date;
 };
 
 export type HistoryRoutingStep = Omit<RoutingStepDetails, 'token'> & {
