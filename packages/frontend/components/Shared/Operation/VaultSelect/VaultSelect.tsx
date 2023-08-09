@@ -126,9 +126,20 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
 
   useEffect(() => {
     if (availableVaults.length === 0) return;
-    didSelectRoute(0);
+    let selected = 0;
+    if (!override) {
+      for (let i = 0; i < availableVaults.length; i++) {
+        if (
+          activeVault?.address.value === availableVaults[i]?.vault.address.value
+        ) {
+          selected = i;
+        }
+      }
+    }
+
+    didSelectRoute(selected);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeVault, availableVaults, availableVaults]);
 
   useEffect(() => {
     // We do this because we already have availableRoutes and it is changing and no ways to track it

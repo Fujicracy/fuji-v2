@@ -131,7 +131,6 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
 
   useEffect(() => {
     (async () => {
-      await updateAll(address);
       if (address && vault) {
         const balance = await vault.getBalances(Address.from(address));
         const currentActiveVault = useLend.getState().activeVault;
@@ -144,7 +143,13 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
         }
       }
     })();
-  }, [address, vault, updateAll]);
+  }, [address, vault]);
+
+  useEffect(() => {
+    (async () => {
+      await updateAll(address);
+    })();
+  }, [address, updateAll]);
 
   useEffect(() => {
     const mode = lendingModeForContext(actionType);
