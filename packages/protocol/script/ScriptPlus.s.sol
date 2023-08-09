@@ -29,6 +29,7 @@ import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {RebalancerManager} from "../src/RebalancerManager.sol";
 import {FlasherBalancer} from "../src/flashloans/FlasherBalancer.sol";
+import {AaveEModeHelper} from "../src/providers/AaveEModeHelper.sol";
 
 contract ScriptPlus is ScriptUtilities, CoreRoles {
   using SafeERC20 for IERC20;
@@ -49,6 +50,18 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     string asset;
     address market;
     string name;
+  }
+
+  struct EModeConfigJson {
+    string asset;
+    string debtAsset;
+    uint8 id;
+  }
+
+  struct EModeConfigs {
+    address[] assets;
+    address[] debtAssets;
+    uint8[] ids;
   }
 
   struct VaultConfig {
@@ -82,6 +95,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
   ConnextRouter internal connextRouter;
   RebalancerManager internal rebalancer;
   FlasherBalancer internal flasherBalancer;
+
+  AaveEModeHelper internal emode;
+  EModeConfigs private _eModeConfigsToSet;
 
   address internal implementation;
   address internal deployer;
@@ -613,6 +629,51 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     }
 
     callBatchWithTimelock();
+  }
+
+  function setOrdeployAaveEModeHelper(bool deploy) internal {
+    if (deploy) {
+      emode = new AaveEModeHelper(address(chief));
+      saveAddress("AaveEModeHelper", address(emode));
+    } else {
+      emode = AaveEModeHelper(getAddress("AaveEModeHelper"));
+    }
+    _checkAndSetEModeConfigs();
+  }
+
+  function _checkAndSetEModeConfigs() private {
+    _resetEModeStorage();
+    bytes memory raw = vm.parseJson(configJson, ".aavev3-emodes");
+    EModeConfigJson[] memory config = abi.decode(raw, (EModeConfigJson[]));
+
+    uint256 len = config.length;
+    for (uint256 i = 0; i < len; i++) {
+      address asset = readAddrFromConfig(config[i].asset);
+      address debtAsset = readAddrFromConfig(config[i].debtAsset);
+      uint8 id = config[i].id;
+
+      uint8 currentId = emode.getEModeConfigIds(asset, debtAsset);
+
+      if (id != currentId) {
+        _eModeConfigsToSet.assets.push(asset);
+        _eModeConfigsToSet.debtAssets.push(debtAsset);
+        _eModeConfigsToSet.ids.push(id);
+      }
+    }
+
+    if (_eModeConfigsToSet.assets.length > 0) {
+      bytes memory data = abi.encodeWithSelector(
+        AaveEModeHelper.setEModeConfig.selector,
+        _eModeConfigsToSet.assets,
+        _eModeConfigsToSet.debtAssets,
+        _eModeConfigsToSet.ids
+      );
+      callWithTimelock(address(emode), data);
+    }
+  }
+
+  function _resetEModeStorage() private {
+    delete _eModeConfigsToSet;
   }
 
   /**
