@@ -74,7 +74,7 @@ contract AaveEModeHelper is SystemAccessControl {
     }
 
     for (uint256 i = 0; i < len;) {
-      if (configIds[i] != 0 && assets[i] != address(0) && debts[i] != address(0)) {
+      if (assets[i] != address(0) && debts[i] != address(0)) {
         _eModeConfigIds[assets[i]][debts[i]] = configIds[i];
 
         emit EmodeConfigSet(assets[i], debts[i], configIds[i]);
