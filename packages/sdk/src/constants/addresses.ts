@@ -100,12 +100,30 @@ export const GNO_ADDRESS: AddressMap = {
   ),
   [ChainId.MATIC]: Address.from(AddressZero),
   [ChainId.FANTOM]: Address.from(AddressZero),
-  [ChainId.ARBITRUM]: Address.from(AddressZero),
+  [ChainId.ARBITRUM]: Address.from(
+    '0xa0b862F60edEf4452F25B4160F177db44DeB6Cf1'
+  ),
   [ChainId.OPTIMISM]: Address.from(AddressZero),
   [ChainId.GOERLI]: Address.from(AddressZero),
   [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
   [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
   [ChainId.GNOSIS]: Address.from('0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb'),
+};
+
+export const GHO_ADDRESS: AddressMap = {
+  [ChainId.ETHEREUM]: Address.from(
+    '0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f'
+  ),
+  [ChainId.MATIC]: Address.from(AddressZero),
+  [ChainId.FANTOM]: Address.from(AddressZero),
+  [ChainId.ARBITRUM]: Address.from(
+    '0xa0b862F60edEf4452F25B4160F177db44DeB6Cf1'
+  ),
+  [ChainId.OPTIMISM]: Address.from(AddressZero),
+  [ChainId.GOERLI]: Address.from(AddressZero),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
+  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
+  [ChainId.GNOSIS]: Address.from(AddressZero),
 };
 
 export const DAI_ADDRESS: AddressMap = {

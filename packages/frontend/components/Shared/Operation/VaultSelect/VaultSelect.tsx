@@ -20,12 +20,17 @@ import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { FetchStatus } from '../../../../helpers/assets';
 import { useBorrow } from '../../../../store/borrow.store';
 import { useLend } from '../../../../store/lend.store';
 import { useNavigation } from '../../../../store/navigation.store';
 import Vault from './Vault';
 
-function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
+type VaultSelectProps = {
+  type?: VaultType;
+};
+
+function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   const { breakpoints, palette } = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(breakpoints.down('md'));
@@ -43,6 +48,11 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   const activeVault = useStore().activeVault;
   const availableRoutes = useStore().availableRoutes;
   const availableVaults = useStore().availableVaults;
+  const status = useStore().availableVaultsStatus;
+
+  const hasNoAvailableVaults =
+    status === FetchStatus.Ready && availableVaults.length === 0;
+
   const override = useNavigation(
     (state) =>
       (type === VaultType.BORROW ? state.borrowPage : state.lendPage)
@@ -269,7 +279,16 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
                       },
                     }}
                   >
-                    {filteredRoutes.length > 0 &&
+                    {hasNoAvailableVaults ? (
+                      <Typography
+                        sx={{
+                          marginLeft: '-5rem',
+                        }}
+                      >
+                        No vaults for you!
+                      </Typography>
+                    ) : (
+                      filteredRoutes.length > 0 &&
                       filteredRoutes.map((item) => {
                         return (
                           item && (
@@ -285,7 +304,8 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
                             />
                           )
                         );
-                      })}
+                      })
+                    )}
                   </TableBody>
                 </Table>
               </TableContainer>
