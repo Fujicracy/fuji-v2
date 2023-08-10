@@ -1,19 +1,24 @@
 import {
   Skeleton,
+  Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
+  Typography,
 } from '@mui/material';
 import { VaultType } from '@x-fuji/sdk';
 import { useEffect, useState } from 'react';
 
+import { chainName } from '../../helpers/chains';
 import { getRows, PositionRow } from '../../helpers/positions';
+import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
 import { Position } from '../../store/models/Position';
 import EmptyState from '../Positions/EmptyState';
+import { NetworkIcon, ProviderIcon } from '../Shared/Icons';
 
 type PositionYieldTableProps = {
   loading: boolean;
@@ -75,10 +80,47 @@ function MigratePositionTable({
         <>
           {rows.map((row, i) => (
             <TableRow key={i}>
-              <TableCell align="left"></TableCell>
-              <TableCell align="left"></TableCell>
-              {!isLend && <TableCell align="right"></TableCell>}
-              <TableCell align="right"></TableCell>
+              <TableCell align="left">
+                <Stack
+                  direction="row"
+                  justifyContent="flex-start"
+                  alignItems="center"
+                >
+                  <ProviderIcon
+                    provider={row.activeProvidersNames[0]}
+                    width={24}
+                    height={24}
+                  />
+                  <Typography variant="small" fontWeight={500}>
+                    {row.activeProvidersNames[0]}
+                  </Typography>
+                </Stack>
+              </TableCell>
+              <TableCell align="left">
+                <NetworkIcon
+                  network={chainName(row.chainId)}
+                  width={18}
+                  height={18}
+                />
+              </TableCell>
+              {!isLend && (
+                <TableCell align="right">
+                  <Typography variant="small" fontWeight={500}>
+                    {formatValue(row.debt?.usdValue, {
+                      style: 'currency',
+                      minimumFractionDigits: 2,
+                    })}
+                  </Typography>
+                </TableCell>
+              )}
+              <TableCell align="right">
+                <Typography variant="small" fontWeight={500}>
+                  {formatValue(row.collateral.usdValue, {
+                    style: 'currency',
+                    minimumFractionDigits: 2,
+                  })}
+                </Typography>
+              </TableCell>
             </TableRow>
           ))}
         </>
