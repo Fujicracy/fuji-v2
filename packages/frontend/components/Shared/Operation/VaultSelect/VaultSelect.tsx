@@ -108,7 +108,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     setIsLoading(true);
     setSelectedRoute(0);
     setOpenedRoute(null);
-  }, [collateral.currency.symbol, router.pathname, type]);
+  }, [collateral.currency.wrapped.symbol, router.pathname, type]);
 
   useEffect(() => {
     if (type === VaultType.LEND) return;
@@ -118,8 +118,8 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   }, [
     collateral.chainId,
     debt?.chainId,
-    collateral.currency.symbol,
-    debt?.currency.symbol,
+    collateral.currency.wrapped.symbol,
+    debt?.currency.wrapped.symbol,
     router.pathname,
     type,
   ]);
@@ -139,7 +139,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
 
     didSelectRoute(selected);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVault, availableVaults, availableVaults]);
+  }, [activeVault, availableVaults]);
 
   useEffect(() => {
     // We do this because we already have availableRoutes and it is changing and no ways to track it
