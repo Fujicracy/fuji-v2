@@ -146,10 +146,12 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
   }, [address, vault]);
 
   useEffect(() => {
-    (async () => {
-      await updateAll(address);
-    })();
-  }, [address, updateAll]);
+    if (availableVaultStatus !== FetchStatus.Ready) {
+      (async () => {
+        await updateAll(address);
+      })();
+    }
+  }, [address, updateAll, availableVaultStatus]);
 
   useEffect(() => {
     const mode = lendingModeForContext(actionType);
