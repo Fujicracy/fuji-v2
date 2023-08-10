@@ -110,6 +110,12 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
   };
 
   useEffect(() => {
+    (async () => {
+      await updateAll(activeVault?.address.value);
+    })();
+  }, [activeVault, updateAll]);
+
+  useEffect(() => {
     if (address) {
       updateBalances(AssetType.Collateral);
       updateAllowance(AssetType.Collateral);
@@ -145,12 +151,6 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
       }
     })();
   }, [address, vault]);
-
-  useEffect(() => {
-    (async () => {
-      await updateAll(activeVault?.address.value);
-    })();
-  }, [activeVault, updateAll]);
 
   useEffect(() => {
     const mode = lendingModeForContext(actionType);
