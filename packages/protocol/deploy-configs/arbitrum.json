@@ -231,21 +231,6 @@
       "asset" : "WSTETH",
       "debtAsset": "WETH",
       "id": 2
-    },
-    {
-      "asset" : "RETH",
-      "debtAsset": "WETH",
-      "id": 2
-    },
-    {
-      "asset" : "WSTETH",
-      "debtAsset": "RETH",
-      "id": 2
-    },
-    {
-      "asset" : "RETH",
-      "debtAsset": "WSTETH",
-      "id": 2
     }
   ]
 }
