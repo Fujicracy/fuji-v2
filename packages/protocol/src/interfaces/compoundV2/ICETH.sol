@@ -26,4 +26,6 @@ interface ICETH is ICToken {
    * @dev Reverts upon any failure
    */
   function repayBorrow() external payable;
+
+  function repayBorrowBehalf(address borrower) external payable;
 }

@@ -16,4 +16,6 @@ interface ICERC20 is ICToken {
   function mint(uint256 amount) external returns (uint256);
 
   function repayBorrow(uint256 amount) external returns (uint256);
+
+  function repayBorrowBehalf(address borrower, uint256 repayAmount) external returns (uint256);
 }

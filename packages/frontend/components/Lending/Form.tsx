@@ -235,7 +235,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
             mode={mode}
             isEditing={isEditing}
             hasBalanceInVault={hasBalanceInVault}
-            onLoginClick={login}
+            onLoginClick={() => login()}
             onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={(type) => allow(type)}
             onRedirectClick={(lend) => {
