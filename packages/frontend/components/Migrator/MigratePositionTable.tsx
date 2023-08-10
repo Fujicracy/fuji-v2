@@ -1,4 +1,6 @@
 import {
+  Box,
+  Button,
   Skeleton,
   Stack,
   Table,
@@ -9,45 +11,64 @@ import {
   TableRow,
   Typography,
 } from '@mui/material';
-import { VaultType } from '@x-fuji/sdk';
-import { useEffect, useState } from 'react';
+import { useTheme } from '@mui/material/styles';
+import React from 'react';
 
 import { chainName } from '../../helpers/chains';
-import { getRows, PositionRow } from '../../helpers/positions';
+import { PositionRow } from '../../helpers/positions';
 import { formatValue } from '../../helpers/values';
 import { useAuth } from '../../store/auth.store';
-import { Position } from '../../store/models/Position';
-import EmptyState from '../Positions/EmptyState';
 import { NetworkIcon, ProviderIcon } from '../Shared/Icons';
 
-type PositionYieldTableProps = {
+type MigratePositionTableProps = {
   loading: boolean;
-  positions: Position[];
-  type: VaultType;
+  rows: PositionRow[];
+  onClick: (row: PositionRow) => void;
+  selected: PositionRow | null;
+  marketLink: string;
+  onNext: () => void;
 };
 
 function MigratePositionTable({
   loading,
-  positions,
-  type,
-}: PositionYieldTableProps) {
+  rows,
+  onClick,
+  selected,
+  marketLink,
+  onNext,
+}: MigratePositionTableProps) {
+  const { palette } = useTheme();
   const account = useAuth((state) => state.address);
-  const [rows, setRows] = useState<PositionRow[]>([]);
+  const login = useAuth((state) => state.login);
 
-  const isLend = type === VaultType.LEND;
-  const numberOfColumns = isLend ? 3 : 4;
+  const numberOfColumns = 4;
 
-  useEffect(() => {
-    (() => {
-      if (loading) return;
-      setRows(getRows(positions));
-    })();
-  }, [loading, account, positions]);
+  if (!account) {
+    return (
+      <Box sx={{ borderRadius: 0.5, p: 3, background: palette.secondary.dark }}>
+        <Stack direction="column" alignItems="center" justifyContent="center">
+          <Typography variant="h5">
+            {"You don't have wallet connected"}
+          </Typography>
+          <Button
+            variant="secondary"
+            size="medium"
+            onClick={() => login()}
+            sx={{
+              mt: 3,
+            }}
+          >
+            Connect Wallet
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
 
   if (loading) {
     return (
-      <MigratePositionTableContainer isLend={isLend}>
-        <TableRow sx={{ height: '2.625rem' }}>
+      <MigratePositionTableContainer isLend={false}>
+        <TableRow sx={{ height: '3rem' }}>
           {new Array(numberOfColumns).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
@@ -58,28 +79,65 @@ function MigratePositionTable({
     );
   }
 
+  if (!rows || rows.length === 0) {
+    return (
+      <Box sx={{ borderRadius: 0.5, p: 3, background: palette.secondary.dark }}>
+        <Stack direction="column" alignItems="center" justifyContent="center">
+          <Typography variant="h5">
+            {"You don't have any open positions"}
+          </Typography>
+          <Typography mt={1}>{"Let's change that!"}</Typography>
+          <Button
+            variant="secondary"
+            size="medium"
+            onClick={() => window.open(marketLink, '_blank')}
+            sx={{
+              mt: 3,
+            }}
+          >
+            View Markets
+          </Button>
+        </Stack>
+      </Box>
+    );
+  }
+
   return (
-    <MigratePositionTableContainer isLend={isLend}>
-      {!account ? (
-        <EmptyState
-          reason="no-wallet"
-          columnsCount={numberOfColumns}
-          minHeight="10rem"
-          type={type}
-          withButton={true}
-        />
-      ) : rows.length === 0 && positions.length === 0 ? (
-        <EmptyState
-          reason="no-positions"
-          columnsCount={numberOfColumns}
-          minHeight="10rem"
-          type={type}
-          withButton={false}
-        />
-      ) : (
+    <>
+      <MigratePositionTableContainer isLend={false}>
         <>
           {rows.map((row, i) => (
-            <TableRow key={i}>
+            <TableRow
+              key={i}
+              onClick={() => onClick(row)}
+              sx={{
+                cursor: 'pointer',
+                height: '3rem',
+                borderRadius: '0.5rem',
+                border: `1px solid ${
+                  selected?.address === row.address ? '#2A2E35' : 'transparent'
+                }`,
+                '& .MuiTableCell-root': {
+                  background:
+                    selected?.address === row.address
+                      ? `${palette.secondary.dark}`
+                      : 'transparent',
+                  '&:last-of-type': {
+                    borderTopRightRadius: '0.5rem',
+                    borderBottomRightRadius: '0.5rem',
+                  },
+                  '&:first-of-type': {
+                    borderTopLeftRadius: '0.5rem',
+                    borderBottomLeftRadius: '0.5rem',
+                  },
+                },
+                '&:hover': {
+                  '& .MuiTableCell-root': {
+                    background: palette.secondary.dark,
+                  },
+                },
+              }}
+            >
               <TableCell align="left">
                 <Stack
                   direction="row"
@@ -91,28 +149,32 @@ function MigratePositionTable({
                     width={24}
                     height={24}
                   />
-                  <Typography variant="small" fontWeight={500}>
+                  <Typography variant="small" fontWeight={500} ml={1}>
                     {row.activeProvidersNames[0]}
                   </Typography>
                 </Stack>
               </TableCell>
               <TableCell align="left">
-                <NetworkIcon
-                  network={chainName(row.chainId)}
-                  width={18}
-                  height={18}
-                />
+                <Stack
+                  direction="row"
+                  justifyContent="flex-start"
+                  alignItems="center"
+                >
+                  <NetworkIcon
+                    network={chainName(row.chainId)}
+                    width={18}
+                    height={18}
+                  />
+                </Stack>
               </TableCell>
-              {!isLend && (
-                <TableCell align="right">
-                  <Typography variant="small" fontWeight={500}>
-                    {formatValue(row.debt?.usdValue, {
-                      style: 'currency',
-                      minimumFractionDigits: 2,
-                    })}
-                  </Typography>
-                </TableCell>
-              )}
+              <TableCell align="right">
+                <Typography variant="small" fontWeight={500}>
+                  {formatValue(row.debt?.usdValue, {
+                    style: 'currency',
+                    minimumFractionDigits: 2,
+                  })}
+                </Typography>
+              </TableCell>
               <TableCell align="right">
                 <Typography variant="small" fontWeight={500}>
                   {formatValue(row.collateral.usdValue, {
@@ -124,8 +186,21 @@ function MigratePositionTable({
             </TableRow>
           ))}
         </>
-      )}
-    </MigratePositionTableContainer>
+      </MigratePositionTableContainer>
+
+      <Button
+        fullWidth
+        variant="gradient"
+        size="medium"
+        disabled={!selected}
+        onClick={onNext}
+        sx={{
+          mt: 3,
+        }}
+      >
+        Next
+      </Button>
+    </>
   );
 }
 
@@ -136,13 +211,18 @@ type PositionYieldTableElementProps = {
   children: string | JSX.Element | JSX.Element[];
 };
 
-function MigratePositionTableHeader({ isLend }: { isLend: boolean }) {
+function MigratePositionTableHeader() {
   return (
-    <TableHead>
+    <TableHead
+      sx={{
+        height: '2.625rem',
+        '& .MuiTableCell-root': { color: '#787883' },
+      }}
+    >
       <TableRow sx={{ height: '2.625rem' }}>
         <TableCell align="left">Protocol</TableCell>
         <TableCell align="left">Chain</TableCell>
-        {!isLend && <TableCell align="right">Borrow Value</TableCell>}
+        <TableCell align="right">Borrow Value</TableCell>
         <TableCell align="right">Collateral Value</TableCell>
       </TableRow>
     </TableHead>
@@ -158,13 +238,15 @@ function MigratePositionTableContainer({
       sx={{
         msOverflowStyle: 'none',
         scrollbarWidth: 'none',
+        border: 'none',
+        '& .MuiTableCell-root': { border: 'none' },
         '&::-webkit-scrollbar': {
           display: 'none',
         },
       }}
     >
       <Table aria-label="Positions Migrator table" size="small">
-        <MigratePositionTableHeader isLend={isLend} />
+        <MigratePositionTableHeader />
         <TableBody>{children}</TableBody>
       </Table>
     </TableContainer>
