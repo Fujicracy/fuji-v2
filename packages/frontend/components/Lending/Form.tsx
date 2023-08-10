@@ -146,7 +146,7 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
   }, [address, vault]);
 
   useEffect(() => {
-    if (availableVaultStatus !== FetchStatus.Ready) {
+    if (availableVaultStatus === FetchStatus.Initial) {
       (async () => {
         await updateAll(address);
       })();
