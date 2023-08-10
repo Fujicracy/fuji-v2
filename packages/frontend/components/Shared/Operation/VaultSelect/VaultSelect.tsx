@@ -72,6 +72,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     setSelectedRoute(i);
     setOpenedRoute(null);
     setUnFolded(false);
+    setIsLoading(false);
   };
 
   const filteredRoutes = useMemo(() => {
@@ -104,6 +105,25 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   };
 
   useEffect(() => {
+    if (availableVaults.length === 0) return;
+    setIsLoading(true);
+    let selected = 0;
+
+    if (!override) {
+      for (let i = 0; i < availableVaults.length; i++) {
+        if (
+          activeVault?.address.value === availableVaults[i]?.vault.address.value
+        ) {
+          selected = i;
+        }
+      }
+    }
+
+    didSelectRoute(selected);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeVault, availableVaults]);
+
+  useEffect(() => {
     if (type === VaultType.BORROW) return;
     setIsLoading(true);
     setSelectedRoute(0);
@@ -125,27 +145,13 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   ]);
 
   useEffect(() => {
-    if (availableVaults.length === 0) return;
-    let selected = 0;
-    if (!override) {
-      for (let i = 0; i < availableVaults.length; i++) {
-        if (
-          activeVault?.address.value === availableVaults[i]?.vault.address.value
-        ) {
-          selected = i;
-        }
-      }
-    }
-
-    didSelectRoute(selected);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVault, availableVaults]);
-
-  useEffect(() => {
     // We do this because we already have availableRoutes and it is changing and no ways to track it
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    if (isLoading) {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableRoutes, collateral, debt]);
 
   return (
