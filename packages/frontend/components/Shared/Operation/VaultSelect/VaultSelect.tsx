@@ -144,6 +144,8 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
     }, 500);
   }, [availableRoutes]);
 
+  if (hasNoAvailableVaults) return null;
+
   return (
     <Stack
       sx={
@@ -279,16 +281,7 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
                       },
                     }}
                   >
-                    {hasNoAvailableVaults ? (
-                      <Typography
-                        sx={{
-                          marginLeft: '-5rem',
-                        }}
-                      >
-                        No vaults for you!
-                      </Typography>
-                    ) : (
-                      filteredRoutes.length > 0 &&
+                    {filteredRoutes.length > 0 &&
                       filteredRoutes.map((item) => {
                         return (
                           item && (
@@ -304,8 +297,7 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
                             />
                           )
                         );
-                      })
-                    )}
+                      })}
                   </TableBody>
                 </Table>
               </TableContainer>
