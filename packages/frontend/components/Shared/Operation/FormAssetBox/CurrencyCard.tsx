@@ -22,7 +22,6 @@ import {
   withdrawMaxAmount,
 } from '../../../../helpers/assets';
 import {
-  isNativeAndWrappedPair,
   isNativeOrWrapped,
   nativeAndWrappedPair,
 } from '../../../../helpers/currencies';
@@ -200,7 +199,7 @@ function CurrencyCard({
     const updateVault =
       currentCurrency !== undefined &&
       !isEditing &&
-      !isNativeAndWrappedPair(currency, currentCurrency);
+      currency.wrapped.symbol !== currentCurrency.wrapped.symbol;
     onCurrencyChange(currency, updateVault);
     close();
   };
