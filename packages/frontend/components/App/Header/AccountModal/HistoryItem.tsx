@@ -177,7 +177,12 @@ function HistoryItem({ entry, onClick }: HistoryItemProps) {
               </Stack>
             </Stack>
             {entry?.timestamp && (
-              <Typography variant="xsmall" mt={0.5} color={palette.info.main}>
+              <Typography
+                variant="xsmall"
+                mt={0.5}
+                color={palette.info.main}
+                sx={{ minWidth: '3.5rem', textAlign: 'right' }}
+              >
                 {timeAgoFromNow(entry.timestamp)}
               </Typography>
             )}
