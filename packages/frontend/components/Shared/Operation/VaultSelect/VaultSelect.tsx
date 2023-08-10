@@ -60,7 +60,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   };
 
   const [isUnFolded, setUnFolded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState(preselect());
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const [openedRouteHeight, setOpenedHeight] = useState<number>(0);

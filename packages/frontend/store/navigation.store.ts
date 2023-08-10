@@ -17,7 +17,7 @@ type NavigationState = {
 };
 
 const initialOperationNavigationState: OperationPageNavigation = {
-  shouldReset: true,
+  shouldReset: false,
   willLoad: false,
   lock: false,
 };
