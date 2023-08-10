@@ -68,7 +68,7 @@ contract SparkForkingTests is Routines, ForkingSetup {
 
     uint256 borrowRate = spark.getBorrowRateFor(vault);
     assertGt(borrowRate, 0); // Should be greater than zero.
-    console.log("Deposit rate: %s", depositRate);
+    console.log("Deposit rate: %s", borrowRate);
   }
 
   function test_twoDeposits() public {
