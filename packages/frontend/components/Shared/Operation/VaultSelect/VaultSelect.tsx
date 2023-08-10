@@ -149,7 +149,7 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     if (isLoading) {
       setTimeout(() => {
         setIsLoading(false);
-      }, 500);
+      }, 1000);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableRoutes, collateral, debt]);
