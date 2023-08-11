@@ -7,6 +7,7 @@ export const TOKEN_CACHE_TIMEOUT = 1000 * 60 * 2; // 2 minutes
 // Urls
 export const URLS = {
   // DefiLlama
+  DEFILLAMA_CACHE: '', // TODO: Add our custom API endpoint
   DEFILLAMA_CHART: 'https://yields.llama.fi/chartLendBorrow',
 };
 
