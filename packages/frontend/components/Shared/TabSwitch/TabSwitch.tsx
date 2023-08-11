@@ -38,7 +38,7 @@ function TabSwitch({
         flexWrap: 'wrap',
         gap: '0.2rem',
         p: '0.1875rem',
-        height: size === 'large' ? '2.75rem' : '2.5rem',
+        minHeight: size === 'large' ? '2.75rem' : '2.5rem',
         backgroundColor: withBackground
           ? palette.secondary.contrastText
           : 'transparent',

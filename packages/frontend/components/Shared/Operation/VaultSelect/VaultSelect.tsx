@@ -18,37 +18,60 @@ import {
 import { useTheme } from '@mui/material/styles';
 import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
+import { FetchStatus } from '../../../../helpers/assets';
 import { useBorrow } from '../../../../store/borrow.store';
 import { useLend } from '../../../../store/lend.store';
 import { useNavigation } from '../../../../store/navigation.store';
 import Vault from './Vault';
 
-function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
+type VaultSelectProps = {
+  type?: VaultType;
+};
+
+function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   const { breakpoints, palette } = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(breakpoints.down('md'));
-
-  const [isUnFolded, setUnFolded] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedRoute, setSelectedRoute] = useState(0);
-  const [openedRoute, setOpenedRoute] = useState<number | null>(null);
-  const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
-
   const useStore = type === VaultType.BORROW ? useBorrow : useLend;
-
   const collateral = useStore().collateral;
   const debt = useBorrow().debt;
   const activeVault = useStore().activeVault;
   const availableRoutes = useStore().availableRoutes;
   const availableVaults = useStore().availableVaults;
+  const status = useStore().availableVaultsStatus;
+  const changeActiveVault = useStore().changeActiveVault;
+
+  const hasNoAvailableVaults =
+    status === FetchStatus.Ready && availableVaults.length === 0;
   const override = useNavigation(
     (state) =>
       (type === VaultType.BORROW ? state.borrowPage : state.lendPage)
         .shouldReset
   );
-  const changeActiveVault = useStore().changeActiveVault;
+
+  const preselect = () => {
+    let selected = 0;
+
+    if (!override) {
+      for (let i = 0; i < availableVaults.length; i++) {
+        if (
+          activeVault?.address.value === availableVaults[i]?.vault.address.value
+        ) {
+          selected = i;
+        }
+      }
+    }
+
+    return selected;
+  };
+
+  const [isUnFolded, setUnFolded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedRoute, setSelectedRoute] = useState(preselect());
+  const [openedRoute, setOpenedRoute] = useState<number | null>(null);
+  const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
 
   const aggregatedData = availableVaults.map((vault, i) => ({
     ...vault,
@@ -60,21 +83,19 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     setOpenedRoute(i === openedRoute ? null : i);
   }
 
-  const didSelectRoute = useCallback(
-    (i: number) => {
-      if (selectedRoute !== i) {
-        const vault = availableVaults.find(
-          (v) => v.vault.address.value === availableRoutes[i]?.address
-        );
-        if (!vault) return;
-        changeActiveVault(vault);
-      }
-      setSelectedRoute(i);
-      setOpenedRoute(null);
-      setUnFolded(false);
-    },
-    [availableVaults, availableRoutes, changeActiveVault, selectedRoute]
-  );
+  const didSelectRoute = (i: number) => {
+    if (selectedRoute !== i) {
+      const vault = availableVaults.find(
+        (v) => v.vault.address.value === availableRoutes[i]?.address
+      );
+      if (!vault) return;
+      changeActiveVault(vault);
+    }
+
+    setSelectedRoute(i);
+    setOpenedRoute(null);
+    setUnFolded(false);
+  };
 
   const filteredRoutes = useMemo(() => {
     if (!aggregatedData.length) return [];
@@ -107,32 +128,45 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
 
   useEffect(() => {
     setIsLoading(true);
-    setSelectedRoute(0);
-    setOpenedRoute(null);
-  }, [collateral.chainId, debt?.chainId, router.pathname]);
-
-  useEffect(() => {
-    if (availableVaults.length === 0) return;
-    let selected = 0;
-    if (!override) {
-      for (let i = 0; i < availableVaults.length; i++) {
-        if (
-          activeVault?.address.value === availableVaults[i]?.vault.address.value
-        ) {
-          selected = i;
-        }
-      }
-    }
+    const selected = preselect();
 
     didSelectRoute(selected);
-  }, [override, activeVault, availableVaults, didSelectRoute]);
+    setIsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeVault, availableVaults]);
+
+  useEffect(() => {
+    if (type === VaultType.BORROW) return;
+    setIsLoading(true);
+    setSelectedRoute(0);
+    setOpenedRoute(null);
+  }, [collateral.currency.wrapped.symbol, router.pathname, type]);
+
+  useEffect(() => {
+    if (type === VaultType.LEND) return;
+    setIsLoading(true);
+    setSelectedRoute(0);
+    setOpenedRoute(null);
+  }, [
+    collateral.chainId,
+    debt?.chainId,
+    collateral.currency.wrapped.symbol,
+    debt?.currency.wrapped.symbol,
+    router.pathname,
+    type,
+  ]);
 
   useEffect(() => {
     // We do this because we already have availableRoutes and it is changing and no ways to track it
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-  }, [availableRoutes]);
+    if (isLoading) {
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1000);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableRoutes, collateral, debt]);
+
+  if (hasNoAvailableVaults) return null;
 
   return (
     <Stack
