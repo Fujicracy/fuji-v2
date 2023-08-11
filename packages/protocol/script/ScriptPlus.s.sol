@@ -638,12 +638,22 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     } else {
       emode = AaveEModeHelper(getAddress("AaveEModeHelper"));
     }
-    _checkAndSetEModeConfigs();
+    _checkAndSetEModeConfigs(".aavev3-emodes");
   }
 
-  function _checkAndSetEModeConfigs() private {
+  function setOrdeploySparkEModeHelper(bool deploy) internal {
+    if (deploy) {
+      emode = new AaveEModeHelper(address(chief));
+      saveAddress("SparkEModeHelper", address(emode));
+    } else {
+      emode = AaveEModeHelper(getAddress("SparkEModeHelper"));
+    }
+    _checkAndSetEModeConfigs(".spark-emodes");
+  }
+
+  function _checkAndSetEModeConfigs(string memory jsonEmodeObjName) private {
     _resetEModeStorage();
-    bytes memory raw = vm.parseJson(configJson, ".aavev3-emodes");
+    bytes memory raw = vm.parseJson(configJson, jsonEmodeObjName);
     EModeConfigJson[] memory config = abi.decode(raw, (EModeConfigJson[]));
 
     uint256 len = config.length;
