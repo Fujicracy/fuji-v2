@@ -285,6 +285,7 @@ function BorrowForm({ isEditing, positionData }: BorrowProps) {
             mode={mode}
             isEditing={isEditing}
             hasBalanceInVault={hasBalanceInVault}
+            availableVaultCount={availableVaults.length}
             onLoginClick={() => login()}
             onChainChangeClick={(chainId) => changeChain(chainId)}
             onApproveClick={(type) => allow(type)}

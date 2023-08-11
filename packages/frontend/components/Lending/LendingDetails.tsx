@@ -55,7 +55,7 @@ function LendingDetails({ isEditing, positionData }: LendingDetailsProps) {
           <InfoBlock
             label={`My Deposits`}
             value={
-              position
+              position && position.collateral.amount
                 ? `${formatValue(position.collateral.amount, {
                     maximumFractionDigits: 3,
                     minimumFractionDigits: 2,
