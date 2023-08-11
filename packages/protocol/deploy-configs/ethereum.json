@@ -4,7 +4,10 @@
   "USDC": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
   "DAI": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
   "USDT": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+  "GHO": "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f",
   "WSTETH": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+  "CBETH": "0xBe9895146f7AF43049ca1c1AE358B0541Ea49704",
+  "RETH": "0xae78736Cd615f374D3085123A210448E74Fc6393",
   "ConnextCore": "0x8898B472C54c31894e3B9bb83cEA802a5d0e63C6",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
   "FujiRelayer": "0xCA07e24b23A03Ea7EEC441BDF0d235608b2fFD25",
@@ -30,8 +33,20 @@
       "chainlink": "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D"
     },
     {
+      "asset": "GHO",
+      "chainlink": "0x3f12643D3f6f874d39C2a4c9f2Cd6f2DbAC877FC"
+    },
+    {
       "asset": "WSTETH",
       "chainlink": "0x8601fF6ABfA65e1970F95701522bbF5249a4d0a2"
+    },
+    {
+      "asset": "CBETH",
+      "chainlink": "0x53c641d390c6a7b0cb8a3b202e8db12d72bebb60"
+    },
+    {
+      "asset": "RETH",
+      "chainlink": "0x1E06fc0F61c3AAaCaBB6f016281E569399bA8fe5"
     }
   ],
   "simple-mappings": [
@@ -140,6 +155,18 @@
       "asset2": "ZERO",
       "market": "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
       "name": "Compound_V3"
+    },
+    {
+      "asset1": "WSTETH",
+      "asset2": "WETH",
+      "market": "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
+      "name": "Compound_V3"
+    },
+    {
+      "asset1": "CBETH",
+      "asset2": "WETH",
+      "market": "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
+      "name": "Compound_V3"
     }
   ],
   "borrowing-vaults": [
@@ -178,6 +205,42 @@
       "name": "BorrowingVault-WSTETHUSDC-1",
       "providers": ["DForce", "Aave_V3"],
       "rating": 70
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "WETH",
+      "liqRatio": 920000000000000000,
+      "maxLtv": 900000000000000000,
+      "name": "BorrowingVault-WSTETHWETH-1",
+      "providers": ["Aave_V3", "Compound_V3"],
+      "rating": 90
+    },
+    {
+      "collateral": "CBETH",
+      "debt": "WETH",
+      "liqRatio": 920000000000000000,
+      "maxLtv": 900000000000000000,
+      "name": "BorrowingVault-CBWETHWETH-1",
+      "providers": ["Aave_V3", "Compound_V3"],
+      "rating": 90
+    },
+    {
+      "collateral": "RETH",
+      "debt": "WETH",
+      "liqRatio": 920000000000000000,
+      "maxLtv": 900000000000000000,
+      "name": "BorrowingVault-RETHWETH-1",
+      "providers": ["Aave_V3"],
+      "rating": 90
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "GHO",
+      "liqRatio": 800000000000000000,
+      "maxLtv": 690000000000000000,
+      "name": "BorrowingVault-WSTETHGHO-1",
+      "providers": ["Aave_V3"],
+      "rating": 90
     }
   ],
   "yield-vaults": [
@@ -192,6 +255,65 @@
       "name": "YieldVault-USDC-1",
       "providers": ["Aave_V3", "Aave_V2", "Compound_V3"],
       "rating": 90
+    },
+    {
+      "asset": "DAI",
+      "name": "YieldVault-DAI-1",
+      "providers": ["Aave_V3", "Compound_V2", "Aave_V2"],
+      "rating": 90
+    },
+    {
+      "asset": "USDT",
+      "name": "YieldVault-USDT-1",
+      "providers": ["Aave_V3", "Compound_V2", "Aave_V2"],
+      "rating": 90
+    }
+  ],
+  "aavev3-emodes": [
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "CBETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "CBETH",
+      "id": 1
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "RETH",
+      "id": 1
+    },
+    {
+      "asset" : "CBETH",
+      "debtAsset": "WSTETH",
+      "id": 1
+    },
+    {
+      "asset" : "CBETH",
+      "debtAsset": "RETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WSTETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "CBETH",
+      "id": 1
     }
   ]
 }

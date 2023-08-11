@@ -40,7 +40,7 @@ contract RunEthereum is ScriptPlus {
 
     if (chief.allowedVaultFactory(address(factory))) {
       deployBorrowingVaults();
-      setBorrowingVaults();
+      /*setBorrowingVaults();*/
     }
 
     if (chief.allowedVaultFactory(address(yieldFactory))) {
@@ -65,6 +65,7 @@ contract RunEthereum is ScriptPlus {
     aaveV2 = AaveV2(getAddress("Aave_V2"));
     /*aaveV2 = new AaveV2();*/
     /*saveAddress("Aave_V2", address(aaveV2));*/
+    setOrdeployAaveEModeHelper(false);
 
     aaveV3 = AaveV3(getAddress("Aave_V3"));
     /*aaveV3 = new AaveV3();*/

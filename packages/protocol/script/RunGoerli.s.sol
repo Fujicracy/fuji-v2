@@ -43,6 +43,8 @@ contract RunGoerli is ScriptPlus {
     // If setting all routers at once, call after deploying all chians
     /*setRouters();*/
 
+    // setOrdeployAaveEModeHelper(false);
+
     vm.stopBroadcast();
   }
 

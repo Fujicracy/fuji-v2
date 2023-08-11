@@ -58,6 +58,7 @@ contract RunPolygon is ScriptPlus {
     aaveV3 = AaveV3Polygon(getAddress("Aave_V3_Polygon"));
     /*aaveV3 = new AaveV3Polygon();*/
     /*saveAddress("Aave_V3_Polygon", address(aaveV3));*/
+    setOrdeployAaveEModeHelper(false);
 
     aaveV2 = AaveV2Polygon(getAddress("Aave_V2_Polygon"));
     /*aaveV2 = new AaveV2Polygon();*/

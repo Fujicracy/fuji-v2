@@ -59,6 +59,7 @@ contract RunOptimism is ScriptPlus {
     aaveV3 = AaveV3Optimism(getAddress("Aave_V3_Optimism"));
     /*aaveV3 = new AaveV3Optimism();*/
     /*saveAddress("Aave_V3_Optimism", address(aaveV3));*/
+    setOrdeployAaveEModeHelper(false);
 
     dforce = DForceOptimism(getAddress("DForce_Optimism"));
     /*dforce = new DForceOptimism();*/
