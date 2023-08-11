@@ -24,7 +24,7 @@ contract Spark is AaveV3Common {
 
   ///@inheritdoc AaveV3Common
   function _getAaveEModeHelper() internal pure override returns (AaveEModeHelper) {
-    return AaveEModeHelper(address(0));
+    return AaveEModeHelper(0xeAcb50131a46a7b8C750c03ba336f2632fDb0344);
   }
 
   /// @inheritdoc ILendingProvider
