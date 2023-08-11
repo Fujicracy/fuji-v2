@@ -315,5 +315,27 @@
       "debtAsset": "CBETH",
       "id": 1
     }
+  ],
+  "spark-emodes": [
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "RETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WSTETH",
+      "id": 1
+    }
   ]
 }
