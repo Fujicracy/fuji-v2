@@ -443,10 +443,9 @@ export const updateMeta = (
 };
 
 export const updateTransactionMeta = async (api: StoreApi) => {
-  const { address, slippage } = useAuth.getState();
-  if (!address) {
-    return;
-  }
+  const slippage = useAuth.getState().slippage;
+  const address =
+    useAuth.getState().address ?? '0x0000000000000000000000000000000000000000';
 
   const state = api.getState();
   const { activeVault, availableVaults, collateral, mode } = state;
@@ -502,6 +501,7 @@ export const updateTransactionMeta = async (api: StoreApi) => {
         );
       })
     );
+
     const error = results.find((r): r is FujiResultError => !r.success);
     if (error) {
       console.error(error);

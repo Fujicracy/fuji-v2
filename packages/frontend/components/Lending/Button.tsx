@@ -80,7 +80,6 @@ function LendingButton({
     );
   }
   const collateralAmount = parseFloat(collateral.input);
-  const collateralAmountUsd = collateralAmount * collateral.usdPrice;
   const collateralBalance = collateral.balances[collateral.currency.symbol];
 
   const actionTitle = `${needsSignature ? OperationButtonTitles.SIGN : ''}${
