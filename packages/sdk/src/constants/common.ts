@@ -7,8 +7,6 @@ export const TOKEN_CACHE_TIMEOUT = 1000 * 60 * 2; // 2 minutes
 // Urls
 export const URLS = {
   // DefiLlama
-  DEFILLAMA_LEND_BORROW: 'https://yields.llama.fi/lendBorrow',
-  DEFILLAMA_POOLS: 'https://yields.llama.fi/pools',
   DEFILLAMA_CHART: 'https://yields.llama.fi/chartLendBorrow',
 };
 

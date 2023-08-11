@@ -15,6 +15,7 @@ import {
 } from '../../constants';
 import { LENDING_PROVIDERS } from '../../constants/lending-providers';
 import { ChainId, RouterAction, VaultType } from '../../enums';
+import { llamaFinancials } from '../../functions';
 import { encodeActionArgs } from '../../functions/encodeActionArgs';
 import { findPermitAction } from '../../functions/findPermitAction';
 import {
@@ -28,7 +29,6 @@ import {
 } from '../../types';
 import { BaseVaultMulticall } from '../../types/contracts/src/abstracts/BaseVault';
 import {
-  GetLlamaAssetPoolsResponse,
   GetLlamaPoolStatsResponse,
   LlamaAssetPool,
 } from '../../types/LlamaResponses';
@@ -293,14 +293,12 @@ export abstract class AbstractVault {
     if (!this.allProviders)
       return new FujiResultError('Lending Providers are not preLoaded!');
 
-    const uri = {
-      pools: URLS.DEFILLAMA_POOLS,
-      chart: URLS.DEFILLAMA_CHART,
-    };
     try {
-      const pools = await axios
-        .get<GetLlamaAssetPoolsResponse>(uri.pools)
-        .then(({ data }) => data.data);
+      const result = await llamaFinancials();
+      if (!result.success) {
+        return new FujiResultError(result.error.message, result.error.code);
+      }
+      const { pools } = result.data;
 
       const getPoolId = (providerAddr: string) => {
         const provider = LENDING_PROVIDERS[this.chainId][providerAddr];
@@ -320,7 +318,9 @@ export abstract class AbstractVault {
           const poolId = getPoolId(addr);
           return poolId
             ? axios
-                .get<GetLlamaPoolStatsResponse>(uri.chart + `/${poolId}`)
+                .get<GetLlamaPoolStatsResponse>(
+                  URLS.DEFILLAMA_CHART + `/${poolId}`
+                )
                 .then(({ data }) => data.data)
             : Promise.resolve([]);
         })
