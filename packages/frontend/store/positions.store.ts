@@ -31,6 +31,7 @@ type PositionsState = {
 type PositionsActions = {
   allPositions: () => Position[];
   fetchUserPositions: () => void;
+  clear: () => void;
 };
 
 const initialState: PositionsState = {
@@ -130,6 +131,10 @@ export const usePositions = create<PositionsStore>()(
             started: true,
           };
         });
+      },
+
+      clear: () => {
+        set({ ...initialState });
       },
     }),
     storeOptions('positions')
