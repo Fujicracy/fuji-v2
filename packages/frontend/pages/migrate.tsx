@@ -12,6 +12,7 @@ import { usePositions } from '../store/positions.store';
 const MigratePage: NextPage = () => {
   const [rows, setRows] = useState<PositionRow[]>([]);
   const [selected, setSelected] = useState<PositionRow | null>(null);
+  const [provider, setProvider] = useState<string>('compound');
   const [isPositionSelected, setIsPositionSelected] = useState<boolean>(false);
   const loading = usePositions((state) => state.loading);
   const positions = usePositions((state) => state.borrowPositions);
@@ -37,7 +38,7 @@ const MigratePage: NextPage = () => {
         <title>Fuji V2 Himalaya</title>
         <meta
           name="description"
-          content="Cross-chain money market aggregator that solves liquidity fragmentation and money market optimization problems."
+          content="Cross-chain borrow/lending position migrator."
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -67,6 +68,7 @@ const MigratePage: NextPage = () => {
           {!isPositionSelected ? (
             <Grid item xs={6}>
               <MigratePosition
+                provider={provider}
                 loading={loading}
                 rows={rows}
                 selected={selected}
@@ -77,11 +79,14 @@ const MigratePage: NextPage = () => {
           ) : (
             <>
               <Grid item xs={4}>
-                <MigrateFrom />
+                <MigrateFrom onBack={onBack} />
               </Grid>
-              <Grid item xs={4} ml={{ xs: 0, md: 3 }} mt={{ xs: 3, md: 0 }}>
-                <MigrateFrom />
-              </Grid>
+              <Grid
+                item
+                xs={4}
+                ml={{ xs: 0, md: 3 }}
+                mt={{ xs: 3, md: 0 }}
+              ></Grid>
             </>
           )}
         </Grid>

@@ -3,7 +3,12 @@ import { alpha, useTheme } from '@mui/material/styles';
 import Image from 'next/image';
 import React, { ReactNode } from 'react';
 
-function WarningInfo({ text }: { text: string | ReactNode }) {
+type WarningInfoProps = {
+  text: string | ReactNode;
+  withoutIcon?: boolean;
+};
+
+function WarningInfo({ text, withoutIcon = false }: WarningInfoProps) {
   const { palette } = useTheme();
 
   return (
@@ -16,12 +21,14 @@ function WarningInfo({ text }: { text: string | ReactNode }) {
       borderRadius={2}
     >
       <Stack flexDirection="row" alignItems="center" gap={1.5}>
-        <Image
-          src="/assets/images/shared/warning.svg"
-          width={15}
-          height={15}
-          alt="Warning Icon"
-        />
+        {!withoutIcon && (
+          <Image
+            src="/assets/images/shared/warning.svg"
+            width={15}
+            height={15}
+            alt="Warning Icon"
+          />
+        )}
         <Typography
           variant="xsmall"
           color={palette.warning.main}
