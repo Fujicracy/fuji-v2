@@ -14,6 +14,11 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
+    // e-mode
+    '0xed0A749345BF88bf1b5E706cA51F72b4b784CA93': {
+      name: 'Aave V3',
+      llamaKey: 'aave-v3',
+    },
     '0x9a24dfDad9cE5B709E4BeEfD8Af72c5B339452Ac': {
       name: 'Compound V2',
       llamaKey: 'compound',
@@ -50,6 +55,11 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V2',
       llamaKey: 'aave-v2',
     },
+    // e-mode
+    '0x8D4FF0BA361a9360cAEeba55F10a08F32775587c': {
+      name: 'Aave V2',
+      llamaKey: 'aave-v2',
+    },
     '0xA169a53E5C8c36dD1CfeD0Ceb2BcD15026091272': {
       name: 'Aave V3',
       llamaKey: 'aave-v3',
@@ -83,6 +93,11 @@ export const LENDING_PROVIDERS: Record<
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },
+    // e-mode
+    '0xa34D2B93ffC304E7D99B1b6bdC28CC2d4F0a58E8': {
+      name: 'Aave V3',
+      llamaKey: 'aave-v3',
+    },
     '0x8755bE098D54Cd16687B7c0D39791Cd899E4dD8c': {
       name: 'Radiant',
       llamaKey: 'radiant-v2',
@@ -98,6 +113,11 @@ export const LENDING_PROVIDERS: Record<
   },
   [ChainId.OPTIMISM]: {
     '0xB5BeccF2734c97221379a6C08B718D82023b1498': {
+      name: 'Aave V3',
+      llamaKey: 'aave-v3',
+    },
+    // e-mode
+    '0x0965D634a98BD702A9b7e40DFed7eAbbEea41b0B': {
       name: 'Aave V3',
       llamaKey: 'aave-v3',
     },

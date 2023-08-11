@@ -20,12 +20,17 @@ import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { FetchStatus } from '../../../../helpers/assets';
 import { useBorrow } from '../../../../store/borrow.store';
 import { useLend } from '../../../../store/lend.store';
 import { useNavigation } from '../../../../store/navigation.store';
 import Vault from './Vault';
 
-function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
+type VaultSelectProps = {
+  type?: VaultType;
+};
+
+function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   const { breakpoints, palette } = useTheme();
   const router = useRouter();
   const isMobile = useMediaQuery(breakpoints.down('md'));
@@ -35,8 +40,11 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
   const activeVault = useStore().activeVault;
   const availableRoutes = useStore().availableRoutes;
   const availableVaults = useStore().availableVaults;
-
+  const status = useStore().availableVaultsStatus;
   const changeActiveVault = useStore().changeActiveVault;
+
+  const hasNoAvailableVaults =
+    status === FetchStatus.Ready && availableVaults.length === 0;
   const override = useNavigation(
     (state) =>
       (type === VaultType.BORROW ? state.borrowPage : state.lendPage)
@@ -157,6 +165,8 @@ function VaultSelect({ type = VaultType.BORROW }: { type?: VaultType }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableRoutes, collateral, debt]);
+
+  if (hasNoAvailableVaults) return null;
 
   return (
     <Stack

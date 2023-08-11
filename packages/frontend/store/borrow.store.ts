@@ -230,7 +230,8 @@ export const useBorrow = create<BorrowStore>()(
         let availableVaults = result.data;
         if (availableVaults.length === 0) {
           console.error('No available vault');
-          set({ availableVaultsStatus: FetchStatus.Error });
+          set({ availableVaults: [] });
+          set({ availableVaultsStatus: FetchStatus.Ready });
           return;
         }
 

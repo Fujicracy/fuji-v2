@@ -6,6 +6,7 @@
   "USDT": "0x4ECaBa5870353805a9F068101A40E0f32ed605C6",
   "WSTETH": "0x6C76971f98945AE98dD7d4DFcA8711ebea946eA6",
   "WXDAI": "0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d",
+  "GNO": "0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb",
   "ConnextCore": "0x5bB83e95f63217CDa6aE3D181BA580Ef377D2109",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
   "FujiRelayer": "0x390bea55ab4bfc892b34942e0ba7926a298710b2",
@@ -37,6 +38,10 @@
     {
       "asset": "WXDAI",
       "chainlink": "0x678df3415fc31947dA4324eC63212874be5a82f8"
+    },
+    {
+      "asset": "GNO",
+      "chainlink": "0x22441d81416430A54336aB28765abd31a792Ad37"
     }
   ],
   "simple-mappings": [],
@@ -59,6 +64,15 @@
       "name": "BorrowingVault-WSTETHUSDC-1",
       "providers": ["Agave_Gnosis"],
       "rating": 75
+    },
+    {
+      "collateral": "WSTETH",
+      "debt": "GNO",
+      "liqRatio": 640000000000000000,
+      "maxLtv": 600000000000000000,
+      "name": "BorrowingVault-WSTETGNO-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 75
     }
   ],
   "yield-vaults": [
@@ -71,6 +85,18 @@
     {
       "asset": "USDC",
       "name": "YieldVault-USDC-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
+    },
+    {
+      "asset": "USDT",
+      "name": "YieldVault-USDT-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
+    },
+    {
+      "asset": "WXDAI",
+      "name": "YieldVault-WXDAI-1",
       "providers": ["Agave_Gnosis"],
       "rating": 80
     }
