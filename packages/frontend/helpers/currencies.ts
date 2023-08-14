@@ -1,4 +1,4 @@
-import { Currency } from '@x-fuji/sdk';
+import { Currency, BRIDGEABLE_CURRENCY_SYMBOLS } from '@x-fuji/sdk';
 
 export const isNativeOrWrapped = (
   currency: Currency,
@@ -8,27 +8,6 @@ export const isNativeOrWrapped = (
     currency.isNative ||
     list.some((c) => c.isNative && c.wrapped.symbol === currency.symbol)
   );
-};
-
-export const isNativeAndWrappedPair = (
-  currency1: Currency,
-  currency2: Currency
-): boolean => {
-  if (
-    currency1.isNative &&
-    !currency2.isNative &&
-    currency1.wrapped.symbol === currency2.symbol
-  ) {
-    return true;
-  }
-  if (
-    currency2.isNative &&
-    !currency1.isNative &&
-    currency2.wrapped.symbol === currency1.symbol
-  ) {
-    return true;
-  }
-  return false;
 };
 
 export const nativeAndWrappedPair = (list: Currency[]): Currency[] => {
@@ -42,6 +21,6 @@ export const wrappedSymbol = (currency: Currency): string => {
 };
 
 // Temp helper functions
-export const isBridgeable = ({ symbol }: Currency): boolean => {
-  return symbol !== 'MaticX';
+export const isBridgeable = (currency: Currency): boolean => {
+  return BRIDGEABLE_CURRENCY_SYMBOLS.includes(currency.symbol);
 };

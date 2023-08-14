@@ -7,6 +7,7 @@ import {
   AssetChange,
   AssetType,
   FetchStatus,
+  invalidBridgingAmount,
   LtvMeta,
   Mode,
   needsAllowance,
@@ -27,6 +28,7 @@ type BorrowButtonProps = Omit<OperationButtonProps, 'position'> & {
   debt?: AssetChange;
   ltvMeta?: LtvMeta;
   position?: BorrowingPosition;
+  availableVaultCount: number;
 };
 
 function BorrowButton({
@@ -45,6 +47,7 @@ function BorrowButton({
   mode,
   isEditing,
   hasBalanceInVault,
+  availableVaultCount,
   onLoginClick,
   onChainChangeClick,
   onApproveClick,
@@ -56,8 +59,20 @@ function BorrowButton({
     withConfirmation(action);
   };
 
-  const regularButton = (title: string, onClick: () => void, data?: string) => {
-    return <RegularButton title={title} onClick={onClick} data={data} />;
+  const regularButton = (
+    title: string,
+    onClick: () => void,
+    data?: string,
+    variant?: 'gradient' | 'secondary'
+  ) => {
+    return (
+      <RegularButton
+        title={title}
+        onClick={onClick}
+        data={data}
+        variant={variant}
+      />
+    );
   };
 
   const disabledButton = (title: string) => <DisabledButton title={title} />;
@@ -75,7 +90,8 @@ function BorrowButton({
     return regularButton(
       OperationButtonTitles.CONNECT,
       onLoginClick,
-      'borrow-login'
+      'borrow-login',
+      'secondary'
     );
   }
   if (!debt || !position || !ltvMeta) {
@@ -113,7 +129,9 @@ function BorrowButton({
   const bridgeStep = transactionMeta.steps.find(
     (s) => s.step === RoutingStep.X_TRANSFER
   );
-  if (
+  if (availableVaultStatus === FetchStatus.Ready && availableVaultCount === 0) {
+    return disabledButton('No available vaults for pair');
+  } else if (
     collateral.allowance.status === AllowanceStatus.Approving ||
     debt.allowance.status === AllowanceStatus.Approving
   ) {
@@ -124,6 +142,8 @@ function BorrowButton({
     return disabledButton(
       `${bridgeStep.token.symbol}: not supported cross-chain`
     );
+  } else if (invalidBridgingAmount(transactionMeta.steps, collateral, debt)) {
+    return disabledButton(OperationButtonTitles.ETHEREUM_MIN);
   } else if (
     !isEditing &&
     hasBalanceInVault &&
@@ -166,7 +186,7 @@ function BorrowButton({
   } else if (
     (mode === Mode.DEPOSIT_AND_BORROW || mode === Mode.BORROW) &&
     debtAmount !== 0 &&
-    debtAmount <= MINIMUM_DEBT_AMOUNT
+    debtAmount * position.debt.usdPrice <= MINIMUM_DEBT_AMOUNT
   ) {
     return disabledButton('Need to borrow more than 1 USD');
   } else if (

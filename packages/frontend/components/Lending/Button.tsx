@@ -4,6 +4,7 @@ import {
   AllowanceStatus,
   AssetType,
   FetchStatus,
+  invalidBridgingAmount,
   Mode,
   needsAllowance,
 } from '../../helpers/assets';
@@ -43,8 +44,20 @@ function LendingButton({
     withConfirmation(action);
   };
 
-  const regularButton = (title: string, onClick: () => void, data?: string) => {
-    return <RegularButton title={title} onClick={onClick} data={data} />;
+  const regularButton = (
+    title: string,
+    onClick: () => void,
+    data?: string,
+    variant?: 'gradient' | 'secondary'
+  ) => {
+    return (
+      <RegularButton
+        title={title}
+        onClick={onClick}
+        data={data}
+        variant={variant}
+      />
+    );
   };
 
   const disabledButton = (title: string) => <DisabledButton title={title} />;
@@ -62,7 +75,8 @@ function LendingButton({
     return regularButton(
       OperationButtonTitles.CONNECT,
       onLoginClick,
-      'lend-login'
+      'lend-login',
+      'secondary'
     );
   }
   const collateralAmount = parseFloat(collateral.input);
@@ -83,6 +97,7 @@ function LendingButton({
   );
 
   const firstStep = transactionMeta.steps[0];
+
   if (collateral.allowance.status === AllowanceStatus.Approving) {
     return loadingButton(false, true);
   } else if (availableVaultStatus === FetchStatus.Error) {
@@ -112,6 +127,8 @@ function LendingButton({
     collateralAmount > Number(collateral?.amount)
   ) {
     return disabledButton(OperationButtonTitles.WITHDRAW_MAX);
+  } else if (invalidBridgingAmount(transactionMeta.steps, collateral)) {
+    return disabledButton(OperationButtonTitles.ETHEREUM_MIN);
   } else if (
     needsAllowance(mode, AssetType.Collateral, collateral, collateralAmount)
   ) {

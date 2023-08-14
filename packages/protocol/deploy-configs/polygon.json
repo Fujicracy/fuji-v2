@@ -66,6 +66,11 @@
       "name": "DForce_Polygon"
     },
     {
+      "asset": "USDT",
+      "market": "0xb3ab7148cCCAf66686AD6C1bE24D83e58E6a504e",
+      "name": "DForce_Polygon"
+    },
+    {
       "asset": "WMATIC",
       "market": "0x6A3fE5342a4Bd09efcd44AC5B9387475A0678c74",
       "name": "DForce_Polygon"
@@ -144,7 +149,18 @@
       "name": "YieldVault-USDC-1",
       "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
       "rating": 85
+    },
+    {
+      "asset": "USDT",
+      "name": "YieldVault-USDT-1",
+      "providers": ["Aave_V3_Polygon", "DForce_Polygon", "Aave_V2_Polygon"],
+      "rating": 85
+    },
+    {
+      "asset": "DAI",
+      "name": "YieldVault-DAI-1",
+      "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
+      "rating": 85
     }
   ]
-
 }

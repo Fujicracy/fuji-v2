@@ -406,7 +406,7 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     for (uint256 i; i < len; i++) {
       address token = approvals[i];
       if (approvalsByToken[token] > 0) {
-        IERC20(collateral).safeIncreaseAllowance(address(factory), approvalsByToken[token]);
+        IERC20(token).safeIncreaseAllowance(address(factory), approvalsByToken[token]);
         approvalsByToken[token] = 0;
       }
     }

@@ -246,9 +246,13 @@ const theme = createTheme(colorTheme, {
             variant: 'secondary',
           },
           style: {
-            background: colorTheme.palette.secondary.dark,
-            border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
+            background: '#F4F4F4',
+            color: '#222429',
             fontWeight: 400,
+            lineHeight: '160%',
+            '&:hover': {
+              background: colorTheme.palette.info.main,
+            },
           },
         },
         {
@@ -298,10 +302,10 @@ const theme = createTheme(colorTheme, {
             variant: 'text',
           },
           style: {
-            background:
-              'linear-gradient(92.29deg, rgba(254, 52, 119, 0.1) 0%, rgba(240, 1, 79, 0.1) 100%)',
-            borderRadius: '6.25rem',
-            padding: '0.438rem 1rem',
+            background: colorTheme.palette.secondary.dark,
+            border: `0.063rem solid ${colorTheme.palette.secondary.light}`,
+            fontWeight: 400,
+            color: colorTheme.palette.text.primary,
           },
         },
         {

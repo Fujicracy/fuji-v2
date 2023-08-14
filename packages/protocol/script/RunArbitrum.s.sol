@@ -34,7 +34,7 @@ contract RunArbitrum is ScriptPlus {
 
     if (chief.allowedVaultFactory(address(factory))) {
       deployBorrowingVaults();
-      setBorrowingVaults();
+      /*setBorrowingVaults();*/
     }
 
     if (chief.allowedVaultFactory(address(yieldFactory))) {
@@ -43,7 +43,7 @@ contract RunArbitrum is ScriptPlus {
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
-    /*rebalanceYieldVauuts();*/
+    /*rebalanceYieldVaults();*/
     /*rebalanceBorrowingVaults();*/
 
     // If setting all routers at once, call after deploying all chians
