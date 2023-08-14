@@ -66,9 +66,10 @@ contract RunEthereum is ScriptPlus {
     /*aaveV2 = new AaveV2();*/
     /*saveAddress("Aave_V2", address(aaveV2));*/
 
-    aaveV3 = AaveV3(getAddress("Aave_V3"));
+    aaveV3 = AaveV3(getAddress("Aave_V3_Emode"));
     /*aaveV3 = new AaveV3();*/
-    /*saveAddress("Aave_V3", address(aaveV3));*/
+    /*saveAddress("Aave_V3_Emode", address(aaveV3));*/
+    setOrdeployAaveEModeHelper(false);
 
     dforce = DForce(getAddress("DForce"));
     /*dforce = new DForce();*/
