@@ -55,9 +55,9 @@ contract RunPolygon is ScriptPlus {
   }
 
   function _setLendingProviders() internal {
-    aaveV3 = AaveV3Polygon(getAddress("Aave_V3_Polygon"));
+    aaveV3 = AaveV3Polygon(getAddress("Aave_V3_Polygon_Emode"));
     /*aaveV3 = new AaveV3Polygon();*/
-    /*saveAddress("Aave_V3_Polygon", address(aaveV3));*/
+    /*saveAddress("Aave_V3_Polygon_Emode", address(aaveV3));*/
     setOrdeployAaveEModeHelper(false);
 
     aaveV2 = AaveV2Polygon(getAddress("Aave_V2_Polygon"));

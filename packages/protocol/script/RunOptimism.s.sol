@@ -32,7 +32,7 @@ contract RunOptimism is ScriptPlus {
 
     if (chief.allowedVaultFactory(address(factory))) {
       deployBorrowingVaults();
-      setBorrowingVaults();
+      /*setBorrowingVaults();*/
     }
 
     if (chief.allowedVaultFactory(address(yieldFactory))) {
@@ -56,9 +56,9 @@ contract RunOptimism is ScriptPlus {
   }
 
   function _setLendingProviders() internal {
-    aaveV3 = AaveV3Optimism(getAddress("Aave_V3_Optimism"));
+    aaveV3 = AaveV3Optimism(getAddress("Aave_V3_Optimism_Emode"));
     /*aaveV3 = new AaveV3Optimism();*/
-    /*saveAddress("Aave_V3_Optimism", address(aaveV3));*/
+    /*saveAddress("Aave_V3_Optimism_Emode", address(aaveV3));*/
     setOrdeployAaveEModeHelper(false);
 
     dforce = DForceOptimism(getAddress("DForce_Optimism"));

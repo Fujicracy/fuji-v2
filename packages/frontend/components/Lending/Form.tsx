@@ -44,10 +44,12 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
   const isExecuting = useLend((state) => state.isExecuting);
   const transactionMeta = useLend((state) => state.transactionMeta);
   const metaStatus = useLend((state) => state.transactionMeta.status);
+  const activeVault = useLend((state) => state.activeVault);
   const availableVaultStatus = useLend((state) => state.availableVaultsStatus);
   const availableRoutes = useLend((state) => state.availableRoutes);
   const vault = useLend((state) => state.activeVault);
   const mode = useLend((state) => state.mode);
+  const updateAll = useLend((state) => state.updateAll);
 
   const changeMode = useLend((state) => state.changeMode);
   const clearInputValues = useLend((state) => state.clearInputValues);
@@ -106,6 +108,12 @@ function LendingForm({ isEditing, positionData }: LendingProps) {
     setIsConfirmationModalShown(false);
     confirmationModalAction && confirmationModalAction();
   };
+
+  useEffect(() => {
+    (async () => {
+      await updateAll(activeVault?.address.value);
+    })();
+  }, [activeVault, updateAll]);
 
   useEffect(() => {
     if (address) {

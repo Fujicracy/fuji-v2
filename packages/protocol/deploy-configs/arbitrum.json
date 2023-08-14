@@ -153,8 +153,8 @@
     {
       "collateral": "RETH",
       "debt": "WETH",
-      "liqRatio": 920000000000000000,
-      "maxLtv": 900000000000000000,
+      "liqRatio": 730000000000000000,
+      "maxLtv": 670000000000000000,
       "name": "BorrowingVault-RETHWETH-1",
       "providers": ["Aave_V3_Arbitrum"],
       "rating": 95
