@@ -169,7 +169,7 @@ export const useLend = create<LendStore>()(
 
         const activeVault =
           availableVaults.find((v) => v.vault.address.value === vaultAddress) ??
-          availableVaults[0];
+          availableVaults[2]; // For testing purposes, until adding a fix
 
         set({ availableVaults });
         get().changeActiveVault(activeVault);
