@@ -16,9 +16,9 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { VaultType } from '@x-fuji/sdk';
+import { BorrowingVault, LendingVault, VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { FetchStatus } from '../../../../helpers/assets';
 import { useBorrow } from '../../../../store/borrow.store';
@@ -72,6 +72,15 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   const [selectedRoute, setSelectedRoute] = useState(preselect());
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
+  const prevVault = useRef<LendingVault | BorrowingVault | undefined>(
+    undefined
+  );
+
+  useEffect(() => {
+    if (activeVault && activeVault.address !== prevVault.current?.address) {
+      prevVault.current = activeVault;
+    }
+  }, [activeVault]);
 
   const aggregatedData = availableVaults.map((vault, i) => ({
     ...vault,
@@ -135,7 +144,7 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
       setIsLoading(false);
     }, 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVault, availableVaults]);
+  }, [activeVault, availableVaults, prevVault]);
 
   useEffect(() => {
     if (type === VaultType.BORROW) return;
