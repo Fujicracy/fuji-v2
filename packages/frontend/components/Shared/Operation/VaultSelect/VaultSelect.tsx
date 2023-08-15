@@ -128,10 +128,12 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
 
   useEffect(() => {
     setIsLoading(true);
-    const selected = preselect();
+    setTimeout(() => {
+      const selected = preselect();
 
-    didSelectRoute(selected);
-    setIsLoading(false);
+      didSelectRoute(selected);
+      setIsLoading(false);
+    }, 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeVault, availableVaults]);
 
