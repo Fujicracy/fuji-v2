@@ -136,7 +136,7 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
       setIsLoading(false);
     }, 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVault, availableVaults, prevVault]);
+  }, [activeVault?.address, availableVaults, prevVault]);
 
   useEffect(() => {
     if (type === VaultType.BORROW) return;
