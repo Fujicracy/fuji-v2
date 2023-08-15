@@ -149,7 +149,6 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   useEffect(() => {
     if (type === VaultType.BORROW) return;
     setIsLoading(true);
-    setSelectedRoute(0);
     setOpenedRoute(null);
   }, [collateral.currency.wrapped.symbol, router.pathname, type]);
 
