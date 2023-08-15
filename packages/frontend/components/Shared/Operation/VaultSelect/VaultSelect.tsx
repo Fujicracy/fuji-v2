@@ -68,7 +68,7 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   };
 
   const [isUnFolded, setUnFolded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedRoute, setSelectedRoute] = useState(preselect());
   const [openedRoute, setOpenedRoute] = useState<number | null>(null);
   const [openedRouteHeight, setOpenedHeight] = useState<number>(0);
@@ -142,7 +142,7 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
 
       didSelectRoute(selected);
       setIsLoading(false);
-    }, 500);
+    }, 1000);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeVault, availableVaults, prevVault]);
 
