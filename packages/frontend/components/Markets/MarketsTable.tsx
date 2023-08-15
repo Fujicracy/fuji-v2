@@ -48,7 +48,7 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
   }, [filters, rows, type]);
 
   const handleClick = async (entity?: AbstractVault | VaultWithFinancials) => {
-    showPosition(type, router, true, entity, walletChainId);
+    await showPosition(type, router, true, entity, walletChainId);
   };
 
   const numberOfColumns = type === VaultType.BORROW ? 8 : 5;

@@ -23,6 +23,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FetchStatus } from '../../../../helpers/assets';
 import { useBorrow } from '../../../../store/borrow.store';
 import { useLend } from '../../../../store/lend.store';
+import { useNavigation } from '../../../../store/navigation.store';
 import Vault from './Vault';
 
 type VaultSelectProps = {
@@ -44,15 +45,22 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
 
   const hasNoAvailableVaults =
     status === FetchStatus.Ready && availableVaults.length === 0;
+  const override = useNavigation(
+    (state) =>
+      (type === VaultType.BORROW ? state.borrowPage : state.lendPage)
+        .shouldReset
+  );
 
   const preselect = () => {
     let selected = 0;
 
-    for (let i = 0; i < availableVaults.length; i++) {
-      if (
-        activeVault?.address.value === availableVaults[i]?.vault.address.value
-      ) {
-        selected = i;
+    if (!override) {
+      for (let i = 0; i < availableVaults.length; i++) {
+        if (
+          activeVault?.address.value === availableVaults[i]?.vault.address.value
+        ) {
+          selected = i;
+        }
       }
     }
 
@@ -136,7 +144,7 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
       setIsLoading(false);
     }, 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVault?.address, availableVaults, prevVault]);
+  }, [activeVault, availableVaults, prevVault]);
 
   useEffect(() => {
     if (type === VaultType.BORROW) return;
