@@ -20,11 +20,7 @@ import {
   stopPolling,
 } from '../helpers/balances';
 import { initErrorReporting } from '../helpers/errors';
-import {
-  isTopLevelUrl,
-  navigationalTaskDelay,
-  pathForVaultType,
-} from '../helpers/navigation';
+import { isTopLevelUrl, pathForVaultType } from '../helpers/navigation';
 import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
@@ -122,11 +118,10 @@ function MyApp({ Component, pageProps }: AppProps) {
     const path = pathForVaultType(type);
     const routeIsOperation = url === path;
     changeWillLoad(type, routeIsOperation);
-    if (router.asPath === path) {
-      changeShouldPageReset(type, routeIsOperation);
-    } else {
-      navigationalTaskDelay(() => changeShouldPageReset(type, true));
-    }
+    changeShouldPageReset(
+      type,
+      router.asPath === path ? routeIsOperation : true
+    );
   }
 
   function updatePollingPolicy(url: string) {
