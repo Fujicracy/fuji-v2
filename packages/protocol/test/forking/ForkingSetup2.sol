@@ -27,6 +27,9 @@ import {ILendingProvider} from "../../src/interfaces/ILendingProvider.sol";
 import {CoreRoles} from "../../src/access/CoreRoles.sol";
 import {IFujiOracle} from "../../src/interfaces/IFujiOracle.sol";
 import {ConnextRouter} from "../../src/routers/ConnextRouter.sol";
+import {UniswapV2Swapper} from "../../src/swappers/UniswapV2Swapper.sol";
+import {IUniswapV2Router01} from "../../src/interfaces/uniswap/IUniswapV2Router01.sol";
+import {FlasherBalancer} from "../../src/flashloans/FlasherBalancer.sol";
 
 contract ForkingSetup2 is CoreRoles, Test {
   using SafeERC20 for IERC20;
@@ -106,6 +109,8 @@ contract ForkingSetup2 is CoreRoles, Test {
   TimelockController timelock;
   IFujiOracle oracle;
   BorrowingVaultBeaconFactory factory;
+  FlasherBalancer internal flasherBalancer;
+  UniswapV2Swapper internal uniswapV2Swapper;
   address implementation;
 
   Vault[] allVaults;
@@ -208,6 +213,31 @@ contract ForkingSetup2 is CoreRoles, Test {
       oracle = FujiOracle(getAddress("FujiOracle"));
     }
     vm.label(address(oracle), "FujiOracle");
+  }
+
+  function setOrDeployFlasherBalancer(bool deploy) internal {
+    if (deploy) {
+      flasherBalancer = new FlasherBalancer(readAddrFromConfig("Balancer"));
+    } else {
+      flasherBalancer = FlasherBalancer(getAddress("FlasherBalancer"));
+    }
+  }
+
+  function setOrDeployUniswapV2Swapper(bool deploy) internal {
+    if (deploy) {
+      address weth = readAddrFromConfig("WETH");
+      address uniswap = readAddrFromConfig("UniswapV2");
+
+      uniswapV2Swapper = new UniswapV2Swapper(IWETH9(weth), IUniswapV2Router01(uniswap));
+    } else {
+      uniswapV2Swapper = UniswapV2Swapper(getAddress("UniswapV2Swapper"));
+    }
+
+    if (!chief.allowedSwapper(address(uniswapV2Swapper))) {
+      bytes memory data =
+        abi.encodeWithSelector(chief.allowSwapper.selector, address(uniswapV2Swapper), true);
+      _callWithTimelock(address(chief), data);
+    }
   }
 
   function setOrDeployBorrowingVaultFactory(bool deployFactory, bool deployImplementation) internal {

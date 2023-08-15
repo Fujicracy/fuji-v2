@@ -46,19 +46,13 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
 
   constructor(address chief_, address treasury_) {
     __SystemAccessControl_init(chief_);
+    _allowExecutor(msg.sender, true);
     treasury = treasury_;
   }
 
   /// @inheritdoc ILiquidationManager
   function allowExecutor(address executor, bool allowed) external override onlyTimelock {
-    if (executor == address(0)) {
-      revert LiquidationManager__zeroAddress();
-    }
-    if (allowedExecutor[executor] == allowed) {
-      revert LiquidationManager__allowExecutor_noAllowChange();
-    }
-    allowedExecutor[executor] = allowed;
-    emit AllowExecutor(executor, allowed);
+    _allowExecutor(executor, allowed);
   }
 
   /// @inheritdoc ILiquidationManager
@@ -179,7 +173,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
       users,
       liqCloseFactors,
       vault,
-      debtAmount,
+      debtAmount + 1,
       flasher,
       swapper
     );
@@ -188,7 +182,7 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
 
     address debtAsset = vault.debtAsset();
 
-    flasher.initiateFlashloan(debtAsset, debtAmount, address(this), requestorCall);
+    flasher.initiateFlashloan(debtAsset, debtAmount + 1, address(this), requestorCall);
   }
 
   /**
@@ -293,5 +287,16 @@ contract LiquidationManager is ILiquidationManager, SystemAccessControl {
         gainedShares += vault.liquidate(users[i], address(this), liqCloseFactor_);
       }
     }
+  }
+
+  function _allowExecutor(address executor, bool allowed) internal {
+    if (executor == address(0)) {
+      revert LiquidationManager__zeroAddress();
+    }
+    if (allowedExecutor[executor] == allowed) {
+      revert LiquidationManager__allowExecutor_noAllowChange();
+    }
+    allowedExecutor[executor] = allowed;
+    emit AllowExecutor(executor, allowed);
   }
 }

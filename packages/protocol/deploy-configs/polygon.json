@@ -9,7 +9,9 @@
   "WSTETH": "0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD",
   "ConnextCore": "0x11984dc4465481512eb5b777E44061C158CF2259",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
+  "UniswapV2": "0xa5E0829CaCEd8fFDD4De3c43696c57F7D7A678ff",
   "FujiRelayer": "0xdaa792add8a6c6c12ad0e7c7afa88c50ee291811",
+  "FujiTreasury": "0x61998e033978FaF85DCAD6f931023cb3138013e9",
   "price-feeds": [
     {
       "asset": "WBTC",

@@ -29,6 +29,7 @@ contract RunPolygon is ScriptPlus {
     setOrDeployAddrMapper(false);
     setOrDeployFlasherBalancer(false);
     setOrDeployRebalancer(false);
+    setOrDeployUniswapV2Swapper(false);
 
     _setLendingProviders();
 

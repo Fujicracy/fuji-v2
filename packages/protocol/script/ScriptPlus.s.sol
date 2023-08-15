@@ -15,6 +15,7 @@ import {IWETH9} from "../src/abstracts/WETH9.sol";
 import {IConnext} from "../src/interfaces/connext/IConnext.sol";
 import {IVault} from "../src/interfaces/IVault.sol";
 import {ILendingProvider} from "../src/interfaces/ILendingProvider.sol";
+import {IUniswapV2Router01} from "../src/interfaces/uniswap/IUniswapV2Router01.sol";
 import {BorrowingVaultBeaconFactory} from "../src/vaults/borrowing/BorrowingVaultBeaconFactory.sol";
 import {BorrowingVaultUpgradeable as BorrowingVault} from
   "../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
@@ -28,7 +29,9 @@ import {Chief} from "../src/Chief.sol";
 import {ConnextRouter} from "../src/routers/ConnextRouter.sol";
 import {CoreRoles} from "../src/access/CoreRoles.sol";
 import {RebalancerManager} from "../src/RebalancerManager.sol";
+import {LiquidationManager} from "../src/LiquidationManager.sol";
 import {FlasherBalancer} from "../src/flashloans/FlasherBalancer.sol";
+import {UniswapV2Swapper} from "../src/swappers/UniswapV2Swapper.sol";
 
 contract ScriptPlus is ScriptUtilities, CoreRoles {
   using SafeERC20 for IERC20;
@@ -81,7 +84,9 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
   FujiOracle internal oracle;
   ConnextRouter internal connextRouter;
   RebalancerManager internal rebalancer;
+  LiquidationManager internal liquidator;
   FlasherBalancer internal flasherBalancer;
+  UniswapV2Swapper internal uniswapV2Swapper;
 
   address internal implementation;
   address internal deployer;
@@ -241,6 +246,24 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
     }
   }
 
+  function setOrDeployUniswapV2Swapper(bool deploy) internal {
+    if (deploy) {
+      address weth = readAddrFromConfig("WETH");
+      address uniswap = readAddrFromConfig("UniswapV2");
+
+      uniswapV2Swapper = new UniswapV2Swapper(IWETH9(weth), IUniswapV2Router01(uniswap));
+      saveAddress("UniswapV2Swapper", address(uniswapV2Swapper));
+    } else {
+      uniswapV2Swapper = UniswapV2Swapper(getAddress("UniswapV2Swapper"));
+    }
+
+    if (!chief.allowedSwapper(address(uniswapV2Swapper))) {
+      bytes memory data =
+        abi.encodeWithSelector(chief.allowSwapper.selector, address(uniswapV2Swapper), true);
+      callWithTimelock(address(chief), data);
+    }
+  }
+
   function setOrDeployAddrMapper(bool deploy) internal {
     if (deploy) {
       mapper = new AddrMapper(address(chief));
@@ -325,41 +348,6 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
 
     callBatchWithTimelock();
   }
-
-  // function deployBorrowingVaults() internal {
-  //   bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
-  //   VaultConfig[] memory vaults = abi.decode(raw, (VaultConfig[]));
-
-  //   uint256 len = vaults.length;
-  //   address collateral;
-  //   address debt;
-  //   string memory name;
-  //   uint256 liqRatio;
-  //   uint256 maxLtv;
-  //   string[] memory providerNames;
-  //   uint256 rating;
-  //   for (uint256 i; i < len; i++) {
-  //     collateral = readAddrFromConfig(vaults[i].collateral);
-  //     debt = readAddrFromConfig(vaults[i].debt);
-  //     name = vaults[i].name;
-  //     liqRatio = vaults[i].liqRatio;
-  //     maxLtv = vaults[i].maxLtv;
-  //     providerNames = vaults[i].providers;
-  //     rating = vaults[i].rating;
-
-  //     uint256 providersLen = providerNames.length;
-  //     ILendingProvider[] memory providers = new ILendingProvider[](providersLen);
-  //     for (uint256 j; j < providersLen; j++) {
-  //       providers[j] = ILendingProvider(getAddress(providerNames[j]));
-  //     }
-  //     address vault = chief.deployVault(
-  //       address(factory),
-  //       abi.encode(collateral, debt, address(oracle), providers, maxLtv, liqRatio),
-  //       rating
-  //     );
-  //     saveAddress(name, vault);
-  //   }
-  // }
 
   function deployBorrowingVaults() internal {
     bytes memory raw = vm.parseJson(configJson, ".borrowing-vaults");
@@ -609,6 +597,32 @@ contract ScriptPlus is ScriptUtilities, CoreRoles {
       timelockDatas.push(
         abi.encodeWithSelector(chief.allowFlasher.selector, address(flasherBalancer), true)
       );
+      timelockValues.push(0);
+    }
+
+    callBatchWithTimelock();
+  }
+
+  function setOrDeployLiquidator(bool deploy) internal {
+    if (deploy) {
+      address treasury = readAddrFromConfig("FujiTreasury");
+      liquidator = new LiquidationManager(address(chief), treasury);
+      saveAddress("LiquidationManager", address(liquidator));
+    } else {
+      liquidator = LiquidationManager(getAddress("LiquidationManager"));
+    }
+
+    if (!chief.hasRole(LIQUIDATOR_ROLE, address(liquidator))) {
+      timelockTargets.push(address(chief));
+      timelockDatas.push(
+        abi.encodeWithSelector(chief.grantRole.selector, LIQUIDATOR_ROLE, address(liquidator))
+      );
+      timelockValues.push(0);
+    }
+    address relayer = readAddrFromConfig("FujiRelayer");
+    if (!liquidator.allowedExecutor(relayer)) {
+      timelockTargets.push(address(liquidator));
+      timelockDatas.push(abi.encodeWithSelector(liquidator.allowExecutor.selector, relayer, true));
       timelockValues.push(0);
     }
 
