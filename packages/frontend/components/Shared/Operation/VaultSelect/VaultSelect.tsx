@@ -129,15 +129,17 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
 
   useEffect(() => {
     if (type === VaultType.BORROW) return;
-    // We want to make sure to only set the selected route if we have no previous value
-    if (activeVault && prevVault.current === undefined) {
-      prevVault.current = activeVault;
-      setSelectedRoute(preselect());
-    }
-    setOpenedRoute(null);
+    const selected = preselect();
+    setSelectedRoute(selected);
     setUnFolded(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVault, collateral.currency.wrapped.symbol, router.pathname, type]);
+  }, [
+    activeVault,
+    availableVaults,
+    collateral.currency.wrapped.symbol,
+    router.pathname,
+    type,
+  ]);
 
   useEffect(() => {
     if (type === VaultType.LEND) return;
