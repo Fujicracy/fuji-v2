@@ -54,17 +54,15 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   const preselect = () => {
     let selected = 0;
 
-    if (!override) {
-      for (let i = 0; i < availableVaults.length; i++) {
-        if (
-          activeVault?.address.value === availableVaults[i]?.vault.address.value
-        ) {
-          selected = i;
-        }
+    for (let i = 0; i < availableVaults.length; i++) {
+      if (
+        activeVault?.address.value === availableVaults[i]?.vault.address.value
+      ) {
+        selected = i;
       }
     }
 
-    return selected;
+    return selected || 0;
   };
 
   const [isUnFolded, setUnFolded] = useState(false);
