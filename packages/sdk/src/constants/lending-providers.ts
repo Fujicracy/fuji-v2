@@ -39,6 +39,14 @@ export const LENDING_PROVIDERS: Record<
       name: 'Morpho Compound',
       llamaKey: 'morpho-compound',
     },
+    '0x87874d8Eab4E9a9867d30d100f54C6cb59252563': {
+      name: 'Spark Protocol',
+      llamaKey: 'spark',
+    },
+    '0xad65e95E16dA8901C575337bD9a641C7b00908A9': {
+      name: 'Spark sDAI',
+      llamaKey: 'spark',
+    },
   },
   [ChainId.GOERLI]: {
     '0xbE55f76cC3f4409C320c8F8D5AF1220c914F7B54': {
