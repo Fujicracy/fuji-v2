@@ -168,8 +168,13 @@ export const useLend = create<LendStore>()(
         availableVaults = await getVaultsWithFinancials(availableVaults);
 
         const activeVault =
-          availableVaults.find((v) => v.vault.address.value === vaultAddress) ??
-          availableVaults[2]; // For testing purposes, until adding a fix
+          (vaultAddress
+            ? availableVaults.find(
+                (v) => v.vault.address.value === vaultAddress
+              )
+            : availableVaults.find(
+                (v) => v.vault.chainId === collateral.chainId
+              )) ?? availableVaults[0];
 
         set({ availableVaults });
         get().changeActiveVault(activeVault);
