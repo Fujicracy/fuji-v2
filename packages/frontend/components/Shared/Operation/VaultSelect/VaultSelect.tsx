@@ -56,7 +56,7 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
       }
     }
 
-    return selected || 0;
+    return selected;
   };
 
   const [isUnFolded, setUnFolded] = useState(false);
