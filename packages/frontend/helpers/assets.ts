@@ -171,6 +171,7 @@ export const needsAllowance = (
       ? mode === Mode.PAYBACK || mode === Mode.PAYBACK_AND_WITHDRAW
       : mode === Mode.DEPOSIT || mode === Mode.DEPOSIT_AND_BORROW) &&
     asset.allowance.value !== undefined &&
+    asset.allowance.value !== 0 &&
     asset.allowance.value < amount
   );
 };
