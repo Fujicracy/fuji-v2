@@ -7,6 +7,7 @@ export * from './ChainVaultList';
 export * from './ConnextTxDetails';
 export * from './FujiResult';
 export * from './LendingProvider';
+export * from './LlamaResponses';
 export * from './MetaRoutingResult';
 export * from './NativeMap';
 export * from './PreviewParams';
