@@ -7,23 +7,33 @@ import {
   Typography,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import { VaultType } from '@x-fuji/sdk';
 import Image from 'next/image';
 import React from 'react';
 
+import { ActionType, AssetType } from '../../helpers/assets';
+import { PositionRow } from '../../helpers/positions';
 import { useBorrow } from '../../store/borrow.store';
-import FujiRadioGroup from '../Shared/FujiRadioGroup';
 import { NetworkIcon, ProviderIcon } from '../Shared/Icons';
+import CurrencyCard from '../Shared/Operation/FormAssetBox/CurrencyCard';
 import WarningInfo from '../Shared/WarningInfo';
-import AssetRadioLabel from './AssetRadioLabel';
 import InfoWithIcon from './InfoWithIcon';
 
 type MigrateFromProps = {
   onBack: () => void;
+  onNext: () => void;
+  position: PositionRow;
 };
 
-function MigrateFrom({ onBack }: MigrateFromProps) {
-  const collateral = useBorrow((state) => state.collateral);
+function MigrateFrom({ onBack, position, onNext }: MigrateFromProps) {
   const { palette } = useTheme();
+  const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
+  const changeAssetValue = useBorrow((state) => state.changeAssetValue);
+
+  const collateral = useBorrow((state) => state.collateral);
+  const debt = useBorrow((state) => state.debt);
+  const isExecuting = useBorrow((state) => state.isExecuting);
+  const changeAssetChain = useBorrow((state) => state.changeAssetChain);
 
   return (
     <Stack direction="column" justifyContent="flex-start" textAlign="left">
@@ -66,47 +76,45 @@ function MigrateFrom({ onBack }: MigrateFromProps) {
             />
           </Stack>
 
-          <Stack direction="column" justifyContent="left" gap={1} mt={1.5}>
-            <FujiRadioGroup
-              label="Collateral Asset (Select Only 1)"
-              values={[
-                {
-                  value: 0.08,
-                  label: (
-                    <AssetRadioLabel
-                      currency={collateral.currency}
-                      amount={0.008}
-                    />
-                  ),
-                },
-                {
-                  value: 0.01,
-                  label: (
-                    <AssetRadioLabel
-                      currency={collateral.currency}
-                      amount={0.088}
-                    />
-                  ),
-                },
-              ]}
-            />
-          </Stack>
-          <Stack direction="column" justifyContent="left" gap={1} mt={1.5}>
-            <FujiRadioGroup
-              label="Borrow Asset"
-              values={[
-                {
-                  value: 0.08,
-                  label: (
-                    <AssetRadioLabel
-                      currency={collateral.currency}
-                      amount={0.008}
-                    />
-                  ),
-                },
-              ]}
-            />
-          </Stack>
+          {[collateral, debt].map((assetChange, index) => {
+            const collateralIndex = 0;
+            const type =
+              index === collateralIndex ? AssetType.Collateral : AssetType.Debt;
+            const maxAmount =
+              type === AssetType.Debt
+                ? position?.debt?.amount
+                : position?.collateral?.amount;
+            const label =
+              type === AssetType.Collateral ? 'Collateral' : 'Borrow';
+            return (
+              <>
+                <Typography
+                  variant="small"
+                  sx={{ display: 'inline-block', mt: 2, mb: 1 }}
+                >
+                  {label} Asset
+                </Typography>
+
+                <CurrencyCard
+                  type={type}
+                  vaultType={VaultType.BORROW}
+                  showMax={true}
+                  maxAmount={Number(maxAmount) || 0}
+                  isEditing={true}
+                  assetChange={assetChange}
+                  actionType={ActionType.REMOVE}
+                  disabled={true}
+                  isExecuting={isExecuting}
+                  value={assetChange?.input}
+                  isFocusedByDefault={index === 0}
+                  onCurrencyChange={(currency, updateVault) => {
+                    changeAssetCurrency(type, currency, updateVault);
+                  }}
+                  onInputChange={(value) => changeAssetValue(type, value)}
+                />
+              </>
+            );
+          })}
 
           <Box mt={3}>
             <WarningInfo
@@ -121,8 +129,8 @@ function MigrateFrom({ onBack }: MigrateFromProps) {
             fullWidth
             variant="gradient"
             size="medium"
-            disabled={true}
-            onClick={() => false}
+            disabled={false}
+            onClick={onNext}
             sx={{
               mt: 3,
             }}

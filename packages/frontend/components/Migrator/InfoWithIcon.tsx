@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 function InfoWithIcon({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <Stack
-      p={1.5}
+      p="0.615rem 0.75rem"
       direction="row"
       alignItems="center"
       justifyContent="left"

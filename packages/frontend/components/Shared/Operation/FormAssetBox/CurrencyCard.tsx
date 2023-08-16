@@ -49,8 +49,8 @@ type SelectCurrencyCardProps = {
   maxAmount: number;
   onCurrencyChange: (currency: Currency, updateVault: boolean) => void;
   onInputChange: (value: string) => void;
-  ltvMeta: LtvMeta | undefined;
-  positionData: PositionData | undefined;
+  ltvMeta?: LtvMeta;
+  positionData?: PositionData;
   isEditing: boolean;
   isFocusedByDefault: boolean;
   vaultType?: VaultType;
