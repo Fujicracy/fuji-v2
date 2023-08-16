@@ -95,10 +95,10 @@
     {
       "collateral": "MATICX",
       "debt": "USDC",
-      "liqRatio": 670000000000000000,
-      "maxLtv": 560000000000000000,
+      "liqRatio": 600000000000000000,
+      "maxLtv": 550000000000000000,
       "name": "BorrowingVault-MATICXUSDC-1",
-      "providers": ["Aave_V3_Polygon"],
+      "providers": ["Aave_V3_Polygon","Compound_V3_Polygon"],
       "rating": 90
     },
     {
