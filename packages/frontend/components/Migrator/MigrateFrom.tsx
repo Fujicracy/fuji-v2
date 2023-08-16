@@ -18,6 +18,7 @@ import { NetworkIcon, ProviderIcon } from '../Shared/Icons';
 import CurrencyCard from '../Shared/Operation/FormAssetBox/CurrencyCard';
 import WarningInfo from '../Shared/WarningInfo';
 import InfoWithIcon from './InfoWithIcon';
+import PositionHealth from './PositionHealth';
 
 type MigrateFromProps = {
   onBack: () => void;
@@ -123,6 +124,10 @@ function MigrateFrom({ onBack, position, onNext }: MigrateFromProps) {
                 'While migrating debt, the process involves repaying your debt on the source chain prior to taking on a new debt on the destination chain'
               }
             />
+          </Box>
+
+          <Box mt={2}>
+            <PositionHealth value={20} maxLTV={80} recommendedLTV={75} />
           </Box>
 
           <Button

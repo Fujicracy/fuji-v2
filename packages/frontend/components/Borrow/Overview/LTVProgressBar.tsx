@@ -179,10 +179,7 @@ function LTVProgressBar({
             }}
           >
             <Typography variant="xsmall">LTV</Typography>
-            <InfoTooltip
-              title="The amount you borrow divided by the amount of collateral you provide is known as your Loan To Value ratio."
-              isLeft
-            />
+            <InfoTooltip title="The amount you borrow divided by the amount of collateral you provide is known as your Loan To Value ratio." />
           </div>
 
           <div
