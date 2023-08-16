@@ -27,10 +27,14 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0x22B6251935dA74a69b63A52d993924904559B76a'),
       USDC[ChainId.ETHEREUM]
     ),
-    //new LendingVault(
-    //Address.from('0x69612f144e7B6933D26Ea6E254b3E76A47a0B4D9'),
-    //DAI[ChainId.ETHEREUM]
-    //),
+    new LendingVault(
+      Address.from('0x69612f144e7B6933D26Ea6E254b3E76A47a0B4D9'),
+      DAI[ChainId.ETHEREUM]
+    ),
+    new LendingVault(
+      Address.from('0xe70B3C4B76F5Ae4505D553427FA50aD75f34ff86'),
+      DAI[ChainId.ETHEREUM]
+    ),
     new LendingVault(
       Address.from('0x337688b46dA29A3B47b3C88941d26754898faA99'),
       USDT[ChainId.ETHEREUM]

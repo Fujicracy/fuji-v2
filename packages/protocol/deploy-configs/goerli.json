@@ -1,6 +1,7 @@
 {
   "WETH": "0xCCB14936C2E000ED8393A571D15A2672537838Ad",
   "USDC": "0x65aFADD39029741B3b8f0756952C74678c9cEC93",
+  "DAI": "0xBa8DCeD3512925e52FE67b1b5329187589072A55",
   "ConnextCore": "0xFCa08024A6D4bCc87275b1E4A1E22B71fAD7f649",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
   "FujiRelayer": "0x4325018916b082B91e277C7165FD8Da6467b71F8",
@@ -33,6 +34,18 @@
       "name": "YieldVault-WETH-1",
       "providers": ["Aave_V3_Goerli"],
       "rating": 90
+    }
+  ],
+  "aavev3-emodes": [
+    {
+      "asset" : "USDC",
+      "debtAsset": "DAI",
+      "id": 1
+    },
+    {
+      "asset" : "DAI",
+      "debtAsset": "USDC",
+      "id": 1
     }
   ]
 }

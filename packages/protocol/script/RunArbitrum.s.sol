@@ -34,7 +34,7 @@ contract RunArbitrum is ScriptPlus {
 
     if (chief.allowedVaultFactory(address(factory))) {
       deployBorrowingVaults();
-      setBorrowingVaults();
+      /*setBorrowingVaults();*/
     }
 
     if (chief.allowedVaultFactory(address(yieldFactory))) {
@@ -43,7 +43,7 @@ contract RunArbitrum is ScriptPlus {
 
     /*setVaultNewRating("BorrowingVault-WETHUSDC", 75);*/
     /*rebalanceVault("BorrowingVault-WETHUSDC", compound, aaveV3);*/
-    /*rebalanceYieldVauuts();*/
+    /*rebalanceYieldVaults();*/
     /*rebalanceBorrowingVaults();*/
 
     // If setting all routers at once, call after deploying all chians
@@ -55,9 +55,10 @@ contract RunArbitrum is ScriptPlus {
   }
 
   function _setLendingProviders() internal {
-    aaveV3 = AaveV3Arbitrum(getAddress("Aave_V3_Arbitrum"));
+    aaveV3 = AaveV3Arbitrum(getAddress("Aave_V3_Arbitrum_Emode"));
     /*aaveV3 = new AaveV3Arbitrum();*/
-    /*saveAddress("Aave_V3_Arbitrum", address(aaveV3));*/
+    /*saveAddress("Aave_V3_Arbitrum_Emode", address(aaveV3));*/
+    setOrdeployAaveEModeHelper(false);
 
     radiant = RadiantArbitrum(getAddress("Radiant_Arbitrum"));
     /*radiant = new RadiantArbitrum();*/
