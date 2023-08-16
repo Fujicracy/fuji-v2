@@ -1,5 +1,7 @@
 import { GetLLamaFinancialsResponse } from '@x-fuji/sdk';
 
+export const CACHE_LIMIT = 1000 * 60 * 15; // Fifteen minutes
+
 let dbPromise: Promise<IDBDatabase> | null = null;
 
 function init(): Promise<IDBDatabase> {
@@ -8,7 +10,7 @@ function init(): Promise<IDBDatabase> {
   }
 
   dbPromise = new Promise((resolve, reject) => {
-    const request = indexedDB.open('myDatabase', 1);
+    const request = indexedDB.open('llama_cache', 1);
 
     request.onupgradeneeded = () => {
       const db = request.result;
@@ -28,8 +30,6 @@ function init(): Promise<IDBDatabase> {
 
   return dbPromise;
 }
-
-const HALF_AN_HOUR = 1800000; // 30 minutes in milliseconds
 
 export async function setLlamaCache(
   data: GetLLamaFinancialsResponse
@@ -66,8 +66,9 @@ export async function getLlamaCache(): Promise<GetLLamaFinancialsResponse> {
   });
 }
 
-export async function getLastUpdatedDate(): Promise<Date> {
-  return new Promise((resolve, reject) => {
+export async function getCacheLastUpdatedDate(): Promise<Date> {
+  return new Promise(async (resolve, reject) => {
+    const db = await init();
     const transaction = db.transaction(['metaData'], 'readonly');
     const request = transaction.objectStore('metaData').get('lastUpdated');
 

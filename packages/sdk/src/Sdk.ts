@@ -414,19 +414,17 @@ export class Sdk {
    * Returns all vaults with the financial data loaded from DefiLlama API.
    *
    * @param vaults - returned value from "getAllVaultsWithFinancials()"
+   * @param llamas - llama information returned from "getLLamaFinancials()"
    */
-  async getLlamasForVaults(
-    vaults: VaultWithFinancials[]
-  ): FujiResultPromise<VaultWithFinancials[]> {
-    const result = await this.getLLamaFinancials();
-    if (!result.success) {
-      return new FujiResultError(result.error.message);
-    }
-    const { lendBorrows, pools } = result.data;
+  getLlamasForVaults(
+    vaults: VaultWithFinancials[],
+    llamas: GetLLamaFinancialsResponse
+  ): VaultWithFinancials[] {
+    const { lendBorrows, pools } = llamas;
     const data = vaults.map((vault) =>
       this._getFinancialsFor(vault, pools, lendBorrows)
     );
-    return new FujiResultSuccess(data);
+    return data;
   }
 
   /**
