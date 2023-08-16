@@ -18,7 +18,7 @@ export type FinancialsOrError = VaultWithFinancials | FujiError;
 export const getVaultsWithFinancials = async (
   availableVaults: VaultWithFinancials[]
 ) => {
-  const llamaResult = await sdk.getLlamaFinancials(availableVaults);
+  const llamaResult = await sdk.getLlamasForVaults(availableVaults);
 
   if (!llamaResult.success) {
     notify({

@@ -41,3 +41,8 @@ export type GetLlamaPoolStatsResponse = {
 };
 
 export type GetLlamaLendBorrowPoolsResponse = LlamaLendBorrowPool[];
+
+export type GetLLamaFinancialsResponse = {
+  lendBorrows: LlamaLendBorrowPool[];
+  pools: LlamaAssetPool[];
+};

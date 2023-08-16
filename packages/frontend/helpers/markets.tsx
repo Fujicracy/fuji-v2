@@ -270,7 +270,8 @@ export const fetchMarkets = async (
     api.getState().changeRows(type, setBest(rowsFin, type));
     api.getState().changeVaultsWithFinancials(type, vaultsWithFinancials);
   }
-  const llamaResult = await sdk.getLlamaFinancials(allVaults);
+
+  const llamaResult = await sdk.getLlamasForVaults(allVaults);
   if (!llamaResult.success) {
     notify({
       type: 'error',
