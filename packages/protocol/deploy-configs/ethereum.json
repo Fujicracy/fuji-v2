@@ -267,6 +267,81 @@
       "name": "YieldVault-USDT-1",
       "providers": ["Aave_V3", "Compound_V2", "Aave_V2"],
       "rating": 90
+    },
+    {
+      "asset": "DAI",
+      "name": "YieldVault-DAI-2",
+      "providers": ["SparkSavingsDai","Morpho_Compound", "Morpho_Aave_V2"],
+      "rating": 90
+    }
+  ],
+  "aavev3-emodes": [
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "CBETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "CBETH",
+      "id": 1
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "RETH",
+      "id": 1
+    },
+    {
+      "asset" : "CBETH",
+      "debtAsset": "WSTETH",
+      "id": 1
+    },
+    {
+      "asset" : "CBETH",
+      "debtAsset": "RETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WSTETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "CBETH",
+      "id": 1
+    }
+  ],
+  "spark-emodes": [
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WETH",
+      "id": 1
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "RETH",
+      "id": 1
+    },
+    {
+      "asset" : "RETH",
+      "debtAsset": "WSTETH",
+      "id": 1
     }
   ]
 }
