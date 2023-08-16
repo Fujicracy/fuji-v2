@@ -14,11 +14,16 @@ const MigratePage: NextPage = () => {
   const [selected, setSelected] = useState<PositionRow | null>(null);
   const [provider, setProvider] = useState<string>('compound');
   const [isPositionSelected, setIsPositionSelected] = useState<boolean>(false);
+  const [isFormFormFilled, setIsFormFormFilled] = useState<boolean>(false);
   const loading = usePositions((state) => state.loading);
   const positions = usePositions((state) => state.borrowPositions);
   const account = useAuth((state) => state.address);
 
   const onNext = () => setIsPositionSelected(true);
+
+  const onFromFormFilled = () => {
+    setIsFormFormFilled(true);
+  };
 
   const onBack = () => {
     setSelected(null);
@@ -79,14 +84,17 @@ const MigratePage: NextPage = () => {
           ) : (
             <>
               <Grid item xs={4}>
-                <MigrateFrom onBack={onBack} />
+                <MigrateFrom
+                  onBack={onBack}
+                  position={selected!}
+                  onNext={onFromFormFilled}
+                />
               </Grid>
-              <Grid
-                item
-                xs={4}
-                ml={{ xs: 0, md: 3 }}
-                mt={{ xs: 3, md: 0 }}
-              ></Grid>
+              {isFormFormFilled && (
+                <Grid item xs={4} ml={{ xs: 0, md: 3 }} mt={{ xs: 3, md: 0 }}>
+                  test
+                </Grid>
+              )}
             </>
           )}
         </Grid>
