@@ -35,19 +35,6 @@ function Markets() {
     fetchMarkets(address);
   }, [address, fetchMarkets]);
 
-  const tableData =
-    currentTab === 0
-      ? {
-          type: VaultType.BORROW,
-          rows: borrowRows,
-          vaults: borrowVaults,
-        }
-      : {
-          type: VaultType.LEND,
-          rows: lendingRows,
-          vaults: lendingVaults,
-        };
-
   return (
     <Box>
       <Typography variant="h4">Markets</Typography>
@@ -71,12 +58,21 @@ function Markets() {
         <MarketFiltersHeader filters={filters} setFilters={setFilters} />
       </Grid>
 
-      <MarketsTable
-        filters={filters}
-        rows={tableData.rows}
-        vaults={tableData.vaults}
-        type={tableData.type}
-      />
+      {currentTab === 0 ? (
+        <MarketsTable
+          filters={filters}
+          rows={borrowRows}
+          vaults={borrowVaults}
+          type={VaultType.BORROW}
+        />
+      ) : (
+        <MarketsTable
+          filters={filters}
+          rows={lendingRows}
+          vaults={lendingVaults}
+          type={VaultType.LEND}
+        />
+      )}
     </Box>
   );
 }

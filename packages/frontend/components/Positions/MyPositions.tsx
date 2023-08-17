@@ -39,11 +39,19 @@ function MyPositions() {
         />
       </Grid>
 
-      <MyPositionsTable
-        positions={currentTab === 0 ? borrowPositions : lendingPositions}
-        type={currentTab === 0 ? VaultType.BORROW : VaultType.LEND}
-        markets={currentTab === 0 ? borrowMarkets : lendMarkets}
-      />
+      {currentTab === 0 ? (
+        <MyPositionsTable
+          positions={borrowPositions}
+          type={VaultType.BORROW}
+          markets={borrowMarkets}
+        />
+      ) : (
+        <MyPositionsTable
+          positions={lendingPositions}
+          type={VaultType.LEND}
+          markets={lendMarkets}
+        />
+      )}
     </>
   );
 }
