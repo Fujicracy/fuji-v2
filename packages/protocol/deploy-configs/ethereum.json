@@ -198,6 +198,15 @@
       "rating": 85
     },
     {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-1",
+      "providers": ["Spark","Morpho_Compound", "Morpho_Aave_V2"],
+      "rating": 85
+    },
+    {
       "collateral": "WSTETH",
       "debt": "USDC",
       "liqRatio": 850000000000000000,
