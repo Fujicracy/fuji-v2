@@ -52,9 +52,17 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
 
   const loading = isLoading && positions.length === 0;
   const [rows, setRows] = useState<PositionRow[]>([]);
+  const [isTransitionActive, setIsTransitionActive] = useState<boolean>(false);
 
   const isLend = type === VaultType.LEND;
   const numberOfColumns = isLend ? 5 : 8;
+
+  useEffect(() => {
+    setIsTransitionActive(true);
+    setTimeout(() => {
+      setIsTransitionActive(false);
+    }, 500);
+  }, [type]);
 
   useEffect(() => {
     (() => {
@@ -70,16 +78,17 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
       </MyPositionsBorrowTableContainer>
     );
   }
-  if (loading) {
+  if (loading || isTransitionActive) {
     return (
       <MyPositionsBorrowTableContainer isLend={isLend}>
-        <TableRow sx={{ height: '2.625rem' }}>
+        <TableRow sx={{ height: '3.375rem' }}>
           {new Array(numberOfColumns).fill('').map((_, index) => (
             <TableCell key={index}>
               <Skeleton />
             </TableCell>
           ))}
         </TableRow>
+        <ExtraTableSpace colSpan={numberOfColumns} itemLength={1} max={5} />
       </MyPositionsBorrowTableContainer>
     );
   }

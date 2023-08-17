@@ -37,6 +37,7 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
   const router = useRouter();
 
   const [filteredRows, setFilteredRows] = useState<MarketRow[]>([]);
+  const [isTransitionActive, setIsTransitionActive] = useState<boolean>(false);
 
   const isLoading = useMarkets((state) => state.loading);
 
@@ -50,6 +51,13 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
   const handleClick = async (entity?: AbstractVault | VaultWithFinancials) => {
     showPosition(type, router, true, entity, walletChainId);
   };
+
+  useEffect(() => {
+    setIsTransitionActive(true);
+    setTimeout(() => {
+      setIsTransitionActive(false);
+    }, 500);
+  }, [type]);
 
   const numberOfColumns = type === VaultType.BORROW ? 8 : 5;
   const isLend = type === VaultType.LEND;
@@ -124,7 +132,7 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {isLoading && vaults.length === 0 ? (
+          {(isLoading && vaults.length === 0) || isTransitionActive ? (
             <TableRow>
               {new Array(numberOfColumns).fill('').map((_, index) => (
                 <TableCell
