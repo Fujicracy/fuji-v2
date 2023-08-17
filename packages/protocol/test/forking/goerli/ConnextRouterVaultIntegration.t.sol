@@ -8,10 +8,9 @@ import {BorrowingVaultUpgradeable as BVault} from
   "../../../src/vaults/borrowing/BorrowingVaultUpgradeable.sol";
 import {IVault} from "../../../src/interfaces/IVault.sol";
 import {
-  ILendingProvider,
-  IV3Pool,
-  AaveV3Goerli as SampleProvider
+  IV3Pool, AaveV3Goerli as SampleProvider
 } from "../../../src/providers/goerli/AaveV3Goerli.sol";
+import {ILendingProvider} from "../../../src/interfaces/ILendingProvider.sol";
 import {ConnextRouter} from "../../../src/routers/ConnextRouter.sol";
 import {ConnextHandler} from "../../../src/routers/ConnextHandler.sol";
 import {ConnextReceiver} from "../../../src/routers/ConnextReceiver.sol";

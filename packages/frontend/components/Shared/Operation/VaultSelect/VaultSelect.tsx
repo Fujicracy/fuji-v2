@@ -16,9 +16,9 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { VaultType } from '@x-fuji/sdk';
+import { AbstractVault, VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { FetchStatus } from '../../../../helpers/assets';
 import { useBorrow } from '../../../../store/borrow.store';
@@ -43,6 +43,8 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   const status = useStore().availableVaultsStatus;
   const changeActiveVault = useStore().changeActiveVault;
 
+  const prevVault = useRef<AbstractVault | undefined>(undefined);
+
   const hasNoAvailableVaults =
     status === FetchStatus.Ready && availableVaults.length === 0;
   const override = useNavigation(
@@ -63,7 +65,6 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
         }
       }
     }
-
     return selected;
   };
 
@@ -127,26 +128,23 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   };
 
   useEffect(() => {
-    setIsLoading(true);
-    const selected = preselect();
-
-    didSelectRoute(selected);
-    setIsLoading(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeVault, availableVaults]);
-
-  useEffect(() => {
     if (type === VaultType.BORROW) return;
-    setIsLoading(true);
-    setSelectedRoute(0);
-    setOpenedRoute(null);
-  }, [collateral.currency.wrapped.symbol, router.pathname, type]);
+    const selected = preselect();
+    setSelectedRoute(selected);
+    setUnFolded(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    activeVault,
+    availableVaults,
+    collateral.currency.wrapped.symbol,
+    router.pathname,
+    type,
+  ]);
 
   useEffect(() => {
     if (type === VaultType.LEND) return;
-    setIsLoading(true);
-    setSelectedRoute(0);
     setOpenedRoute(null);
+    setUnFolded(false);
   }, [
     collateral.chainId,
     debt?.chainId,

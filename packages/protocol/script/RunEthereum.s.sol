@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.15;
 
-import "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 import {ScriptPlus} from "./ScriptPlus.s.sol";
 import {AaveV2} from "../src/providers/mainnet/AaveV2.sol";
 import {AaveV3} from "../src/providers/mainnet/AaveV3.sol";
+import {Spark} from "../src/providers/mainnet/Spark.sol";
+import {SparkSavingsDai} from "../src/providers/mainnet/SparkSavingsDai.sol";
 import {CompoundV2} from "../src/providers/mainnet/CompoundV2.sol";
 import {CompoundV3} from "../src/providers/mainnet/CompoundV3.sol";
 import {MorphoAaveV2} from "../src/providers/mainnet/MorphoAaveV2.sol";
@@ -14,6 +16,8 @@ import {DForce} from "../src/providers/mainnet/DForce.sol";
 contract RunEthereum is ScriptPlus {
   AaveV2 aaveV2;
   AaveV3 aaveV3;
+  Spark spark;
+  SparkSavingsDai savingsDai;
   CompoundV2 compoundV2;
   CompoundV3 compoundV3;
   DForce dforce;
@@ -66,9 +70,15 @@ contract RunEthereum is ScriptPlus {
     /*aaveV2 = new AaveV2();*/
     /*saveAddress("Aave_V2", address(aaveV2));*/
 
-    aaveV3 = AaveV3(getAddress("Aave_V3"));
+    aaveV3 = AaveV3(getAddress("Aave_V3_Emode"));
     /*aaveV3 = new AaveV3();*/
     /*saveAddress("Aave_V3", address(aaveV3));*/
+    // setOrdeployAaveEModeHelper(false);
+
+    spark = Spark(getAddress("Spark"));
+    /*spark = new Spark();*/
+    /*saveAddress("Spark", address(spark));*/
+    setOrdeploySparkEModeHelper(false);
 
     dforce = DForce(getAddress("DForce"));
     /*dforce = new DForce();*/
@@ -89,5 +99,9 @@ contract RunEthereum is ScriptPlus {
     morphoCompound = MorphoCompound(getAddress("Morpho_Compound"));
     /*morphoCompound = new MorphoCompound();*/
     /*saveAddress("Morpho_Compound", address(morphoCompound));*/
+
+    savingsDai = SparkSavingsDai(getAddress("SparkSavingsDai"));
+    /*savingsDai = new SparkSavingsDai();*/
+    /*saveAddress("SparkSavingsDai", address(savingsDai));*/
   }
 }

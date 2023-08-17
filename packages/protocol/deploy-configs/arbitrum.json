@@ -6,6 +6,7 @@
   "USDT": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
   "WSTETH": "0x5979D7b546E38E414F7E9822514be443A4800529",
   "RETH": "0xEC70Dcb4A1EFa46b8F2D97C310C9c4790ba5ffA8",
+  "EURS": "0xD22a58f79e9481D1a88e00c343885A588b34b68B",
   "ConnextCore": "0xEE9deC2712cCE65174B561151701Bf54b99C24C8",
   "Balancer": "0xBA12222222228d8Ba445958a75a0704d566BF2C8",
   "FujiRelayer": "0x65e0ef5d35ccdc55fac1d4e2c6d9e9a196bf5076",
@@ -183,6 +184,53 @@
       "name": "YieldVault-DAI-1",
       "providers": ["DForce_Arbitrum", "Radiant_Arbitrum", "Aave_V3_Arbitrum"],
       "rating": 80
+    }
+  ],
+  "aavev3-emodes": [
+    {
+      "asset" : "USDC",
+      "debtAsset": "DAI",
+      "id": 1
+    },
+    {
+      "asset" : "USDC",
+      "debtAsset": "USDT",
+      "id": 1
+    },
+    {
+      "asset" : "DAI",
+      "debtAsset": "USDC",
+      "id": 1
+    },
+    {
+      "asset" : "DAI",
+      "debtAsset": "USDT",
+      "id": 1
+    },
+    {
+      "asset" : "USDT",
+      "debtAsset": "USDC",
+      "id": 1
+    },
+    {
+      "asset" : "USDT",
+      "debtAsset": "DAI",
+      "id": 1
+    },
+    {
+      "asset" : "USDC",
+      "debtAsset": "EURS",
+      "id": 1
+    },
+    {
+      "asset" : "EURS",
+      "debtAsset": "USDC",
+      "id": 1
+    },
+    {
+      "asset" : "WSTETH",
+      "debtAsset": "WETH",
+      "id": 2
     }
   ]
 }
