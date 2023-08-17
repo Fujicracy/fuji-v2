@@ -76,21 +76,28 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
       }
       vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
     } else {
+      // BorrowingVault
       if (debt == type(uint256).max) {
         debt = from.getBorrowBalance(address(vault), vault);
       }
 
-      // BorrowingVault
       if (assets == 0 && debt == 0) {
         // Should at least move some assets or debt across providers.
         revert RebalancerManager__rebalanceVault_invalidAmount();
       }
-      _checkDebtAmount(vault, debt, from);
-      if (!chief.allowedFlasher(address(flasher))) {
-        revert RebalancerManager__rebalanceVault_notValidFlasher();
+
+      if (debt == 0) {
+        // Rebalance only assets do not require flashloan
+        vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
+      } else {
+        // Check flasher is valid
+        if (!chief.allowedFlasher(address(flasher))) {
+          revert RebalancerManager__rebalanceVault_notValidFlasher();
+        }
+        _checkDebtAmount(vault, debt, from);
+        _checkLtvChange(vault, from, to, assets, debt);
+        _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
       }
-      _checkLtvChange(vault, from, to, assets, debt);
-      _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
     }
 
     success = true;
