@@ -279,6 +279,14 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
   }
 
   /**
+   * @dev Reset the `_entryPoint` state variable.
+   */
+  function _resetEntryPoint() private {
+    // Reset the `_entryPoint`.
+    _entryPoint = "";
+  }
+
+  /**
    * @notice Callback function that completes execution logic of a rebalance
    * operation with a flashloan.
    *
@@ -327,8 +335,20 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
 
     debtAsset.safeTransfer(address(flasher), debt + flashloanFee);
 
-    // Re-initialize the `_entryPoint`.
-    _entryPoint = "";
+    _resetEntryPoint();
     success = true;
+  }
+
+  /**
+   * @dev Forces to reset the `_entryPoint` state variable.
+   * This is needed in emergency case that  `_resetEntryPoint()` is not reached due to
+   * external failure in execution of `completeRebalance()`.
+   * Otherwise, RebalancerManager will remain inoperable.
+   *
+   * Requirements:
+   * - Must be called from the timelock.
+   */
+  function hardResetEntryPoint() external onlyTimelock {
+    _resetEntryPoint();
   }
 }
