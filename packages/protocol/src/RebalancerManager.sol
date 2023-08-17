@@ -306,6 +306,11 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     external
     returns (bool success)
   {
+    // Check caller is a valid flasher
+    if (!chief.allowedFlasher(msg.sender)) {
+      revert RebalancerManager__rebalanceVault_notValidFlasher();
+    }
+    // Check flashloan originator is reentering properly
     _checkReentry(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
 
     IERC20 debtAsset = IERC20(vault.debtAsset());
