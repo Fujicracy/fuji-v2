@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/tracing';
 
 import { HELPER_URL, NOTIFICATION_MESSAGES, SENTRY_DSN } from '../constants';
 import {
