@@ -20,8 +20,6 @@ export const initErrorReporting = () => {
   }
   Sentry.init({
     dsn: SENTRY_DSN,
-    integrations: [new BrowserTracing()],
-    tracesSampleRate: 1.0,
   });
 };
 
