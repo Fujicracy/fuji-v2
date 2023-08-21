@@ -76,7 +76,7 @@ function Details({
                   height={18}
                   width={18}
                 />
-                <Typography variant="small">
+                <Typography variant="small" sx={{ mb: '-3px' }}>
                   {activeProvider?.name} on
                 </Typography>
                 <NetworkIcon
@@ -84,7 +84,7 @@ function Details({
                   height={18}
                   width={18}
                 />
-                <Typography variant="small">
+                <Typography variant="small" sx={{ mb: '-3px' }}>
                   {chainName(vault?.chainId)}
                 </Typography>
               </Stack>

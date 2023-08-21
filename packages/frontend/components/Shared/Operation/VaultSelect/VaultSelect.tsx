@@ -16,9 +16,9 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import { AbstractVault, VaultType } from '@x-fuji/sdk';
+import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { FetchStatus } from '../../../../helpers/assets';
 import { useBorrow } from '../../../../store/borrow.store';
@@ -42,8 +42,6 @@ function VaultSelect({ type = VaultType.BORROW }: VaultSelectProps) {
   const availableVaults = useStore().availableVaults;
   const status = useStore().availableVaultsStatus;
   const changeActiveVault = useStore().changeActiveVault;
-
-  const prevVault = useRef<AbstractVault | undefined>(undefined);
 
   const hasNoAvailableVaults =
     status === FetchStatus.Ready && availableVaults.length === 0;

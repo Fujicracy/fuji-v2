@@ -1,7 +1,7 @@
 import { Grid, Typography } from '@mui/material';
 import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useMarkets } from '../../store/markets.store';
 import { usePositions } from '../../store/positions.store';
@@ -14,11 +14,18 @@ function MyPositions() {
   const [currentTab, setCurrentTab] = useState(
     router.query?.tab === 'lend' ? 1 : 0
   );
+  const [isTransitionActive, setIsTransitionActive] = useState<boolean>(false);
 
   const borrowPositions = usePositions((state) => state.borrowPositions);
   const lendingPositions = usePositions((state) => state.lendingPositions);
   const borrowMarkets = useMarkets((state) => state.borrow.rows);
   const lendMarkets = useMarkets((state) => state.lending.rows);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsTransitionActive(false);
+    }, 500);
+  }, [currentTab]);
 
   return (
     <>
@@ -34,24 +41,20 @@ function MyPositions() {
 
       <Grid container mt="2.5rem" mb="1rem">
         <BorrowLendingTabNavigation
-          onChange={(tab) => setCurrentTab(tab)}
+          onChange={(tab) => {
+            setIsTransitionActive(true);
+            setCurrentTab(tab);
+          }}
           defaultTab={currentTab}
         />
       </Grid>
 
-      {currentTab === 0 ? (
-        <MyPositionsTable
-          positions={borrowPositions}
-          type={VaultType.BORROW}
-          markets={borrowMarkets}
-        />
-      ) : (
-        <MyPositionsTable
-          positions={lendingPositions}
-          type={VaultType.LEND}
-          markets={lendMarkets}
-        />
-      )}
+      <MyPositionsTable
+        positions={currentTab === 0 ? borrowPositions : lendingPositions}
+        type={currentTab === 0 ? VaultType.BORROW : VaultType.LEND}
+        markets={currentTab === 0 ? borrowMarkets : lendMarkets}
+        isTransitionActive={isTransitionActive}
+      />
     </>
   );
 }

@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { VaultType } from '@x-fuji/sdk';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AprType, AssetType, recommendedLTV } from '../../helpers/assets';
 import { chainName } from '../../helpers/chains';
@@ -42,9 +42,15 @@ type MyPositionsTableProps = {
   type: VaultType;
   markets: MarketRow[];
   positions: Position[];
+  isTransitionActive: boolean;
 };
 
-function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
+function MyPositionsTable({
+  type,
+  positions,
+  markets,
+  isTransitionActive,
+}: MyPositionsTableProps) {
   const router = useRouter();
 
   const account = useAuth((state) => state.address);
@@ -63,6 +69,32 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
     })();
   }, [loading, account, positions]);
 
+  const loadingBlock = useMemo(
+    () => (
+      <MyPositionsBorrowTableContainer isLend={isLend}>
+        <>
+          {new Array(rows.length || 1).fill('').map((_, i) => (
+            <TableRow key={i} sx={{ height: '3.375rem' }}>
+              {new Array(numberOfColumns).fill('').map((_, index) => (
+                <TableCell key={index}>
+                  <Skeleton />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </>
+
+        <ExtraTableSpace
+          colSpan={numberOfColumns}
+          itemLength={rows.length || 1}
+          max={5}
+        />
+      </MyPositionsBorrowTableContainer>
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows]
+  );
+
   if (!account) {
     return (
       <MyPositionsBorrowTableContainer isLend={isLend}>
@@ -70,19 +102,8 @@ function MyPositionsTable({ type, positions, markets }: MyPositionsTableProps) {
       </MyPositionsBorrowTableContainer>
     );
   }
-  if (loading) {
-    return (
-      <MyPositionsBorrowTableContainer isLend={isLend}>
-        <TableRow sx={{ height: '3.375rem' }}>
-          {new Array(numberOfColumns).fill('').map((_, index) => (
-            <TableCell key={index}>
-              <Skeleton />
-            </TableCell>
-          ))}
-        </TableRow>
-        <ExtraTableSpace colSpan={numberOfColumns} itemLength={1} max={5} />
-      </MyPositionsBorrowTableContainer>
-    );
+  if (loading || isTransitionActive) {
+    return loadingBlock;
   }
 
   function handleClick(row: PositionRow) {
