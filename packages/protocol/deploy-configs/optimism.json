@@ -103,6 +103,15 @@
     },
     {
       "collateral": "WETH",
+      "debt": "USDT",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHUSDT-1",
+      "providers": ["DForce_Optimism", "Aave_V3_Optimism"],
+      "rating": 80
+    },
+    {
+      "collateral": "WETH",
       "debt": "DAI",
       "liqRatio": 820000000000000000,
       "maxLtv": 800000000000000000,
