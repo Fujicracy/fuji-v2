@@ -89,11 +89,15 @@ const MigratePage: NextPage = () => {
                   onBack={onBack}
                   position={selected!}
                   onNext={onFromFormFilled}
+                  isFormFormFilled={isFormFormFilled}
                 />
               </Grid>
               {isFormFormFilled && (
                 <Grid item xs={4} ml={{ xs: 0, md: 3 }} mt={{ xs: 3, md: 0 }}>
-                  <MigrateTo />
+                  <MigrateTo
+                    onNext={() => console.log('implement me')}
+                    onBack={() => setIsFormFormFilled(false)}
+                  />
                 </Grid>
               )}
             </>

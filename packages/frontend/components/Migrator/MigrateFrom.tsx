@@ -24,9 +24,15 @@ type MigrateFromProps = {
   onBack: () => void;
   onNext: () => void;
   position: PositionRow;
+  isFormFormFilled: boolean;
 };
 
-function MigrateFrom({ onBack, position, onNext }: MigrateFromProps) {
+function MigrateFrom({
+  onBack,
+  position,
+  onNext,
+  isFormFormFilled,
+}: MigrateFromProps) {
   const { palette } = useTheme();
   const changeAssetCurrency = useBorrow((state) => state.changeAssetCurrency);
   const changeAssetValue = useBorrow((state) => state.changeAssetValue);
@@ -130,18 +136,20 @@ function MigrateFrom({ onBack, position, onNext }: MigrateFromProps) {
             <PositionHealth value={20} maxLTV={80} recommendedLTV={75} />
           </Box>
 
-          <Button
-            fullWidth
-            variant="gradient"
-            size="medium"
-            disabled={false}
-            onClick={onNext}
-            sx={{
-              mt: 3,
-            }}
-          >
-            Next
-          </Button>
+          {!isFormFormFilled && (
+            <Button
+              fullWidth
+              variant="gradient"
+              size="medium"
+              disabled={false}
+              onClick={onNext}
+              sx={{
+                mt: 3,
+              }}
+            >
+              Next
+            </Button>
+          )}
         </CardContent>
       </Card>
     </Stack>

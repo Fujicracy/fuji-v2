@@ -7,8 +7,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import React from 'react';
+import React, { useState } from 'react';
 
 import { AssetType } from '../../helpers/assets';
 import { NetworkIcon, ProviderIcon } from '../Shared/Icons';
@@ -20,10 +19,11 @@ import RepayDebtCheckBox from './RepayDebtCheckBox';
 
 type MigrateToProps = {
   onNext: () => void;
+  onBack: () => void;
 };
 
-function MigrateTo({ onNext }: MigrateToProps) {
-  const { palette } = useTheme();
+function MigrateTo({ onNext, onBack }: MigrateToProps) {
+  const [isRepayDebtChecked, setIsRepayDebtChecked] = useState(false);
 
   return (
     <Stack direction="column" justifyContent="flex-start" textAlign="left">
@@ -77,7 +77,10 @@ function MigrateTo({ onNext }: MigrateToProps) {
           </Grid>
 
           <Box mt={1.5}>
-            <RepayDebtCheckBox />
+            <RepayDebtCheckBox
+              checked={isRepayDebtChecked}
+              setChecked={setIsRepayDebtChecked}
+            />
           </Box>
 
           <Button
@@ -91,6 +94,19 @@ function MigrateTo({ onNext }: MigrateToProps) {
             }}
           >
             Approve and Migrate
+          </Button>
+
+          <Button
+            fullWidth
+            variant="text"
+            size="medium"
+            disabled={false}
+            onClick={onBack}
+            sx={{
+              mt: 2,
+            }}
+          >
+            Back
           </Button>
         </CardContent>
       </Card>

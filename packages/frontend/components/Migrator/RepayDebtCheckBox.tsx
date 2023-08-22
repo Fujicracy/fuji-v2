@@ -1,10 +1,14 @@
 import { Box, Checkbox, Stack, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent } from 'react';
 
-function RepayDebtCheckBox() {
+type RepayDebtCheckBoxProps = {
+  checked: boolean;
+  setChecked: (value: boolean) => void;
+};
+
+function RepayDebtCheckBox({ checked, setChecked }: RepayDebtCheckBoxProps) {
   const { palette } = useTheme();
-  const [checked, setChecked] = useState(false);
 
   return (
     <Box
