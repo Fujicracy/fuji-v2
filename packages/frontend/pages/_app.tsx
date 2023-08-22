@@ -170,20 +170,22 @@ function MyApp({ Component, pageProps }: AppProps) {
           <DisclaimerModal />
           <ExploreCarousel />
           <Notification />
-          <ChainvineWidget
-            config={widgetConfig}
-            isOpen={isReferralModalOpen}
-            identifierType={'wallet'}
-            userIdentifier={address}
-            campaignId={campaignId}
-            mode="Modal"
-            theme="Dark"
-            themeConfig={{
-              inherit: true,
-              token: { colorPrimary: theme.palette.primary.main },
-            }}
-            onToggle={() => setIsReferralModalOpen(false)}
-          />
+          {address && (
+            <ChainvineWidget
+              config={widgetConfig}
+              isOpen={isReferralModalOpen}
+              identifierType={'wallet'}
+              userIdentifier={address}
+              campaignId={campaignId}
+              mode="Modal"
+              theme="Dark"
+              themeConfig={{
+                inherit: true,
+                token: { colorPrimary: theme.palette.primary.main },
+              }}
+              onToggle={() => setIsReferralModalOpen(false)}
+            />
+          )}
         </ThemeProvider>
       </Web3OnboardProvider>
     </>
