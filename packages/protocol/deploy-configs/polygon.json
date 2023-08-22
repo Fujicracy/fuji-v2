@@ -136,6 +136,15 @@
       "name": "BorrowingVault-WETHDAI-2",
       "providers": ["DForce_Polygon", "Aave_V2_Polygon", "Aave_V3_Polygon"],
       "rating": 85
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDT",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHUSDT-1",
+      "providers": ["Aave_V2_Polygon", "Aave_V3_Polygon","DForce_Polygon"],
+      "rating": 85
     }
   ],
   "yield-vaults": [
