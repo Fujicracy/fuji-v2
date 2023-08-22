@@ -5,6 +5,7 @@ import {
 } from '@chainvine/sdk';
 
 const config = {
+  apiKey: process.env.NEXT_PUBLIC_REFERRAL_API_KEY,
   logToConsole: true,
   testMode: true,
 };
@@ -13,7 +14,6 @@ export const campaignId = process.env.NEXT_PUBLIC_REFERRAL_CAMPAIGN_ID ?? '';
 
 export const widgetConfig = {
   ...config,
-  apiKey: process.env.NEXT_PUBLIC_REFERRAL_API_KEY,
 };
 
 const campaign = {
