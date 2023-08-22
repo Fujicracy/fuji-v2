@@ -49,11 +49,11 @@ export const VAULT_LIST: ChainVaultList = {
       WETH9[ChainId.ETHEREUM],
       USDC[ChainId.ETHEREUM]
     ),
-    //new BorrowingVault(
-    //Address.from('0xC5A93F0EEaB26ef8f6bE7D35451E2f4B55Dfd25d'),
-    //WETH9[ChainId.ETHEREUM],
-    //USDC[ChainId.ETHEREUM]
-    //),
+    new BorrowingVault(
+      Address.from('0xC5A93F0EEaB26ef8f6bE7D35451E2f4B55Dfd25d'),
+      WETH9[ChainId.ETHEREUM],
+      USDC[ChainId.ETHEREUM]
+    ),
     new BorrowingVault(
       Address.from('0xf7a7cf71d9986f7fcBC2A71eE6bcF271ACb3DC7A'),
       WSTETH[ChainId.ETHEREUM],
