@@ -76,21 +76,28 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
       }
       vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
     } else {
+      // BorrowingVault
       if (debt == type(uint256).max) {
         debt = from.getBorrowBalance(address(vault), vault);
       }
 
-      // BorrowingVault
       if (assets == 0 && debt == 0) {
         // Should at least move some assets or debt across providers.
         revert RebalancerManager__rebalanceVault_invalidAmount();
       }
-      _checkDebtAmount(vault, debt, from);
-      if (!chief.allowedFlasher(address(flasher))) {
-        revert RebalancerManager__rebalanceVault_notValidFlasher();
+
+      if (debt == 0) {
+        // Rebalance only assets do not require flashloan
+        vault.rebalance(assets, 0, from, to, 0, setToAsActiveProvider);
+      } else {
+        // Check flasher is valid
+        if (!chief.allowedFlasher(address(flasher))) {
+          revert RebalancerManager__rebalanceVault_notValidFlasher();
+        }
+        _checkDebtAmount(vault, debt, from);
+        _checkLtvChange(vault, from, to, assets, debt);
+        _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
       }
-      _checkLtvChange(vault, from, to, assets, debt);
-      _getFlashloan(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
     }
 
     success = true;
@@ -272,6 +279,14 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
   }
 
   /**
+   * @dev Reset the `_entryPoint` state variable.
+   */
+  function _resetEntryPoint() private {
+    // Reset the `_entryPoint`.
+    _entryPoint = "";
+  }
+
+  /**
    * @notice Callback function that completes execution logic of a rebalance
    * operation with a flashloan.
    *
@@ -299,6 +314,11 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
     external
     returns (bool success)
   {
+    // Check caller is a valid flasher
+    if (!chief.allowedFlasher(msg.sender)) {
+      revert RebalancerManager__rebalanceVault_notValidFlasher();
+    }
+    // Check flashloan originator is reentering properly
     _checkReentry(vault, assets, debt, from, to, flasher, setToAsActiveProvider);
 
     IERC20 debtAsset = IERC20(vault.debtAsset());
@@ -315,8 +335,20 @@ contract RebalancerManager is IRebalancerManager, SystemAccessControl {
 
     debtAsset.safeTransfer(address(flasher), debt + flashloanFee);
 
-    // Re-initialize the `_entryPoint`.
-    _entryPoint = "";
+    _resetEntryPoint();
     success = true;
+  }
+
+  /**
+   * @dev Forces to reset the `_entryPoint` state variable.
+   * This is needed in emergency case that  `_resetEntryPoint()` is not reached due to
+   * external failure in execution of `completeRebalance()`.
+   * Otherwise, RebalancerManager will remain inoperable.
+   *
+   * Requirements:
+   * - Must be called from the timelock.
+   */
+  function hardResetEntryPoint() external onlyTimelock {
+    _resetEntryPoint();
   }
 }
