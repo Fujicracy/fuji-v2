@@ -24,24 +24,25 @@ const client = new ChainvineClient(config);
 
 export const storeReferrer = () => storeReferrerId();
 
-export const syncAddressWithCampaign = async (address?: string) => {
-  if (!address) return;
+export const syncAddressWithCampaign = async (address: string) => {
   // First sync the user with the new address, don't do a thing in case of a disconnect
   const userClient = await client.syncUser(address);
   const referrerId = getReferrerId();
-
-  console.log(userClient, referrerId);
   // If there is a referrerId...
   if (referrerId) {
-    // ...link the user to the referrerId
-    const linkResult = await userClient
-      .referral({
-        campaign,
-      })
-      .linkToReferrer(referrerId);
-    // ...and record the click
-    const clickResult = await client.recordClick(referrerId, campaignId);
-    console.log(linkResult);
-    console.log(clickResult);
+    try {
+      // ...link the user to the referrerId
+      const linkResult = await userClient
+        .referral({
+          campaign,
+        })
+        .linkToReferrer(referrerId);
+      // ...and record the click
+      const clickResult = await client.recordClick(referrerId, campaignId);
+      console.log('linkResult', linkResult);
+      console.log('clickResult', clickResult);
+    } catch (error) {
+      console.error(error);
+    }
   }
 };

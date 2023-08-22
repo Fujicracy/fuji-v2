@@ -94,7 +94,7 @@ export const useAuth = create<AuthStore>()(
           const provider = new ethers.providers.Web3Provider(
             wallets[0].provider
           );
-
+          const addressChanged = address !== get().address;
           set({
             status: AuthStatus.Connected,
             address,
@@ -105,7 +105,9 @@ export const useAuth = create<AuthStore>()(
 
           const json = JSON.stringify(wallets.map(({ label }) => label));
           localStorage.setItem('connectedWallets', json);
-          syncAddressWithCampaign(address);
+          if (address && addressChanged) {
+            syncAddressWithCampaign(address);
+          }
         },
 
         login: async (options) => {
