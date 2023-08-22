@@ -346,6 +346,38 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
     assertEq(mockProviderB.getBorrowBalance(address(bvault), IVault(address(bvault))), debt);
   }
 
+  function test_rebalanceBorrowingVaultWithRebalancerOnlyPartialAssets() public {
+    uint256 assets = DEPOSIT_AMOUNT / 2; // ALICE, BOB, CHARLIE, DAVID
+
+    //rebalance only partial assets should be ok
+    rebalancer.rebalanceVault(bvault, assets, 0, mockProviderA, mockProviderB, flasher, false);
+    assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), assets);
+
+    MockFlasher invalidFlasher = new MockFlasher();
+    //rebalance only partial assets even with invalid flasher should be ok since only assets do not use flashloan
+    rebalancer.rebalanceVault(
+      bvault, assets, 0, mockProviderB, mockProviderA, invalidFlasher, false
+    );
+    assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
+  }
+
+  function test_rebalanceBorrowingVaultWithRebalancerOnlyFullAssets() public {
+    // Payback all debt properly.
+    do_payback(BORROW_AMOUNT, bvault, ALICE);
+    do_payback(BORROW_AMOUNT, bvault, BOB);
+    do_payback(BORROW_AMOUNT, bvault, CHARLIE);
+    do_payback(BORROW_AMOUNT, bvault, DAVID);
+
+    uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
+    //rebalance only partial assets should be ok
+    rebalancer.rebalanceVault(bvault, assets, 0, mockProviderA, mockProviderB, flasher, true);
+    assertEq(mockProviderA.getDepositBalance(address(bvault), IVault(address(bvault))), 0);
+    assertEq(mockProviderB.getDepositBalance(address(bvault), IVault(address(bvault))), assets);
+
+    ILendingProvider currentProvider = bvault.activeProvider();
+    assertEq(address(currentProvider), address(mockProviderB));
+  }
+
   function test_rebalanceYieldVaultWithRebalancer() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT + initVaultShares; // ALICE, BOB, CHARLIE, DAVID
 
@@ -383,10 +415,13 @@ contract VaultRebalancingUnitTests is MockingSetup, MockRoutines {
   function test_notValidFlasher() public {
     uint256 assets = 4 * DEPOSIT_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
     MockFlasher invalidFlasher = new MockFlasher();
+    uint256 debt = 4 * BORROW_AMOUNT; // ALICE, BOB, CHARLIE, DAVID
 
     //rebalance with invalid flasher should fail
     vm.expectRevert(RebalancerManager.RebalancerManager__rebalanceVault_notValidFlasher.selector);
-    rebalancer.rebalanceVault(bvault, assets, 0, mockProviderA, mockProviderB, invalidFlasher, true);
+    rebalancer.rebalanceVault(
+      bvault, assets, debt, mockProviderA, mockProviderB, invalidFlasher, true
+    );
   }
 
   // error RebalancerManager__checkAssetsAmount_invalidAmount();
