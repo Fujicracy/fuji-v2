@@ -3,6 +3,7 @@ import {
   Button,
   Card,
   CardContent,
+  Grid,
   Stack,
   Typography,
 } from '@mui/material';
@@ -11,6 +12,7 @@ import React from 'react';
 
 import { AssetType } from '../../helpers/assets';
 import { NetworkIcon, ProviderIcon } from '../Shared/Icons';
+import APRChange from './APRChange';
 import AssetMigrationChange from './AssetMigrationChange';
 import InfoWithIcon from './InfoWithIcon';
 import PositionHealth from './PositionHealth';
@@ -54,6 +56,24 @@ function MigrateTo({ onNext }: MigrateToProps) {
           <Box mt={2}>
             <PositionHealth value={55} maxLTV={80} recommendedLTV={75} />
           </Box>
+
+          <Grid container justifyContent="space-between" mt={1.5}>
+            <Typography variant="smallDark">Net APR</Typography>
+
+            <APRChange type={AssetType.Debt} start={2.09} end={3.36} />
+          </Grid>
+
+          <Grid container justifyContent="space-between" mt={1.5}>
+            <Typography variant="smallDark">Bridge fees</Typography>
+
+            <Typography variant="small">Bridge fees</Typography>
+          </Grid>
+
+          <Grid container justifyContent="space-between" mt={1.5}>
+            <Typography variant="smallDark">Est, processing time</Typography>
+
+            <Typography variant="small">~2 Mins</Typography>
+          </Grid>
 
           <Button
             fullWidth
