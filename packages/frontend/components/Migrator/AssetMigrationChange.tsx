@@ -5,6 +5,7 @@ import React from 'react';
 import { AssetType } from '../../helpers/assets';
 import { formatAssetWithSymbol } from '../../helpers/values';
 import { CurrencyIcon } from '../Shared/Icons';
+import APRChange from './APRChange';
 
 type AssetMigrationChangeProps = {
   type: AssetType;
@@ -33,8 +34,8 @@ function AssetMigrationChange({ type }: AssetMigrationChangeProps) {
       }}
     >
       <Stack direction="row" alignItems="center" justifyContent="space-between">
-        <Typography variant="smallDark">{labels.assetType} Asset</Typography>
-        <Typography variant="smallDark">{labels.apyLabel} Change</Typography>
+        <Typography variant="xsmallDark">{labels.assetType} Asset</Typography>
+        <Typography variant="xsmallDark">{labels.apyLabel} Change</Typography>
       </Stack>
       <Stack
         direction="row"
@@ -44,13 +45,14 @@ function AssetMigrationChange({ type }: AssetMigrationChangeProps) {
       >
         <Stack direction="row" alignItems="center" justifyContent="flex-start">
           <CurrencyIcon currency={'ETH'} height={16} width={16} />
-          <Typography variant="small">
+          <Typography variant="small" sx={{ m: '0 0 -2px 0.25rem' }}>
             {formatAssetWithSymbol({
               amount: 0.01,
               symbol: 'ETH',
             })}
           </Typography>
         </Stack>
+        <APRChange type={type} start={2.07} end={0} />
       </Stack>
     </Box>
   );

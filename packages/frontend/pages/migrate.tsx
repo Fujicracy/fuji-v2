@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import MigrateFrom from '../components/Migrator/MigrateFrom';
 import MigratePosition from '../components/Migrator/MigratePosition';
+import MigrateTo from '../components/Migrator/MigrateTo';
 import { getRows, PositionRow } from '../helpers/positions';
 import { useAuth } from '../store/auth.store';
 import { usePositions } from '../store/positions.store';
@@ -92,7 +93,7 @@ const MigratePage: NextPage = () => {
               </Grid>
               {isFormFormFilled && (
                 <Grid item xs={4} ml={{ xs: 0, md: 3 }} mt={{ xs: 3, md: 0 }}>
-                  test
+                  <MigrateTo />
                 </Grid>
               )}
             </>

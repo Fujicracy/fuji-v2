@@ -9,17 +9,17 @@ import {
 import { useTheme } from '@mui/material/styles';
 import React from 'react';
 
-import { PositionRow } from '../../helpers/positions';
+import { AssetType } from '../../helpers/assets';
 import { NetworkIcon, ProviderIcon } from '../Shared/Icons';
+import AssetMigrationChange from './AssetMigrationChange';
 import InfoWithIcon from './InfoWithIcon';
 import PositionHealth from './PositionHealth';
 
 type MigrateToProps = {
   onNext: () => void;
-  position: PositionRow;
 };
 
-function MigrateTo({ position, onNext }: MigrateToProps) {
+function MigrateTo({ onNext }: MigrateToProps) {
   const { palette } = useTheme();
 
   return (
@@ -44,7 +44,15 @@ function MigrateTo({ position, onNext }: MigrateToProps) {
           </Stack>
 
           <Box mt={2}>
-            <PositionHealth value={20} maxLTV={80} recommendedLTV={75} />
+            <AssetMigrationChange type={AssetType.Collateral} />
+          </Box>
+
+          <Box mt={1}>
+            <AssetMigrationChange type={AssetType.Debt} />
+          </Box>
+
+          <Box mt={2}>
+            <PositionHealth value={55} maxLTV={80} recommendedLTV={75} />
           </Box>
 
           <Button
