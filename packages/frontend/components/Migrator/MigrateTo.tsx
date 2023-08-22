@@ -16,6 +16,7 @@ import APRChange from './APRChange';
 import AssetMigrationChange from './AssetMigrationChange';
 import InfoWithIcon from './InfoWithIcon';
 import PositionHealth from './PositionHealth';
+import RepayDebtCheckBox from './RepayDebtCheckBox';
 
 type MigrateToProps = {
   onNext: () => void;
@@ -74,6 +75,10 @@ function MigrateTo({ onNext }: MigrateToProps) {
 
             <Typography variant="small">~2 Mins</Typography>
           </Grid>
+
+          <Box mt={1.5}>
+            <RepayDebtCheckBox />
+          </Box>
 
           <Button
             fullWidth
