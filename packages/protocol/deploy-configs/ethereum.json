@@ -259,15 +259,6 @@
       "name": "BorrowingVault-WSTETHGHO-1",
       "providers": ["Aave_V3"],
       "rating": 90
-    },
-    {
-      "collateral": "WSTETH",
-      "debt": "USDT",
-      "liqRatio": 800000000000000000,
-      "maxLtv": 690000000000000000,
-      "name": "BorrowingVault-WSTETHUSDT-1",
-      "providers": ["Morpho_Aave_V2","Morpho_Compound"],
-      "rating": 85
     }
   ],
   "yield-vaults": [
