@@ -154,6 +154,24 @@
       "name": "BorrowingVault-MATICXWMATIC-1",
       "providers": ["Aave_V3_Polygon"],
       "rating": 95
+    },
+    {
+      "collateral": "STMATIC",
+      "debt": "WMATIC",
+      "liqRatio": 940000000000000000,
+      "maxLtv": 920000000000000000,
+      "name": "BorrowingVault-STMATICWMATIC-1",
+      "providers": ["Aave_V3_Polygon"],
+      "rating": 95
+    },
+    {
+      "collateral": "STMATIC",
+      "debt": "MATICX",
+      "liqRatio": 940000000000000000,
+      "maxLtv": 920000000000000000,
+      "name": "BorrowingVault-STMATICMATICX-1",
+      "providers": ["Aave_V3_Polygon"],
+      "rating": 95
     }
   ],
   "yield-vaults": [
