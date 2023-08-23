@@ -85,6 +85,15 @@
     },
     {
       "collateral": "WBTC",
+      "debt": "USDC",
+      "liqRatio": 750000000000000000,
+      "maxLtv": 700000000000000000,
+      "name": "BorrowingVault-WBTCUSDC-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
+    },
+    {
+      "collateral": "WBTC",
       "debt": "DAI",
       "liqRatio": 750000000000000000,
       "maxLtv": 700000000000000000,
