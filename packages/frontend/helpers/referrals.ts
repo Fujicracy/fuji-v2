@@ -30,6 +30,7 @@ export const syncAddressWithCampaign = async (address: string) => {
   const userClient = await client.syncUser(address);
   const referrerId = getReferrerId();
   // If there is a referrerId...
+  console.log('referrerId', referrerId);
   if (referrerId) {
     try {
       // ...link the user to the referrerId
