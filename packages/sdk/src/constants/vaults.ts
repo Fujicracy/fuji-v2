@@ -353,12 +353,12 @@ export const VAULT_LIST: ChainVaultList = {
     new BorrowingVault(
       Address.from('0x848bE4352c984173D1927239f1c3a2b3FC3baf7b'),
       WETH9[ChainId.GNOSIS],
-      DAI[ChainId.GNOSIS]
+      WNATIVE[ChainId.GNOSIS]
     ),
     new BorrowingVault(
       Address.from('0x2f4F37f06179d0e969D2350beE8ABe663De0dab7'),
       WBTC[ChainId.GNOSIS],
-      DAI[ChainId.GNOSIS]
+      WNATIVE[ChainId.GNOSIS]
     ),
     new BorrowingVault(
       Address.from('0xe3298F965553b4aeF40fBe4BBa916DEc12F3d694'),
