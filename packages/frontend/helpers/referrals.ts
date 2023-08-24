@@ -14,6 +14,7 @@ export const campaignId = process.env.NEXT_PUBLIC_REFERRAL_CAMPAIGN_ID ?? '';
 
 export const widgetConfig = {
   ...config,
+  baseUrl: process.env.NEXT_PUBLIC_REFERRAL_BASE_URL,
 };
 
 const campaign = {
