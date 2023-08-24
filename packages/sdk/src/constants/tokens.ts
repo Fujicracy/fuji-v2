@@ -12,6 +12,7 @@ import {
   RETH_ADDRESS,
   USDC_ADDRESS,
   USDT_ADDRESS,
+  WBTC_ADDRESS,
   WETH9_ADDRESS,
   WNATIVE_ADDRESS,
   WSTETH_ADDRESS,
@@ -347,12 +348,86 @@ export const WETH9: TokenMap = {
   ),
 };
 
+export const WBTC: TokenMap = {
+  [ChainId.ETHEREUM]: new Token(
+    ChainId.ETHEREUM,
+    WBTC_ADDRESS[ChainId.ETHEREUM],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+  [ChainId.GOERLI]: new Token(
+    ChainId.GOERLI,
+    WBTC_ADDRESS[ChainId.GOERLI],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+  [ChainId.ARBITRUM]: new Token(
+    ChainId.ARBITRUM,
+    WBTC_ADDRESS[ChainId.ARBITRUM],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+  [ChainId.FANTOM]: new Token(
+    ChainId.FANTOM,
+    WBTC_ADDRESS[ChainId.FANTOM],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+  [ChainId.MATIC]: new Token(
+    ChainId.MATIC,
+    WBTC_ADDRESS[ChainId.MATIC],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+  [ChainId.MATIC_MUMBAI]: new Token(
+    ChainId.MATIC_MUMBAI,
+    WBTC_ADDRESS[ChainId.MATIC_MUMBAI],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+  [ChainId.OPTIMISM]: new Token(
+    ChainId.OPTIMISM,
+    WBTC_ADDRESS[ChainId.OPTIMISM],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+  [ChainId.OPTIMISM_GOERLI]: new Token(
+    ChainId.OPTIMISM_GOERLI,
+    WBTC_ADDRESS[ChainId.OPTIMISM_GOERLI],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+  [ChainId.GNOSIS]: new Token(
+    ChainId.GNOSIS,
+    WBTC_ADDRESS[ChainId.GNOSIS],
+    8,
+    'WBTC',
+    'Wrapped BTC'
+  ),
+};
+
 export const MATICX = new Token(
   ChainId.MATIC,
   Address.from('0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6'),
   18,
   'MaticX',
   'Liquid Staking Matic'
+);
+
+export const STMATIC = new Token(
+  ChainId.MATIC,
+  Address.from('0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6'),
+  18,
+  'StMatic',
+  'Staked Matic (POS)'
 );
 
 export const WSTETH: TokenMap = {
