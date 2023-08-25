@@ -8,6 +8,7 @@ export type LlamaAssetPool = {
   apy: number;
   rewardTokens: string[];
   pool: string;
+  stakingApy?: number;
 };
 
 export type LlamaLendBorrowPool = {

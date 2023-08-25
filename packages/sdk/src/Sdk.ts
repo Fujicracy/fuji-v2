@@ -725,11 +725,39 @@ export class Sdk {
     }
   }
 
-  private _getFinancialsFor(
+  // function sarasa() {
+  //   const chain = CHAIN[v.vault.chainId].llamaKey;
+  //   const project = v.activeProvider.llamaKey;
+  //   const collateralSym = v.vault.collateral.symbol;
+  //   const isBorrowingVault = v.vault instanceof BorrowingVault;
+  //   const debtSym =
+  //     v.vault instanceof BorrowingVault ? v.vault.debt.symbol : null;
+  //   const poolSym = isBorrowingVault ? debtSym : collateralSym;
+
+  //   const depositData = pools.find(
+  //     (p: LlamaAssetPool) =>
+  //       p.chain === chain && p.project === project && p.symbol === collateralSym
+  //   );
+
+  //   const lendBorrowPool = pools.find(
+  //     (p: LlamaAssetPool) =>
+  //       p.chain === chain && p.project === project && p.symbol === poolSym
+  //   );
+  //   let lendBorrowData;
+  //   if (lendBorrowPool) {
+  //     lendBorrowData = lendBorrows.find(
+  //       (b: LlamaLendBorrowPool) => b.pool === lendBorrowPool.pool
+  //     );
+  //   }
+  // }
+
+  poolDataForVault(
     v: VaultWithFinancials,
-    pools: LlamaAssetPool[],
-    lendBorrows: LlamaLendBorrowPool[]
-  ): VaultWithFinancials {
+    pools: LlamaAssetPool[]
+  ): {
+    depositData: LlamaAssetPool | undefined;
+    lendBorrowPool: LlamaAssetPool | undefined;
+  } {
     const chain = CHAIN[v.vault.chainId].llamaKey;
     const project = v.activeProvider.llamaKey;
     const collateralSym = v.vault.collateral.symbol;
@@ -747,6 +775,17 @@ export class Sdk {
       (p: LlamaAssetPool) =>
         p.chain === chain && p.project === project && p.symbol === poolSym
     );
+    return { depositData, lendBorrowPool };
+  }
+
+  private _getFinancialsFor(
+    v: VaultWithFinancials,
+    pools: LlamaAssetPool[],
+    lendBorrows: LlamaLendBorrowPool[]
+  ): VaultWithFinancials {
+    const isBorrowingVault = v.vault instanceof BorrowingVault;
+    const { depositData, lendBorrowPool } = this.poolDataForVault(v, pools);
+
     let lendBorrowData;
     if (lendBorrowPool) {
       lendBorrowData = lendBorrows.find(
