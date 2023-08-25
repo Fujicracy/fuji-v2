@@ -31,6 +31,7 @@ const N_CALLS = 11;
 
 type Detail = BigNumber | string | string[];
 type Rate = BigNumber;
+type RateOrNull = Rate | null;
 
 // rates are with 27 decimals
 const rateToFloat = (n: BigNumber) =>
@@ -134,7 +135,7 @@ const getProvidersCalls = (v: AbstractVault): FujiResult<Call<Rate>[]> => {
 const setResults = (
   v: AbstractVault,
   detailsBatch: (Detail | null)[],
-  rates: Rate[]
+  rates: RateOrNull[]
 ): FujiResult<VaultWithFinancials> => {
   if (!v.activeProvider || !v.allProviders) {
     return new FujiResultError(
@@ -144,15 +145,24 @@ const setResults = (
   const apIndex = v.allProviders.findIndex((addr) => v.activeProvider === addr);
   const providers = v.allProviders.map((addr, i) => {
     if (v instanceof BorrowingVault) {
+      const depositAprRate = rates[2 * i];
+      const borrowAprRate = rates[2 * i + 1];
+      const depositAprBase =
+        depositAprRate !== null ? rateToFloat(depositAprRate) : undefined;
+      const borrowAprBase =
+        borrowAprRate !== null ? rateToFloat(borrowAprRate) : undefined;
       return {
         ...LENDING_PROVIDERS[v.chainId][addr],
-        depositAprBase: rateToFloat(rates[2 * i]),
-        borrowAprBase: rateToFloat(rates[2 * i + 1]),
+        depositAprBase,
+        borrowAprBase,
       };
     } else {
+      const depositAprRate = rates[i];
+      const depositAprBase =
+        depositAprRate !== null ? rateToFloat(depositAprRate) : undefined;
       return {
         ...LENDING_PROVIDERS[v.chainId][addr],
-        depositAprBase: rateToFloat(rates[i]),
+        depositAprBase,
       };
     }
   });
@@ -245,7 +255,7 @@ const doBatchLoad = async (
       return o;
     }
   );
-  const ratesBatchResults = await multicall.all(
+  const ratesBatchResults = await multicall.tryAll(
     // flatten [][] to []
     ratesBatch.reduce((acc, v) => acc.concat(...v), [])
   );
