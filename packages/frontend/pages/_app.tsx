@@ -26,7 +26,12 @@ import {
   navigationalTaskDelay,
   pathForVaultType,
 } from '../helpers/navigation';
-import { campaignId, storeReferrer, widgetConfig } from '../helpers/referrals';
+import {
+  campaignId,
+  REFERRAL_WIDGET_WIDTH,
+  storeReferrer,
+  widgetConfig,
+} from '../helpers/referrals';
 import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
@@ -178,6 +183,12 @@ function MyApp({ Component, pageProps }: AppProps) {
               userIdentifier={address}
               campaignId={campaignId}
               mode="Modal"
+              desktopSize={{
+                width: `${REFERRAL_WIDGET_WIDTH}%`,
+              }}
+              desktopPosition={{
+                left: `${(100 - REFERRAL_WIDGET_WIDTH) / 2}%`,
+              }}
               theme="Dark"
               themeConfig={{
                 inherit: true,

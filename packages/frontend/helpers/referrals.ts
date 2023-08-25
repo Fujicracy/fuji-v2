@@ -10,6 +10,8 @@ const config = {
   testMode: true,
 };
 
+export const REFERRAL_WIDGET_WIDTH = 55; // Percentage
+
 export const campaignId = process.env.NEXT_PUBLIC_REFERRAL_CAMPAIGN_ID ?? '';
 
 export const widgetConfig = {
