@@ -366,6 +366,11 @@ export const VAULT_LIST: ChainVaultList = {
       USDC[ChainId.GNOSIS]
     ),
     new BorrowingVault(
+      Address.from('0xdbc8904f2931de1549d6e9a369dc5c75f501f820'),
+      WSTETH[ChainId.GNOSIS],
+      USDC[ChainId.GNOSIS]
+    ),
+    new BorrowingVault(
       Address.from('0xa99F739Bd55f95D4F0958B629d3522e64A282c7c'),
       WSTETH[ChainId.GNOSIS],
       GNO[ChainId.GNOSIS]
