@@ -1257,19 +1257,10 @@
     "@chainsafe/persistent-merkle-tree" "^0.4.2"
     case "^1.6.3"
 
-"@chainvine/sdk@^1.5.19":
+"@chainvine/sdk@^1.5.19", "@chainvine/sdk@^1.5.20":
   version "1.5.20"
   resolved "https://registry.yarnpkg.com/@chainvine/sdk/-/sdk-1.5.20.tgz#5eefb39d4e9d958dd7e81b68e9b018993764738d"
   integrity sha512-PsuNIgjm1LTJo1QYQQArpfeuvO0XFO8wSVCIf6+akp8PT5sVVW+ykMq3WPbMIl4GC7ncvDGk3082JfUUFZH0lw==
-  dependencies:
-    cls-hooked "^4.2.2"
-    cross-fetch "^3.1.6"
-    js-cookie "^3.0.1"
-
-"@chainvine/sdk@^1.5.9":
-  version "1.5.9"
-  resolved "https://registry.yarnpkg.com/@chainvine/sdk/-/sdk-1.5.9.tgz#385d3e3a642e824de60ce45f2c7baa58401ed244"
-  integrity sha512-BYQlIWMpqdCWzH/d3vsfQK4hubOuESPsS7kqKOvlroQOy5qDR3V4rrZDevZr6r1DCIXlDYUVk2zuQVDuT7boiw==
   dependencies:
     cls-hooked "^4.2.2"
     cross-fetch "^3.1.6"
