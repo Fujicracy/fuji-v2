@@ -1,5 +1,6 @@
 import {
   CHAIN,
+  FinancialsResponse,
   FujiError,
   LlamaAssetPool,
   LlamaLendBorrowPool,
@@ -11,7 +12,6 @@ import {
   FinancialsOrError,
   getVaultFinancials,
 } from '../../../../helpers/vaults';
-import { FinancialsResponse } from '../types';
 
 export async function filterFinancials(
   data: FinancialsResponse

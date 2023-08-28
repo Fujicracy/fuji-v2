@@ -1,17 +1,21 @@
-import { GetLlamaPoolStatsResponse } from '@x-fuji/sdk';
+import {
+  FinancialsResponse,
+  FinancialsUri,
+  ProviderStatsResponse,
+} from '@x-fuji/sdk';
 import axios from 'axios';
 
-import { DEFILLAMA_PROXY, DEFILLAMA_URL } from '../constants';
-import { DefillamaUri, FinancialsResponse } from '../types';
+import { DEFILLAMA_PROXY, DefillamaUrl } from '../constants';
+import { GetLlamaPoolStatsResponse } from '../types';
 
-function defillamaUri(): DefillamaUri {
+function defillamaUri(): FinancialsUri {
   return {
     lendBorrow: DEFILLAMA_PROXY
       ? `${DEFILLAMA_PROXY}lendBorrow`
-      : DEFILLAMA_URL.LEND_BORROW.toString(),
+      : DefillamaUrl.LEND_BORROW.toString(),
     pools: DEFILLAMA_PROXY
       ? `${DEFILLAMA_PROXY}pools`
-      : DEFILLAMA_URL.POOLS.toString(),
+      : DefillamaUrl.POOLS.toString(),
   };
 }
 
@@ -31,9 +35,11 @@ export async function getFinancialsFromAPI(): Promise<FinancialsResponse> {
   }
 }
 
-export async function getProviderStatsFromAPI(poolId: string) {
+export async function getProviderStatsFromAPI(
+  poolId: string
+): Promise<ProviderStatsResponse> {
   const chart = axios
-    .get<GetLlamaPoolStatsResponse>(DEFILLAMA_URL.PROVIDER_STATS + `/${poolId}`)
+    .get<GetLlamaPoolStatsResponse>(DefillamaUrl.PROVIDER_STATS + `/${poolId}`)
     .then(({ data }) => data.data);
   return chart;
 }

@@ -1,4 +1,5 @@
 export * from './addresses';
+export * from './api';
 export * from './chain-properties';
 export * from './chains';
 export * from './common';

@@ -1,4 +1,5 @@
 export * from './AddressMap';
+export * from './Api';
 export * from './BridgeFee';
 export * from './ChainConfig';
 export * from './ChainConnectionDetails';

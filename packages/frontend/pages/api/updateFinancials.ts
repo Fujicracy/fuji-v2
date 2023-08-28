@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { getFinancialsFromAPI } from './helpers/api/defillama';
 import { getStakingDataFromAPI } from './helpers/api/staking';
-import { STATUS } from './helpers/constants';
+import { Status } from './helpers/constants';
 import { saveFinancialsToDB, saveStakingDataToDB } from './helpers/db';
 import { filterFinancials } from './helpers/functions/filterFinancials';
 
@@ -16,10 +16,10 @@ export default async function handler(_: NextApiRequest, res: NextApiResponse) {
     const stakingResult = await getStakingDataFromAPI();
     await saveStakingDataToDB(stakingResult);
 
-    res.status(STATUS.SUCCESS).json({
+    res.status(Status.SUCCESS).json({
       message: 'Successfully fetched and saved data to DB',
     });
   } catch (error) {
-    res.status(STATUS.ERROR).json({ error });
+    res.status(Status.ERROR).json({ error });
   }
 }

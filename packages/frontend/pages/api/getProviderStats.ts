@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { getProviderStatsFromAPI } from './helpers/api/defillama';
-import { REFRESH_INTERVAL, STATUS } from './helpers/constants';
+import { REFRESH_INTERVAL, Status } from './helpers/constants';
 import { getProviderStatsFromDB, saveProviderStatsToDB } from './helpers/db';
 
 export default async function handler(
@@ -20,13 +20,13 @@ export default async function handler(
     const dbData = await getProviderStatsFromDB(poolId);
     if (dbData && dbData.timestamp > currentTime - REFRESH_INTERVAL) {
       console.log('Returning cached pool stats');
-      return res.status(STATUS.SUCCESS).json({ stats: dbData.data });
+      return res.status(Status.SUCCESS).json({ stats: dbData.data });
     }
     const stats = await getProviderStatsFromAPI(poolId);
     saveProviderStatsToDB(poolId, stats);
 
-    res.status(STATUS.SUCCESS).json({ stats });
+    res.status(Status.SUCCESS).json({ stats });
   } catch (error) {
-    res.status(STATUS.ERROR).json({ error });
+    res.status(Status.ERROR).json({ error });
   }
 }

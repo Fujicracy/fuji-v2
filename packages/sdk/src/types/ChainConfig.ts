@@ -15,9 +15,4 @@ export type ChainConfig = {
     [chainId in ChainId]?: string;
   };
   poktId?: string;
-  /**
-   * Defillama api does not return accept *\/* on some routes
-   * You can use a proxy url to avoid this problem.
-   */
-  defillamaproxy?: string;
 };

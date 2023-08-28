@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { STAKING_SERVICE, STAKING_URL } from '../constants';
+import { STAKING_URL, StakingService } from '../constants';
 import { StakingResponse } from '../types';
 
 export async function getStakingDataFromAPI(): Promise<StakingResponse[]> {
@@ -8,15 +8,15 @@ export async function getStakingDataFromAPI(): Promise<StakingResponse[]> {
     console.log('Starting staking API requests');
     const data = await Promise.all([
       axios.get(STAKING_URL.MATICX).then(({ data }) => {
-        return { symbol: STAKING_SERVICE.MATICX, value: data.value };
+        return { symbol: StakingService.MATICX, value: data.value };
       }),
       axios.get(STAKING_URL.WSTETH).then(({ data }) => {
         const value = data.data.apr;
-        return { symbol: STAKING_SERVICE.WSTETH, value, data };
+        return { symbol: StakingService.WSTETH, value, data };
       }),
       axios.get(STAKING_URL.RETH).then(({ data }) => {
         const value = parseFloat(data.yearlyAPR);
-        return { symbol: STAKING_SERVICE.RETH, value };
+        return { symbol: StakingService.RETH, value };
       }),
     ]);
     console.log('Completed requests to staking API');

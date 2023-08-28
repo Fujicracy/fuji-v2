@@ -1,7 +1,7 @@
 import { LlamaAssetPool } from '@x-fuji/sdk';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { STATUS } from './helpers/constants';
+import { Status } from './helpers/constants';
 import { getFinancialsAndStakingFromDB } from './helpers/db';
 
 export default async function handler(_: NextApiRequest, res: NextApiResponse) {
@@ -16,9 +16,9 @@ export default async function handler(_: NextApiRequest, res: NextApiResponse) {
     });
 
     res
-      .status(STATUS.SUCCESS)
+      .status(Status.SUCCESS)
       .json({ pools: result.pools, lendBorrows: result.lendBorrows });
   } catch (error) {
-    res.status(STATUS.ERROR).json({ error });
+    res.status(Status.ERROR).json({ error });
   }
 }

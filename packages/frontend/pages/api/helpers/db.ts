@@ -1,24 +1,24 @@
 import { kv } from '@vercel/kv';
 import {
+  FinancialsResponse,
   LlamaAssetPool,
   LlamaLendBorrowPool,
   LlamaPoolStat,
 } from '@x-fuji/sdk';
 
-import { DB_KEY } from './constants';
+import { DbKey } from './constants';
 import {
   FinancialsAndStakingResponse,
-  FinancialsResponse,
   StakingResponse,
   StatsDBResponse,
 } from './types';
 
 export async function getFinancialsAndStakingFromDB(): Promise<FinancialsAndStakingResponse> {
-  const pools = (await kv.get(DB_KEY.POOLS)) as LlamaAssetPool[];
+  const pools = (await kv.get(DbKey.POOLS)) as LlamaAssetPool[];
   const lendBorrows = (await kv.get(
-    DB_KEY.LEND_BORROW
+    DbKey.LEND_BORROW
   )) as LlamaLendBorrowPool[];
-  const staking = (await kv.get(DB_KEY.STAKING_APY)) as StakingResponse[];
+  const staking = (await kv.get(DbKey.STAKING_APY)) as StakingResponse[];
   return { pools, lendBorrows, staking };
 }
 
@@ -26,18 +26,15 @@ export async function getProviderStatsFromDB(
   poolId: string
 ): Promise<StatsDBResponse> {
   const stats = (await kv.get(
-    DB_KEY.PROVIDER_STATS + `/${poolId}`
+    DbKey.PROVIDER_STATS + `/${poolId}`
   )) as StatsDBResponse;
   return stats;
 }
 
 export async function saveFinancialsToDB(data: FinancialsResponse) {
   try {
-    const poolsResult = await kv.set(DB_KEY.POOLS, data.pools);
-    const lendBorrowsResult = await kv.set(
-      DB_KEY.LEND_BORROW,
-      data.lendBorrows
-    );
+    const poolsResult = await kv.set(DbKey.POOLS, data.pools);
+    const lendBorrowsResult = await kv.set(DbKey.LEND_BORROW, data.lendBorrows);
 
     if (poolsResult === 'OK' && lendBorrowsResult === 'OK') {
       console.log('Saved financials to DB');
@@ -50,7 +47,7 @@ export async function saveFinancialsToDB(data: FinancialsResponse) {
 
 export async function saveStakingDataToDB(data: StakingResponse[]) {
   try {
-    const result = await kv.set(DB_KEY.STAKING_APY, data);
+    const result = await kv.set(DbKey.STAKING_APY, data);
 
     if (result === 'OK') {
       console.log('Saved staking to DB');
@@ -70,7 +67,7 @@ export async function saveProviderStatsToDB(
       timestamp: Date.now(),
       data: stats,
     };
-    const result = await kv.set(DB_KEY.PROVIDER_STATS + `/${poolId}`, data);
+    const result = await kv.set(DbKey.PROVIDER_STATS + `/${poolId}`, data);
     if (result === 'OK') {
       console.log(`Saved stats for pool ${poolId} to DB`);
     } else throw `Failed to save stats for pool ${poolId} to DB`;

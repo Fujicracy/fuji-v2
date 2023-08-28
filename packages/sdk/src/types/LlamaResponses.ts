@@ -31,19 +31,4 @@ export type LlamaPoolStat = {
   totalBorrowUsd: number;
 };
 
-export type GetLlamaAssetPoolsResponse = {
-  status: 'success' | 'error';
-  data: LlamaAssetPool[];
-};
-
-export type GetLlamaPoolStatsResponse = {
-  status: 'success' | 'error';
-  data: LlamaPoolStat[];
-};
-
 export type GetLlamaLendBorrowPoolsResponse = LlamaLendBorrowPool[];
-
-export type GetLLamaFinancialsResponse = {
-  lendBorrows: LlamaLendBorrowPool[];
-  pools: LlamaAssetPool[];
-};

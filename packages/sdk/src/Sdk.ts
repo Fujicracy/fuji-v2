@@ -29,9 +29,9 @@ import {
   VaultType,
 } from './enums';
 import {
+  apiFinancials,
   encodeActionArgs,
   findPermitAction,
-  llamaFinancials,
   waitForTransaction,
 } from './functions';
 import {
@@ -45,17 +45,14 @@ import {
   ChainConfig,
   ChainConnectionDetails,
   ConnextTxDetails,
+  FinancialsResponse,
   FujiResult,
   FujiResultPromise,
   RouterActionParams,
   VaultWithFinancials,
 } from './types';
 import { ConnextRouter__factory } from './types/contracts';
-import {
-  GetLLamaFinancialsResponse,
-  LlamaAssetPool,
-  LlamaLendBorrowPool,
-} from './types/LlamaResponses';
+import { LlamaAssetPool, LlamaLendBorrowPool } from './types/LlamaResponses';
 
 export class Sdk {
   /**
@@ -405,9 +402,8 @@ export class Sdk {
    * "experimental" mode and might be unstable.
    */
 
-  async getLLamaFinancials(): FujiResultPromise<GetLLamaFinancialsResponse> {
-    const { defillamaproxy } = this._configParams;
-    return await llamaFinancials(defillamaproxy);
+  async getLLamaFinancials(): FujiResultPromise<FinancialsResponse> {
+    return apiFinancials();
   }
 
   /**
@@ -418,7 +414,7 @@ export class Sdk {
    */
   getLlamasForVaults(
     vaults: VaultWithFinancials[],
-    llamas: GetLLamaFinancialsResponse
+    llamas: FinancialsResponse
   ): VaultWithFinancials[] {
     const { lendBorrows, pools } = llamas;
     const data = vaults.map((vault) =>

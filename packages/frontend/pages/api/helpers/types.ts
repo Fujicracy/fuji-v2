@@ -1,26 +1,12 @@
 import {
-  GetLlamaPoolStatsResponse,
-  LlamaAssetPool,
-  LlamaLendBorrowPool,
+  FinancialsResponse,
+  LlamaPoolStat,
+  ProviderStatsResponse,
 } from '@x-fuji/sdk';
-
-export type DefillamaUri = {
-  lendBorrow: string;
-  pools: string;
-};
 
 export type StakingRequest = {
   url: string;
   symbol: string;
-};
-
-/*
- * It's not up to us, we store whatever Defillama returns
- * and inferring a type wouldn't be nice at all.
- */
-export type FinancialsResponse = {
-  lendBorrows: LlamaLendBorrowPool[];
-  pools: LlamaAssetPool[];
 };
 
 export type StakingResponse = {
@@ -36,5 +22,10 @@ export type FinancialsAndStakingResponse = FinancialsResponse & {
 
 export type StatsDBResponse = {
   timestamp: number;
-  data: GetLlamaPoolStatsResponse;
+  data: ProviderStatsResponse;
+};
+
+export type GetLlamaPoolStatsResponse = {
+  status: 'success' | 'error';
+  data: LlamaPoolStat[];
 };

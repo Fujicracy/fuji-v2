@@ -1,6 +1,6 @@
 export enum FujiErrorCode {
   RPC,
-  LLAMA,
+  API,
   MULTICALL,
   ONCHAIN,
   CONNEXT,
