@@ -22,11 +22,11 @@ export async function getFinancialsAndStakingFromDB(): Promise<FinancialsAndStak
   return { pools, lendBorrows, staking };
 }
 
-export async function getPoolStatsFromDB(
+export async function getProviderStatsFromDB(
   poolId: string
 ): Promise<StatsDBResponse> {
   const stats = (await kv.get(
-    DB_KEY.POOL_STATS + `/${poolId}`
+    DB_KEY.PROVIDER_STATS + `/${poolId}`
   )) as StatsDBResponse;
   return stats;
 }
@@ -48,7 +48,7 @@ export async function saveFinancialsToDB(data: FinancialsResponse) {
   }
 }
 
-export async function saveStakingToDB(data: StakingResponse[]) {
+export async function saveStakingDataToDB(data: StakingResponse[]) {
   try {
     const result = await kv.set(DB_KEY.STAKING_APY, data);
 
@@ -61,7 +61,7 @@ export async function saveStakingToDB(data: StakingResponse[]) {
   }
 }
 
-export async function savePoolStatsToDB(
+export async function saveProviderStatsToDB(
   poolId: string,
   stats: LlamaPoolStat[]
 ) {
@@ -70,7 +70,7 @@ export async function savePoolStatsToDB(
       timestamp: Date.now(),
       data: stats,
     };
-    const result = await kv.set(DB_KEY.POOL_STATS + `/${poolId}`, data);
+    const result = await kv.set(DB_KEY.PROVIDER_STATS + `/${poolId}`, data);
     if (result === 'OK') {
       console.log(`Saved stats for pool ${poolId} to DB`);
     } else throw `Failed to save stats for pool ${poolId} to DB`;

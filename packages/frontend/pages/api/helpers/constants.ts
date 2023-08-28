@@ -22,14 +22,14 @@ export enum API_ROUTE {
 export enum DEFILLAMA_URL {
   LEND_BORROW = 'https://yields.llama.fi/lendBorrow',
   POOLS = 'https://yields.llama.fi/pools',
-  CHART = 'https://yields.llama.fi/chartLendBorrow',
+  PROVIDER_STATS = 'https://yields.llama.fi/chartLendBorrow',
 }
 
 export enum DB_KEY {
   LEND_BORROW = 'lendBorrow',
   POOLS = 'pools',
   STAKING_APY = 'stakingApy',
-  POOL_STATS = 'poolStats',
+  PROVIDER_STATS = 'poolStats',
 }
 
 export enum STAKING_SERVICE {

@@ -7,8 +7,11 @@ import {
   VaultWithFinancials,
 } from '@x-fuji/sdk';
 
-import { FinancialsOrError, getVaultFinancials } from '../../../helpers/vaults';
-import { FinancialsResponse } from './types';
+import {
+  FinancialsOrError,
+  getVaultFinancials,
+} from '../../../../helpers/vaults';
+import { FinancialsResponse } from '../types';
 
 export async function filterFinancials(
   data: FinancialsResponse

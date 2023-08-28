@@ -1,9 +1,9 @@
 import { ethers } from 'ethers';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { fetchPoolStats } from './helpers/api';
+import { getProviderStatsFromAPI } from './helpers/api';
 import { REFRESH_INTERVAL, STATUS } from './helpers/constants';
-import { getPoolStatsFromDB, savePoolStatsToDB } from './helpers/db';
+import { getProviderStatsFromDB, saveProviderStatsToDB } from './helpers/db';
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,13 +17,13 @@ export default async function handler(
     }
 
     const currentTime = Date.now();
-    const dbData = await getPoolStatsFromDB(poolId);
+    const dbData = await getProviderStatsFromDB(poolId);
     if (dbData && dbData.timestamp > currentTime - REFRESH_INTERVAL) {
       console.log('Returning cached pool stats');
       return res.status(STATUS.SUCCESS).json({ stats: dbData.data });
     }
-    const stats = await fetchPoolStats(poolId);
-    savePoolStatsToDB(poolId, stats);
+    const stats = await getProviderStatsFromAPI(poolId);
+    saveProviderStatsToDB(poolId, stats);
 
     res.status(STATUS.SUCCESS).json({ stats });
   } catch (error) {
