@@ -7,7 +7,7 @@ import {
 const config = {
   apiKey: process.env.NEXT_PUBLIC_REFERRAL_API_KEY,
   logToConsole: true,
-  // testMode: true,
+  testMode: true,
 };
 
 enum REFERRAL_WIDGET_WIDTH {

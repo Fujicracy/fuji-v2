@@ -179,9 +179,10 @@ function MyApp({ Component, pageProps }: AppProps) {
           <Notification />
           {address && (
             <ChainvineWidget
-              config={widgetConfig}
+              clientConfig={widgetConfig}
               isOpen={isReferralModalOpen}
               identifierType={'wallet'}
+              userWalletAddress={address}
               userIdentifier={address}
               campaignId={campaignId}
               mode="Modal"
