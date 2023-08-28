@@ -26,6 +26,7 @@ export type FinancialsResponse = {
 export type StakingResponse = {
   symbol: string;
   value: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any; // Since we're calling different APIs, let's store the raw data just in case
 };
 

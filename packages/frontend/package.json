@@ -28,6 +28,7 @@
     "@nivo/line": "^0.80.0",
     "@sentry/react": "^7.44.2",
     "@sentry/tracing": "^7.44.2",
+    "@upstash/ratelimit": "^0.4.3",
     "@vercel/kv": "^0.2.2",
     "@web3-onboard/coinbase": "^2.2.4",
     "@web3-onboard/core": "^2.20.0",

@@ -9,7 +9,14 @@ export const REFRESH_INTERVAL = FIFTEEN_MINUTES;
 
 export enum STATUS {
   SUCCESS = 200,
+  TOO_MANY_REQUESTS = 429,
   ERROR = 500,
+}
+
+export enum API_ROUTE {
+  GET_FINANCIALS = '/api/geFinancials',
+  UPDATE_FINANCIALS = '/api/updateFinancials',
+  GET_STATS = '/api/getPoolStats',
 }
 
 const DEFILLAMA_PATH = 'https://yields.llama.fi';
