@@ -1,3 +1,4 @@
+import { GetLlamaPoolStatsResponse } from '@x-fuji/sdk';
 import axios from 'axios';
 
 import {
@@ -17,7 +18,7 @@ function defillamaUri(): DefillamaUri {
   };
 }
 
-export async function fetchFinancialsApi(): Promise<FinancialsResponse> {
+export async function fetchFinancials(): Promise<FinancialsResponse> {
   const uri = defillamaUri();
   try {
     console.log('Starting Defillama API requests');
@@ -33,7 +34,14 @@ export async function fetchFinancialsApi(): Promise<FinancialsResponse> {
   }
 }
 
-export async function fetchStakingData(): Promise<StakingResponse[]> {
+export async function fetchPoolStats(poolId: string) {
+  const chart = axios
+    .get<GetLlamaPoolStatsResponse>(DEFILLAMA_URL.CHART + `/${poolId}`)
+    .then(({ data }) => data.data);
+  return chart;
+}
+
+export async function fetchStaking(): Promise<StakingResponse[]> {
   try {
     console.log('Starting staking API requests');
     const data = await Promise.all([

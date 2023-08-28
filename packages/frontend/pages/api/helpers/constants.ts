@@ -5,20 +5,25 @@ export const DEFILLAMA_PROXY = process.env.DEFILLAMA_PROXY;
 export const FIFTEEN_MINUTES = 15 * 60 * 1000;
 export const THREE_DAYS_IN_SECONDS = 3 * 24 * 60 * 60;
 
+export const REFRESH_INTERVAL = FIFTEEN_MINUTES;
+
 export enum STATUS {
   SUCCESS = 200,
   ERROR = 500,
 }
 
+const DEFILLAMA_PATH = 'https://yields.llama.fi';
 export enum DEFILLAMA_URL {
-  LEND_BORROW = 'https://yields.llama.fi/lendBorrow',
-  POOLS = 'https://yields.llama.fi/pools',
+  LEND_BORROW = `${DEFILLAMA_PATH}/lendBorrow`,
+  POOLS = `${DEFILLAMA_PATH}/pools`,
+  CHART = `${DEFILLAMA_PATH}/chartLendBorrow`,
 }
 
 export enum DB_KEY {
   LEND_BORROW = 'lendBorrow',
   POOLS = 'pools',
   STAKING_APY = 'stakingApy',
+  POOL_STATS = 'poolStats',
 }
 
 export enum STAKING_SERVICE {

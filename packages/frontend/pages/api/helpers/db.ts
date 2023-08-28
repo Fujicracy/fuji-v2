@@ -1,11 +1,16 @@
 import { kv } from '@vercel/kv';
-import { LlamaAssetPool, LlamaLendBorrowPool } from '@x-fuji/sdk';
+import {
+  LlamaAssetPool,
+  LlamaLendBorrowPool,
+  LlamaPoolStat,
+} from '@x-fuji/sdk';
 
 import { DB_KEY } from './constants';
 import {
   FinancialsAndStakingResponse,
   FinancialsResponse,
   StakingResponse,
+  StatsDBResponse,
 } from './types';
 
 export async function getFinancialsAndStakingFromDB(): Promise<FinancialsAndStakingResponse> {
@@ -15,6 +20,15 @@ export async function getFinancialsAndStakingFromDB(): Promise<FinancialsAndStak
   )) as LlamaLendBorrowPool[];
   const staking = (await kv.get(DB_KEY.STAKING_APY)) as StakingResponse[];
   return { pools, lendBorrows, staking };
+}
+
+export async function getPoolStatsFromDB(
+  poolId: string
+): Promise<StatsDBResponse> {
+  const stats = (await kv.get(
+    DB_KEY.POOL_STATS + `/${poolId}`
+  )) as StatsDBResponse;
+  return stats;
 }
 
 export async function saveFinancialsToDB(data: FinancialsResponse) {
@@ -43,6 +57,25 @@ export async function saveStakingToDB(data: StakingResponse[]) {
     } else throw 'Failed to save staking to DB';
   } catch (error) {
     console.error('Failed to save staking to DB:', error);
+    throw error;
+  }
+}
+
+export async function savePoolStatsToDB(
+  poolId: string,
+  stats: LlamaPoolStat[]
+) {
+  try {
+    const data = {
+      timestamp: Date.now(),
+      data: stats,
+    };
+    const result = await kv.set(DB_KEY.POOL_STATS + `/${poolId}`, data);
+    if (result === 'OK') {
+      console.log(`Saved stats for pool ${poolId} to DB`);
+    } else throw `Failed to save stats for pool ${poolId} to DB`;
+  } catch (error) {
+    console.error(`Failed to save stats for pool ${poolId} to DB:`, error);
     throw error;
   }
 }

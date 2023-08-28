@@ -1,4 +1,8 @@
-import { LlamaAssetPool, LlamaLendBorrowPool } from '@x-fuji/sdk';
+import {
+  GetLlamaPoolStatsResponse,
+  LlamaAssetPool,
+  LlamaLendBorrowPool,
+} from '@x-fuji/sdk';
 
 export type DefillamaUri = {
   lendBorrow: string;
@@ -27,4 +31,9 @@ export type StakingResponse = {
 
 export type FinancialsAndStakingResponse = FinancialsResponse & {
   staking: StakingResponse[];
+};
+
+export type StatsDBResponse = {
+  timestamp: number;
+  data: GetLlamaPoolStatsResponse;
 };
