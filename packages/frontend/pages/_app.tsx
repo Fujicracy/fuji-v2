@@ -36,11 +36,12 @@ import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
+import { theme } from '../styles/theme';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const materialTheme = useTheme();
+  const isMobile = useMediaQuery(materialTheme.breakpoints.down('sm'));
 
   const address = useAuth((state) => state.address);
   const initAuth = useAuth((state) => state.init);
