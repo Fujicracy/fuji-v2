@@ -30,9 +30,16 @@ type MarketsTableProps = {
   filters: MarketFilters;
   vaults: AbstractVault[];
   type: VaultType;
+  isTransitionActive: boolean;
 };
 
-function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
+function MarketsTable({
+  filters,
+  rows,
+  vaults,
+  type,
+  isTransitionActive,
+}: MarketsTableProps) {
   const { palette } = useTheme();
   const router = useRouter();
 
@@ -124,19 +131,23 @@ function MarketsTable({ filters, rows, vaults, type }: MarketsTableProps) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {isLoading && vaults.length === 0 ? (
-            <TableRow>
-              {new Array(numberOfColumns).fill('').map((_, index) => (
-                <TableCell
-                  key={`loading${index}`}
-                  sx={{
-                    height: '3.438rem',
-                  }}
-                >
-                  <Skeleton />
-                </TableCell>
+          {(isLoading && vaults.length === 0) || isTransitionActive ? (
+            <>
+              {new Array(rows.length || 1).fill('').map((_, i) => (
+                <TableRow key={i}>
+                  {new Array(numberOfColumns).fill('').map((_, index) => (
+                    <TableCell
+                      key={`loading${index}`}
+                      sx={{
+                        height: '3.438rem',
+                      }}
+                    >
+                      <Skeleton />
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))}
-            </TableRow>
+            </>
           ) : filteredRows.length > 0 ? (
             filteredRows.map((row, i) => {
               return (

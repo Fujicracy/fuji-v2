@@ -41,7 +41,9 @@ function AprValue({
     >
       {reward !== undefined && reward > 0 && (
         <Tooltip
-          title={`${base.toFixed(2)}% (base) - ${reward.toFixed(2)}% (reward)`}
+          title={`${base.toFixed(2)}% (base) ${
+            aprType === AprType.BORROW ? '-' : '+'
+          } ${reward.toFixed(2)}% (reward)`}
           arrow
         >
           <IconButton>

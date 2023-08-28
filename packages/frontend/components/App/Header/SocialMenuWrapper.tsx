@@ -20,6 +20,11 @@ function SocialMenuWrapper() {
       <Chip
         label={isOpen ? <CloseIcon /> : <MoreHorizIcon />}
         onClick={openMenu}
+        sx={{
+          '& .MuiChip-label': {
+            mb: '-3px',
+          },
+        }}
       />
       <Menu
         id="parameters-menu"
