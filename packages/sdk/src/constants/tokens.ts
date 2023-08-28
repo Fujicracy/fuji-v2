@@ -424,9 +424,9 @@ export const MATICX = new Token(
 
 export const STMATIC = new Token(
   ChainId.MATIC,
-  Address.from('0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6'),
+  Address.from('0x3A58a54C066FdC0f2D55FC9C89F0415C92eBf3C4'),
   18,
-  'StMatic',
+  'stMatic',
   'Staked Matic (POS)'
 );
 
