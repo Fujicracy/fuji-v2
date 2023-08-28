@@ -22,7 +22,9 @@ type APYChartProps = {
 function APYChart({ data, period, tab }: APYChartProps) {
   const { palette } = useTheme();
 
-  const normalizedData = normalizeChartData(data, tab, period);
+  const normalizedData = normalizeChartData(data, tab, period).filter(
+    (array) => array.data.length > 0
+  );
   const valuesToShow = xAxisValues(normalizedData, period);
 
   const config: LineSvgProps = {
