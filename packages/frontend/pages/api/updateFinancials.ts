@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getFinancialsFromAPI, getStakingDataFromAPI } from './helpers/api';
 import { STATUS } from './helpers/constants';
 import { saveFinancialsToDB, saveStakingDataToDB } from './helpers/db';
-import { filterFinancials } from './helpers/functions/vaults';
+import { filterFinancials } from './helpers/functions/filterFinancials';
 
 export default async function handler(_: NextApiRequest, res: NextApiResponse) {
   try {
