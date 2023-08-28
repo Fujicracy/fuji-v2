@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { getFinancialsFromAPI, getStakingDataFromAPI } from './helpers/api';
+import { getFinancialsFromAPI } from './helpers/api/defillama';
+import { getStakingDataFromAPI } from './helpers/api/staking';
 import { STATUS } from './helpers/constants';
 import { saveFinancialsToDB, saveStakingDataToDB } from './helpers/db';
 import { filterFinancials } from './helpers/functions/filterFinancials';

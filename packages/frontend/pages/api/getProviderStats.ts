@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { getProviderStatsFromAPI } from './helpers/api';
+import { getProviderStatsFromAPI } from './helpers/api/defillama';
 import { REFRESH_INTERVAL, STATUS } from './helpers/constants';
 import { getProviderStatsFromDB, saveProviderStatsToDB } from './helpers/db';
 
