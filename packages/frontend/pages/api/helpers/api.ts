@@ -13,8 +13,10 @@ function defillamaUri(): DefillamaUri {
   return {
     lendBorrow: DEFILLAMA_PROXY
       ? `${DEFILLAMA_PROXY}lendBorrow`
-      : DEFILLAMA_URL.LEND_BORROW,
-    pools: DEFILLAMA_PROXY ? `${DEFILLAMA_PROXY}pools` : DEFILLAMA_URL.POOLS,
+      : DEFILLAMA_URL.LEND_BORROW.toString(),
+    pools: DEFILLAMA_PROXY
+      ? `${DEFILLAMA_PROXY}pools`
+      : DEFILLAMA_URL.POOLS.toString(),
   };
 }
 

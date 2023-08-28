@@ -19,11 +19,10 @@ export enum API_ROUTE {
   GET_STATS = '/api/getPoolStats',
 }
 
-const DEFILLAMA_PATH = 'https://yields.llama.fi';
 export enum DEFILLAMA_URL {
-  LEND_BORROW = `${DEFILLAMA_PATH}/lendBorrow`,
-  POOLS = `${DEFILLAMA_PATH}/pools`,
-  CHART = `${DEFILLAMA_PATH}/chartLendBorrow`,
+  LEND_BORROW = 'https://yields.llama.fi/lendBorrow',
+  POOLS = 'https://yields.llama.fi/pools',
+  CHART = 'https://yields.llama.fi/chartLendBorrow',
 }
 
 export enum DB_KEY {
