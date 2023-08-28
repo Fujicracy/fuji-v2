@@ -11,7 +11,6 @@ import {
   CONNEXT_URL,
   FujiErrorCode,
   NATIVE,
-  URLS,
 } from './constants';
 import { Address, Currency, Token } from './entities';
 import { AbstractVault } from './entities/abstract/AbstractVault';
@@ -32,6 +31,7 @@ import {
 import {
   encodeActionArgs,
   findPermitAction,
+  llamaFinancials,
   waitForTransaction,
 } from './functions';
 import {
@@ -52,8 +52,7 @@ import {
 } from './types';
 import { ConnextRouter__factory } from './types/contracts';
 import {
-  GetLlamaAssetPoolsResponse,
-  GetLlamaLendBorrowPoolsResponse,
+  GetLLamaFinancialsResponse,
   LlamaAssetPool,
   LlamaLendBorrowPool,
 } from './types/LlamaResponses';
@@ -398,48 +397,34 @@ export class Sdk {
   }
 
   /**
-   * Returns all vaults with the whole financial data
-   * loaded from DefiLlama API.
+   * Returns financial data from DefiLlama API.
    *
    * @remarks
    * This data is fetched from DefiLlama API and it can take
    * longer than expected to get loaded. Their API is considered being in a
    * "experimental" mode and might be unstable.
+   */
+
+  async getLLamaFinancials(): FujiResultPromise<GetLLamaFinancialsResponse> {
+    const { defillamaproxy } = this._configParams;
+    return await llamaFinancials(defillamaproxy);
+  }
+
+  /**
+   * Returns all vaults with the financial data loaded from DefiLlama API.
    *
    * @param vaults - returned value from "getAllVaultsWithFinancials()"
+   * @param llamas - llama information returned from "getLLamaFinancials()"
    */
-  async getLlamaFinancials(
-    vaults: VaultWithFinancials[]
-  ): FujiResultPromise<VaultWithFinancials[]> {
-    // fetch from DefiLlama
-    const { defillamaproxy } = this._configParams;
-    const uri = {
-      lendBorrow: defillamaproxy
-        ? defillamaproxy + 'lendBorrow'
-        : URLS.DEFILLAMA_LEND_BORROW,
-      pools: defillamaproxy ? defillamaproxy + 'pools' : URLS.DEFILLAMA_POOLS,
-    };
-    try {
-      const [lendBorrows, pools] = await Promise.all([
-        axios
-          .get<GetLlamaLendBorrowPoolsResponse>(uri.lendBorrow)
-          .then(({ data }) => data),
-        axios
-          .get<GetLlamaAssetPoolsResponse>(uri.pools)
-          .then(({ data }) => data.data),
-      ]);
-
-      const data = vaults.map((vault) =>
-        this._getFinancialsFor(vault, pools, lendBorrows)
-      );
-      return new FujiResultSuccess(data);
-    } catch (e) {
-      const message = axios.isAxiosError(e)
-        ? `DefiLlama API call failed with a message: ${e.message}`
-        : 'DefiLlama API call failed with an unexpected error!';
-      console.error(message);
-      return new FujiResultError(message, FujiErrorCode.LLAMA);
-    }
+  getLlamasForVaults(
+    vaults: VaultWithFinancials[],
+    llamas: GetLLamaFinancialsResponse
+  ): VaultWithFinancials[] {
+    const { lendBorrows, pools } = llamas;
+    const data = vaults.map((vault) =>
+      this._getFinancialsFor(vault, pools, lendBorrows)
+    );
+    return data;
   }
 
   /**
