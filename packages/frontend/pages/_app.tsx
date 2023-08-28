@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 
 import { ChainvineWidget } from '@chainvine/widget';
-import { ThemeProvider } from '@mui/material';
+import { ThemeProvider, useMediaQuery, useTheme } from '@mui/material';
 import { Web3OnboardProvider } from '@web3-onboard/react';
 import { VaultType } from '@x-fuji/sdk';
 import { AppProps } from 'next/app';
@@ -28,7 +28,7 @@ import {
 } from '../helpers/navigation';
 import {
   campaignId,
-  REFERRAL_WIDGET_WIDTH,
+  referralWidgetWidth,
   storeReferrer,
   widgetConfig,
 } from '../helpers/referrals';
@@ -36,10 +36,11 @@ import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
 import { usePositions } from '../store/positions.store';
-import { theme } from '../styles/theme';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const address = useAuth((state) => state.address);
   const initAuth = useAuth((state) => state.init);
@@ -184,10 +185,10 @@ function MyApp({ Component, pageProps }: AppProps) {
               campaignId={campaignId}
               mode="Modal"
               desktopSize={{
-                width: `${REFERRAL_WIDGET_WIDTH}%`,
+                width: `${referralWidgetWidth(isMobile)}%`,
               }}
               desktopPosition={{
-                left: `${(100 - REFERRAL_WIDGET_WIDTH) / 2}%`,
+                left: `${(100 - referralWidgetWidth(isMobile)) / 2}%`,
               }}
               theme="Dark"
               themeConfig={{

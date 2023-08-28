@@ -7,10 +7,16 @@ import {
 const config = {
   apiKey: process.env.NEXT_PUBLIC_REFERRAL_API_KEY,
   logToConsole: true,
-  testMode: true,
+  // testMode: true,
 };
 
-export const REFERRAL_WIDGET_WIDTH = 55; // Percentage
+enum REFERRAL_WIDGET_WIDTH {
+  DESKTOP = 55, // Percentage
+  MOBILE = 80,
+}
+
+export const referralWidgetWidth = (isMobile: boolean) =>
+  isMobile ? REFERRAL_WIDGET_WIDTH.MOBILE : REFERRAL_WIDGET_WIDTH.DESKTOP;
 
 export const campaignId = process.env.NEXT_PUBLIC_REFERRAL_CAMPAIGN_ID ?? '';
 
