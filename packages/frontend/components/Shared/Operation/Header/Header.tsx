@@ -122,7 +122,16 @@ function OperationHeader({
       )}
       <Divider sx={{ m: '0.5rem 0' }} />
       {isEditing && (
-        <Box mt={3} mb={3}>
+        <Box
+          mt={3}
+          mb={3}
+          sx={{
+            '& .MuiTypography-small': {
+              fontSize: '0.875rem',
+              lineHeight: '100%',
+            },
+          }}
+        >
           <TabSwitch
             size="large"
             options={actionOptions}
