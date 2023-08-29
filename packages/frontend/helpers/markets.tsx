@@ -19,7 +19,11 @@ import { AssetType } from './assets';
 import { chainName, chains } from './chains';
 import { shouldShowStoreNotification } from './navigation';
 import { notify, showOnchainErrorNotification } from './notifications';
-import { getVaultFinancials, vaultsFromFinancialsOrError } from './vaults';
+import {
+  getLlamasWithFinancials,
+  getVaultFinancials,
+  vaultsFromFinancialsOrError,
+} from './vaults';
 
 const defaultRow: MarketRow = {
   collateral: '',
@@ -270,17 +274,19 @@ export const fetchMarkets = async (
     api.getState().changeRows(type, setBest(rowsFin, type));
     api.getState().changeVaultsWithFinancials(type, vaultsWithFinancials);
   }
-  const llamaResult = await sdk.getLlamaFinancials(allVaults);
-  if (!llamaResult.success) {
+
+  const llamasResult = await getLlamasWithFinancials();
+  if (!llamasResult.success) {
     notify({
       type: 'error',
-      message: llamaResult.error.message,
+      message: llamasResult.error.message,
     });
     const rows = rowsFin.map((r) => setLlamas(r, MarketRowStatus.Error));
     api.getState().changeRows(type, setBest(rows, type));
     return;
   }
-  const vaultsWithLlamas = llamaResult.data;
+
+  const vaultsWithLlamas = sdk.getLlamasForVaults(allVaults, llamasResult.data);
   const rowsLlama = vaultsWithFinancials.map((obj, i) => {
     const llama =
       obj instanceof FujiError
