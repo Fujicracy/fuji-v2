@@ -62,7 +62,7 @@ function Overview({ positionData, isEditing }: OverviewProps) {
           mt: !isMobile ? '1rem' : '0',
         }}
       >
-        <CardContent sx={{ padding: 0, gap: '1rem' }}>
+        <CardContent sx={{ padding: 0, gap: '1rem', width: '100%' }}>
           <Summary
             collateral={collateral}
             collateralInput={collateralInput}

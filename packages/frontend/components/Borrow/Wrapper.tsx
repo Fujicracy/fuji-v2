@@ -51,7 +51,7 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
     undefined
   );
   const [loading, setLoading] = useState<boolean>(
-    isEditing && (!positions || positions.length === 0)
+    !isEditing || (isEditing && (!positions || positions.length === 0))
   );
 
   useEffect(() => {
@@ -105,6 +105,8 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
     and change the values in the store.
   */
   useEffect(() => {
+    if (!isEditing) setTimeout(() => setLoading(false), 300);
+
     if (isEditing && loading && positionData) {
       const vault = positionData.position.vault;
       if (vault && vault instanceof BorrowingVault) {
@@ -173,19 +175,37 @@ function BorrowWrapper({ formType, query }: BorrowWrapperProps) {
             justifyContent="center"
             spacing={3}
           >
-            <Grow
-              in={Boolean(positionData)}
-              timeout={{ enter: isEditing ? 0 : ANIMATION_DURATION }}
-            >
-              {positionData ? (
-                <Grid item xs={12} sm={9.5} md={7.75} order={{ xs: 2, md: 1 }}>
-                  {!isEditing && <VaultSelect />}
+            {isEditing ? (
+              <Grid item xs={12} sm={9.5} md={7.75} order={{ xs: 2, md: 1 }}>
+                {positionData && (
                   <Overview isEditing={isEditing} positionData={positionData} />
-                </Grid>
-              ) : (
-                <div />
-              )}
-            </Grow>
+                )}
+              </Grid>
+            ) : (
+              <Grow
+                in={Boolean(positionData)}
+                timeout={{ enter: isEditing ? 0 : ANIMATION_DURATION }}
+              >
+                {positionData ? (
+                  <Grid
+                    item
+                    xs={12}
+                    sm={9.5}
+                    md={7.75}
+                    order={{ xs: 2, md: 1 }}
+                  >
+                    <VaultSelect />
+                    <Overview
+                      isEditing={isEditing}
+                      positionData={positionData}
+                    />
+                  </Grid>
+                ) : (
+                  <div />
+                )}
+              </Grow>
+            )}
+
             <Grid
               item
               xs={12}
