@@ -7,6 +7,8 @@ touch .env.local
 echo "NEXT_PUBLIC_INFURA_KEY=<your key>" >> .env.local
 echo "NEXT_PUBLIC_APP_ENV=development" >> .env.local
 echo "NEXT_PUBLIC_WALLET_CONNECT_V2_KEY=<your key>" >> .env.local
+echo "NEXT_PUBLIC_REFERRAL_CAMPAIGN_ID=<campaign id>" >> .env.local
+echo "NEXT_PUBLIC_REFERRAL_API_KEY=<api key>" >> .env.local
 ```
 
 First, run the development server:

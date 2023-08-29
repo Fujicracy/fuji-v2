@@ -9,7 +9,7 @@
   "scripts": {
     "predev": "yarn workspace @x-fuji/sdk dev",
     "prebuild": "yarn workspace @x-fuji/sdk prepare",
-    "dev": "next dev",
+    "dev": "next dev -p 3009",
     "build": "next build",
     "start": "next start",
     "test": "env-cmd synpress run",
@@ -18,6 +18,8 @@
     "prettier": "prettier --config .prettierrc  ."
   },
   "dependencies": {
+    "@chainvine/sdk": "^1.5.20",
+    "@chainvine/widget": "^0.10.24",
     "@emotion/react": "^11.10.0",
     "@emotion/styled": "^11.10.0",
     "@guildxyz/sdk": "^1.1.1",

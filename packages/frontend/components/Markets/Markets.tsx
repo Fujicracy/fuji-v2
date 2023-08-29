@@ -7,6 +7,7 @@ import { chains } from '../../helpers/chains';
 import { useAuth } from '../../store/auth.store';
 import { useMarkets } from '../../store/markets.store';
 import { theme } from '../../styles/theme';
+import OnPageBanner from '../Shared/Banners/OnPageBanner';
 import BorrowLendingTabNavigation from '../Shared/BorrowLendingTabNavigation';
 import MarketFiltersHeader, { MarketFilters } from './MarketFiltersHeader';
 import MarketsTable from './MarketsTable';
@@ -57,6 +58,12 @@ function Markets() {
 
   return (
     <Box>
+      <OnPageBanner
+        bannerKey="referral"
+        type="Time Sensitive"
+        title="Refer to earn points"
+        text="Invite your friends to earn points and hike up the Fuji Mountain together. 🥾"
+      />
       <Typography variant="h4">Markets</Typography>
       <Typography variant="body">
         {currentTab === 0 || onMobile

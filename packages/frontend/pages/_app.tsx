@@ -1,6 +1,7 @@
 import '../styles/globals.css';
 
-import { ThemeProvider } from '@mui/material';
+import { ChainvineWidget } from '@chainvine/widget';
+import { ThemeProvider, useMediaQuery, useTheme } from '@mui/material';
 import { Web3OnboardProvider } from '@web3-onboard/react';
 import { VaultType } from '@x-fuji/sdk';
 import { AppProps } from 'next/app';
@@ -25,6 +26,12 @@ import {
   navigationalTaskDelay,
   pathForVaultType,
 } from '../helpers/navigation';
+import {
+  campaignId,
+  referralWidgetWidth,
+  storeReferrer,
+  widgetConfig,
+} from '../helpers/referrals';
 import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
@@ -33,6 +40,8 @@ import { theme } from '../styles/theme';
 
 function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
+  const materialTheme = useTheme();
+  const isMobile = useMediaQuery(materialTheme.breakpoints.down('sm'));
 
   const address = useAuth((state) => state.address);
   const initAuth = useAuth((state) => state.init);
@@ -57,6 +66,12 @@ function MyApp({ Component, pageProps }: AppProps) {
   const prevAddressRef = useRef<string | undefined>(undefined);
 
   const startedRef = useRef(false);
+
+  const { isReferralModalOpen, setIsReferralModalOpen } = useNavigation();
+
+  useEffect(() => {
+    storeReferrer();
+  }, []);
 
   useEffect(() => {
     if (!startedRef.current) {
@@ -162,6 +177,29 @@ function MyApp({ Component, pageProps }: AppProps) {
           <DisclaimerModal />
           <ExploreCarousel />
           <Notification />
+          {address && (
+            <ChainvineWidget
+              clientConfig={widgetConfig}
+              isOpen={isReferralModalOpen}
+              identifierType={'wallet'}
+              userWalletAddress={address}
+              userIdentifier={address}
+              campaignId={campaignId}
+              mode="Modal"
+              desktopSize={{
+                width: `${referralWidgetWidth(isMobile)}%`,
+              }}
+              desktopPosition={{
+                left: `${(100 - referralWidgetWidth(isMobile)) / 2}%`,
+              }}
+              theme="Dark"
+              themeConfig={{
+                inherit: true,
+                token: { colorPrimary: theme.palette.primary.main },
+              }}
+              onToggle={() => setIsReferralModalOpen(false)}
+            />
+          )}
         </ThemeProvider>
       </Web3OnboardProvider>
     </>

@@ -12,6 +12,7 @@ import { storeOptions } from '../helpers/stores';
 
 type NavigationState = {
   currentPath: string;
+  isReferralModalOpen: boolean;
   borrowPage: OperationPageNavigation;
   lendPage: OperationPageNavigation;
 };
@@ -24,7 +25,7 @@ const initialOperationNavigationState: OperationPageNavigation = {
 
 type NavigationActions = {
   changePath: (path: string) => void;
-
+  setIsReferralModalOpen: (isOpen: boolean) => void;
   changePageShouldReset: (
     type: VaultType,
     reset: boolean,
@@ -35,6 +36,7 @@ type NavigationActions = {
 
 const initialState: NavigationState = {
   currentPath: PATH.MARKETS,
+  isReferralModalOpen: false,
   borrowPage: initialOperationNavigationState,
   lendPage: initialOperationNavigationState,
 };
@@ -48,6 +50,10 @@ export const useNavigation = create<NavigationStore>()(
 
       changePath(currentPath) {
         set({ currentPath });
+      },
+
+      setIsReferralModalOpen(isOpen: boolean) {
+        set({ isReferralModalOpen: isOpen });
       },
 
       changePageShouldReset(type, shouldReset, lock) {
