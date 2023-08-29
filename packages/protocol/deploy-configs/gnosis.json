@@ -73,6 +73,33 @@
       "name": "BorrowingVault-WSTETGNO-1",
       "providers": ["Agave_Gnosis"],
       "rating": 75
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 800000000000000000,
+      "maxLtv": 750000000000000000,
+      "name": "BorrowingVault-WETHDAI-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
+    },
+    {
+      "collateral": "WBTC",
+      "debt": "USDC",
+      "liqRatio": 750000000000000000,
+      "maxLtv": 700000000000000000,
+      "name": "BorrowingVault-WBTCUSDC-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
+    },
+    {
+      "collateral": "WBTC",
+      "debt": "DAI",
+      "liqRatio": 750000000000000000,
+      "maxLtv": 700000000000000000,
+      "name": "BorrowingVault-WBTCDAI-1",
+      "providers": ["Agave_Gnosis"],
+      "rating": 80
     }
   ],
   "yield-vaults": [

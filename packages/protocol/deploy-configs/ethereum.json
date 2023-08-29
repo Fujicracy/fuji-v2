@@ -127,7 +127,7 @@
     },
     {
       "asset": "USDT",
-      "market": "0x71fc860F7D3A592A4a98740e39dB31d25db65ae8",
+      "market": "0x3Ed3B47Dd13EC9a98b44e6204A523E766B225811",
       "name": "Aave_V2"
     }
   ],
@@ -194,7 +194,25 @@
       "liqRatio": 820000000000000000,
       "maxLtv": 780000000000000000,
       "name": "BorrowingVault-WETHUSDC-3",
-      "providers": ["Morpho_Compound", "Morpho_Aave_V2"],
+      "providers": ["Morpho_Aave_V2","Morpho_Compound","Compound_V3"],
+      "rating": 85
+    },
+    {
+      "collateral": "WETH",
+      "debt": "USDT",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 780000000000000000,
+      "name": "BorrowingVault-WETHUSDT-1",
+      "providers": ["Morpho_Aave_V2","Morpho_Compound"],
+      "rating": 85
+    },
+    {
+      "collateral": "WETH",
+      "debt": "DAI",
+      "liqRatio": 820000000000000000,
+      "maxLtv": 800000000000000000,
+      "name": "BorrowingVault-WETHDAI-1",
+      "providers": ["Spark","Morpho_Compound", "Morpho_Aave_V2"],
       "rating": 85
     },
     {

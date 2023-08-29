@@ -49,11 +49,11 @@ export const VAULT_LIST: ChainVaultList = {
       WETH9[ChainId.ETHEREUM],
       USDC[ChainId.ETHEREUM]
     ),
-    //new BorrowingVault(
-    //Address.from('0xC5A93F0EEaB26ef8f6bE7D35451E2f4B55Dfd25d'),
-    //WETH9[ChainId.ETHEREUM],
-    //USDC[ChainId.ETHEREUM]
-    //),
+    new BorrowingVault(
+      Address.from('0xC5A93F0EEaB26ef8f6bE7D35451E2f4B55Dfd25d'),
+      WETH9[ChainId.ETHEREUM],
+      USDC[ChainId.ETHEREUM]
+    ),
     new BorrowingVault(
       Address.from('0xf7a7cf71d9986f7fcBC2A71eE6bcF271ACb3DC7A'),
       WSTETH[ChainId.ETHEREUM],
@@ -78,6 +78,16 @@ export const VAULT_LIST: ChainVaultList = {
       Address.from('0xF735AbC0E7284D734d711870Eb2340015d370ECE'),
       WSTETH[ChainId.ETHEREUM],
       GHO[ChainId.ETHEREUM]
+    ),
+    new BorrowingVault(
+      Address.from('0x442Ff33a7759e3a82AaD380876Ea1B9D26997fCD'),
+      WETH9[ChainId.ETHEREUM],
+      USDT[ChainId.ETHEREUM]
+    ),
+    new BorrowingVault(
+      Address.from('0x997102a0eC576a71B91B673eDfb673B3b2Ee922A'),
+      WETH9[ChainId.ETHEREUM],
+      DAI[ChainId.ETHEREUM]
     ),
   ],
   [ChainId.GOERLI]: [
@@ -125,10 +135,30 @@ export const VAULT_LIST: ChainVaultList = {
       DAI[ChainId.MATIC]
     ),
     new BorrowingVault(
+      Address.from('0x0660a711812BE76C61ec704A1D39Fc9612dEAff9'),
+      WETH9[ChainId.MATIC],
+      USDT[ChainId.MATIC]
+    ),
+    new BorrowingVault(
       Address.from('0x37F943A180A9E31A0633ad493A52CA18BECD1B5c'),
       MATICX,
       USDC[ChainId.MATIC]
     ),
+    new BorrowingVault(
+      Address.from('0xFcA5b6897Aa76e475a69F166c0a738541a0F22a0'),
+      MATICX,
+      WNATIVE[ChainId.MATIC]
+    ),
+    //new BorrowingVault(
+    //Address.from('0x0358734be360822845Db69d41781Bf3f4d71F5E9'),
+    //STMATIC,
+    //WNATIVE[ChainId.MATIC]
+    //),
+    //new BorrowingVault(
+    //Address.from('0x18534C6ed4c46bC1A3755aC8A2B218447f625528'),
+    //STMATIC,
+    //MATICX
+    //),
   ],
   [ChainId.MATIC_MUMBAI]: [
     new BorrowingVault(
@@ -191,7 +221,7 @@ export const VAULT_LIST: ChainVaultList = {
       USDC[ChainId.ARBITRUM]
     ),
     //new BorrowingVault(
-    //Address.from('0xe2A42570C5b0d764f615368A50bE40EfB5D91D9A'),
+    //Address.from('0x404CE931E95Bd8B53433e5f96e0F678f3C8bee9A'),
     //WETH9[ChainId.ARBITRUM],
     //USDT[ChainId.ARBITRUM]
     //),
@@ -248,6 +278,11 @@ export const VAULT_LIST: ChainVaultList = {
       WETH9[ChainId.OPTIMISM],
       DAI[ChainId.OPTIMISM]
     ),
+    //new BorrowingVault(
+    //Address.from('0x2EDaEecDA025579be8A0B4E0C77401bB5a56f26A'),
+    //WETH9[ChainId.OPTIMISM],
+    //USDT[ChainId.OPTIMISM]
+    //),
     new BorrowingVault(
       Address.from('0x24B76CD2693856FaDe3027c4cc69DaC9Fd6f71c4'),
       WSTETH[ChainId.OPTIMISM],
@@ -308,6 +343,26 @@ export const VAULT_LIST: ChainVaultList = {
       WETH9[ChainId.GNOSIS],
       USDC[ChainId.GNOSIS]
     ),
+    //new BorrowingVault(
+    //Address.from('0x848bE4352c984173D1927239f1c3a2b3FC3baf7b'),
+    //WETH9[ChainId.GNOSIS],
+    //WNATIVE[ChainId.GNOSIS]
+    //),
+    //new BorrowingVault(
+    //Address.from('0x2f4F37f06179d0e969D2350beE8ABe663De0dab7'),
+    //WBTC[ChainId.GNOSIS],
+    //WNATIVE[ChainId.GNOSIS]
+    //),
+    //new BorrowingVault(
+    //Address.from('0xe3298F965553b4aeF40fBe4BBa916DEc12F3d694'),
+    //WBTC[ChainId.GNOSIS],
+    //USDC[ChainId.GNOSIS]
+    //),
+    //new BorrowingVault(
+    //Address.from('0xDbc8904f2931de1549d6e9a369Dc5C75F501f820'),
+    //WSTETH[ChainId.GNOSIS],
+    //USDC[ChainId.GNOSIS]
+    //),
     new BorrowingVault(
       Address.from('0xa99F739Bd55f95D4F0958B629d3522e64A282c7c'),
       WSTETH[ChainId.GNOSIS],
