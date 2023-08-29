@@ -3,7 +3,7 @@ import {
   FinancialsResponse,
   LlamaAssetPool,
   LlamaLendBorrowPool,
-  LlamaPoolStat,
+  ProviderStatsResponse,
 } from '@x-fuji/sdk';
 
 import { DbKey } from './constants';
@@ -60,7 +60,7 @@ export async function saveStakingDataToDB(data: StakingResponse[]) {
 
 export async function saveProviderStatsToDB(
   poolId: string,
-  stats: LlamaPoolStat[]
+  stats: ProviderStatsResponse
 ) {
   try {
     const data = {

@@ -3,7 +3,6 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
-import axios from 'axios';
 import { BigNumber, TypedDataDomain, TypedDataField, utils } from 'ethers';
 import invariant from 'tiny-invariant';
 
@@ -338,11 +337,8 @@ export abstract class AbstractVault {
 
       return new FujiResultSuccess(data);
     } catch (e) {
-      const message = axios.isAxiosError(e)
-        ? `DefiLlama API call failed with a message: ${e.message}`
-        : 'DefiLlama API call failed with an unexpected error!';
-      console.error(message);
-      return new FujiResultError(message, FujiErrorCode.API);
+      console.error(e);
+      return new FujiResultError(String(e), FujiErrorCode.API);
     }
   }
 

@@ -38,8 +38,8 @@ export async function getFinancialsFromAPI(): Promise<FinancialsResponse> {
 export async function getProviderStatsFromAPI(
   poolId: string
 ): Promise<ProviderStatsResponse> {
-  const chart = axios
+  const stats = await axios
     .get<GetLlamaPoolStatsResponse>(DefillamaUrl.PROVIDER_STATS + `/${poolId}`)
     .then(({ data }) => data.data);
-  return chart;
+  return { stats };
 }

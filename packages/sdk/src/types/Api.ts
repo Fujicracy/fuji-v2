@@ -14,4 +14,6 @@ export type FinancialsResponse = {
   pools: LlamaAssetPool[];
 };
 
-export type ProviderStatsResponse = LlamaPoolStat[];
+export type ProviderStatsResponse = {
+  stats: LlamaPoolStat[];
+};
