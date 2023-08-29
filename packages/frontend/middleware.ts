@@ -1,7 +1,6 @@
-import { ApiRoute } from '@x-fuji/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { Status } from './pages/api/helpers/constants';
+import { ApiRoute, Status } from './pages/api/helpers/constants';
 import { limit } from './pages/api/helpers/limiter';
 
 export default async function middleware(req: NextRequest) {

@@ -10,7 +10,8 @@ import invariant from 'tiny-invariant';
 import { CHAIN, CONNEXT_ROUTER_ADDRESS, FujiErrorCode } from '../../constants';
 import { LENDING_PROVIDERS } from '../../constants/lending-providers';
 import { ChainId, RouterAction, VaultType } from '../../enums';
-import { apiFinancials, apiProviderStats } from '../../functions';
+import { apiFinancials } from '../../functions/apiFinancials';
+import { apiProviderStats } from '../../functions/apiProviderStats';
 import { encodeActionArgs } from '../../functions/encodeActionArgs';
 import { findPermitAction } from '../../functions/findPermitAction';
 import {
