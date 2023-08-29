@@ -1,4 +1,5 @@
-export const API_URL = process.env.API_BASE_PATH;
+export const API_URL =
+  'https://fuji-v2-frontend-git-sdk-featapi-fuji-finance.vercel.app'; // Temp
 
 export enum ApiRoute {
   FINANCIALS = '/api/getFinancials',
