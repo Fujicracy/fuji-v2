@@ -66,13 +66,16 @@ export async function getLlamaCache(): Promise<GetLLamaFinancialsResponse> {
   });
 }
 
-export async function getCacheLastUpdatedDate(): Promise<Date> {
-  return new Promise(async (resolve, reject) => {
+export async function getCacheLastUpdatedDate(): Promise<Date | undefined> {
+  return new Promise(async (resolve) => {
     const db = await init();
     const transaction = db.transaction(['metaData'], 'readonly');
     const request = transaction.objectStore('metaData').get('lastUpdated');
 
-    request.onsuccess = () => resolve(request.result.date);
-    request.onerror = () => reject(request.error);
+    transaction.oncomplete = () => {
+      if (request.result) resolve(request.result.date);
+      resolve(undefined);
+    };
+    transaction.onerror = () => resolve(undefined);
   });
 }
