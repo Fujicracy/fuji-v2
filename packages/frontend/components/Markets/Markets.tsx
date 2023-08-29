@@ -26,6 +26,13 @@ function Markets() {
   const [currentTab, setCurrentTab] = useState<number>(
     router.query?.tab === 'lend' ? 1 : 0
   );
+  const [isTransitionActive, setIsTransitionActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsTransitionActive(false);
+    }, 500);
+  }, [currentTab]);
 
   const [filters, setFilters] = useState<MarketFilters>({
     searchQuery: '',
@@ -72,7 +79,10 @@ function Markets() {
         wrap="wrap"
       >
         <BorrowLendingTabNavigation
-          onChange={(tab) => setCurrentTab(tab)}
+          onChange={(tab) => {
+            setIsTransitionActive(true);
+            setCurrentTab(tab);
+          }}
           defaultTab={currentTab}
         />
         <MarketFiltersHeader filters={filters} setFilters={setFilters} />
@@ -83,6 +93,7 @@ function Markets() {
         rows={tableData.rows}
         vaults={tableData.vaults}
         type={tableData.type}
+        isTransitionActive={isTransitionActive}
       />
     </Box>
   );

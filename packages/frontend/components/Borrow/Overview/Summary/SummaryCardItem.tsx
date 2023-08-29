@@ -70,7 +70,7 @@ function SummaryCardItem({ info, isMobile }: SummaryCardItemProps) {
   }
   return (
     <Grid item xs={6}>
-      <Card variant="position">
+      <Card variant="position" sx={{ width: '100%' }}>
         <Typography variant="smallDark">{title}</Typography>
         <Stack
           direction="row"
