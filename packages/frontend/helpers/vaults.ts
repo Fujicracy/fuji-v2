@@ -1,10 +1,10 @@
 import {
   AbstractVault,
   Address,
+  FinancialsResponse,
   FujiError,
   FujiResultPromise,
   FujiResultSuccess,
-  GetLLamaFinancialsResponse,
   VaultType,
   VaultWithFinancials,
 } from '@x-fuji/sdk';
@@ -100,7 +100,7 @@ export const allAvailableVaults = (): VaultWithFinancials[] => [
 ];
 
 export const getLlamasWithFinancials =
-  async (): FujiResultPromise<GetLLamaFinancialsResponse> => {
+  async (): FujiResultPromise<FinancialsResponse> => {
     const lastUpdated = await getCacheLastUpdatedDate();
     const cache = await getLlamaCache();
     const now = new Date();
