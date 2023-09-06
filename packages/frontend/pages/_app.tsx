@@ -11,7 +11,7 @@ import { useEffect, useRef } from 'react';
 import Header from '../components/App/Header/Header';
 import Notification from '../components/App/Notification';
 import DisclaimerModal from '../components/App/Onboarding/DisclaimerModal';
-import ExploreCarousel from '../components/App/Onboarding/ExploreCarousel';
+import ShutdownNotice from '../components/App/ShutdownNotice';
 import TransactionModal from '../components/App/TransactionModal';
 import { PATH } from '../constants';
 import {
@@ -160,7 +160,7 @@ function MyApp({ Component, pageProps }: AppProps) {
             />
           )}
           <DisclaimerModal />
-          <ExploreCarousel />
+          <ShutdownNotice />
           <Notification />
         </ThemeProvider>
       </Web3OnboardProvider>
