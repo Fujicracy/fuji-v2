@@ -4,7 +4,7 @@ import { alpha, useTheme } from '@mui/material/styles';
 import { useRouter } from 'next/router';
 import React, { ReactNode, useState } from 'react';
 
-import { PATH } from '../../../constants';
+import { PATH, SHUTDOWN_BLOG_POST_URL } from '../../../constants';
 
 type BannerLinkProps = {
   label: string;
@@ -27,14 +27,19 @@ function Banners() {
       key: 'shutdownBanner',
       customMessage: (
         <Typography variant="xsmall">
-          {`TBD: We are shutting down applications. Please close your `}
+          {`🚨Attention 📢  We are closing down the company and halting all work to the protocol. Please close your`}
           <span
             onClick={() => router.push(PATH.MY_POSITIONS)}
-            style={{ cursor: 'pointer', textDecoration: 'underline' }}
+            style={{
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              marginLeft: '0.2rem',
+            }}
           >
             positions
           </span>
-          {`  while you can.`}
+          {` and withdraw your funds prior to Dec 31th. For more information, read `}
+          <BannerLink link={{ label: 'here', url: SHUTDOWN_BLOG_POST_URL }} />
         </Typography>
       ),
       isContrast: true,
@@ -119,7 +124,7 @@ function BannerLink({
   return (
     <Link
       href={link?.url}
-      target="_self"
+      target="_blank"
       rel="noreferrer"
       sx={{
         ml: '0.1rem',

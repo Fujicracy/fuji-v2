@@ -1,8 +1,8 @@
-import { Button, Dialog, Paper, Typography } from '@mui/material';
+import { Button, Dialog, Link, Paper, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
 
-import { PATH } from '../../constants';
+import { PATH, SHUTDOWN_BLOG_POST_URL } from '../../constants';
 import { usePositions } from '../../store/positions.store';
 import ModalHeader from '../Shared/ModalHeader';
 
@@ -46,22 +46,43 @@ function ShutdownNotice() {
           p: { xs: '1rem', sm: '1.5rem' },
         }}
       >
-        <ModalHeader title="Shutdown Notice" onClose={onClose} />
+        <ModalHeader title="🚨 Attention 📢 " onClose={onClose} />
 
         <Typography
           mb="1.5rem"
           sx={{
             fontSize: '0.875rem',
             minHeight: '2.625rem',
+            textAlign: 'center',
           }}
         >
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat. Duis aute irure dolor in
-          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
-          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-          culpa qui officia deserunt mollit anim id est laborum.
+          Fuji Finance recently announced that they are closing down the company
+          and halting all work to the protocol.
+          <br />
+          <Typography
+            mt="0.25rem"
+            sx={{
+              fontSize: '0.875rem',
+              minHeight: '2.625rem',
+            }}
+          >
+            Please close your positions, and withdraw your funds prior to Dec
+            31th. For more information, please refer to the announcement
+            <Link
+              href={SHUTDOWN_BLOG_POST_URL}
+              target="_blank"
+              rel="noreferrer"
+              sx={{
+                display: 'inline-block',
+                ml: '0.2rem',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+              }}
+            >
+              here
+            </Link>
+            .
+          </Typography>
         </Typography>
 
         <Button
