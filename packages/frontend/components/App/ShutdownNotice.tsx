@@ -46,7 +46,7 @@ function ShutdownNotice() {
           p: { xs: '1rem', sm: '1.5rem' },
         }}
       >
-        <ModalHeader title="🚨 Attention 📢 " onClose={onClose} />
+        <ModalHeader title="🚨 Attention 🚨" onClose={onClose} />
 
         <Typography
           mb="1.5rem"

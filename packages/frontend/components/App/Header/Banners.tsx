@@ -27,7 +27,7 @@ function Banners() {
       key: 'shutdownBanner',
       customMessage: (
         <Typography variant="xsmall">
-          {`🚨Attention 📢  We are closing down the company and halting all work to the protocol. Please close your`}
+          {`🚨Attention🚨 We are closing down the company and halting all work to the protocol. Please close your`}
           <span
             onClick={() => router.push(PATH.MY_POSITIONS)}
             style={{
