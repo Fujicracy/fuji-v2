@@ -1,12 +1,10 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Collapse, Link, Stack, Typography } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
-import React, { ReactNode, useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import React, { ReactNode, useState } from 'react';
 
-import { HELPER_URL } from '../../../constants';
-import { dismissBanner, getBannerVisibility } from '../../../helpers/banners';
-import { fetchGuardedLaunchAddresses } from '../../../helpers/guardedLaunch';
-import { useAuth } from '../../../store/auth.store';
+import { PATH, SHUTDOWN_BLOG_POST_URL } from '../../../constants';
 
 type BannerLinkProps = {
   label: string;
@@ -21,69 +19,32 @@ export type BannerConfig = {
   isContrast?: boolean;
 };
 
-const BANNERS: BannerConfig[] = [
-  {
-    key: 'betaTest',
-    message:
-      'We are in beta, some bugs may arise. We appreciate your feedback as we work diligently to improve the user experience.',
-  },
-];
-
-const GUARDED_LAUNCH_BANNERS: BannerConfig[] = [
-  {
-    key: 'guardedLaunch',
-    customMessage: (
-      <Typography variant="xsmall">
-        {`We have released Fuji's official V2 🎉. We are incredibly grateful for
-        your participation in the guarded launch. For your support, you can
-        claim your NFT on `}
-        <BannerLink
-          link={{
-            label: 'Galxe',
-            url: HELPER_URL.GALXE_GUARDED_CAMPAIGN,
-          }}
-          isContrast
-        />
-        {`. If you had a position in the guarded launch, you can migrate it from `}
-        <BannerLink
-          link={{
-            label: 'the guarded',
-            url: HELPER_URL.GUARDED_LAUNCH,
-          }}
-          isContrast
-        />
-        {` to the official version.`}
-      </Typography>
-    ),
-    isContrast: true,
-  },
-];
-
 function Banners() {
-  const [banners, setBanners] = useState<BannerConfig[]>([]);
-  const walletAddress = useAuth((state) => state.address);
+  const router = useRouter();
 
-  useEffect(() => {
-    let filteredBanners = BANNERS.filter((banner) =>
-      getBannerVisibility(banner.key)
-    );
-
-    const guardedLaunchBanners = GUARDED_LAUNCH_BANNERS.filter((banner) =>
-      getBannerVisibility(banner.key)
-    );
-
-    fetchGuardedLaunchAddresses().then((addresses) => {
-      if (
-        addresses.includes(walletAddress?.toLowerCase() || '') &&
-        window !== undefined &&
-        window.location.href !== HELPER_URL.GUARDED_LAUNCH
-      ) {
-        filteredBanners = filteredBanners.concat(guardedLaunchBanners);
-      }
-
-      setBanners(filteredBanners);
-    });
-  }, [walletAddress]);
+  const BANNERS: BannerConfig[] = [
+    {
+      key: 'shutdownBanner',
+      customMessage: (
+        <Typography variant="xsmall">
+          {`🚨Attention🚨 We are closing down the company and halting all work to the protocol. Please close your`}
+          <span
+            onClick={() => router.push(PATH.MY_POSITIONS)}
+            style={{
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              marginLeft: '0.2rem',
+            }}
+          >
+            positions
+          </span>
+          {` and withdraw your funds prior to Dec 31th. For more information, read `}
+          <BannerLink link={{ label: 'here', url: SHUTDOWN_BLOG_POST_URL }} />
+        </Typography>
+      ),
+      isContrast: true,
+    },
+  ];
 
   return (
     <Stack
@@ -91,8 +52,8 @@ function Banners() {
         width: '100%',
       }}
     >
-      {banners.map((banner) => (
-        <Banner banner={banner} key={banner.key} onDismiss={dismissBanner} />
+      {BANNERS.map((banner) => (
+        <Banner banner={banner} key={banner.key} />
       ))}
     </Stack>
   );
@@ -103,14 +64,14 @@ function Banner({
   onDismiss,
 }: {
   banner: BannerConfig;
-  onDismiss: (key: string) => void;
+  onDismiss?: (key: string) => void;
 }) {
   const { palette } = useTheme();
   const [isVisible, setIsVisible] = useState(true);
 
   const onDismissClick = () => {
     setIsVisible(false);
-    onDismiss(banner.key);
+    onDismiss && onDismiss(banner.key);
   };
 
   return (
@@ -135,17 +96,19 @@ function Banner({
           </Typography>
         )}
         {banner.customMessage}
-        <CloseIcon
-          sx={{
-            cursor: 'pointer',
-            position: 'absolute',
-            top: '50%',
-            right: '1rem',
-            fontSize: '1.2rem',
-            transform: 'translateY(-50%)',
-          }}
-          onClick={onDismissClick}
-        />
+        {onDismiss && (
+          <CloseIcon
+            sx={{
+              cursor: 'pointer',
+              position: 'absolute',
+              top: '50%',
+              right: '1rem',
+              fontSize: '1.2rem',
+              transform: 'translateY(-50%)',
+            }}
+            onClick={onDismissClick}
+          />
+        )}
       </Stack>
     </Collapse>
   );
