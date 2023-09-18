@@ -44,5 +44,5 @@ export type HelperLink = {
 export const SENTRY_DSN =
   'https://f64501e2fca94d6c9434a00ed0aece54@o1151449.ingest.sentry.io/4504884437057536';
 
-// TODO: change link
-export const SHUTDOWN_BLOG_POST_URL = 'https://medium.com/fuji-finance';
+export const SHUTDOWN_BLOG_POST_URL =
+  'https://medium.com/fuji-finance/7a8437b8b172';
