@@ -3,18 +3,14 @@ import { JsonRpcProvider } from '@ethersproject/providers';
 import { keccak256 } from '@ethersproject/solidity';
 import { formatUnits } from '@ethersproject/units';
 import { IMulticallProvider } from '@hovoh/ethcall';
-import axios from 'axios';
 import { BigNumber, TypedDataDomain, TypedDataField, utils } from 'ethers';
 import invariant from 'tiny-invariant';
 
-import {
-  CHAIN,
-  CONNEXT_ROUTER_ADDRESS,
-  FujiErrorCode,
-  URLS,
-} from '../../constants';
+import { CHAIN, CONNEXT_ROUTER_ADDRESS, FujiErrorCode } from '../../constants';
 import { LENDING_PROVIDERS } from '../../constants/lending-providers';
 import { ChainId, RouterAction, VaultType } from '../../enums';
+import { apiFinancials } from '../../functions/apiFinancials';
+import { apiProviderStats } from '../../functions/apiProviderStats';
 import { encodeActionArgs } from '../../functions/encodeActionArgs';
 import { findPermitAction } from '../../functions/findPermitAction';
 import {
@@ -27,11 +23,7 @@ import {
   XTransferWithCallParams,
 } from '../../types';
 import { BaseVaultMulticall } from '../../types/contracts/src/abstracts/BaseVault';
-import {
-  GetLlamaAssetPoolsResponse,
-  GetLlamaPoolStatsResponse,
-  LlamaAssetPool,
-} from '../../types/LlamaResponses';
+import { LlamaAssetPool } from '../../types/LlamaResponses';
 import { Address } from '../Address';
 import { Chain } from '../Chain';
 import { FujiResultError, FujiResultSuccess } from '../FujiError';
@@ -293,14 +285,10 @@ export abstract class AbstractVault {
     if (!this.allProviders)
       return new FujiResultError('Lending Providers are not preLoaded!');
 
-    const uri = {
-      pools: URLS.DEFILLAMA_POOLS,
-      chart: URLS.DEFILLAMA_CHART,
-    };
     try {
-      const pools = await axios
-        .get<GetLlamaAssetPoolsResponse>(uri.pools)
-        .then(({ data }) => data.data);
+      const result = await apiFinancials();
+      if (!result.success) return result;
+      const { pools } = result.data;
 
       const getPoolId = (providerAddr: string) => {
         const provider = LENDING_PROVIDERS[this.chainId][providerAddr];
@@ -316,13 +304,18 @@ export abstract class AbstractVault {
       };
 
       const llamaResult = await Promise.all(
-        this.allProviders.map((addr) => {
+        this.allProviders.map(async (addr) => {
           const poolId = getPoolId(addr);
-          return poolId
-            ? axios
-                .get<GetLlamaPoolStatsResponse>(uri.chart + `/${poolId}`)
-                .then(({ data }) => data.data)
-            : Promise.resolve([]);
+          if (poolId) {
+            const result = await apiProviderStats(poolId);
+            if (result.success) {
+              return result.data;
+            } else {
+              return [];
+            }
+          } else {
+            return [];
+          }
         })
       );
       const data = this.allProviders.map((addr, i) => ({
@@ -344,11 +337,8 @@ export abstract class AbstractVault {
 
       return new FujiResultSuccess(data);
     } catch (e) {
-      const message = axios.isAxiosError(e)
-        ? `DefiLlama API call failed with a message: ${e.message}`
-        : 'DefiLlama API call failed with an unexpected error!';
-      console.error(message);
-      return new FujiResultError(message, FujiErrorCode.LLAMA);
+      console.error(e);
+      return new FujiResultError(String(e), FujiErrorCode.API);
     }
   }
 

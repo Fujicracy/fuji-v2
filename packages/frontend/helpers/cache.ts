@@ -1,4 +1,4 @@
-import { GetLLamaFinancialsResponse } from '@x-fuji/sdk';
+import { FinancialsResponse } from '@x-fuji/sdk';
 
 export const CACHE_LIMIT = 1000 * 60 * 15; // Fifteen minutes
 
@@ -31,9 +31,7 @@ function init(): Promise<IDBDatabase> {
   return dbPromise;
 }
 
-export async function setLlamaCache(
-  data: GetLLamaFinancialsResponse
-): Promise<void> {
+export async function setLlamaCache(data: FinancialsResponse): Promise<void> {
   const db = await init();
   const transaction = db.transaction(
     ['pools', 'lendBorrows', 'metaData'],
@@ -47,7 +45,7 @@ export async function setLlamaCache(
     .put({ name: 'lastUpdated', date: new Date() });
 }
 
-export async function getLlamaCache(): Promise<GetLLamaFinancialsResponse> {
+export async function getLlamaCache(): Promise<FinancialsResponse> {
   return new Promise(async (resolve, reject) => {
     const db = await init();
     const transaction = db.transaction(['pools', 'lendBorrows'], 'readonly');
