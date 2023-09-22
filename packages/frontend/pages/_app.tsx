@@ -52,6 +52,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   );
   const changeWillLoad = useNavigation((state) => state.changePageWillLoad);
   const fetchPositions = usePositions((state) => state.fetchUserPositions);
+  const clearPositions = usePositions((state) => state.clear);
 
   const entry = address && currentTxHash && entries[currentTxHash];
   const prevAddressRef = useRef<string | undefined>(undefined);
@@ -67,10 +68,13 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, [initAuth]);
 
   useEffect(() => {
+    if (prevAddressRef.current !== address) {
+      clearPositions();
+    }
     if (address) {
       fetchPositions();
     }
-  }, [address, fetchPositions]);
+  }, [address, clearPositions, fetchPositions]);
 
   useEffect(() => {
     if (address && prevAddressRef.current !== address) {
