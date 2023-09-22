@@ -28,11 +28,16 @@ const BorrowPage: NextPage = () => {
 
   const [hasChain, setHasChain] = useState(false);
 
-  if (shouldResetPage) {
-    clearDebt();
-    clearInputValues();
-    navigationalTaskDelay(() => changeShouldPageReset(VaultType.BORROW, false));
-  }
+  useEffect(() => {
+    if (shouldResetPage) {
+      clearDebt();
+      clearInputValues();
+      navigationalTaskDelay(() =>
+        changeShouldPageReset(VaultType.BORROW, false)
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     changeFormType(formType);

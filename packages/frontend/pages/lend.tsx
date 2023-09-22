@@ -25,10 +25,13 @@ const LendingPage: NextPage = () => {
 
   const [hasChain, setHasChain] = useState(false);
 
-  if (shouldResetPage) {
-    clearInputValues();
-    navigationalTaskDelay(() => changeShouldPageReset(VaultType.LEND, false));
-  }
+  useEffect(() => {
+    if (shouldResetPage) {
+      clearInputValues();
+      navigationalTaskDelay(() => changeShouldPageReset(VaultType.LEND, false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     changeFormType(formType);

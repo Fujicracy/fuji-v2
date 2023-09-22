@@ -25,6 +25,7 @@ import {
   navigationalTaskDelay,
   pathForVaultType,
 } from '../helpers/navigation';
+import { notify } from '../helpers/notifications';
 import { onboard, useAuth } from '../store/auth.store';
 import { useHistory } from '../store/history.store';
 import { useNavigation } from '../store/navigation.store';
@@ -100,6 +101,25 @@ function MyApp({ Component, pageProps }: AppProps) {
       stopPolling();
     };
   }, [address, router]);
+
+  useEffect(() => {
+    const onRedeploy = (e: ErrorEvent) => {
+      /** Warns user about application redeploy */
+      if (/Loading chunk [\d]+ failed/.test(e.message)) {
+        notify({
+          message: 'New version released, page will be reloaded',
+          type: 'info',
+        });
+
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      }
+    };
+    window.addEventListener('error', onRedeploy);
+
+    return () => window.removeEventListener('error', onRedeploy);
+  }, []);
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
