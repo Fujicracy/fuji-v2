@@ -10,8 +10,12 @@ pragma solidity 0.8.15;
  */
 
 import {IERC4626} from "openzeppelin-contracts/contracts/interfaces/IERC4626.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {ILendingProvider} from "./ILendingProvider.sol";
+import {IHarvestable} from "./IHarvestable.sol";
 import {IFujiOracle} from "./IFujiOracle.sol";
+import {Strategy} from "../interfaces/IHarvestManager.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
 
 interface IVault is IERC4626 {
   /**
@@ -109,6 +113,15 @@ interface IVault is IERC4626 {
    * @param newDepositCap the new deposit cap of this vault
    */
   event DepositCapChanged(uint256 newDepositCap);
+
+  /**
+   * @dev Emit when harvest occurs.
+   *
+   * @param provider the provider that was harvested
+   * @param tokens the tokens harvested
+   * @param amounts the amounts harvested
+   */
+  event Harvest(address provider, address[] tokens, uint256[] amounts);
 
   /*///////////////////////////
     Asset management functions
@@ -489,4 +502,26 @@ interface IVault is IERC4626 {
    * @param amount to be as minimum.
    */
   function setMinAmount(uint256 amount) external;
+
+  /*/////////////////////
+     Harvest functions 
+  ////////////////////*/
+
+  /**
+   * @notice Collects rewards from the protocol.
+   *
+   * @param strategy enum of the strategy to apply after harvesting rewards.
+   * @param provider lending provider to be harvested.
+   * @param swapper swapper to be used to swap rewards.
+   * @param data bytes to be used to call the harvest function at the lending provider.
+   *
+   */
+  function harvest(
+    Strategy strategy,
+    IHarvestable provider,
+    ISwapper swapper,
+    bytes memory data
+  )
+    external
+    returns (address[] memory tokens, uint256[] memory amounts);
 }

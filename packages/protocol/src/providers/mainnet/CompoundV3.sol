@@ -12,12 +12,22 @@ pragma solidity 0.8.15;
  * See `_getMarketAndAssets`.
  */
 
+import "forge-std/console.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IHarvestable} from "../../interfaces/IHarvestable.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ICompoundV3} from "../../interfaces/compoundV3/ICompoundV3.sol";
+import {
+  ICompoundV3Rewards,
+  RewardOwed,
+  RewardConfig
+} from "../../interfaces/compoundV3/ICompoundV3Rewards.sol";
 import {IAddrMapper} from "../../interfaces/IAddrMapper.sol";
+import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 
-contract CompoundV3 is ILendingProvider {
+contract CompoundV3 is ILendingProvider, IHarvestable {
+  using Math for uint256;
+
   /// @dev Custom errors
   error CompoundV3__wrongMarket();
 
@@ -147,5 +157,45 @@ contract CompoundV3 is ILendingProvider {
     address market = getMapper().getAddressNestedMapping(providerName(), asset, debtAsset);
 
     cMarketV3 = ICompoundV3(market);
+  }
+
+  function _getRewards() private pure returns (ICompoundV3Rewards compoundV3Rewards) {
+    compoundV3Rewards = ICompoundV3Rewards(0x1B0e765F6224C21223AeA2af16c1C46E38885a40);
+  }
+
+  /// @inheritdoc IHarvestable
+  function harvest(bytes memory data)
+    external
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    IVault vault = abi.decode(data, (IVault));
+    (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
+
+    RewardOwed memory rewardOwed = _getRewards().getRewardOwed(address(cMarketV3), address(vault));
+    tokens = new address[](1);
+    tokens[0] = rewardOwed.token;
+
+    amounts = new uint256[](1);
+    amounts[0] = rewardOwed.owed;
+
+    _getRewards().claim(address(cMarketV3), address(vault), true);
+  }
+
+  ////TODO/ @inheritdoc IHarvestable
+  /// @dev compound reward amounts are scaled by up by 10
+  function previewHarvest(IVault vault)
+    public
+    view
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    (ICompoundV3 cMarketV3,,) = _getMarketAndAssets(vault);
+    RewardConfig memory rewardConfig = _getRewards().rewardConfig(address(cMarketV3));
+
+    tokens = new address[](1);
+    tokens[0] = rewardConfig.token;
+
+    //TODO
+    amounts = new uint256[](1);
+    amounts[0] = 0;
   }
 }

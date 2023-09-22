@@ -25,6 +25,8 @@ contract MockERC20 is ERC20 {
 
   mapping(string => mapping(address => uint256)) private _balancesDebt;
 
+  event MintRewards(string provider, address from, uint256 value);
+
   constructor(string memory _name, string memory _symbol) ERC20(_name, _symbol) {}
 
   // mocking WETH
@@ -99,6 +101,19 @@ contract MockERC20 is ERC20 {
     _balancesDebt[provider][from] -= value;
     _burn(from, value);
     emit PaybackRecorded(provider, from, value);
+    success = true;
+  }
+
+  function mintRewards(
+    address to,
+    uint256 value,
+    string memory provider
+  )
+    public
+    returns (bool success)
+  {
+    _mint(to, value);
+    emit MintRewards(provider, to, value);
     success = true;
   }
 

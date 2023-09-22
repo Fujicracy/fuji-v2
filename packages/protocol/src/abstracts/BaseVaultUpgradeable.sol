@@ -23,7 +23,10 @@ import {MathUpgradeable} from
 import {AddressUpgradeable} from
   "openzeppelin-contracts-upgradeable/contracts/utils/AddressUpgradeable.sol";
 import {IVaultUpgradeable} from "../interfaces/IVaultUpgradeable.sol";
+import {Strategy, IHarvestManager} from "../interfaces/IHarvestManager.sol";
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
+import {IHarvestable} from "../interfaces/IHarvestable.sol";
+import {ISwapper} from "../interfaces/ISwapper.sol";
 import {IERC4626Upgradeable} from
   "openzeppelin-contracts-upgradeable/contracts/interfaces/IERC4626Upgradeable.sol";
 import {VaultPermissions} from "../vaults/VaultPermissions.sol";
@@ -41,6 +44,7 @@ abstract contract BaseVaultUpgradeable is
   using MathUpgradeable for uint256;
   using AddressUpgradeable for address;
   using SafeERC20Upgradeable for IERC20Metadata;
+  using SafeERC20Upgradeable for IERC20Upgradeable;
 
   /// @dev Custom Errors
   error BaseVault__initialize_invalidInput();
@@ -58,6 +62,11 @@ abstract contract BaseVaultUpgradeable is
   error BaseVault__redeem_slippageTooHigh();
   error BaseVault__useIncreaseWithdrawAllowance();
   error BaseVault__useDecreaseWithdrawAllowance();
+  error BaseVault__harvest_invalidProvider();
+  error BaseVault__harvest_strategyNotImplemented();
+  error BaseVault__harvest_notValidSwapper();
+  error BaseVault__harvest_noRewards();
+  error BaseVault__harvest_invalidRewards();
 
   /**
    *  @dev `VERSION` of this vault.
@@ -868,5 +877,81 @@ abstract contract BaseVaultUpgradeable is
     if (fee > reasonableFee) {
       revert BaseVault__checkRebalanceFee_excessFee();
     }
+  }
+
+  /// @inheritdoc IVaultUpgradeable
+  function harvest(
+    Strategy strategy,
+    IHarvestable provider,
+    ISwapper swapper,
+    bytes memory data
+  )
+    external
+    virtual
+    hasRole(msg.sender, HARVESTER_ROLE)
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    //TODO maybe move this verification to the HarvestManager
+    //check strategy is valid for this vault
+    if (strategy == Strategy.RepayDebt) {
+      revert BaseVault__harvest_strategyNotImplemented();
+    }
+    //check provider is valid
+    if (!_isValidProvider(address(provider))) {
+      revert BaseVault__harvest_invalidProvider();
+    }
+
+    //collect rewards from provider
+    (tokens, amounts) = _harvest(provider, data);
+
+    //TODO create an abstract contract "Harvestable" that inherits "IHarvestable" that is inherited by a provider that is "harvestable".
+    //In there we can put repeated logic and checks, that we could offboard from the vault contracts.
+    if (tokens.length != amounts.length) {
+      revert BaseVault__harvest_invalidRewards();
+    }
+
+    for (uint256 i = 0; i < tokens.length; i++) {
+      //transfer rewards to recipient
+      IERC20Upgradeable(tokens[i]).safeIncreaseAllowance(msg.sender, amounts[i]);
+    }
+
+    bytes memory callData = IHarvestManager(msg.sender).completeHarvest(
+      address(this), strategy, provider, swapper, tokens, amounts
+    );
+    _completeHarvest(address(provider), callData);
+  }
+
+  /**
+   * @dev Harvests rewards from `provider`.
+   *
+   * @param provider address of provider to harvest from
+   * @param data bytes data to be used by the harvest function of the provider, specific to each provider way of harvesting
+   */
+  function _harvest(
+    IHarvestable provider,
+    bytes memory data
+  )
+    internal
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    bytes memory callData = abi.encodeWithSelector(provider.harvest.selector, data);
+    (bytes memory returnData) = address(provider).functionDelegateCall(
+      callData, string(abi.encodePacked("harvest", ": delegate call failed"))
+    );
+    (tokens, amounts) = abi.decode(returnData, (address[], uint256[]));
+
+    emit Harvest(address(provider), tokens, amounts);
+  }
+
+  function _completeHarvest(
+    address provider,
+    bytes memory data
+  )
+    internal
+    returns (bytes memory returnData)
+  {
+    returnData = address(provider).functionDelegateCall(
+      data, string(abi.encodePacked("completeHarvest", ": delegate call failed"))
+    );
   }
 }

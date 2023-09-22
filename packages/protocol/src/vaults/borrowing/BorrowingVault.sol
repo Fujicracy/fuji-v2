@@ -24,11 +24,14 @@ import {
 } from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {IVault} from "../../interfaces/IVault.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IHarvestManager, Strategy} from "../../interfaces/IHarvestManager.sol";
+import {IHarvestable} from "../../interfaces/IHarvestable.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Math} from "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import {BaseVault} from "../../abstracts/BaseVault.sol";
 import {VaultPermissions} from "../VaultPermissions.sol";
+import {ISwapper} from "../../interfaces/ISwapper.sol";
 
 contract BorrowingVault is BaseVault {
   using Math for uint256;
@@ -980,5 +983,46 @@ contract BorrowingVault is BaseVault {
     _providers = providers;
 
     emit ProvidersChanged(providers);
+  }
+
+  /*/////////////////////
+     Harvest functions 
+  ////////////////////*/
+
+  /// @inheritdoc IVault
+  function harvest(
+    Strategy strategy,
+    IHarvestable provider,
+    ISwapper swapper,
+    bytes memory data
+  )
+    external
+    override
+    hasRole(msg.sender, HARVESTER_ROLE)
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    //check provider is valid
+    if (!_isValidProvider(address(provider))) {
+      revert BaseVault__harvest_invalidProvider();
+    }
+
+    //collect rewards from provider
+    (tokens, amounts) = _harvest(provider, data);
+
+    //TODO create an abstract contract "Harvestable" that inherits "IHarvestable" that is inherited by a provider that is "harvestable".
+    //In there we can put repeated logic and checks, that we could offboard from the vault contracts.
+    if (tokens.length != amounts.length) {
+      revert BaseVault__harvest_invalidRewards();
+    }
+
+    for (uint256 i = 0; i < tokens.length; i++) {
+      //transfer rewards to recipient
+      IERC20Metadata(tokens[i]).safeIncreaseAllowance(msg.sender, amounts[i]);
+    }
+
+    bytes memory callData = IHarvestManager(msg.sender).completeHarvest(
+      address(this), strategy, provider, swapper, tokens, amounts
+    );
+    _completeHarvest(address(provider), callData);
   }
 }

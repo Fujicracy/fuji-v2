@@ -109,7 +109,7 @@ contract UniswapV2Swapper is ISwapper {
   {
     address[] memory path = _buildPath(assetIn, assetOut);
     uint256[] memory amounts = uniswapRouter.getAmountsOut(amountIn, path);
-    amountOut = amounts[1];
+    amountOut = amounts[amounts.length - 1];
   }
 
   /**

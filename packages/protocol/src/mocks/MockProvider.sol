@@ -14,10 +14,11 @@ pragma solidity 0.8.15;
  */
 
 import {ILendingProvider} from "../interfaces/ILendingProvider.sol";
+import {IHarvestable} from "../interfaces/IHarvestable.sol";
 import {IVault} from "../interfaces/IVault.sol";
 import {MockERC20} from "./MockERC20.sol";
 
-contract MockProvider is ILendingProvider {
+contract MockProvider is ILendingProvider, IHarvestable {
   /// @inheritdoc ILendingProvider
   function providerName() public pure virtual override returns (string memory) {
     return "Mock_V1";
@@ -103,5 +104,31 @@ contract MockProvider is ILendingProvider {
     returns (uint256 balance)
   {
     balance = MockERC20(vault.debtAsset()).balanceOfDebt(user, providerName());
+  }
+
+  /// @inheritdoc IHarvestable
+  /// @dev mocking rewards for test purposes
+  /// will assume rewards are given in vault.asset and always 1e18
+  function harvest(bytes memory data)
+    external
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    IVault vault = abi.decode(data, (IVault));
+    MockERC20 merc20 = MockERC20(vault.asset());
+    try merc20.mintRewards(address(vault), 1e18, providerName()) returns (bool /* result */ ) {
+      return previewHarvest(vault);
+    } catch {}
+  }
+
+  //TODO/// @inheritdoc IHarvestable
+  function previewHarvest(IVault vault)
+    public
+    view
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    tokens = new address[](1);
+    tokens[0] = vault.asset();
+    amounts = new uint256[](1);
+    amounts[0] = 1e18;
   }
 }

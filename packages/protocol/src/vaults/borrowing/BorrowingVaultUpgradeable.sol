@@ -15,6 +15,10 @@ import {
 } from
   "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
 import {IVaultUpgradeable} from "../../interfaces/IVaultUpgradeable.sol";
+import {Strategy, IHarvestManager} from "../../interfaces/IHarvestManager.sol";
+import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
+import {IHarvestable} from "../../interfaces/IHarvestable.sol";
+import {ISwapper} from "../../interfaces/ISwapper.sol";
 import {ILendingProvider} from "../../interfaces/ILendingProvider.sol";
 import {IFujiOracle} from "../../interfaces/IFujiOracle.sol";
 import {SafeERC20Upgradeable as SafeERC20} from
@@ -856,5 +860,46 @@ contract BorrowingVaultUpgradeable is BaseVaultUpgradeable {
     _providers = providers;
 
     emit ProvidersChanged(providers);
+  }
+
+  /*/////////////////////
+     Harvest functions 
+  ////////////////////*/
+
+  /// @inheritdoc IVaultUpgradeable
+  function harvest(
+    Strategy strategy,
+    IHarvestable provider,
+    ISwapper swapper,
+    bytes memory data
+  )
+    external
+    override
+    hasRole(msg.sender, HARVESTER_ROLE)
+    returns (address[] memory tokens, uint256[] memory amounts)
+  {
+    //check provider is valid
+    if (!_isValidProvider(address(provider))) {
+      revert BaseVault__harvest_invalidProvider();
+    }
+
+    //collect rewards from provider
+    (tokens, amounts) = _harvest(provider, data);
+
+    //TODO create an abstract contract "Harvestable" that inherits "IHarvestable" that is inherited by a provider that is "harvestable".
+    //In there we can put repeated logic and checks, that we could offboard from the vault contracts.
+    if (tokens.length != amounts.length) {
+      revert BaseVault__harvest_invalidRewards();
+    }
+
+    for (uint256 i = 0; i < tokens.length; i++) {
+      //transfer rewards to recipient
+      IERC20Metadata(tokens[i]).safeIncreaseAllowance(msg.sender, amounts[i]);
+    }
+
+    bytes memory callData = IHarvestManager(msg.sender).completeHarvest(
+      address(this), strategy, provider, swapper, tokens, amounts
+    );
+    _completeHarvest(address(provider), callData);
   }
 }
