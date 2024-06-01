@@ -94,6 +94,24 @@ export const RETH_ADDRESS: AddressMap = {
   [ChainId.GNOSIS]: Address.from(AddressZero),
 };
 
+export const WBTC_ADDRESS: AddressMap = {
+  [ChainId.ETHEREUM]: Address.from(
+    '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599'
+  ),
+  [ChainId.MATIC]: Address.from('0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6'),
+  [ChainId.FANTOM]: Address.from(AddressZero),
+  [ChainId.ARBITRUM]: Address.from(
+    '0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f'
+  ),
+  [ChainId.OPTIMISM]: Address.from(
+    '0x68f180fcCe6836688e9084f035309E29Bf0A2095'
+  ),
+  [ChainId.GOERLI]: Address.from(AddressZero),
+  [ChainId.OPTIMISM_GOERLI]: Address.from(AddressZero),
+  [ChainId.MATIC_MUMBAI]: Address.from(AddressZero),
+  [ChainId.GNOSIS]: Address.from('0x8e5bBbb09Ed1ebdE8674Cda39A0c169401db4252'),
+};
+
 export const GNO_ADDRESS: AddressMap = {
   [ChainId.ETHEREUM]: Address.from(
     '0x6810e776880C02933D47DB1b9fc05908e5386b96'
